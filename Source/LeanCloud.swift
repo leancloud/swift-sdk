@@ -11,9 +11,9 @@ import Foundation
 /**
  Initialize LeanCloud SDK.
 
- - parameter appId:  Application ID.
- - parameter appKey: Application key.
+ - parameter applicationID:  Application ID.
+ - parameter applicationKey: Application key.
  */
-public func initialize(appId appId: String, appKey: String) {
+public func initialize(applicationID applicationID: String, applicationKey: String) {
     /* Stub method */
 }
