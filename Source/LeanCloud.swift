@@ -8,6 +8,10 @@
 
 import Foundation
 
+private func prepare() {
+    Object.registerSubclasses()
+}
+
 /**
  Initialize LeanCloud SDK.
 
@@ -19,4 +23,6 @@ public func initialize(applicationID applicationID: String, applicationKey: Stri
 
     configure.applicationID  = applicationID
     configure.applicationKey = applicationKey
+
+    prepare();
 }
