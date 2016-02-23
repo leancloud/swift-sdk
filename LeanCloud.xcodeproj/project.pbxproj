@@ -13,7 +13,7 @@
 		830B0F6C1C7C60DA00D9FC41 /* Runtime.swift in Sources */ = {isa = PBXBuildFile; fileRef = 830B0F6B1C7C60DA00D9FC41 /* Runtime.swift */; };
 		8342FCC61C7B13A700C3CF15 /* LeanCloud.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8342FCBB1C7B13A700C3CF15 /* LeanCloud.framework */; };
 		8342FCCB1C7B13A700C3CF15 /* LeanCloudTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8342FCCA1C7B13A700C3CF15 /* LeanCloudTests.swift */; };
-		83724CCA1C7B54A700E59BED /* LeanCloud.h in Headers */ = {isa = PBXBuildFile; fileRef = 83724CC91C7B54A700E59BED /* LeanCloud.h */; };
+		83724CCA1C7B54A700E59BED /* LeanCloud.h in Headers */ = {isa = PBXBuildFile; fileRef = 83724CC91C7B54A700E59BED /* LeanCloud.h */; settings = {ATTRIBUTES = (Public, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
