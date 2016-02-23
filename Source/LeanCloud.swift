@@ -15,5 +15,8 @@ import Foundation
  - parameter applicationKey: Application key.
  */
 public func initialize(applicationID applicationID: String, applicationKey: String) {
-    /* Stub method */
+    let configure = Configuration.sharedInstance
+
+    configure.applicationID  = applicationID
+    configure.applicationKey = applicationKey
 }
