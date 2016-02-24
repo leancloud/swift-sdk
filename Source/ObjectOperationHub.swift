@@ -8,6 +8,6 @@
 
 import Foundation
 
-class ObjectOperationControl {
+class ObjectOperationHub {
     /* Stub class */
 }
