@@ -12,8 +12,8 @@ class Runtime {
     /**
      Check whether a class is subclass of another class.
 
-     - parameter subclass:   inspected subclass.
-     - parameter superclass: superclass which to compare with.
+     - parameter subclass:   Inspected subclass.
+     - parameter superclass: Superclass which to compare with.
 
      - returns: true or false.
      */
@@ -58,5 +58,40 @@ class Runtime {
         }
 
         return result
+    }
+
+    /**
+     Get all properties of a class.
+
+     - parameter aClass: Target class.
+
+     - returns: An array of all properties of the given class.
+     */
+    static func properties(aClass: AnyClass) -> [objc_property_t] {
+        var result = [objc_property_t]()
+
+        var count: UInt32 = 0
+        let properties: UnsafeMutablePointer<objc_property_t> = class_copyPropertyList(aClass, &count)
+
+        for i in 0..<Int(count) {
+            result.append(properties[i])
+        }
+
+        return result
+    }
+
+    /**
+     Get all non-computed properties of a class.
+
+     - parameter aClass: Inpected class.
+
+     - returns: An array of all non-computed properties of the given class.
+     */
+    static func nonComputedProperties(aClass: AnyClass) -> [objc_property_t] {
+        let properties = self.properties(aClass)
+
+        return properties.filter({ (property) -> Bool in
+            property_copyAttributeValue(property, "V") != nil
+        })
     }
 }
