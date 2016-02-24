@@ -48,4 +48,11 @@ public class Object: NSObject {
     func setObject(object: AnyObject?, forKey key:String) {
         latestData[key] = object
     }
+
+    /**
+     Save object.
+     */
+    public func save() {
+        /* Stub method */
+    }
 }
