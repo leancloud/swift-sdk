@@ -9,5 +9,17 @@
 import Foundation
 
 class ObjectOperation {
-    /* Stub class */
+    /**
+     Operation type.
+     */
+    enum Type: String {
+        case Set            = "Set"
+        case Delete         = "Delete"
+        case Increment      = "Increment"
+        case Add            = "Add"
+        case AddUnique      = "AddUnique"
+        case AddRelation    = "AddRelation"
+        case Remove         = "Remove"
+        case RemoveRelation = "RemoveRelation"
+    }
 }
