@@ -22,6 +22,17 @@ func keyFromSetter(selector: Selector) -> String {
 
 class ObjectProfiler {
     /**
+     Register all subclasses.
+     */
+    static func registerSubclasses() {
+        let subclasses = Runtime.subclasses(Object.self)
+
+        for subclass in subclasses {
+            self.synthesizeProperties(subclass)
+        }
+    }
+
+    /**
      Synthesize all non-computed properties for class.
 
      - parameter aClass: Target class.

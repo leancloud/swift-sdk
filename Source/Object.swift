@@ -18,17 +18,6 @@ public class Object: NSObject {
     var latestData = NSMutableDictionary()
 
     /**
-     Register all subclasses.
-     */
-    static func registerSubclasses() {
-        let subclasses = Runtime.subclasses(Object.self)
-
-        for subclass in subclasses {
-            ObjectProfiler.synthesizeProperties(subclass)
-        }
-    }
-
-    /**
      Get object for key.
 
      - parameter key: Specified key.

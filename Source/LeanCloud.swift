@@ -9,7 +9,7 @@
 import Foundation
 
 private func prepare() {
-    Object.registerSubclasses()
+    ObjectProfiler.registerSubclasses()
 }
 
 /**
