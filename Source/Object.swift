@@ -13,6 +13,10 @@ public class Object: NSObject {
      Register all subclasses.
      */
     static func registerSubclasses() {
-        /* Stub method */
+        let subclasses = Runtime.subclasses(Object.self)
+
+        for subclass in subclasses {
+            ObjectProfiler.synthesizeNonComputedProperties(subclass)
+        }
     }
 }

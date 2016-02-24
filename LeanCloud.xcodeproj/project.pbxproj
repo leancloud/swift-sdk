@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		830046EA1C7C92B8004C88A7 /* ObjectProfiler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 830046E91C7C92B8004C88A7 /* ObjectProfiler.swift */; };
 		830B0F631C7C127700D9FC41 /* LeanCloud.swift in Sources */ = {isa = PBXBuildFile; fileRef = 830B0F621C7C127700D9FC41 /* LeanCloud.swift */; };
 		830B0F651C7C20CE00D9FC41 /* Configuration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 830B0F641C7C20CE00D9FC41 /* Configuration.swift */; };
 		830B0F671C7C257200D9FC41 /* Object.swift in Sources */ = {isa = PBXBuildFile; fileRef = 830B0F661C7C257200D9FC41 /* Object.swift */; };
@@ -27,6 +28,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		830046E91C7C92B8004C88A7 /* ObjectProfiler.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ObjectProfiler.swift; sourceTree = "<group>"; };
 		830B0F621C7C127700D9FC41 /* LeanCloud.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LeanCloud.swift; sourceTree = "<group>"; };
 		830B0F641C7C20CE00D9FC41 /* Configuration.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Configuration.swift; sourceTree = "<group>"; };
 		830B0F661C7C257200D9FC41 /* Object.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Object.swift; sourceTree = "<group>"; };
@@ -101,6 +103,7 @@
 				830B0F621C7C127700D9FC41 /* LeanCloud.swift */,
 				830B0F641C7C20CE00D9FC41 /* Configuration.swift */,
 				830B0F661C7C257200D9FC41 /* Object.swift */,
+				830046E91C7C92B8004C88A7 /* ObjectProfiler.swift */,
 				830B0F6B1C7C60DA00D9FC41 /* Runtime.swift */,
 			);
 			path = Source;
@@ -217,6 +220,7 @@
 				830B0F6C1C7C60DA00D9FC41 /* Runtime.swift in Sources */,
 				830B0F651C7C20CE00D9FC41 /* Configuration.swift in Sources */,
 				830B0F671C7C257200D9FC41 /* Object.swift in Sources */,
+				830046EA1C7C92B8004C88A7 /* ObjectProfiler.swift in Sources */,
 				830B0F631C7C127700D9FC41 /* LeanCloud.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
