@@ -94,4 +94,22 @@ class Runtime {
             property_copyAttributeValue(property, "V") != nil
         })
     }
+
+    /**
+     Get property type string.
+
+     - parameter property: Inspected property.
+     */
+    static func propertyType(property: objc_property_t) -> String {
+        return String(UTF8String: property_copyAttributeValue(property, "T"))!
+    }
+
+    /**
+     Get property name.
+
+     - parameter property: Inspected property.
+     */
+    static func propertyName(property: objc_property_t) -> String {
+        return String(UTF8String: property_getName(property))!
+    }
 }

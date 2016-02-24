@@ -16,7 +16,7 @@ public class Object: NSObject {
         let subclasses = Runtime.subclasses(Object.self)
 
         for subclass in subclasses {
-            ObjectProfiler.synthesizeNonComputedProperties(subclass)
+            ObjectProfiler.synthesizeProperties(subclass)
         }
     }
 }
