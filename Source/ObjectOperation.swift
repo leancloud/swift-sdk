@@ -22,4 +22,14 @@ class ObjectOperation {
         case Remove         = "Remove"
         case RemoveRelation = "RemoveRelation"
     }
+
+    let type: Type
+    let key: String
+    let object: AnyObject?
+
+    init(type: Type, key: String, object: AnyObject?) {
+        self.type   = type
+        self.key    = key
+        self.object = object
+    }
 }
