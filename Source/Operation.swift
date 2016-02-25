@@ -91,8 +91,39 @@ extension Object {
     private class OperationReducer {
         let operations: [Operation]
 
+        typealias Output = [Operation.Name:[String:AnyObject]]
+
         init(operations: [Operation]) {
             self.operations = operations
+        }
+
+        /**
+         Reduce an operation to output.
+
+         - parameter operation: Operation to be reduced.
+         - parameter output:    Output container.
+         */
+        func reduceOperation(operation: Operation, inout output: Output) {
+            // switch operation.name {
+            // case .Set:
+            // case .Delete:
+            // case .Increment:
+            // case .Add:
+            // case .AddUnique:
+            // case .AddRelation:
+            // case .Remove:
+            // case .RemoveRelation:
+            // }
+        }
+
+        /**
+         Reduce operations to output.
+
+         - parameter operations: An array of operations to be reduced.
+         - parameter output:     Output container.
+         */
+        func reduceOperations(operations: [Operation], inout output: Output) {
+            operations.forEach { reduceOperation($0, output: &output) }
         }
 
         /**
@@ -100,9 +131,10 @@ extension Object {
 
          - returns: a non-redundant representation of operations.
          */
-        func reduce() -> [Operation.Name:[String:AnyObject]] {
-            /* Stub method */
-            return [:]
+        func reduce() -> Output {
+            var output: Output = [:]
+            self.reduceOperations(operations, output: &output)
+            return output
         }
     }
 }
