@@ -96,6 +96,15 @@ extension Object {
             stageOperations()
             return OperationReducer(operations: stagedOperations).reduce()
         }
+
+        /**
+         Produce a payload dictionary for request.
+
+         - returns: A payload dictionary.
+         */
+        func payload() -> NSDictionary {
+            return [:]
+        }
     }
 
     /**
