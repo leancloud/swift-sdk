@@ -22,5 +22,15 @@ extension Object {
         func append(operation: Object.Operation) {
             self.operations.append(operation)
         }
+
+        /**
+         Reduce operations to produce an array of non-redundant operations.
+
+         - returns: An array of non-redundant operations.
+         */
+        func reduce() -> [Operation] {
+            /* Stub method */
+            return [Operation]()
+        }
     }
 }
