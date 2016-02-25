@@ -92,7 +92,7 @@ extension Object {
 
          - returns: a non-redundant representation of operations.
          */
-        func reduce() -> [Operation.Name:[String:AnyObject]] {
+        func reduce() -> [String:Operation] {
             stageOperations()
             return OperationReducer(operations: stagedOperations).reduce()
         }
@@ -115,19 +115,19 @@ extension Object {
     private class OperationReducer {
         let operations: [Operation]
 
-        typealias Output = [Operation.Name:[String:AnyObject]]
+        /// A table of non-redundant operations indexed by operation key.
+        lazy var operationTable: [String:Operation] = [:]
 
         init(operations: [Operation]) {
             self.operations = operations
         }
 
         /**
-         Reduce an operation to output.
+         Reduce an operation.
 
          - parameter operation: Operation to be reduced.
-         - parameter output:    Output container.
          */
-        func reduceOperation(operation: Operation, inout output: Output) {
+        func reduceOperation(operation: Operation) {
             // switch operation.name {
             // case .Set:
             // case .Delete:
@@ -141,24 +141,13 @@ extension Object {
         }
 
         /**
-         Reduce operations to output.
-
-         - parameter operations: An array of operations to be reduced.
-         - parameter output:     Output container.
-         */
-        func reduceOperations(operations: [Operation], inout output: Output) {
-            operations.forEach { reduceOperation($0, output: &output) }
-        }
-
-        /**
          Reduce operations to produce a non-redundant representation.
 
-         - returns: a non-redundant representation of operations.
+         - returns: a table of reduced operations.
          */
-        func reduce() -> Output {
-            var output: Output = [:]
-            self.reduceOperations(operations, output: &output)
-            return output
+        func reduce() -> [String:Operation] {
+            operations.forEach { reduceOperation($0) }
+            return operationTable
         }
     }
 }
