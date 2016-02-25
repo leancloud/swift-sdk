@@ -9,6 +9,12 @@
 import Foundation
 
 extension Object {
+
+    /**
+     Operation.
+
+     Used to present an action of object update.
+     */
     class Operation {
         /**
          Operation Name.
@@ -35,9 +41,13 @@ extension Object {
         }
     }
 
+    /**
+     Operation hub.
+
+     Used to manage a batch of operations.
+     */
     class OperationHub {
-        /// All operations list.
-        /// Used to store all object operations.
+        /// A list of all operations.
         lazy var allOperations = [Operation]()
 
         /// Staged operations.
@@ -88,6 +98,11 @@ extension Object {
         }
     }
 
+    /**
+     Operation reducer.
+
+     Used to reduce a batch of operations to avoid redundance and invalid operations.
+     */
     private class OperationReducer {
         let operations: [Operation]
 
