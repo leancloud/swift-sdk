@@ -40,6 +40,14 @@ extension Object {
         /// Used to store all object operations.
         lazy var operations = [Operation]()
 
+        /// Staged operations.
+        /// Used to stage operations to be reduced.
+        lazy var stagedOperations = [Operation]()
+
+        /// Untraced operations.
+        /// Used to store operations that not ready to be reduced.
+        lazy var untracedOperations = [Operation]();
+
         /**
          Append an operation to hub.
 
@@ -48,7 +56,22 @@ extension Object {
          - parameter value: Value to be assigned.
          */
         func append(name: Operation.Name, _ key: String, _ value: AnyObject?) {
-            self.operations.append(Operation(name: name, key: key, value: value))
+            untracedOperations.append(Operation(name: name, key: key, value: value))
+        }
+
+        /**
+         Stage untraced operations.
+         */
+        func stageOperations() {
+            stagedOperations.appendContentsOf(untracedOperations)
+            untracedOperations.removeAll()
+        }
+
+        /**
+         Clear all reduced operations.
+         */
+        func clearReducedOperations() {
+            stagedOperations.removeAll()
         }
 
         /**
@@ -57,7 +80,8 @@ extension Object {
          - returns: a non-redundant representation of operations.
          */
         func reduce() -> [Operation.Name:[String:AnyObject]] {
-            return OperationReducer(operations: operations).reduce()
+            stageOperations()
+            return OperationReducer(operations: stagedOperations).reduce()
         }
     }
 
