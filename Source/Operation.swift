@@ -52,13 +52,30 @@ extension Object {
         }
 
         /**
-         Reduce operations to produce an array of non-redundant operations.
+         Reduce operations to produce a non-redundant representation.
 
-         - returns: An array of non-redundant operations.
+         - returns: a non-redundant representation of operations.
          */
-        func reduce() -> [Operation] {
+        func reduce() -> [Operation.Name:[String:AnyObject]] {
+            return OperationReducer(operations: operations).reduce()
+        }
+    }
+
+    private class OperationReducer {
+        let operations: [Operation]
+
+        init(operations: [Operation]) {
+            self.operations = operations
+        }
+
+        /**
+         Reduce operations to produce a non-redundant representation.
+
+         - returns: a non-redundant representation of operations.
+         */
+        func reduce() -> [Operation.Name:[String:AnyObject]] {
             /* Stub method */
-            return [Operation]()
+            return [:]
         }
     }
 }
