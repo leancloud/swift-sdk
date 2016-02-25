@@ -40,16 +40,18 @@ public class Object: NSObject {
      */
     func setObject(object: AnyObject?, forKey key:String) {
         latestData[key] = object
-        self.addOperation(Operation(name: .Set, key: key, object: object))
+        self.addOperation(.Set, key, object)
     }
 
     /**
-     Append an operation to hub.
+     Add an operation.
 
-     - parameter operation: Operation to be appended.
+     - parameter name:  Operation name.
+     - parameter key:   Key on which to perform.
+     - parameter value: Value to be assigned.
      */
-    func addOperation(operation: Operation) {
-        self.operationHub.append(operation)
+    func addOperation(name: Operation.Name, _ key: String, _ value: AnyObject?) {
+        self.operationHub.append(name, key, value)
     }
 
     /**

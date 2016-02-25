@@ -26,12 +26,12 @@ extension Object {
 
         let name: Name
         let key: String
-        let object: AnyObject?
+        let value: AnyObject?
 
-        init(name: Name, key: String, object: AnyObject?) {
-            self.name   = name
-            self.key    = key
-            self.object = object
+        init(name: Name, key: String, value: AnyObject?) {
+            self.name  = name
+            self.key   = key
+            self.value = value
         }
     }
 
@@ -43,10 +43,12 @@ extension Object {
         /**
          Append an operation to hub.
 
-         - parameter operation: Operation to append.
+         - parameter name:  Operation name.
+         - parameter key:   Key on which to perform.
+         - parameter value: Value to be assigned.
          */
-        func append(operation: Object.Operation) {
-            self.operations.append(operation)
+        func append(name: Operation.Name, _ key: String, _ value: AnyObject?) {
+            self.operations.append(Operation(name: name, key: key, value: value))
         }
 
         /**
