@@ -11,11 +11,11 @@ import Foundation
 public class Object: NSObject {
     /// Stable data of object.
     /// Used to store values that have commited.
-    var stableData = NSMutableDictionary()
+    lazy var stableData = NSMutableDictionary()
 
     /// Latest data of object.
     /// Used to store values that haven't committed yet.
-    var latestData = NSMutableDictionary()
+    lazy var latestData = NSMutableDictionary()
 
     /**
      Get object for key.
