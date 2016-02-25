@@ -8,28 +8,30 @@
 
 import Foundation
 
-class ObjectOperation {
-    /**
-     Operation type.
-     */
-    enum Type: String {
-        case Set            = "Set"
-        case Delete         = "Delete"
-        case Increment      = "Increment"
-        case Add            = "Add"
-        case AddUnique      = "AddUnique"
-        case AddRelation    = "AddRelation"
-        case Remove         = "Remove"
-        case RemoveRelation = "RemoveRelation"
-    }
+extension Object {
+    class Operation {
+        /**
+         Operation type.
+         */
+        enum Type: String {
+            case Set            = "Set"
+            case Delete         = "Delete"
+            case Increment      = "Increment"
+            case Add            = "Add"
+            case AddUnique      = "AddUnique"
+            case AddRelation    = "AddRelation"
+            case Remove         = "Remove"
+            case RemoveRelation = "RemoveRelation"
+        }
 
-    let type: Type
-    let key: String
-    let object: AnyObject?
+        let type: Type
+        let key: String
+        let object: AnyObject?
 
-    init(type: Type, key: String, object: AnyObject?) {
-        self.type   = type
-        self.key    = key
-        self.object = object
+        init(type: Type, key: String, object: AnyObject?) {
+            self.type   = type
+            self.key    = key
+            self.object = object
+        }
     }
 }
