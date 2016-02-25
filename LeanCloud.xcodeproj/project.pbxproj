@@ -14,8 +14,7 @@
 		830B0F6C1C7C60DA00D9FC41 /* Runtime.swift in Sources */ = {isa = PBXBuildFile; fileRef = 830B0F6B1C7C60DA00D9FC41 /* Runtime.swift */; };
 		8342FCC61C7B13A700C3CF15 /* LeanCloud.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8342FCBB1C7B13A700C3CF15 /* LeanCloud.framework */; };
 		8342FCCB1C7B13A700C3CF15 /* LeanCloudTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8342FCCA1C7B13A700C3CF15 /* LeanCloudTests.swift */; };
-		834E59B61C7DB145009762AC /* ObjectOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 834E59B51C7DB145009762AC /* ObjectOperation.swift */; };
-		834E59B81C7DB155009762AC /* ObjectOperationHub.swift in Sources */ = {isa = PBXBuildFile; fileRef = 834E59B71C7DB155009762AC /* ObjectOperationHub.swift */; };
+		834E59C21C7ED06A009762AC /* Operation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 834E59C11C7ED06A009762AC /* Operation.swift */; };
 		83724CCA1C7B54A700E59BED /* LeanCloud.h in Headers */ = {isa = PBXBuildFile; fileRef = 83724CC91C7B54A700E59BED /* LeanCloud.h */; settings = {ATTRIBUTES = (Public, ); }; };
 /* End PBXBuildFile section */
 
@@ -40,8 +39,7 @@
 		8342FCC51C7B13A700C3CF15 /* LeanCloudTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LeanCloudTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		8342FCCA1C7B13A700C3CF15 /* LeanCloudTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeanCloudTests.swift; sourceTree = "<group>"; };
 		8342FCCC1C7B13A700C3CF15 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		834E59B51C7DB145009762AC /* ObjectOperation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ObjectOperation.swift; sourceTree = "<group>"; };
-		834E59B71C7DB155009762AC /* ObjectOperationHub.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ObjectOperationHub.swift; sourceTree = "<group>"; };
+		834E59C11C7ED06A009762AC /* Operation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Operation.swift; sourceTree = "<group>"; };
 		83724CC91C7B54A700E59BED /* LeanCloud.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LeanCloud.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -108,8 +106,7 @@
 				830B0F641C7C20CE00D9FC41 /* Configuration.swift */,
 				830B0F661C7C257200D9FC41 /* Object.swift */,
 				830046E91C7C92B8004C88A7 /* ObjectProfiler.swift */,
-				834E59B51C7DB145009762AC /* ObjectOperation.swift */,
-				834E59B71C7DB155009762AC /* ObjectOperationHub.swift */,
+				834E59C11C7ED06A009762AC /* Operation.swift */,
 				830B0F6B1C7C60DA00D9FC41 /* Runtime.swift */,
 			);
 			path = Source;
@@ -223,13 +220,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				834E59B61C7DB145009762AC /* ObjectOperation.swift in Sources */,
 				830B0F6C1C7C60DA00D9FC41 /* Runtime.swift in Sources */,
 				830B0F651C7C20CE00D9FC41 /* Configuration.swift in Sources */,
+				834E59C21C7ED06A009762AC /* Operation.swift in Sources */,
 				830B0F671C7C257200D9FC41 /* Object.swift in Sources */,
 				830046EA1C7C92B8004C88A7 /* ObjectProfiler.swift in Sources */,
 				830B0F631C7C127700D9FC41 /* LeanCloud.swift in Sources */,
-				834E59B81C7DB155009762AC /* ObjectOperationHub.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
