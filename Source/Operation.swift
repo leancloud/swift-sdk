@@ -36,9 +36,9 @@ extension Object {
     }
 
     class OperationHub {
-        /// Operations list.
+        /// All operations list.
         /// Used to store all object operations.
-        lazy var operations = [Operation]()
+        lazy var allOperations = [Operation]()
 
         /// Staged operations.
         /// Used to stage operations to be reduced.
@@ -56,7 +56,10 @@ extension Object {
          - parameter value: Value to be assigned.
          */
         func append(name: Operation.Name, _ key: String, _ value: AnyObject?) {
-            untracedOperations.append(Operation(name: name, key: key, value: value))
+            let operation = Operation(name: name, key: key, value: value)
+
+            untracedOperations.append(operation)
+            allOperations.append(operation)
         }
 
         /**
