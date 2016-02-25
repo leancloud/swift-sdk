@@ -10,13 +10,17 @@ import Foundation
 
 extension Object {
     class OperationHub {
+        /// Operations list.
+        /// Used to store all object operations.
+        lazy var operations = [Operation]()
+
         /**
          Append an operation to hub.
 
          - parameter operation: Operation to append.
          */
         func append(operation: Object.Operation) {
-            /* Stub method */
+            self.operations.append(operation)
         }
     }
 }
