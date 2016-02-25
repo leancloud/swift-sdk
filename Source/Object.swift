@@ -17,6 +17,10 @@ public class Object: NSObject {
     /// Used to store values that haven't committed yet.
     lazy var latestData = NSMutableDictionary()
 
+    /// Operation hub.
+    /// Used to manage object operations.
+    lazy var operationHub = OperationHub()
+
     /**
      Get object for key.
 
@@ -36,6 +40,7 @@ public class Object: NSObject {
      */
     func setObject(object: AnyObject?, forKey key:String) {
         latestData[key] = object
+        self.operationHub.append(Operation(type: .Set, key: key, object: object))
     }
 
     /**

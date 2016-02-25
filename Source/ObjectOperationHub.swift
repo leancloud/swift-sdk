@@ -10,6 +10,13 @@ import Foundation
 
 extension Object {
     class OperationHub {
-        /* Stub class */
+        /**
+         Append an operation to hub.
+
+         - parameter operation: Operation to append.
+         */
+        func append(operation: Object.Operation) {
+            /* Stub method */
+        }
     }
 }
