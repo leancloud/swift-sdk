@@ -40,7 +40,7 @@ public class Object: NSObject {
      */
     func setObject(object: AnyObject?, forKey key:String) {
         latestData[key] = object
-        self.addOperation(Operation(type: .Set, key: key, object: object))
+        self.addOperation(Operation(name: .Set, key: key, object: object))
     }
 
     /**

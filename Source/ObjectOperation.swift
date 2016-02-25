@@ -11,9 +11,9 @@ import Foundation
 extension Object {
     class Operation {
         /**
-         Operation type.
+         Operation Name.
          */
-        enum Type: String {
+        enum Name: String {
             case Set            = "Set"
             case Delete         = "Delete"
             case Increment      = "Increment"
@@ -24,12 +24,12 @@ extension Object {
             case RemoveRelation = "RemoveRelation"
         }
 
-        let type: Type
+        let name: Name
         let key: String
         let object: AnyObject?
 
-        init(type: Type, key: String, object: AnyObject?) {
-            self.type   = type
+        init(name: Name, key: String, object: AnyObject?) {
+            self.name   = name
             self.key    = key
             self.object = object
         }
