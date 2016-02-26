@@ -39,6 +39,19 @@ extension Object {
             self.key   = key
             self.value = value
         }
+
+        /**
+         Merge previous operation.
+
+         - parameter operation: Operation to be merged.
+
+         - returns: A new merged operation.
+         */
+        func merge(previousOperation operation: Operation) -> Operation {
+            /* Stub method */
+
+            return self
+        }
     }
 
     /**
@@ -127,17 +140,13 @@ extension Object {
 
          - parameter operation: Operation to be reduced.
          */
-        func reduceOperation(operation: Operation) {
-            // switch operation.name {
-            // case .Set:
-            // case .Delete:
-            // case .Increment:
-            // case .Add:
-            // case .AddUnique:
-            // case .AddRelation:
-            // case .Remove:
-            // case .RemoveRelation:
-            // }
+        func reduceOperation(var operation: Operation) {
+            /* Merge with previous operation which has the same key. */
+            if let previousOperation = operationTable[operation.key] {
+                operation = operation.merge(previousOperation: previousOperation)
+            }
+
+            /* Stub method */
         }
 
         /**
