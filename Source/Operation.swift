@@ -8,6 +8,15 @@
 
 import Foundation
 
+/**
+ Operation arithmetic.
+
+ Define the available arithmetic for operation.
+ */
+protocol OperationArithmetic {
+    /* Stub protocol */
+}
+
 extension Object {
 
     /**
@@ -15,7 +24,7 @@ extension Object {
 
      Used to present an action of object update.
      */
-    class Operation {
+    class Operation: OperationArithmetic {
         /**
          Operation Name.
          */
@@ -119,6 +128,38 @@ extension Object {
             // }
 
             return self
+        }
+
+        class Set: Operation {
+            /* Stub class */
+        }
+
+        class Delete: Operation {
+            /* Stub class */
+        }
+
+        class Increment: Operation {
+            /* Stub class */
+        }
+
+        class Add: Operation {
+            /* Stub class */
+        }
+
+        class AddUnique: Operation {
+            /* Stub class */
+        }
+
+        class AddRelation: Operation {
+            /* Stub class */
+        }
+
+        class Remove: Operation {
+            /* Stub class */
+        }
+
+        class RemoveRelation: Operation {
+            /* Stub class */
         }
     }
 
