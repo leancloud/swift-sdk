@@ -28,7 +28,7 @@ public class Object: NSObject {
 
      - returns: Object for key.
      */
-    func objectForKey(key:String) -> AnyObject? {
+    func objectForKey(key: String) -> AnyObject? {
         return latestData[key]
     }
 
@@ -38,7 +38,7 @@ public class Object: NSObject {
      - parameter object: New object.
      - parameter key:    Specified key.
      */
-    func setObject(object: AnyObject?, forKey key:String) {
+    func setObject(object: AnyObject?, forKey key: String) {
         latestData[key] = object
         self.addOperation(.Set, key, object)
     }

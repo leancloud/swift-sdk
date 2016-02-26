@@ -37,7 +37,7 @@ class ObjectProfiler {
 
      - parameter aClass: Target class.
      */
-    static func synthesizeProperties(aClass:AnyClass) {
+    static func synthesizeProperties(aClass: AnyClass) {
         let nonComputedProperties = Runtime.nonComputedProperties(aClass)
 
         for property in nonComputedProperties {
