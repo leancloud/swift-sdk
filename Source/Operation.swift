@@ -43,7 +43,7 @@ extension Object {
         let key: String
         let value: AnyObject?
 
-        init(name: Name, key: String, value: AnyObject?) {
+        required init(name: Name, key: String, value: AnyObject?) {
             self.name  = name
             self.key   = key
             self.value = value
