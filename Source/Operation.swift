@@ -161,6 +161,23 @@ extension Object {
         class RemoveRelation: Operation {
             /* Stub class */
         }
+
+        static func subclass(operationName name: Operation.Name) -> AnyClass {
+            var subclass: AnyClass
+
+            switch name {
+            case .Set:            subclass = Operation.Set.self
+            case .Delete:         subclass = Operation.Delete.self
+            case .Increment:      subclass = Operation.Increment.self
+            case .Add:            subclass = Operation.Add.self
+            case .AddUnique:      subclass = Operation.AddUnique.self
+            case .AddRelation:    subclass = Operation.AddRelation.self
+            case .Remove:         subclass = Operation.Remove.self
+            case .RemoveRelation: subclass = Operation.RemoveRelation.self
+            }
+
+            return subclass
+        }
     }
 
     /**
@@ -188,7 +205,8 @@ extension Object {
          - parameter value: Value to be assigned.
          */
         func append(name: Operation.Name, _ key: String, _ value: AnyObject?) {
-            let operation = Operation(name: name, key: key, value: value)
+            let subclass  = Operation.subclass(operationName: name) as! Operation.Type
+            let operation = subclass.init(name: name, key: key, value: value)
 
             untracedOperations.append(operation)
             allOperations.append(operation)
