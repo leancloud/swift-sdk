@@ -17,6 +17,13 @@
 		83724CCA1C7B54A700E59BED /* LeanCloud.h in Headers */ = {isa = PBXBuildFile; fileRef = 83724CC91C7B54A700E59BED /* LeanCloud.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		83ACD25C1C8197BE00F7E2DE /* LCObject.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83ACD25B1C8197BE00F7E2DE /* LCObject.swift */; };
 		83ACD25E1C81981F00F7E2DE /* LCType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83ACD25D1C81981F00F7E2DE /* LCType.swift */; };
+		83ACD2641C819D2700F7E2DE /* LCInt.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83ACD2631C819D2700F7E2DE /* LCInt.swift */; };
+		83ACD2661C819D3300F7E2DE /* LCFloat.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83ACD2651C819D3300F7E2DE /* LCFloat.swift */; };
+		83ACD2681C819D3B00F7E2DE /* LCDouble.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83ACD2671C819D3B00F7E2DE /* LCDouble.swift */; };
+		83ACD26A1C819D5A00F7E2DE /* LCBool.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83ACD2691C819D5A00F7E2DE /* LCBool.swift */; };
+		83ACD26C1C819D6900F7E2DE /* LCString.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83ACD26B1C819D6900F7E2DE /* LCString.swift */; };
+		83ACD26E1C819D8000F7E2DE /* LCArray.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83ACD26D1C819D8000F7E2DE /* LCArray.swift */; };
+		83ACD2701C819DA400F7E2DE /* LCDictionary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83ACD26F1C819DA400F7E2DE /* LCDictionary.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -43,6 +50,13 @@
 		83724CC91C7B54A700E59BED /* LeanCloud.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LeanCloud.h; sourceTree = "<group>"; };
 		83ACD25B1C8197BE00F7E2DE /* LCObject.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LCObject.swift; sourceTree = "<group>"; };
 		83ACD25D1C81981F00F7E2DE /* LCType.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LCType.swift; sourceTree = "<group>"; };
+		83ACD2631C819D2700F7E2DE /* LCInt.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LCInt.swift; sourceTree = "<group>"; };
+		83ACD2651C819D3300F7E2DE /* LCFloat.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LCFloat.swift; sourceTree = "<group>"; };
+		83ACD2671C819D3B00F7E2DE /* LCDouble.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LCDouble.swift; sourceTree = "<group>"; };
+		83ACD2691C819D5A00F7E2DE /* LCBool.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LCBool.swift; sourceTree = "<group>"; };
+		83ACD26B1C819D6900F7E2DE /* LCString.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LCString.swift; sourceTree = "<group>"; };
+		83ACD26D1C819D8000F7E2DE /* LCArray.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LCArray.swift; sourceTree = "<group>"; };
+		83ACD26F1C819DA400F7E2DE /* LCDictionary.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LCDictionary.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -118,6 +132,13 @@
 			isa = PBXGroup;
 			children = (
 				83ACD25D1C81981F00F7E2DE /* LCType.swift */,
+				83ACD2631C819D2700F7E2DE /* LCInt.swift */,
+				83ACD2651C819D3300F7E2DE /* LCFloat.swift */,
+				83ACD2671C819D3B00F7E2DE /* LCDouble.swift */,
+				83ACD2691C819D5A00F7E2DE /* LCBool.swift */,
+				83ACD26B1C819D6900F7E2DE /* LCString.swift */,
+				83ACD26D1C819D8000F7E2DE /* LCArray.swift */,
+				83ACD26F1C819DA400F7E2DE /* LCDictionary.swift */,
 				83ACD25B1C8197BE00F7E2DE /* LCObject.swift */,
 			);
 			path = DataType;
@@ -231,6 +252,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				83ACD26A1C819D5A00F7E2DE /* LCBool.swift in Sources */,
+				83ACD2641C819D2700F7E2DE /* LCInt.swift in Sources */,
+				83ACD2661C819D3300F7E2DE /* LCFloat.swift in Sources */,
 				830B0F6C1C7C60DA00D9FC41 /* Runtime.swift in Sources */,
 				83ACD25E1C81981F00F7E2DE /* LCType.swift in Sources */,
 				830B0F651C7C20CE00D9FC41 /* Configuration.swift in Sources */,
@@ -238,6 +262,10 @@
 				830046EA1C7C92B8004C88A7 /* ObjectProfiler.swift in Sources */,
 				83ACD25C1C8197BE00F7E2DE /* LCObject.swift in Sources */,
 				830B0F631C7C127700D9FC41 /* LeanCloud.swift in Sources */,
+				83ACD2701C819DA400F7E2DE /* LCDictionary.swift in Sources */,
+				83ACD26E1C819D8000F7E2DE /* LCArray.swift in Sources */,
+				83ACD2681C819D3B00F7E2DE /* LCDouble.swift in Sources */,
+				83ACD26C1C819D6900F7E2DE /* LCString.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

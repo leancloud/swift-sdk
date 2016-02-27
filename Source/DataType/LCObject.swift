@@ -8,6 +8,13 @@
 
 import Foundation
 
+/**
+ LeanCloud object type.
+
+ It's a compound type used to unite other types.
+ It can be extended into subclass while adding some other properties to form a new type.
+ Each object is correspond to a record in data storage.
+ */
 public class LCObject: LCType {
     /// Stable data of object.
     /// Used to store values that have commited.
