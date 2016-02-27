@@ -8,7 +8,7 @@
 
 import Foundation
 
-public class Object: NSObject {
+public class LCObject: LCType {
     /// Stable data of object.
     /// Used to store values that have commited.
     lazy var stableData = NSMutableDictionary()

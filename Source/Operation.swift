@@ -17,7 +17,7 @@ protocol OperationArithmetic {
     /* Stub protocol */
 }
 
-extension Object {
+extension LCObject {
 
     /**
      Operation.
