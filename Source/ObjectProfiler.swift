@@ -38,10 +38,55 @@ class ObjectProfiler {
      - parameter aClass: Target class.
      */
     static func synthesizeProperties(aClass: AnyClass) {
-        let nonComputedProperties = Runtime.nonComputedProperties(aClass)
+        synthesizableProperties(aClass).forEach { synthesizeProperty($0, aClass) }
+    }
 
-        for property in nonComputedProperties {
-            self.synthesizeProperty(property, aClass)
+    /**
+     Find all synthesizable properties of a class.
+
+     A synthesizable property must satisfy following conditions:
+
+     * It is a non-computed property.
+     * It is a LeanCloud data type property.
+
+     - parameter aClass: Target class.
+     */
+    static func synthesizableProperties(aClass: AnyClass) -> [objc_property_t] {
+        return Runtime.nonComputedProperties(aClass).filter({ isLCType(property: $0) })
+    }
+
+    /**
+     Check whether a property type is LeanCloud data type.
+
+     - parameter property: Target property.
+
+     - returns: true if property type is LeanCloud data type, false otherwise.
+     */
+    static func isLCType(property property: objc_property_t) -> Bool {
+        return getLCType(property: property) != nil
+    }
+
+    /**
+     Get concrete LCType subclass of property.
+
+     - parameter property: Target property.
+
+     - returns: Concreate LCType subclass, or nil if property type is not LCType.
+     */
+    static func getLCType(property property: objc_property_t) -> AnyClass? {
+        let propertyType = Runtime.propertyType(property)
+
+        guard propertyType.hasPrefix("@\"") else {
+            return nil
+        }
+
+        let name = propertyType[Range(start: propertyType.startIndex.advancedBy(2), end: propertyType.endIndex.advancedBy(-1))];
+        let subclass: AnyClass = objc_getClass(name) as! AnyClass
+
+        if Runtime.isSubclass(subclass, superclass: LCType.self) {
+            return subclass
+        } else {
+            return nil
         }
     }
 
