@@ -108,7 +108,7 @@ class ObjectProfiler {
 
      - returns: Initialized value.
      */
-    static func initializeProperty(object: LCObject, propertyName: String) -> LCType {
+    static func initializeProperty(object: LCObject, _ propertyName: String) -> LCType {
         let property = class_getProperty(object_getClass(object), propertyName)
 
         let propertyClass = ObjectProfiler.getLCType(property: property) as! LCType.Type
@@ -125,13 +125,15 @@ class ObjectProfiler {
     static let propertyGetter: @convention(c) (LCObject!, Selector) -> LCType = {
         (object: LCObject!, cmd: Selector) -> LCType in
         let propertyName  = NSStringFromSelector(cmd)
-        let propertyValue = Runtime.instanceVariableValue(object, propertyName)
+        var propertyValue = Runtime.instanceVariableValue(object, propertyName) as? LCType
 
-        if let some = propertyValue as? LCType {
-            return some
-        } else {
-            return ObjectProfiler.initializeProperty(object, propertyName: propertyName)
+        if propertyValue == nil {
+            propertyValue = ObjectProfiler.initializeProperty(object, propertyName)
         }
+
+        propertyValue!.owner = object
+
+        return propertyValue!
     }
 
     /**
