@@ -17,8 +17,8 @@ import Foundation
  - returns: true if two linked properties are unequal, false otherwise.
  */
 func != (
-    left:  LCType.ReversePropertyBinding,
-    right: LCType.ReversePropertyBinding
+    left:  LCType.PropertyBinding,
+    right: LCType.PropertyBinding
 ) -> Bool {
     return (left.object != right.object) || (left.property != right.property)
 }
@@ -29,14 +29,14 @@ func != (
  It is superclass of all LeanCloud data type.
  */
 public class LCType: NSObject {
-    typealias ReversePropertyBinding = (object: LCType, property: String)
+    typealias PropertyBinding = (object: LCType, property: String)
 
-    /// Reverse property binding.
-    var reversePropertyBinding: ReversePropertyBinding? {
+    /// Parent object.
+    var parent: PropertyBinding? {
         willSet {
             /* A LCType object can be bound to another LCType object's property.
                It can only be bound once. We add this constraint for consistency. */
-            if let oldValue = reversePropertyBinding {
+            if let oldValue = parent {
                 if newValue == nil || newValue! != oldValue {
                     print("Reverse property binding cannot be altered once bound.")
                     /* TODO: throw exception. */
@@ -48,5 +48,24 @@ public class LCType: NSObject {
     public override required init() {
         super.init()
         ObjectProfiler.bindUnboundProperties(self)
+    }
+
+    /**
+     Update reverse object.
+
+     - parameter block: The update logic block.
+     */
+    func updateParent(block: (object: LCObject, key: String) -> Void) {
+        guard let parent = parent else {
+            /* TODO: throw an exception. */
+            return
+        }
+
+        guard let object = parent.object as? LCObject else {
+            /* TODO: throw an exception. */
+            return
+        }
+
+        block(object: object, key: parent.property)
     }
 }

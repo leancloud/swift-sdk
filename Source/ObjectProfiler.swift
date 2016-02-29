@@ -144,12 +144,12 @@ class ObjectProfiler {
      - parameter propertyValue: The property value.
      */
     static func bindUnboundProperty(object: LCType, _ propertyName: String, _ propertyValue: LCType) {
-        if let reversePropertyBinding = propertyValue.reversePropertyBinding {
+        if let reversePropertyBinding = propertyValue.parent {
             if reversePropertyBinding != (object, propertyName) {
                 /* TODO: throw an exception. */
             }
         } else {
-            propertyValue.reversePropertyBinding = (object, propertyName)
+            propertyValue.parent = (object, propertyName)
         }
     }
 
