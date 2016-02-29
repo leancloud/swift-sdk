@@ -14,5 +14,13 @@ import Foundation
  It is a wrapper of Int type, used to store an integer value.
  */
 public class LCInt: LCType {
-    /* Stub class. */
+
+    /**
+     Increase integer value by 1.
+     */
+    public func increase() {
+        updateParent { (object, key) -> Void in
+            object.addOperation(.Increment, key, nil)
+        }
+    }
 }
