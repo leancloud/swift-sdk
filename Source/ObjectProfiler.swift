@@ -120,6 +120,40 @@ class ObjectProfiler {
     }
 
     /**
+     Bind all unbound LCType properties of an object to object.
+
+     This method iterates all LCType properties of an LCType object and adds reverse binding on these properties.
+
+     - parameter object: The target object.
+     */
+    static func bindUnboundProperties(object: LCType) {
+        synthesizableProperties(object_getClass(object)).forEach { (property) in
+            let propertyName = Runtime.propertyName(property)
+
+            if let propertyValue = Runtime.instanceVariableValue(object, propertyName) as? LCType {
+                bindUnboundProperty(object, propertyName, propertyValue)
+            }
+        }
+    }
+
+    /**
+     Bind a property to an object.
+
+     - parameter object:        The object where you want to bind.
+     - parameter propertyName:  The property name which you want to bind.
+     - parameter propertyValue: The property value.
+     */
+    static func bindUnboundProperty(object: LCType, _ propertyName: String, _ propertyValue: LCType) {
+        if let reversePropertyBinding = propertyValue.reversePropertyBinding {
+            if reversePropertyBinding != (object, propertyName) {
+                /* TODO: throw an exception. */
+            }
+        } else {
+            propertyValue.reversePropertyBinding = (object, propertyName)
+        }
+    }
+
+    /**
      Getter implementation of LeanCloud data type property.
      */
     static let propertyGetter: @convention(c) (LCObject!, Selector) -> LCType = {
@@ -131,7 +165,7 @@ class ObjectProfiler {
             propertyValue = ObjectProfiler.initializeProperty(object, propertyName)
         }
 
-        propertyValue!.linkedProperty = (object, propertyName)
+        ObjectProfiler.bindUnboundProperty(object, propertyName, propertyValue!)
 
         return propertyValue!
     }

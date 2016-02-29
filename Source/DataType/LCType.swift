@@ -8,8 +8,6 @@
 
 import Foundation
 
-typealias LinkedProperty = (object: LCObject, property: String)
-
 /**
  Check whether two linked properties are unequal.
 
@@ -18,7 +16,10 @@ typealias LinkedProperty = (object: LCObject, property: String)
 
  - returns: true if two linked properties are unequal, false otherwise.
  */
-func != (left: LinkedProperty, right: LinkedProperty) -> Bool {
+func != (
+    left:  LCType.ReversePropertyBinding,
+    right: LCType.ReversePropertyBinding
+) -> Bool {
     return (left.object != right.object) || (left.property != right.property)
 }
 
@@ -28,15 +29,16 @@ func != (left: LinkedProperty, right: LinkedProperty) -> Bool {
  It is superclass of all LeanCloud data type.
  */
 public class LCType: NSObject {
-    /// Linked property.
-    var linkedProperty: LinkedProperty? {
+    typealias ReversePropertyBinding = (object: LCType, property: String)
+
+    /// Reverse property binding.
+    var reversePropertyBinding: ReversePropertyBinding? {
         willSet {
-            /* A property can be attached to only one owner.
-               Once attached, it cannot be changed to another owner.
-               We add this constraint for consistency. */
-            if let oldValue = linkedProperty {
+            /* A LCType object can be bound to another LCType object's property.
+               It can only be bound once. We add this constraint for consistency. */
+            if let oldValue = reversePropertyBinding {
                 if newValue == nil || newValue! != oldValue {
-                    print("Property owner can not be changed.")
+                    print("Reverse property binding cannot be altered once bound.")
                     /* TODO: throw exception. */
                 }
             }
@@ -44,6 +46,7 @@ public class LCType: NSObject {
     }
 
     public override required init() {
-        /* Stub method. */
+        super.init()
+        ObjectProfiler.bindUnboundProperties(self)
     }
 }
