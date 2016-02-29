@@ -14,5 +14,8 @@ import Foundation
  It is superclass of all LeanCloud data type.
  */
 public class LCType: NSObject {
+    public override required init() {
+        //
+    }
     /* Stub class. */
 }

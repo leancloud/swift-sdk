@@ -112,4 +112,40 @@ class Runtime {
     static func propertyName(property: objc_property_t) -> String {
         return String(UTF8String: property_getName(property))!
     }
+
+    /**
+     Get property's backing instance variable from a class.
+
+     - parameter aClass:       The class from where you want to get.
+     - parameter propertyName: The property name.
+
+     - returns: Instance variable correspond to the property name.
+     */
+    static func instanceVariable(aClass: AnyClass, _ propertyName: String) -> Ivar {
+        let property = class_getProperty(aClass, propertyName)
+
+        if property != nil {
+            return class_getInstanceVariable(aClass, property_copyAttributeValue(property, "V"))
+        } else {
+            return nil
+        }
+    }
+
+    /**
+     Get instance variable value from an object.
+
+     - parameter object:       The object from where you want to get.
+     - parameter propertyName: The property name.
+
+     - returns: Value of instance variable correspond to the property name.
+     */
+    static func instanceVariableValue(object: AnyObject, _ propertyName: String) -> AnyObject? {
+        let instanceVariable = self.instanceVariable(object_getClass(object), propertyName)
+
+        if instanceVariable != nil {
+            return object_getIvar(object, instanceVariable)
+        } else {
+            return nil
+        }
+    }
 }
