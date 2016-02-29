@@ -131,7 +131,7 @@ class ObjectProfiler {
             propertyValue = ObjectProfiler.initializeProperty(object, propertyName)
         }
 
-        propertyValue!.owner = object
+        propertyValue!.linkedProperty = (object, propertyName)
 
         return propertyValue!
     }
