@@ -25,11 +25,7 @@ class ObjectProfiler {
      Register all subclasses.
      */
     static func registerSubclasses() {
-        let subclasses = Runtime.subclasses(LCObject.self)
-
-        for subclass in subclasses {
-            self.synthesizeProperties(subclass)
-        }
+        Runtime.subclasses(LCObject.self).forEach({ synthesizeProperties($0) })
     }
 
     /**
