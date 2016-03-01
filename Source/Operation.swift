@@ -186,6 +186,8 @@ extension LCObject {
      Used to manage a batch of operations.
      */
     class OperationHub {
+        weak var object: LCObject!
+
         /// A list of all operations.
         lazy var allOperations = [Operation]()
 
@@ -196,6 +198,10 @@ extension LCObject {
         /// Untraced operations.
         /// Used to store operations that not ready to be reduced.
         lazy var untracedOperations = [Operation]();
+
+        init(_ object: LCObject) {
+            self.object = object
+        }
 
         /**
          Append an operation to hub.
