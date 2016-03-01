@@ -14,7 +14,17 @@ import Foundation
  Define the available arithmetic for operation.
  */
 protocol OperationArithmetic {
-    /* Stub protocol */
+    func add(operation: Operation) -> Operation?
+}
+
+extension OperationArithmetic {
+    func add(operation: Operation) -> Operation? {
+        return nil
+    }
+}
+
+func + (left: Operation, right: Operation) -> Operation? {
+    return left.add(right)
 }
 
 /**
@@ -54,7 +64,7 @@ class Operation: OperationArithmetic {
 
      - returns: A new merged operation.
      */
-    func merge(previousOperation operation: Operation) -> Operation {
+    func merge(previousOperation operation: Operation) -> Operation? {
         let left = operation
         let right = self
 
@@ -64,7 +74,7 @@ class Operation: OperationArithmetic {
         switch (left.name, right.name) {
         case (.Set, .Set): return right
         case (.Set, .Delete): return right
-        // case (.Set, .Increment):
+        case (.Set, .Increment): return left + right
         // case (.Set, .Add):
         // case (.Set, .AddUnique):
         // case (.Set, .AddRelation):
@@ -279,10 +289,12 @@ private class OperationReducer {
     func reduceOperation(var operation: Operation) {
         /* Merge with previous operation which has the same key. */
         if let previousOperation = operationTable[operation.key] {
-            operation = operation.merge(previousOperation: previousOperation)
+            if let mergedOperation = operation.merge(previousOperation: previousOperation) {
+                operation = mergedOperation
+            }
         }
 
-        /* Stub method */
+        operationTable[operation.key] = operation
     }
 
     /**
