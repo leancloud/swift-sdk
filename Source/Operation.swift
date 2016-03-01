@@ -155,7 +155,11 @@ class Operation: OperationArithmetic {
     // MARK: Operation Subclasses
 
     class Set: Operation {
-        /* Stub class */
+        override func add(operation: Operation) -> Operation? {
+            /* SET operation's value cannot be nil, or it's a DELETE operation.
+               So, We are safe to unwrap the optional. */
+            return Operation(name: .Set, key: key, value: self.value!.add(operation.value))
+        }
     }
 
     class Delete: Operation {
