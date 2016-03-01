@@ -84,6 +84,13 @@ class ObjectProfiler {
         let getterName = Runtime.propertyName(property)
         let setterName = "set\(getterName.capitalizedString):"
 
+        let firstLetter = String(getterName.characters.first)
+
+        /* The property name must be lowercase prefixed, or synthesization will be ambiguous. */
+        if firstLetter.lowercaseString != firstLetter {
+            /* TODO: throw an exception. */
+        }
+
         class_replaceMethod(aClass, Selector(getterName), unsafeBitCast(self.propertyGetter, IMP.self), "@@:")
         class_replaceMethod(aClass, Selector(setterName), unsafeBitCast(self.propertySetter, IMP.self), "v@:@")
     }
