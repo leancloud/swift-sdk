@@ -14,7 +14,7 @@ import Foundation
  It is a wrapper of Int type, used to store an integer value.
  */
 public class LCInt: LCType {
-    public var value = 0
+    public private(set) var value = 0
 
     /**
      Increase value by specified amount.

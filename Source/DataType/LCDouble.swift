@@ -14,7 +14,7 @@ import Foundation
  It is a wrapper of Double type, used to store a double value.
  */
 public class LCDouble: LCType {
-    public var value = Double(0)
+    public private(set) var value = Double(0)
 
     /**
      Increase value by specified amount.
