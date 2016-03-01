@@ -124,14 +124,14 @@ class ObjectProfiler {
 
      This method iterates all LCType properties of an LCType object and adds reverse binding on these properties.
 
-     - parameter object: The target object.
+     - parameter object: Parent object.
      */
-    static func bindUnboundProperties(object: LCType) {
+    static func bindParent(object: LCType) {
         synthesizableProperties(object_getClass(object)).forEach { (property) in
             let propertyName = Runtime.propertyName(property)
 
             if let propertyValue = Runtime.instanceVariableValue(object, propertyName) as? LCType {
-                bindUnboundProperty(object, propertyName, propertyValue)
+                bindParent(object, propertyName, propertyValue)
             }
         }
     }
@@ -143,13 +143,15 @@ class ObjectProfiler {
      - parameter propertyName:  The property name which you want to bind.
      - parameter propertyValue: The property value.
      */
-    static func bindUnboundProperty(object: LCType, _ propertyName: String, _ propertyValue: LCType) {
-        if let reversePropertyBinding = propertyValue.parent {
-            if reversePropertyBinding != (object, propertyName) {
+    static func bindParent(object: LCType, _ propertyName: String, _ propertyValue: LCType) {
+        let parent = LCType.Parent(object: object, propertyName: propertyName)
+
+        if let previousParent = propertyValue.parent {
+            if previousParent != parent {
                 /* TODO: throw an exception. */
             }
         } else {
-            propertyValue.parent = (object, propertyName)
+            propertyValue.parent = parent
         }
     }
 
@@ -165,7 +167,7 @@ class ObjectProfiler {
             propertyValue = ObjectProfiler.initializeProperty(object, propertyName)
         }
 
-        ObjectProfiler.bindUnboundProperty(object, propertyName, propertyValue!)
+        ObjectProfiler.bindParent(object, propertyName, propertyValue!)
 
         return propertyValue!
     }

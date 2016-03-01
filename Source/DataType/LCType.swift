@@ -9,18 +9,18 @@
 import Foundation
 
 /**
- Check whether two linked properties are unequal.
+ Check whether two parents are unequal.
 
- - parameter left:  Left linked property.
- - parameter right: Right linked property.
+ - parameter left:  Left parent.
+ - parameter right: Right parent.
 
- - returns: true if two linked properties are unequal, false otherwise.
+ - returns: true if two parents are unequal, false otherwise.
  */
 func != (
-    left:  LCType.PropertyBinding,
-    right: LCType.PropertyBinding
+    left:  LCType.Parent,
+    right: LCType.Parent
 ) -> Bool {
-    return (left.object != right.object) || (left.property != right.property)
+    return (left.object != right.object) || (left.propertyName != right.propertyName)
 }
 
 /**
@@ -29,25 +29,38 @@ func != (
  It is superclass of all LeanCloud data type.
  */
 public class LCType: NSObject {
-    typealias PropertyBinding = (object: LCType, property: String)
+    struct Parent {
+        weak var object: LCType?
+        let      propertyName: String
+    }
 
     /// Parent object.
-    var parent: PropertyBinding? {
+    var parent: Parent? {
         willSet {
-            /* A LCType object can be bound to another LCType object's property.
-               It can only be bound once. We add this constraint for consistency. */
-            if let oldValue = parent {
-                if newValue == nil || newValue! != oldValue {
-                    print("Reverse property binding cannot be altered once bound.")
-                    /* TODO: throw exception. */
-                }
-            }
+            validateParent(newValue)
         }
     }
 
     public override required init() {
         super.init()
-        ObjectProfiler.bindUnboundProperties(self)
+        ObjectProfiler.bindParent(self)
+    }
+
+    /**
+     Validate parent.
+
+     A LCType object can be bound to another LCType object's property.
+     It can only be bound once. We add this constraint for consistency.
+
+     - parameter parent: The parent to validate.
+     */
+    func validateParent(parent: Parent?) {
+        if let previousParent = self.parent {
+            if parent == nil || parent! != previousParent {
+                print("Reverse property binding cannot be altered once bound.")
+                /* TODO: throw exception. */
+            }
+        }
     }
 
     /**
@@ -66,6 +79,6 @@ public class LCType: NSObject {
             return
         }
 
-        block(object: object, key: parent.property)
+        block(object: object, key: parent.propertyName)
     }
 }
