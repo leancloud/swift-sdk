@@ -159,4 +159,13 @@ class Runtime {
     static func setInstanceVariable(object: AnyObject, _ propertyName: String, _ value: AnyObject?) {
         object_setIvar(object, instanceVariable(object_getClass(object), propertyName), value)
     }
+
+    /**
+     Get retained object.
+
+     - parameter object: The object which you want to retain.
+     */
+    static func retainedObject<T: AnyObject>(object: T) -> T {
+        return Unmanaged.passRetained(object).takeUnretainedValue()
+    }
 }

@@ -107,7 +107,7 @@ class ObjectProfiler {
         let property = class_getProperty(object_getClass(object), propertyName)
 
         let propertyClass = ObjectProfiler.getLCType(property: property) as! LCType.Type
-        let propertyValue = Unmanaged.passRetained(propertyClass.init()).takeUnretainedValue()
+        let propertyValue = Runtime.retainedObject(propertyClass.init())
 
         Runtime.setInstanceVariable(object, propertyName, propertyValue)
 
@@ -190,15 +190,16 @@ class ObjectProfiler {
      Setter implementation of LeanCloud data type property.
      */
     static let propertySetter: @convention(c) (LCObject!, Selector, LCType?) -> Void = {
-        (object: LCObject!, cmd: Selector, var value: LCType?) -> Void in
+        (object: LCObject!, cmd: Selector, value: LCType?) -> Void in
         let propertyName = ObjectProfiler.propertyName(cmd)
+
+        Runtime.setInstanceVariable(object, propertyName, value)
 
         if let propertyValue = value {
             ObjectProfiler.bindParent(object, propertyName, propertyValue)
-            value = Unmanaged.passRetained(propertyValue).takeUnretainedValue()
+            object.addOperation(.Set, propertyName, Runtime.retainedObject(propertyValue))
+        } else {
+            object.addOperation(.Delete, propertyName, nil)
         }
-
-        Runtime.setInstanceVariable(object, propertyName, value)
-        object.addOperation(.Set, propertyName, value)
     }
 }
