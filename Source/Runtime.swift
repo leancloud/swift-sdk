@@ -148,4 +148,15 @@ class Runtime {
             return nil
         }
     }
+
+    /**
+     Set instance variable value of a property.
+
+     - parameter object:       The object.
+     - parameter propertyName: Property name on which you want to set.
+     - parameter value:        New property value.
+     */
+    static func setInstanceVariable(object: AnyObject, _ propertyName: String, _ value: AnyObject?) {
+        object_setIvar(object, instanceVariable(object_getClass(object), propertyName), value)
+    }
 }

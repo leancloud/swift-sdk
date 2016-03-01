@@ -8,18 +8,6 @@
 
 import Foundation
 
-func keyFromSetter(selector: Selector) -> String {
-    var capitalizedKey = selector.description
-
-    capitalizedKey = capitalizedKey.substringFromIndex(capitalizedKey.startIndex.advancedBy(3))
-    capitalizedKey = capitalizedKey.substringToIndex(capitalizedKey.endIndex.advancedBy(-1))
-
-    let headString = capitalizedKey.substringToIndex(capitalizedKey.startIndex.advancedBy(1)).lowercaseString
-    let tailString = capitalizedKey.substringFromIndex(capitalizedKey.startIndex.advancedBy(1))
-
-    return "\(headString)\(tailString)"
-}
-
 class ObjectProfiler {
     /**
      Register all subclasses.
@@ -114,7 +102,7 @@ class ObjectProfiler {
         let propertyClass = ObjectProfiler.getLCType(property: property) as! LCType.Type
         let propertyValue = Unmanaged.passRetained(propertyClass.init()).takeUnretainedValue()
 
-        object_setIvar(object, Runtime.instanceVariable(object_getClass(object), propertyName), propertyValue)
+        Runtime.setInstanceVariable(object, propertyName, propertyValue)
 
         return propertyValue
     }
@@ -156,6 +144,25 @@ class ObjectProfiler {
     }
 
     /**
+     Get property name from a setter selector.
+
+     - parameter selector: The setter selector.
+
+     - returns: A property name correspond to the setter selector.
+     */
+    static func propertyName(selector: Selector) -> String {
+        var capitalizedKey = selector.description
+
+        capitalizedKey = capitalizedKey.substringFromIndex(capitalizedKey.startIndex.advancedBy(3))
+        capitalizedKey = capitalizedKey.substringToIndex(capitalizedKey.endIndex.advancedBy(-1))
+
+        let headString = capitalizedKey.substringToIndex(capitalizedKey.startIndex.advancedBy(1)).lowercaseString
+        let tailString = capitalizedKey.substringFromIndex(capitalizedKey.startIndex.advancedBy(1))
+
+        return "\(headString)\(tailString)"
+    }
+
+    /**
      Getter implementation of LeanCloud data type property.
      */
     static let propertyGetter: @convention(c) (LCObject!, Selector) -> LCType = {
@@ -177,6 +184,13 @@ class ObjectProfiler {
      */
     static let propertySetter: @convention(c) (LCObject!, Selector, LCType?) -> Void = {
         (object: LCObject!, cmd: Selector, value: LCType?) -> Void in
-        /* Stub method. */
+        let propertyName = ObjectProfiler.propertyName(cmd)
+
+        if let propertyValue = value {
+            ObjectProfiler.bindParent(object, propertyName, propertyValue)
+        }
+
+        Runtime.setInstanceVariable(object, propertyName, value)
+        object.addOperation(.Set, propertyName, value)
     }
 }
