@@ -14,5 +14,24 @@ import Foundation
  It is a wrapper of Double type, used to store a double value.
  */
 public class LCDouble: LCType {
-    /* Stub class. */
+    public var value = Double(0)
+
+    /**
+     Increase value by specified amount.
+
+     - parameter amount: The amount to increase.
+     */
+    public func increaseBy(amount: Double) {
+        value += amount
+        updateParent { (object, key) -> Void in
+            object.addOperation(.Increment, key, amount)
+        }
+    }
+
+    /**
+     Increase value by 1.
+     */
+    public func increase() {
+        increaseBy(1)
+    }
 }

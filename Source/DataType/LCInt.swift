@@ -17,7 +17,7 @@ public class LCInt: LCType {
     public var value = 0
 
     /**
-     Increase integer value by specified amount.
+     Increase value by specified amount.
 
      - parameter amount: The amount to increase.
      */
@@ -29,7 +29,7 @@ public class LCInt: LCType {
     }
 
     /**
-     Increase integer value by 1.
+     Increase value by 1.
      */
     public func increase() {
         increaseBy(1)
