@@ -26,9 +26,9 @@ public class LCObject: LCType {
 
     /// Operation hub.
     /// Used to manage object operations.
-    var operationHub: OperationHub {
+    lazy var operationHub: OperationHub = {
         return OperationHub(self)
-    }
+    }()
 
     /**
      Get object for key.
