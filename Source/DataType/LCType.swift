@@ -81,4 +81,11 @@ public class LCType: NSObject {
 
         block(object: object, key: parent.propertyName)
     }
+
+    // MARK: Arithmetic Methods
+
+    func add(another: LCType?) -> LCType? {
+        /* TODO: throw an exception. */
+        return nil
+    }
 }

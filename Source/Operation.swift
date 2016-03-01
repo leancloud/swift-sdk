@@ -137,9 +137,22 @@ class Operation: OperationArithmetic {
         return self
     }
 
+    // MARK: Arithmetic Methods
+
+    /**
+     Add two operations to be one operation.
+     
+     This is a stub method for subclassing, default implementation is throw an exception.
+
+     - parameter operation: Another operation.
+
+     - returns: Adding result.
+     */
     func add(operation: Operation) -> Operation? {
         return nil
     }
+
+    // MARK: Operation Subclasses
 
     class Set: Operation {
         /* Stub class */
