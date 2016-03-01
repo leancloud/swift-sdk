@@ -8,6 +8,11 @@
 
 import Foundation
 
+struct LCParent {
+    weak var object: LCType?
+    let      propertyName: String
+}
+
 /**
  Check whether two parents are unequal.
 
@@ -17,8 +22,8 @@ import Foundation
  - returns: true if two parents are unequal, false otherwise.
  */
 func != (
-    left:  LCType.Parent,
-    right: LCType.Parent
+    left:  LCParent,
+    right: LCParent
 ) -> Bool {
     return (left.object != right.object) || (left.propertyName != right.propertyName)
 }
@@ -29,13 +34,8 @@ func != (
  It is superclass of all LeanCloud data type.
  */
 public class LCType: NSObject {
-    struct Parent {
-        weak var object: LCType?
-        let      propertyName: String
-    }
-
     /// Parent object.
-    var parent: Parent? {
+    var parent: LCParent? {
         willSet {
             validateParent(newValue)
         }
@@ -54,7 +54,7 @@ public class LCType: NSObject {
 
      - parameter parent: The parent to validate.
      */
-    func validateParent(parent: Parent?) {
+    func validateParent(parent: LCParent?) {
         if let previousParent = self.parent {
             if parent == nil || parent! != previousParent {
                 print("Reverse property binding cannot be altered once bound.")

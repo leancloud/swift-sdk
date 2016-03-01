@@ -144,7 +144,7 @@ class ObjectProfiler {
      - parameter propertyValue: The property value.
      */
     static func bindParent(object: LCType, _ propertyName: String, _ propertyValue: LCType) {
-        let parent = LCType.Parent(object: object, propertyName: propertyName)
+        let parent = LCParent(object: object, propertyName: propertyName)
 
         if let previousParent = propertyValue.parent {
             if previousParent != parent {
