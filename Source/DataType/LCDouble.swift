@@ -33,7 +33,7 @@ public class LCDouble: LCType {
     public func increaseBy(amount: Double) {
         value += amount
         updateParent { (object, key) -> Void in
-            object.addOperation(.Increment, key, amount)
+            object.addOperation(.Increment, key, LCDouble(amount))
         }
     }
 

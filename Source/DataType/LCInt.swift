@@ -33,7 +33,7 @@ public class LCInt: LCType {
     public func increaseBy(amount: Int) {
         value += amount
         updateParent { (object, key) -> Void in
-            object.addOperation(.Increment, key, amount)
+            object.addOperation(.Increment, key, LCInt(amount))
         }
     }
 

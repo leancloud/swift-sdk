@@ -43,9 +43,9 @@ class Operation: OperationArithmetic {
 
     let name: Name
     let key: String
-    let value: AnyObject?
+    let value: LCType?
 
-    required init(name: Name, key: String, value: AnyObject?) {
+    required init(name: Name, key: String, value: LCType?) {
         self.name  = name
         self.key   = key
         self.value = value
@@ -221,7 +221,7 @@ class OperationHub {
      - parameter key:   Key on which to perform.
      - parameter value: Value to be assigned.
      */
-    func append(name: Operation.Name, _ key: String, _ value: AnyObject?) {
+    func append(name: Operation.Name, _ key: String, _ value: LCType?) {
         let subclass  = Operation.subclass(operationName: name) as! Operation.Type
         let operation = subclass.init(name: name, key: key, value: value)
 

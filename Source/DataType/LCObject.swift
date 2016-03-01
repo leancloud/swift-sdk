@@ -47,7 +47,7 @@ public class LCObject: LCType {
      - parameter object: New object.
      - parameter key:    Specified key.
      */
-    func setObject(object: AnyObject?, forKey key: String) {
+    func setObject(object: LCType?, forKey key: String) {
         latestData[key] = object
         self.addOperation(.Set, key, object)
     }
@@ -59,7 +59,7 @@ public class LCObject: LCType {
      - parameter key:   Key on which to perform.
      - parameter value: Value to be assigned.
      */
-    func addOperation(name: Operation.Name, _ key: String, _ value: AnyObject?) {
+    func addOperation(name: Operation.Name, _ key: String, _ value: LCType?) {
         self.operationHub.append(name, key, value)
     }
 
