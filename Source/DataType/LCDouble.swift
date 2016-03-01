@@ -16,6 +16,15 @@ import Foundation
 public class LCDouble: LCType {
     public private(set) var value = Double(0)
 
+    public required init() {
+        super.init()
+    }
+
+    public convenience init(_ value: Double) {
+        self.init()
+        self.value = value
+    }
+
     /**
      Increase value by specified amount.
 

@@ -16,6 +16,15 @@ import Foundation
 public class LCInt: LCType {
     public private(set) var value = 0
 
+    public required init() {
+        super.init()
+    }
+
+    public convenience init(_ value: Int) {
+        self.init()
+        self.value = value
+    }
+
     /**
      Increase value by specified amount.
 
