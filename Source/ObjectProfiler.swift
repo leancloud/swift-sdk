@@ -190,11 +190,12 @@ class ObjectProfiler {
      Setter implementation of LeanCloud data type property.
      */
     static let propertySetter: @convention(c) (LCObject!, Selector, LCType?) -> Void = {
-        (object: LCObject!, cmd: Selector, value: LCType?) -> Void in
+        (object: LCObject!, cmd: Selector, var value: LCType?) -> Void in
         let propertyName = ObjectProfiler.propertyName(cmd)
 
         if let propertyValue = value {
             ObjectProfiler.bindParent(object, propertyName, propertyValue)
+            value = Unmanaged.passRetained(propertyValue).takeUnretainedValue()
         }
 
         Runtime.setInstanceVariable(object, propertyName, value)
