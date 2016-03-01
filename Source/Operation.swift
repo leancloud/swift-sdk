@@ -17,12 +17,6 @@ protocol OperationArithmetic {
     func add(operation: Operation) -> Operation?
 }
 
-extension OperationArithmetic {
-    func add(operation: Operation) -> Operation? {
-        return nil
-    }
-}
-
 func + (left: Operation, right: Operation) -> Operation? {
     return left.add(right)
 }
@@ -141,6 +135,10 @@ class Operation: OperationArithmetic {
         }
 
         return self
+    }
+
+    func add(operation: Operation) -> Operation? {
+        return nil
     }
 
     class Set: Operation {
