@@ -31,7 +31,6 @@ public class LCDouble: LCType {
      - parameter amount: The amount to increase.
      */
     public func increaseBy(amount: Double) {
-        value += amount
         updateParent { (object, key) -> Void in
             object.addOperation(.Increment, key, LCDouble(amount))
         }

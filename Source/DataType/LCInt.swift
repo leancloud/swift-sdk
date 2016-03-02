@@ -31,7 +31,6 @@ public class LCInt: LCType {
      - parameter amount: The amount to increase.
      */
     public func increaseBy(amount: Int) {
-        value += amount
         updateParent { (object, key) -> Void in
             object.addOperation(.Increment, key, LCInt(amount))
         }
