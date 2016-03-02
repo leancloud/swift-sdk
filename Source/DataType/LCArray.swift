@@ -26,10 +26,25 @@ public class LCArray: LCType {
         self.value = value
     }
 
+    /**
+     Append an element.
+
+     - parameter element: The element to be appended.
+     */
     public func append(element: AnyObject) {
         append(element, unique: false)
     }
 
+    /**
+     Append an element with unique option.
+
+     This method will append an element based on the `unique` option.
+     If `unique` is true, element will not be appended if it had already existed in array.
+     Otherwise, the element will always be appended.
+
+     - parameter element: The element to be appended.
+     - parameter unique:  Unique or not.
+     */
     public func append(element: AnyObject, unique: Bool) {
         if unique {
             if contains(element) == false {
