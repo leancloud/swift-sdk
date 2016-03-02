@@ -115,6 +115,21 @@ class ObjectProfiler {
     }
 
     /**
+     Update value of an object property.
+
+     - parameter object:        The object which you want to update.
+     - parameter propertyName:  The property name which you want to update.
+     - parameter propertyValue: The new property value.
+     */
+    static func updateProperty(object: LCObject, _ propertyName: String, propertyValue: LCType?) {
+        Runtime.setInstanceVariable(object, propertyName, propertyValue)
+
+        if let propertyValue = propertyValue {
+            bindParent(object, propertyName, Runtime.retainedObject(propertyValue))
+        }
+    }
+
+    /**
      Bind all unbound LCType properties of an object to object.
 
      This method iterates all LCType properties of an LCType object and adds reverse binding on these properties.
