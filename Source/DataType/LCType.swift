@@ -88,4 +88,9 @@ public class LCType: NSObject {
         /* TODO: throw an exception that two types cannot be added. */
         return nil
     }
+
+    func add(another: LCType?, unique: Bool) -> LCType? {
+        /* TODO: throw an exception that two types cannot be added by unique. */
+        return nil
+    }
 }
