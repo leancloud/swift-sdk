@@ -137,7 +137,7 @@ class Operation: OperationArithmetic {
         return self
     }
 
-    // MARK: Arithmetic Methods
+    // MARK: Arithmetic
 
     /**
      Add two operations to be one operation.

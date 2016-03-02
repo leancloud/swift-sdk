@@ -43,4 +43,15 @@ public class LCDouble: LCType {
     public func increase() {
         increaseBy(1)
     }
+
+    // MARK: Arithmetic
+
+    override func add(another: LCType?) -> LCType? {
+        if let some = another as? LCDouble {
+            return LCDouble(self.value + some.value)
+        } else {
+            /* TODO: throw an exception. */
+            return nil
+        }
+    }
 }
