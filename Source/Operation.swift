@@ -236,15 +236,10 @@ class OperationHub {
     weak var object: LCObject!
 
     /// A list of all operations.
-    lazy var allOperations = [Operation]()
+    lazy var operations = [Operation]()
 
-    /// Staged operations.
-    /// Used to stage operations to be reduced.
-    lazy var stagedOperations = [Operation]()
-
-    /// Untraced operations.
-    /// Used to store operations that not ready to be reduced.
-    lazy var untracedOperations = [Operation]();
+    /// A table of non-redundant operations indexed by operation key.
+    lazy var operationTable: [String:Operation] = [:]
 
     init(_ object: LCObject) {
         self.object = object
@@ -261,66 +256,16 @@ class OperationHub {
         let subclass  = Operation.subclass(operationName: name) as! Operation.Type
         let operation = subclass.init(name: name, key: key, value: value)
 
-        untracedOperations.append(operation)
-        allOperations.append(operation)
+        operations.append(operation)
+        reduce(operation)
     }
 
     /**
-     Stage untraced operations.
+     Reduce operation to operation table.
+
+     - parameter operation: The operation which you want to reduce.
      */
-    func stageOperations() {
-        stagedOperations.appendContentsOf(untracedOperations)
-        untracedOperations.removeAll()
-    }
-
-    /**
-     Clear all reduced operations.
-     */
-    func clearReducedOperations() {
-        stagedOperations.removeAll()
-    }
-
-    /**
-     Reduce operations to produce a non-redundant representation.
-
-     - returns: a non-redundant representation of operations.
-     */
-    func reduce() -> [String:Operation] {
-        stageOperations()
-        return OperationReducer(operations: stagedOperations).reduce()
-    }
-
-    /**
-     Produce a payload dictionary for request.
-
-     - returns: A payload dictionary.
-     */
-    func payload() -> NSDictionary {
-        return [:]
-    }
-}
-
-/**
- Operation reducer.
-
- Used to reduce a batch of operations to avoid redundance and invalid operations.
- */
-private class OperationReducer {
-    let operations: [Operation]
-
-    /// A table of non-redundant operations indexed by operation key.
-    lazy var operationTable: [String:Operation] = [:]
-
-    init(operations: [Operation]) {
-        self.operations = operations
-    }
-
-    /**
-     Reduce an operation.
-
-     - parameter operation: Operation to be reduced.
-     */
-    func reduceOperation(var operation: Operation) {
+    func reduce(var operation: Operation) {
         /* Merge with previous operation which has the same key. */
         if let previousOperation = operationTable[operation.key] {
             if let mergedOperation = operation.merge(previousOperation: previousOperation) {
@@ -332,12 +277,11 @@ private class OperationReducer {
     }
 
     /**
-     Reduce operations to produce a non-redundant representation.
+     Produce a payload dictionary for request.
 
-     - returns: a table of reduced operations.
+     - returns: A payload dictionary.
      */
-    func reduce() -> [String:Operation] {
-        operations.forEach { reduceOperation($0) }
-        return operationTable
+    func payload() -> NSDictionary {
+        return [:]
     }
 }
