@@ -58,7 +58,7 @@ class Operation: OperationArithmetic {
 
      - returns: A new merged operation.
      */
-    func merge(previousOperation operation: Operation) -> Operation? {
+    func merge(operation: Operation) -> Operation? {
         let left = operation
         let right = self
 
@@ -268,7 +268,7 @@ class OperationHub {
     func reduce(var operation: Operation) {
         /* Merge with previous operation which has the same key. */
         if let previousOperation = operationTable[operation.key] {
-            if let mergedOperation = operation.merge(previousOperation: previousOperation) {
+            if let mergedOperation = operation.merge(previousOperation) {
                 operation = mergedOperation
             }
         }
