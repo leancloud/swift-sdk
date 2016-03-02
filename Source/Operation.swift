@@ -141,14 +141,15 @@ class Operation: OperationArithmetic {
 
     /**
      Add two operations to be one operation.
-     
-     This is a stub method for subclassing, default implementation is throw an exception.
+
+     This is a stub method for overriding, default implementation will throw an exception.
 
      - parameter operation: Another operation.
 
      - returns: Adding result.
      */
     func add(operation: Operation) -> Operation? {
+        /* TODO: throw an exception that two operations cannot be added. */
         return nil
     }
 
