@@ -14,32 +14,80 @@ import Foundation
  It is a wrapper of Array type, used to store an array value.
  */
 public class LCArray: LCType {
-    public private(set) var value = [AnyObject]()
+    public private(set) var value: NSArray
 
     public required init() {
+        self.value = []
         super.init()
     }
 
-    public convenience init(_ value: [AnyObject]) {
+    public convenience init(_ value: NSArray) {
         self.init()
         self.value = value
     }
 
-    public func append(object: AnyObject) {
-        value.append(object)
-        updateParent { (object, key) -> Void in
-            object.addOperation(.Add, key, LCArray([object]))
+    public func append(element: AnyObject) {
+        append(element, unique: false)
+    }
+
+    public func append(element: AnyObject, unique: Bool) {
+        if unique {
+            if contains(element) == false {
+                updateParent { (object, key) in
+                    object.addOperation(.AddUnique, key, LCArray([element]))
+                }
+            }
+        } else {
+            updateParent { (object, key) in
+                object.addOperation(.Add, key, LCArray([element]))
+            }
         }
+    }
+
+    func contains(element: AnyObject) -> Bool {
+        return self.value.containsObject(element)
+    }
+
+    /**
+     Concatenate another array.
+
+     If unique is true, element in another array will not be concatenated if it had existed.
+
+     - parameter another: Another array to be concatenated.
+     - parameter unique:  Unique or not.
+
+     - returns: A new concatenated array.
+     */
+    func concatenate(another: NSArray, unique: Bool) -> NSArray {
+        let result = NSMutableArray(array: self.value)
+
+        if unique {
+            another.forEach({ (element) in
+                if contains(element) == false {
+                    result.addObject(element)
+                }
+            })
+        } else {
+            result.addObjectsFromArray(another as [AnyObject])
+        }
+
+        return result
     }
 
     // MARK: Arithmetic
 
     override func add(another: LCType?) -> LCType? {
-        if let some = another as? LCArray {
-            return LCArray(self.value.appendContentsOf(some.value))
-        } else {
+        return add(another, unique: false)
+    }
+
+    override func add(another: LCType?, unique: Bool) -> LCType? {
+        guard let some = another as? LCArray else {
             /* TODO: throw an exception that one type cannot be appended to another type. */
             return nil
         }
+
+        let array = concatenate(some.value, unique: unique)
+
+        return LCArray(array)
     }
 }
