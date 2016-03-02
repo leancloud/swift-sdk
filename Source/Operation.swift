@@ -69,8 +69,8 @@ class Operation: OperationArithmetic {
         case (.Set, .Set): return right
         case (.Set, .Delete): return right
         case (.Set, .Increment): return left + right
-        // case (.Set, .Add):
-        // case (.Set, .AddUnique):
+        case (.Set, .Add): return left + right
+        case (.Set, .AddUnique): return left + right
         // case (.Set, .AddRelation):
         // case (.Set, .Remove):
         // case (.Set, .RemoveRelation):
