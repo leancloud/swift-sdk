@@ -265,15 +265,21 @@ class OperationHub {
 
      - parameter operation: The operation which you want to reduce.
      */
-    func reduce(var operation: Operation) {
+    func reduce(operation: Operation) {
+        var newOperation = operation
+
         /* Merge with previous operation which has the same key. */
         if let previousOperation = operationTable[operation.key] {
             if let mergedOperation = operation.merge(previousOperation) {
-                operation = mergedOperation
+                newOperation = mergedOperation
             }
         }
 
-        operationTable[operation.key] = operation
+        if newOperation !== operation {
+            ObjectProfiler.updateProperty(object, operation.key, propertyValue: newOperation.value)
+        }
+
+        operationTable[operation.key] = newOperation
     }
 
     /**
