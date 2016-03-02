@@ -158,8 +158,9 @@ class Operation: OperationArithmetic {
     class Set: Operation {
         override func add(operation: Operation) -> Operation? {
             switch operation.name {
+            /* SET then ADD is valid for sequence types. */
             /* SET then INCREMENT is valid for number types. */
-            case .Increment:
+            case .Increment, .Add:
                 /* SET operation's value cannot be nil, or it's a DELETE operation.
                    So, We are safe to unwrap the optional here. */
                 return Operation(name: .Set, key: key, value: self.value!.add(operation.value))

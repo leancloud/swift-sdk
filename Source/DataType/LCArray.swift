@@ -14,5 +14,32 @@ import Foundation
  It is a wrapper of Array type, used to store an array value.
  */
 public class LCArray: LCType {
-    /* Stub class. */
+    public private(set) var value = [AnyObject]()
+
+    public required init() {
+        super.init()
+    }
+
+    public convenience init(_ value: [AnyObject]) {
+        self.init()
+        self.value = value
+    }
+
+    public func append(object: AnyObject) {
+        value.append(object)
+        updateParent { (object, key) -> Void in
+            object.addOperation(.Add, key, LCArray([object]))
+        }
+    }
+
+    // MARK: Arithmetic
+
+    override func add(another: LCType?) -> LCType? {
+        if let some = another as? LCArray {
+            return LCArray(self.value.appendContentsOf(some.value))
+        } else {
+            /* TODO: throw an exception that one type cannot be appended to another type. */
+            return nil
+        }
+    }
 }

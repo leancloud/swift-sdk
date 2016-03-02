@@ -85,7 +85,7 @@ public class LCType: NSObject {
     // MARK: Arithmetic
 
     func add(another: LCType?) -> LCType? {
-        /* TODO: throw an exception. */
+        /* TODO: throw an exception that two types cannot be added. */
         return nil
     }
 }
