@@ -57,8 +57,7 @@ public class LCType: NSObject {
     func validateParent(parent: LCParent?) {
         if let previousParent = self.parent {
             if parent == nil || parent! != previousParent {
-                print("Reverse property binding cannot be altered once bound.")
-                /* TODO: throw exception. */
+                /* TODO: throw an exception that parent cannot be altered once bound. */
             }
         }
     }
