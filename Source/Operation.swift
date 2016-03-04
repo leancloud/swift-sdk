@@ -291,3 +291,62 @@ class OperationHub {
         return [:]
     }
 }
+
+/**
+ Operation reducer.
+
+ Operation reducer is used to reduce operations to remove redundancy.
+ */
+class OperationReducer {
+    /**
+     Key oriented operation.
+
+     It only accepts following operations:
+
+     - SET
+     - DELETE
+     */
+    class Key: OperationReducer {
+        /* Stub class. */
+    }
+
+    /**
+     Number oriented operation.
+
+     It only accepts following operations:
+
+     - SET
+     - DELETE
+     - INCREMENT
+     */
+    class Number: OperationReducer {
+        /* Stub class. */
+    }
+
+    /**
+     List oriented operation.
+
+     It only accepts following operations:
+
+     - SET
+     - DELETE
+     - ADD
+     - ADDUNIQUE
+     - REMOVE
+     */
+    class List: OperationReducer {
+        /* Stub class. */
+    }
+
+    /**
+     Relation oriented operation.
+
+     It only accepts following operations:
+
+     - ADDRELATION
+     - REMOVERELATION
+     */
+    class Relation: OperationReducer {
+        /* Stub class. */
+    }
+}
