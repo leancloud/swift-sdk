@@ -75,6 +75,18 @@ class ObjectProfiler {
     }
 
     /**
+     Get concrete LCType subclass of an object property.
+
+     - parameter object:       Target object.
+     - parameter propertyName: The name of property to be inspected.
+
+     - returns: Concrete LCType subclass, or nil if property type is not LCType.
+     */
+    static func getLCType(object object: LCObject, propertyName: String) -> LCType.Type? {
+        return getLCType(property: class_getProperty(object_getClass(object), propertyName))
+    }
+
+    /**
      Synthesize a single property for class.
 
      - parameter property: Property which to be synthesized.
