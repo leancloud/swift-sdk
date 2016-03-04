@@ -63,6 +63,20 @@ public class LCType: NSObject {
     }
 
     /**
+     Get operation reducer type.
+
+     This method gets an operation reducer type for current LCType.
+     You should override this method in subclass and return an actual operation reducer type.
+     The default implementation returns the OperationReducer.Key type.
+     That is, current type noly accepts SET and DELETE operation.
+
+     - returns: An operation reducer type.
+     */
+    class func operationReducerType() -> OperationReducer.Type {
+        return OperationReducer.Key.self
+    }
+
+    /**
      Update reverse object.
 
      - parameter block: The update logic block.
