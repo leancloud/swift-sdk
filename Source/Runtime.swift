@@ -17,7 +17,7 @@ class Runtime {
 
      - returns: true or false.
      */
-    static func isSubclass(subclass: AnyClass?, superclass: AnyClass?) -> Bool {
+    static func isSubclass(subclass: AnyClass!, superclass: AnyClass!) -> Bool {
         if subclass == nil {
             return false
         }

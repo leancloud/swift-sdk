@@ -55,9 +55,9 @@ class ObjectProfiler {
 
      - parameter property: Target property.
 
-     - returns: Concreate LCType subclass, or nil if property type is not LCType.
+     - returns: Concrete LCType subclass, or nil if property type is not LCType.
      */
-    static func getLCType(property property: objc_property_t) -> AnyClass? {
+    static func getLCType(property property: objc_property_t) -> LCType.Type? {
         let propertyType = Runtime.propertyType(property)
 
         guard propertyType.hasPrefix("@\"") else {
@@ -65,10 +65,10 @@ class ObjectProfiler {
         }
 
         let name = propertyType[Range(start: propertyType.startIndex.advancedBy(2), end: propertyType.endIndex.advancedBy(-1))];
-        let subclass: AnyClass = objc_getClass(name) as! AnyClass
+        let subclass = objc_getClass(name)
 
-        if Runtime.isSubclass(subclass, superclass: LCType.self) {
-            return subclass
+        if Runtime.isSubclass(subclass as! AnyClass, superclass: LCType.self) {
+            return subclass as? LCType.Type
         } else {
             return nil
         }
@@ -106,7 +106,7 @@ class ObjectProfiler {
     static func initializeProperty(object: LCObject, _ propertyName: String) -> LCType {
         let property = class_getProperty(object_getClass(object), propertyName)
 
-        let propertyClass = ObjectProfiler.getLCType(property: property) as! LCType.Type
+        let propertyClass = ObjectProfiler.getLCType(property: property) as LCType.Type!
         let propertyValue = Runtime.retainedObject(propertyClass.init())
 
         Runtime.setInstanceVariable(object, propertyName, propertyValue)
