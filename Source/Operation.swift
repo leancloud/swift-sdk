@@ -238,8 +238,8 @@ class OperationHub {
     /// A list of all operations.
     lazy var operations = [Operation]()
 
-    /// A table of non-redundant operations indexed by operation key.
-    lazy var operationTable: [String:Operation] = [:]
+    /// A table of operation reducer indexed by operation key.
+    lazy var operationReducerTable: [String:OperationReducer] = [:]
 
     init(_ object: LCObject) {
         self.object = object
@@ -266,20 +266,36 @@ class OperationHub {
      - parameter operation: The operation which you want to reduce.
      */
     func reduce(operation: Operation) {
-        var newOperation = operation
+        // let reducer = operationReducer(operation)
 
-        /* Merge with previous operation which has the same key. */
-        if let previousOperation = operationTable[operation.key] {
-            if let mergedOperation = operation.merge(previousOperation) {
-                newOperation = mergedOperation
-            }
+        // if newOperation !== operation {
+        //     ObjectProfiler.updateProperty(object, operation.key, propertyValue: newOperation.value)
+        // }
+    }
+
+    func operationReducer(operation: Operation) -> OperationReducer {
+        let key = operation.key
+
+        if let previousOperationReducer = operationReducerTable[key] {
+            return previousOperationReducer
+        } else {
+            let operationReducer = operationReducerSubclass(object, key).init()
+            operationReducerTable[key] = operationReducer
+            return operationReducer
         }
+    }
 
-        if newOperation !== operation {
-            ObjectProfiler.updateProperty(object, operation.key, propertyValue: newOperation.value)
-        }
+    /**
+     Get operation reducer class of an object property.
 
-        operationTable[operation.key] = newOperation
+     - parameter object:       The object to be inspected.
+     - parameter propertyName: The property name of object.
+
+     - returns: The concrete operation reducer subclass.
+     */
+    func operationReducerSubclass(object: LCObject, _ propertyName: String) -> OperationReducer.Type {
+        let subclass = ObjectProfiler.getLCType(object: object, propertyName: propertyName) as LCType.Type!
+        return subclass.operationReducerType()
     }
 
     /**
@@ -298,6 +314,10 @@ class OperationHub {
  Operation reducer is used to reduce operations to remove redundancy.
  */
 class OperationReducer {
+    required init() {
+        /* Stub method. */
+    }
+
     /**
      Key oriented operation.
 
