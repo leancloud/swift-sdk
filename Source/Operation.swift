@@ -319,6 +319,15 @@ class OperationReducer {
     }
 
     /**
+     Reduce another operation.
+
+     - parameter operation: The operation to be reduced.
+     */
+    func reduce(operation: Operation) {
+        /* TODO: throw an exception that current reducer cannot reduce operation. */
+    }
+
+    /**
      Key oriented operation.
 
      It only accepts following operations:
@@ -327,7 +336,22 @@ class OperationReducer {
      - DELETE
      */
     class Key: OperationReducer {
-        /* Stub class. */
+        var operation: Operation?
+
+        override func reduce(operation: Operation) {
+            let validOperationNames: [Operation.Name] = [
+                .Set,
+                .Delete
+            ]
+
+            guard validOperationNames.contains(operation.name) else {
+                /* TODO: throw an exception that current reducer cannot reduce operation. */
+                return
+            }
+
+            /* SET or DELETE will always override the previous. */
+            self.operation = operation
+        }
     }
 
     /**
