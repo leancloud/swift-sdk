@@ -8,9 +8,29 @@
 
 import Foundation
 
+infix operator +~ {
+    associativity left
+}
+
 struct LCParent {
     weak var object: LCType?
     let      propertyName: String
+}
+
+func + (left: LCType, right: LCType?) -> LCType? {
+    return left.add(right)
+}
+
+func +~ (left: LCType, right: LCType?) -> LCType? {
+    return left.add(right, unique: true)
+}
+
+func - (left: LCType, right: LCType?) -> LCType? {
+    return left.subtract(right)
+}
+
+func & (left: LCType, right: LCType?) -> LCType? {
+    return left.union(right)
 }
 
 /**
@@ -104,6 +124,16 @@ public class LCType: NSObject {
 
     func add(another: LCType?, unique: Bool) -> LCType? {
         /* TODO: throw an exception that two types cannot be added by unique. */
+        return nil
+    }
+
+    func subtract(another: LCType?) -> LCType? {
+        /* TODO: throw an exception that two types cannot be subtracted. */
+        return nil
+    }
+
+    func union(another: LCType?) -> LCType? {
+        /* TODO: throw an exception that two types cannot be unioned. */
         return nil
     }
 }

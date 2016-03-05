@@ -105,4 +105,17 @@ public class LCArray: LCType {
 
         return LCArray(array)
     }
+
+    override func subtract(another: LCType?) -> LCType? {
+        guard let some = another as? LCArray else {
+            /* TODO: throw an exception that one type cannot be appended to another type. */
+            return nil
+        }
+
+        let array = NSMutableArray(array: self.value);
+
+        array.removeObjectsInArray(some.value as [AnyObject])
+
+        return LCArray(array)
+    }
 }

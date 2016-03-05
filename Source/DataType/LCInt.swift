@@ -25,6 +25,10 @@ public class LCInt: LCType {
         self.value = value
     }
 
+    override class func operationReducerType() -> OperationReducer.Type {
+        return OperationReducer.Number.self
+    }
+
     /**
      Increase value by specified amount.
 
