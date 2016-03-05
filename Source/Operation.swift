@@ -364,7 +364,44 @@ class OperationReducer {
      - INCREMENT
      */
     class Number: OperationReducer {
-        /* Stub class. */
+        var operation: Operation?
+
+        override func reduce(operation: Operation) {
+            let validOperationNames: [Operation.Name] = [
+                .Set,
+                .Delete,
+                .Increment
+            ]
+
+            guard validOperationNames.contains(operation.name) else {
+                /* TODO: throw an exception that current reducer cannot reduce operation. */
+                return
+            }
+
+            if let previousOperation = self.operation {
+                self.operation = reduce(previousOperation, operation: operation)
+            } else {
+                self.operation = operation
+            }
+        }
+
+        func reduce(previousOperation: Operation, operation: Operation) -> Operation? {
+            let left  = previousOperation
+            let right = operation
+
+            switch (left.name, right.name) {
+            case (.Set,       .Set):       return right
+            case (.Delete,    .Set):       return right
+            case (.Increment, .Set):       return right
+            case (.Set,       .Delete):    return right
+            case (.Delete,    .Delete):    return right
+            case (.Increment, .Delete):    return right
+            case (.Set,       .Increment): return Operation(name: .Set,       key: operation.key, value: left.value! + right.value!)
+            case (.Delete,    .Increment): return Operation(name: .Set,       key: operation.key, value: right.value)
+            case (.Increment, .Increment): return Operation(name: .Increment, key: operation.key, value: left.value! + right.value!)
+            default:                       return nil
+            }
+        }
     }
 
     /**
