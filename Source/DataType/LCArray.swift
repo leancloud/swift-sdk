@@ -14,10 +14,9 @@ import Foundation
  It is a wrapper of Array type, used to store an array value.
  */
 public class LCArray: LCType {
-    public private(set) var value: NSArray
+    public private(set) var value: NSArray?
 
     public required init() {
-        self.value = []
         super.init()
     }
 
@@ -32,7 +31,9 @@ public class LCArray: LCType {
      - parameter element: The element to be appended.
      */
     public func append(element: AnyObject) {
-        append(element, unique: false)
+        updateParent { (object, key) in
+            object.addOperation(.Add, key, LCArray([element]))
+        }
     }
 
     /**
@@ -46,45 +47,60 @@ public class LCArray: LCType {
      - parameter unique:  Unique or not.
      */
     public func append(element: AnyObject, unique: Bool) {
-        if unique {
-            if contains(element) == false {
-                updateParent { (object, key) in
-                    object.addOperation(.AddUnique, key, LCArray([element]))
-                }
-            }
-        } else {
-            updateParent { (object, key) in
-                object.addOperation(.Add, key, LCArray([element]))
-            }
+        updateParent { (object, key) in
+            object.addOperation(.AddUnique, key, LCArray([element]))
         }
     }
 
-    func contains(element: AnyObject) -> Bool {
-        return self.value.containsObject(element)
-    }
-
     /**
-     Concatenate another array.
+     Concatenate objects.
 
      If unique is true, element in another array will not be concatenated if it had existed.
 
-     - parameter another: Another array to be concatenated.
+     - parameter another: Another array of objects to be concatenated.
      - parameter unique:  Unique or not.
 
      - returns: A new concatenated array.
      */
-    func concatenate(another: NSArray, unique: Bool) -> NSArray {
-        let result = NSMutableArray(array: self.value)
+    func concatenateObjects(another: NSArray?, unique: Bool) -> NSArray? {
+        guard let another = another else {
+            return self.value
+        }
+
+        let result = NSMutableArray(array: self.value ?? [])
 
         if unique {
             another.forEach({ (element) in
-                if contains(element) == false {
+                if !result.containsObject(element) {
                     result.addObject(element)
                 }
             })
         } else {
             result.addObjectsFromArray(another as [AnyObject])
         }
+
+        return result
+    }
+
+    /**
+     Subtract objects.
+
+     - parameter another: Another array of objects to be subtracted.
+
+     - returns: A new subtracted array.
+     */
+    func subtractObjects(another: NSArray?) -> NSArray? {
+        guard let minuend = self.value else {
+            return nil
+        }
+
+        guard let subtrahend = another else {
+            return minuend
+        }
+
+        let result = NSMutableArray(array: minuend)
+
+        result.removeObjectsInArray(subtrahend as [AnyObject])
 
         return result
     }
@@ -96,26 +112,28 @@ public class LCArray: LCType {
     }
 
     override func add(another: LCType?, unique: Bool) -> LCType? {
-        guard let some = another as? LCArray else {
+        guard let another = another as? LCArray else {
             /* TODO: throw an exception that one type cannot be appended to another type. */
             return nil
         }
 
-        let array = concatenate(some.value, unique: unique)
-
-        return LCArray(array)
+        if let array = concatenateObjects(another.value, unique: unique) {
+            return LCArray(array)
+        } else {
+            return LCArray()
+        }
     }
 
     override func subtract(another: LCType?) -> LCType? {
-        guard let some = another as? LCArray else {
+        guard let another = another as? LCArray else {
             /* TODO: throw an exception that one type cannot be appended to another type. */
             return nil
         }
 
-        let array = NSMutableArray(array: self.value);
-
-        array.removeObjectsInArray(some.value as [AnyObject])
-
-        return LCArray(array)
+        if let array = subtractObjects(another.value) {
+            return LCArray(array)
+        } else {
+            return LCArray()
+        }
     }
 }
