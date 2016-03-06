@@ -16,6 +16,10 @@ import Foundation
 public class LCInt: LCType {
     public private(set) var value: Int?
 
+    var intValue: Int {
+        return value ?? 0
+    }
+
     public required init() {
         super.init()
     }
@@ -41,6 +45,8 @@ public class LCInt: LCType {
      - parameter amount: The amount to increase.
      */
     public func increaseBy(amount: Int) {
+        self.value = intValue + amount
+
         updateParent { (object, key) -> Void in
             object.addOperation(.Increment, key, LCInt(amount))
         }
@@ -61,8 +67,8 @@ public class LCInt: LCType {
             return nil
         }
 
-        let base = self.value ?? 0
-        let increment = another.value ?? 0
+        let base = self.intValue
+        let increment = another.intValue
 
         return LCInt(base + increment)
     }
