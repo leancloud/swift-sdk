@@ -129,6 +129,22 @@ class OperationReducer {
     }
 
     /**
+     Validate operation.
+
+     - parameter operation: The operation to validate.
+     */
+    func validate(operation: Operation) {
+        guard self.dynamicType.validOperationNames().contains(operation.name) else {
+            /* TODO: throw an exception that current reducer cannot reduce operation. */
+            return
+        }
+    }
+
+    class func validOperationNames() -> [Operation.Name] {
+        return []
+    }
+
+    /**
      Reduce another operation.
 
      - parameter operation: The operation to be reduced.
@@ -148,17 +164,11 @@ class OperationReducer {
     class Key: OperationReducer {
         var operation: Operation?
 
+        override class func validOperationNames() -> [Operation.Name] {
+            return [.Set, .Delete]
+        }
+
         override func reduce(operation: Operation) {
-            let validOperationNames: [Operation.Name] = [
-                .Set,
-                .Delete
-            ]
-
-            guard validOperationNames.contains(operation.name) else {
-                /* TODO: throw an exception that current reducer cannot reduce operation. */
-                return
-            }
-
             /* SET or DELETE will always override the previous. */
             self.operation = operation
         }
@@ -176,18 +186,11 @@ class OperationReducer {
     class Number: OperationReducer {
         var operation: Operation?
 
+        override class func validOperationNames() -> [Operation.Name] {
+            return [.Set, .Delete, .Increment]
+        }
+
         override func reduce(operation: Operation) {
-            let validOperationNames: [Operation.Name] = [
-                .Set,
-                .Delete,
-                .Increment
-            ]
-
-            guard validOperationNames.contains(operation.name) else {
-                /* TODO: throw an exception that current reducer cannot reduce operation. */
-                return
-            }
-
             if let previousOperation = self.operation {
                 self.operation = reduce(operation, previousOperation: previousOperation)
             } else {
@@ -228,55 +231,42 @@ class OperationReducer {
     class List: OperationReducer {
         var operationTable: [Operation.Name:Operation] = [:]
 
+        override class func validOperationNames() -> [Operation.Name] {
+            return [.Set, .Delete, .Add, .AddUnique, .Remove]
+        }
+
         override func reduce(operation: Operation) {
-            let validOperationNames: Set<Operation.Name> = [
-                .Set,
-                .Delete,
-                .Add,
-                .AddUnique,
-                .Remove
-            ]
-
-            guard validOperationNames.contains(operation.name) else {
-                /* TODO: throw an exception that current reducer cannot reduce operation. */
-                return
-            }
-
-            if operationTable.count > 0 {
-                switch operation.name {
-                case .Set:
-                    reset()
-                    setOperation(operation)
-                case .Delete:
-                    reset()
-                    setOperation(operation)
-                case .Add:
-                    removeObjects(operation, [.AddUnique, .Remove])
-
-                    if hasOperation(.Set) || hasOperation(.Delete) {
-                        addObjects(operation, .Set)
-                    } else {
-                        addObjects(operation, .Add)
-                    }
-                case .AddUnique:
-                    removeObjects(operation, [.Add, .Remove])
-
-                    if hasOperation(.Set) || hasOperation(.Delete) {
-                        unionObjects(operation, .Set)
-                    } else {
-                        unionObjects(operation, .AddUnique)
-                    }
-                case .Remove:
-                    removeObjects(operation, [.Set, .Add, .AddUnique])
-
-                    if hasOperation(.Remove) {
-                        unionObjects(operation, .Remove)
-                    }
-                default:
-                    break
-                }
-            } else {
+            switch operation.name {
+            case .Set:
+                reset()
                 setOperation(operation)
+            case .Delete:
+                reset()
+                setOperation(operation)
+            case .Add:
+                removeObjects(operation, [.AddUnique, .Remove])
+
+                if hasOperation(.Set) || hasOperation(.Delete) {
+                    addObjects(operation, .Set)
+                } else {
+                    addObjects(operation, .Add)
+                }
+            case .AddUnique:
+                removeObjects(operation, [.Add, .Remove])
+
+                if hasOperation(.Set) || hasOperation(.Delete) {
+                    unionObjects(operation, .Set)
+                } else {
+                    unionObjects(operation, .AddUnique)
+                }
+            case .Remove:
+                removeObjects(operation, [.Set, .Add, .AddUnique])
+
+                if hasOperation(.Remove) {
+                    unionObjects(operation, .Remove)
+                }
+            default:
+                break
             }
         }
 
