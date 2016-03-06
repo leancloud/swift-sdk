@@ -82,6 +82,13 @@ class OperationHub {
         reducer.reduce(operation)
     }
 
+    /**
+     Get operation reducer for operation.
+
+     - parameter operation: The operation to be reduced.
+
+     - returns: The operation reducer to reduce the given operation.
+     */
     func operationReducer(operation: Operation) -> OperationReducer {
         let key = operation.key
 
@@ -271,10 +278,23 @@ class OperationReducer {
             }
         }
 
+        /**
+         Check whether an operation existed for given operation name.
+
+         - parameter name: The operation name.
+
+         - returns: true if operation existed for operation name, false otherwise.
+         */
         func hasOperation(name: Operation.Name) -> Bool {
             return operationTable[name] != nil
         }
 
+        /**
+         Remove objects in an operation from operations specified by a set of operation names.
+
+         - parameter operation:      The operation that contains objects to be removed.
+         - parameter operationNames: A set of operation names that specify operations from which the objects will be removed.
+         */
         func removeObjects(operation: Operation, _ operationNames: Set<Operation.Name>) {
             var operations: [Operation] = []
             let subtrahend = operation.value as! LCList
@@ -289,34 +309,54 @@ class OperationReducer {
             operations.forEach({ setOperation($0) })
         }
 
-        func addObjects(operation: Operation, _ name: Operation.Name) {
+        /**
+         Add objects in an operation from operation specified by operation name.
+
+         - parameter operation:     The operation that contains objects to be removed.
+         - parameter operationName: The operation name that specifies operation from which the objects will be removed.
+         */
+        func addObjects(operation: Operation, _ operationName: Operation.Name) {
             var value = operation.value
 
-            if let baseValue = operationTable[name]?.value as? LCList {
+            if let baseValue = operationTable[operationName]?.value as? LCList {
                 value = baseValue + value
             }
 
-            let operation = Operation(name: name, key: operation.key, value: value)
+            let operation = Operation(name: operationName, key: operation.key, value: value)
 
             setOperation(operation)
         }
 
-        func unionObjects(operation: Operation, _ name: Operation.Name) {
+        /**
+         Union objects in an operation into operation specified by operation name.
+
+         - parameter operation:     The operation that contains objects to be unioned.
+         - parameter operationName: The operation name that specifies operation into which the objects will be unioned.
+         */
+        func unionObjects(operation: Operation, _ operationName: Operation.Name) {
             var value = operation.value
 
-            if let baseValue = operationTable[name]?.value as? LCList {
+            if let baseValue = operationTable[operationName]?.value as? LCList {
                 value = baseValue +~ value
             }
 
-            let operation = Operation(name: name, key: operation.key, value: value)
+            let operation = Operation(name: operationName, key: operation.key, value: value)
 
             setOperation(operation)
         }
 
+        /**
+         Set operation to operation table.
+
+         - parameter operation: The operation to set.
+         */
         func setOperation(operation: Operation) {
             self.operationTable[operation.name] = operation
         }
 
+        /**
+         Reset operation table.
+         */
         func reset() {
             self.operationTable = [:]
         }
