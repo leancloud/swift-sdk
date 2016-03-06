@@ -14,5 +14,18 @@ import Foundation
  It is a wrapper of Bool type, used to store a bool value.
  */
 public class LCBool: LCType {
-    /* Stub class. */
+    public private(set) var value: Bool?
+
+    public required init() {
+        super.init()
+    }
+
+    public convenience init(_ value: Bool) {
+        self.init()
+        self.value = value
+    }
+
+    override class func operationReducerType() -> OperationReducer.Type {
+        return OperationReducer.Key.self
+    }
 }
