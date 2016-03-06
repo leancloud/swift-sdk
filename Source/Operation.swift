@@ -76,11 +76,10 @@ class OperationHub {
      - parameter operation: The operation which you want to reduce.
      */
     func reduce(operation: Operation) {
-        // let reducer = operationReducer(operation)
+        let reducer = operationReducer(operation)
 
-        // if newOperation !== operation {
-        //     ObjectProfiler.updateProperty(object, operation.key, propertyValue: newOperation.value)
-        // }
+        reducer.validate(operation)
+        reducer.reduce(operation)
     }
 
     func operationReducer(operation: Operation) -> OperationReducer {
@@ -128,20 +127,22 @@ class OperationReducer {
         /* Stub method. */
     }
 
+    class func validOperationNames() -> [Operation.Name] {
+        return []
+    }
+
     /**
      Validate operation.
 
      - parameter operation: The operation to validate.
      */
     func validate(operation: Operation) {
-        guard self.dynamicType.validOperationNames().contains(operation.name) else {
+        let operationNames = self.dynamicType.validOperationNames()
+
+        guard operationNames.contains(operation.name) else {
             /* TODO: throw an exception that current reducer cannot reduce operation. */
             return
         }
-    }
-
-    class func validOperationNames() -> [Operation.Name] {
-        return []
     }
 
     /**
