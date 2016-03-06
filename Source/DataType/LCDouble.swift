@@ -16,6 +16,10 @@ import Foundation
 public class LCDouble: LCType {
     public private(set) var value: Double?
 
+    var doubleValue: Double {
+        return value ?? 0
+    }
+
     public required init() {
         super.init()
     }
@@ -41,6 +45,8 @@ public class LCDouble: LCType {
      - parameter amount: The amount to increase.
      */
     public func increaseBy(amount: Double) {
+        self.value = doubleValue + amount
+
         updateParent { (object, key) -> Void in
             object.addOperation(.Increment, key, LCDouble(amount))
         }
@@ -61,8 +67,8 @@ public class LCDouble: LCType {
             return nil
         }
 
-        let base = self.value ?? 0.0
-        let increment = another.value ?? 0.0
+        let base = self.doubleValue
+        let increment = another.doubleValue
 
         return LCDouble(base + increment)
     }
