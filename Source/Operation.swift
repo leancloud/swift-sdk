@@ -286,11 +286,11 @@ class OperationReducer {
 
         func removeObjects(operation: Operation, _ operationNames: Set<Operation.Name>) {
             var operations: [Operation] = []
-            let subtrahend = operation.value as! LCArray
+            let subtrahend = operation.value as! LCList
 
             operationTable.forEach { (operationName, operation) in
-                guard operationNames.contains(operationName)    else { return }
-                guard let minuend = operation.value as? LCArray else { return }
+                guard operationNames.contains(operationName)   else { return }
+                guard let minuend = operation.value as? LCList else { return }
 
                 operations.append(Operation(name: operation.name, key: operation.key, value: minuend - subtrahend))
             }
@@ -301,7 +301,7 @@ class OperationReducer {
         func addObjects(operation: Operation, _ name: Operation.Name) {
             var value = operation.value
 
-            if let baseValue = operationTable[name]?.value as? LCArray {
+            if let baseValue = operationTable[name]?.value as? LCList {
                 value = baseValue + value
             }
 
@@ -313,7 +313,7 @@ class OperationReducer {
         func unionObjects(operation: Operation, _ name: Operation.Name) {
             var value = operation.value
 
-            if let baseValue = operationTable[name]?.value as? LCArray {
+            if let baseValue = operationTable[name]?.value as? LCList {
                 value = baseValue + value
             }
 

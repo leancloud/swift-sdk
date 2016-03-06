@@ -1,5 +1,5 @@
 //
-//  LCArray.swift
+//  LCList.swift
 //  LeanCloud
 //
 //  Created by Tang Tianyong on 2/27/16.
@@ -9,11 +9,11 @@
 import Foundation
 
 /**
- LeanCloud array type.
+ LeanCloud list type.
 
- It is a wrapper of Array type, used to store an array value.
+ It is a wrapper of NSArray type, used to store a list of objects.
  */
-public class LCArray: LCType {
+public class LCList: LCType {
     public private(set) var value: NSArray?
 
     public required init() {
@@ -32,7 +32,7 @@ public class LCArray: LCType {
      */
     public func append(element: AnyObject) {
         updateParent { (object, key) in
-            object.addOperation(.Add, key, LCArray([element]))
+            object.addOperation(.Add, key, LCList([element]))
         }
     }
 
@@ -48,7 +48,7 @@ public class LCArray: LCType {
      */
     public func append(element: AnyObject, unique: Bool) {
         updateParent { (object, key) in
-            object.addOperation(.AddUnique, key, LCArray([element]))
+            object.addOperation(.AddUnique, key, LCList([element]))
         }
     }
 
@@ -112,28 +112,28 @@ public class LCArray: LCType {
     }
 
     override func add(another: LCType?, unique: Bool) -> LCType? {
-        guard let another = another as? LCArray else {
+        guard let another = another as? LCList else {
             /* TODO: throw an exception that one type cannot be appended to another type. */
             return nil
         }
 
         if let array = concatenateObjects(another.value, unique: unique) {
-            return LCArray(array)
+            return LCList(array)
         } else {
-            return LCArray()
+            return LCList()
         }
     }
 
     override func subtract(another: LCType?) -> LCType? {
-        guard let another = another as? LCArray else {
+        guard let another = another as? LCList else {
             /* TODO: throw an exception that one type cannot be appended to another type. */
             return nil
         }
 
         if let array = subtractObjects(another.value) {
-            return LCArray(array)
+            return LCList(array)
         } else {
-            return LCArray()
+            return LCList()
         }
     }
 }
