@@ -14,7 +14,7 @@ import Foundation
  It is a wrapper of Double type, used to store a double value.
  */
 public class LCDouble: LCType {
-    public private(set) var value = Double(0)
+    public private(set) var value: Double?
 
     public required init() {
         super.init()
@@ -50,11 +50,14 @@ public class LCDouble: LCType {
     // MARK: Arithmetic
 
     override func add(another: LCType?) -> LCType? {
-        if let some = another as? LCDouble {
-            return LCDouble(self.value + some.value)
-        } else {
-            /* TODO: throw an exception. */
+        guard let another = another as? LCDouble else {
+            /* TODO: throw an exception that two type cannot be added. */
             return nil
         }
+
+        let base = self.value ?? 0.0
+        let increment = another.value ?? 0.0
+
+        return LCDouble(base + increment)
     }
 }
