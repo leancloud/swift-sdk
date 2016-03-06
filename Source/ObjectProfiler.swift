@@ -133,7 +133,7 @@ class ObjectProfiler {
      - parameter propertyName:  The property name which you want to update.
      - parameter propertyValue: The new property value.
      */
-    static func updateProperty(object: LCObject, _ propertyName: String, propertyValue: LCType?) {
+    static func updateProperty(object: LCType, _ propertyName: String, _ propertyValue: LCType?) {
         Runtime.setInstanceVariable(object, propertyName, propertyValue)
 
         if let propertyValue = propertyValue {

@@ -119,6 +119,14 @@ public class LCType: NSObject {
         block(object: object, key: parent.propertyName)
     }
 
+    public func delete() {
+        ObjectProfiler.updateProperty(self, "value", nil)
+
+        updateParent { (object, key) -> Void in
+            object.addOperation(.Delete, key, nil)
+        }
+    }
+
     // MARK: Arithmetic
 
     func add(another: LCType?) -> LCType? {
