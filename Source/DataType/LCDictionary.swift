@@ -24,4 +24,14 @@ public class LCDictionary: LCType {
         self.init()
         self.value = value
     }
+
+    public override func copyWithZone(zone: NSZone) -> AnyObject {
+        let copy = super.copyWithZone(zone) as! LCDictionary
+
+        if let value = self.value {
+            copy.value = NSDictionary(dictionary: value as [NSObject : AnyObject], copyItems: false)
+        }
+
+        return copy
+    }
 }

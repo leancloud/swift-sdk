@@ -25,6 +25,16 @@ public class LCList: LCType {
         self.value = value
     }
 
+    public override func copyWithZone(zone: NSZone) -> AnyObject {
+        let copy = super.copyWithZone(zone) as! LCList
+
+        if let value = self.value {
+            copy.value = NSArray(array: value as [AnyObject], copyItems: false)
+        }
+
+        return copy
+    }
+
     /**
      Append an element.
 

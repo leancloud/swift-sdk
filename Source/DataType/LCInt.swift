@@ -25,6 +25,12 @@ public class LCInt: LCType {
         self.value = value
     }
 
+    public override func copyWithZone(zone: NSZone) -> AnyObject {
+        let copy = super.copyWithZone(zone) as! LCInt
+        copy.value = self.value
+        return copy
+    }
+
     override class func operationReducerType() -> OperationReducer.Type {
         return OperationReducer.Number.self
     }

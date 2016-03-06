@@ -115,6 +115,10 @@ public class LCType: NSObject {
         block(object: object, key: parent.propertyName)
     }
 
+    public func copyWithZone(zone: NSZone) -> AnyObject {
+        return self.dynamicType.init()
+    }
+
     // MARK: Arithmetic
 
     func add(another: LCType?) -> LCType? {

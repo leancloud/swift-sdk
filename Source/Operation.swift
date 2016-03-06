@@ -65,7 +65,8 @@ class OperationHub {
      - parameter value: Value to be assigned.
      */
     func append(name: Operation.Name, _ key: String, _ value: LCType?) {
-        let operation = Operation(name: name, key: key, value: value)
+        let copyValue = value?.copy() as? LCType
+        let operation = Operation(name: name, key: key, value: copyValue)
         operations.append(operation)
         reduce(operation)
     }

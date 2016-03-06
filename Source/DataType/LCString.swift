@@ -24,4 +24,10 @@ public class LCString: LCType {
         self.init()
         self.value = value
     }
+
+    public override func copyWithZone(zone: NSZone) -> AnyObject {
+        let copy = super.copyWithZone(zone) as! LCString
+        copy.value = self.value
+        return copy
+    }
 }
