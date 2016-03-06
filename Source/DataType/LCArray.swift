@@ -36,6 +36,10 @@ public class LCList: LCType {
         }
     }
 
+    override class func operationReducerType() -> OperationReducer.Type {
+        return OperationReducer.List.self
+    }
+
     /**
      Append an element with unique option.
 
