@@ -24,8 +24,4 @@ public class LCBool: LCType {
         self.init()
         self.value = value
     }
-
-    override class func operationReducerType() -> OperationReducer.Type {
-        return OperationReducer.Key.self
-    }
 }
