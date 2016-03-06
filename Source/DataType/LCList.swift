@@ -45,6 +45,8 @@ public class LCList: LCType {
      - parameter element: The element to be appended.
      */
     public func append(element: AnyObject) {
+        self.value = concatenateObjects([element])
+
         updateParent { (object, key) in
             object.addOperation(.Add, key, LCList([element]))
         }
@@ -61,6 +63,8 @@ public class LCList: LCType {
      - parameter unique:  Unique or not.
      */
     public func append(element: AnyObject, unique: Bool) {
+        self.value = concatenateObjects([element], unique: unique)
+
         updateParent { (object, key) in
             object.addOperation(.AddUnique, key, LCList([element]))
         }
@@ -68,6 +72,17 @@ public class LCList: LCType {
 
     /**
      Concatenate objects.
+
+     - parameter another: Another array of objects to be concatenated.
+
+     - returns: A new concatenated array.
+     */
+    func concatenateObjects(another: NSArray?) -> NSArray? {
+        return concatenateObjects(another, unique: false)
+    }
+
+    /**
+     Concatenate objects with unique option.
 
      If unique is true, element in another array will not be concatenated if it had existed.
 
@@ -81,7 +96,7 @@ public class LCList: LCType {
             return self.value
         }
 
-        let result = NSMutableArray(array: self.value ?? [])
+        let result = NSMutableArray(array: (self.value ?? []) as [AnyObject], copyItems: false)
 
         if unique {
             another.forEach({ (element) in
