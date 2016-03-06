@@ -66,6 +66,10 @@ public class LCType: NSObject {
         ObjectProfiler.bindParent(self)
     }
 
+    public func copyWithZone(zone: NSZone) -> AnyObject {
+        return self.dynamicType.init()
+    }
+
     /**
      Validate parent.
 
@@ -113,10 +117,6 @@ public class LCType: NSObject {
         }
 
         block(object: object, key: parent.propertyName)
-    }
-
-    public func copyWithZone(zone: NSZone) -> AnyObject {
-        return self.dynamicType.init()
     }
 
     // MARK: Arithmetic
