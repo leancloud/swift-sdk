@@ -11,8 +11,21 @@ import Foundation
 /**
  LeanCloud dictionary type.
 
- It is a wrapper of Dictionary type, used to store a dictionary value.
+ It is a wrapper of NSDictionary type, used to store a dictionary value.
  */
 public class LCDictionary: LCType {
-    /* Stub class. */
+    public private(set) var value: NSDictionary?
+
+    public required init() {
+        super.init()
+    }
+
+    public convenience init(_ value: NSDictionary) {
+        self.init()
+        self.value = value
+    }
+
+    override class func operationReducerType() -> OperationReducer.Type {
+        return OperationReducer.Key.self
+    }
 }
