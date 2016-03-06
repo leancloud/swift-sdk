@@ -189,13 +189,13 @@ class OperationReducer {
             }
 
             if let previousOperation = self.operation {
-                self.operation = reduce(previousOperation, operation: operation)
+                self.operation = reduce(operation, previousOperation: previousOperation)
             } else {
                 self.operation = operation
             }
         }
 
-        func reduce(previousOperation: Operation, operation: Operation) -> Operation? {
+        func reduce(operation: Operation, previousOperation: Operation) -> Operation? {
             let left  = previousOperation
             let right = operation
 
