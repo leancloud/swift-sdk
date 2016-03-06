@@ -14,7 +14,7 @@ import Foundation
  It is a wrapper of Int type, used to store an integer value.
  */
 public class LCInt: LCType {
-    public private(set) var value = 0
+    public private(set) var value: Int?
 
     public required init() {
         super.init()
@@ -50,11 +50,14 @@ public class LCInt: LCType {
     // MARK: Arithmetic
 
     override func add(another: LCType?) -> LCType? {
-        if let some = another as? LCInt {
-            return LCInt(self.value + some.value)
-        } else {
-            /* TODO: throw an exception. */
+        guard let another = another as? LCInt else {
+            /* TODO: throw an exception that two type cannot be added. */
             return nil
         }
+
+        let base = self.value ?? 0
+        let increment = another.value ?? 0
+
+        return LCInt(base + increment)
     }
 }
