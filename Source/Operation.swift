@@ -305,7 +305,7 @@ class OperationReducer {
             var value = operation.value
 
             if let baseValue = operationTable[name]?.value as? LCList {
-                value = baseValue + value
+                value = baseValue +~ value
             }
 
             let operation = Operation(name: name, key: operation.key, value: value)
