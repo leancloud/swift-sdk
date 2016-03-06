@@ -14,5 +14,18 @@ import Foundation
  It is a wrapper of String type, used to store a string value.
  */
 public class LCString: LCType {
-    /* Stub class. */
+    public private(set) var value: String?
+
+    public required init() {
+        super.init()
+    }
+
+    public convenience init(_ value: String) {
+        self.init()
+        self.value = value
+    }
+
+    override class func operationReducerType() -> OperationReducer.Type {
+        return OperationReducer.Key.self
+    }
 }
