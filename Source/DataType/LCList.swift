@@ -35,6 +35,10 @@ public class LCList: LCType {
         return copy
     }
 
+    override class func operationReducerType() -> OperationReducer.Type {
+        return OperationReducer.List.self
+    }
+
     /**
      Append an element.
 
@@ -44,10 +48,6 @@ public class LCList: LCType {
         updateParent { (object, key) in
             object.addOperation(.Add, key, LCList([element]))
         }
-    }
-
-    override class func operationReducerType() -> OperationReducer.Type {
-        return OperationReducer.List.self
     }
 
     /**
