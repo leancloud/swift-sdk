@@ -163,6 +163,15 @@ class OperationReducer {
     }
 
     /**
+     Get all reduced operations.
+
+     - returns: An array of reduced operations.
+     */
+    func operations() -> [Operation] {
+        return []
+    }
+
+    /**
      Key oriented operation.
 
      It only accepts following operations:
@@ -180,6 +189,10 @@ class OperationReducer {
         override func reduce(operation: Operation) {
             /* SET or DELETE will always override the previous. */
             self.operation = operation
+        }
+
+        override func operations() -> [Operation] {
+            return (operation != nil) ? [operation!] : []
         }
     }
 
@@ -223,6 +236,10 @@ class OperationReducer {
             case (.Increment, .Increment): return Operation(name: .Increment, key: operation.key, value: left.value! + right.value!)
             default:                       return nil
             }
+        }
+
+        override func operations() -> [Operation] {
+            return (operation != nil) ? [operation!] : []
         }
     }
 
@@ -276,6 +293,43 @@ class OperationReducer {
                 }
             default:
                 break
+            }
+        }
+
+        override func operations() -> [Operation] {
+            var operationTable = self.operationTable
+            removeEmptyOperation(&operationTable, [.Add, .AddUnique, .Remove])
+            return Array(operationTable.values)
+        }
+
+        /**
+         Remove empty operations from operation table.
+
+         - parameter operationTable: The operation table.
+         - parameter operationNames: A set of operation names that specify which operation should be removed from operation table if it is empty.
+         */
+        func removeEmptyOperation(inout operationTable: [Operation.Name:Operation], _ operationNames:Set<Operation.Name>) {
+            operationNames.forEach { (operationName) in
+                if let operation = operationTable[operationName] {
+                    if !hasObjects(operation) {
+                        operationTable[operationName] = nil
+                    }
+                }
+            }
+        }
+
+        /**
+         Check whether an operation has objects.
+
+         - parameter operation: The operation.
+
+         - returns: true if operation has objects, false otherwise.
+         */
+        func hasObjects(operation: Operation) -> Bool {
+            if let list = operation.value as? LCList {
+                return list.value?.count > 0
+            } else {
+                return false
             }
         }
 
