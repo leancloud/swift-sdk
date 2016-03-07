@@ -71,6 +71,19 @@ public class LCList: LCType {
     }
 
     /**
+     Remove an element from list.
+
+     - parameter element: The element to be removed.
+     */
+    public func remove(element: AnyObject) {
+        self.value = subtractObjects([element])
+
+        updateParent { (object, key) -> Void in
+            object.addOperation(.Remove, key, LCList([element]))
+        }
+    }
+
+    /**
      Concatenate objects.
 
      - parameter another: Another array of objects to be concatenated.
