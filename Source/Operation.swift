@@ -39,6 +39,10 @@ class Operation {
     }
 }
 
+typealias OperationPile      = [String:[Operation]]
+typealias OperationTable     = [String:Operation]
+typealias OperationTableList = [OperationTable]
+
 /**
  Operation hub.
 
@@ -113,6 +117,76 @@ class OperationHub {
     func operationReducerSubclass(object: LCObject, _ propertyName: String) -> OperationReducer.Type {
         let subclass = ObjectProfiler.getLCType(object: object, propertyName: propertyName) as LCType.Type!
         return subclass.operationReducerType()
+    }
+
+    /**
+     Get an operation pile.
+
+     The operation pile is a structure that maps operation key to a list of operations.
+
+     - returns: An operation pile indexed by property key.
+     */
+    func operationPile() -> OperationPile {
+        var operationPile: OperationPile = [:]
+
+        operationReducerTable.forEach { (key, operationReducer) in
+            let operations = operationReducer.operations()
+
+            if operations.count > 0 {
+                operationPile[key] = operations
+            }
+        }
+
+        return operationPile
+    }
+
+    /**
+     Extract an operation table from an operation pile.
+
+     - parameter operationPile: An operation pile from which the operation table will be extracted.
+
+     - returns: An operation table, or nil if no operations can be extracted.
+     */
+    func extractOperationTable(inout operationPile: OperationPile) -> OperationTable? {
+        var table: OperationTable = [:]
+
+        operationPile.forEach({ (key, var operations) in
+            if operations.isEmpty {
+                operationPile.removeValueForKey(key)
+            } else {
+                table[key] = operations.removeAtIndex(0)
+                operationPile[key] = operations
+            }
+        })
+
+        return table.isEmpty ? nil : table
+    }
+
+    /**
+     Get an operation table list.
+
+     Operation table list is flat version of operation pile.
+     When a key has two or more operations in operation pile,
+     each operation will be extracted to each operation table in an operation table list.
+
+     For example, `["foo":[op1,op2]]` will extracted as `[["foo":op1],["foo":op2]]`.
+     
+     The reason for making this transformation is that one request should
+     not contain multiple operations on one key.
+
+     - returns: An operation table list.
+     */
+    func operationTableList() -> OperationTableList {
+        var list: OperationTableList = []
+        var operationPile = self.operationPile()
+
+        while !operationPile.isEmpty {
+            if let operationTable = extractOperationTable(&operationPile) {
+                list.append(operationTable)
+            }
+        }
+
+        return list
     }
 
     /**
