@@ -287,10 +287,7 @@ class OperationReducer {
                 }
             case .Remove:
                 removeObjects(operation, [.Set, .Add, .AddUnique])
-
-                if hasOperation(.Remove) {
-                    unionObjects(operation, .Remove)
-                }
+                unionObjects(operation, .Remove)
             default:
                 break
             }
