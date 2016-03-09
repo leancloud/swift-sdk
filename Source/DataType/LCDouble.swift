@@ -13,7 +13,7 @@ import Foundation
 
  It is a wrapper of Double type, used to store a double value.
  */
-public class LCDouble: LCType {
+public class LCDouble: LCType, IntegerLiteralConvertible, FloatLiteralConvertible {
     public private(set) var value: Double?
 
     var doubleValue: Double {
@@ -27,6 +27,16 @@ public class LCDouble: LCType {
     public convenience init(_ value: Double) {
         self.init()
         self.value = value
+    }
+
+    public convenience required init(integerLiteral value: IntegerLiteralType) {
+        self.init()
+        self.value = Double(value)
+    }
+
+    public convenience required init(floatLiteral value: FloatLiteralType) {
+        self.init()
+        self.value = Double(value)
     }
 
     public override func copyWithZone(zone: NSZone) -> AnyObject {

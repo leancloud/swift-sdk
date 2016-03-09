@@ -13,8 +13,11 @@ import Foundation
 
  It is a wrapper of String type, used to store a string value.
  */
-public class LCString: LCType {
+public class LCString: LCType, StringLiteralConvertible {
     public private(set) var value: String?
+
+    public typealias UnicodeScalarLiteralType = Character
+    public typealias ExtendedGraphemeClusterLiteralType = StringLiteralType
 
     public required init() {
         super.init()
@@ -23,6 +26,21 @@ public class LCString: LCType {
     public convenience init(_ value: String) {
         self.init()
         self.value = value
+    }
+
+    public convenience required init(unicodeScalarLiteral value: UnicodeScalarLiteralType) {
+        self.init()
+        self.value = String(value)
+    }
+
+    public convenience required init(extendedGraphemeClusterLiteral value: ExtendedGraphemeClusterLiteralType) {
+        self.init()
+        self.value = String(value)
+    }
+
+    public convenience required init(stringLiteral value: StringLiteralType) {
+        self.init()
+        self.value = String(value)
     }
 
     public override func copyWithZone(zone: NSZone) -> AnyObject {

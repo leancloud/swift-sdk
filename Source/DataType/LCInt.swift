@@ -13,7 +13,7 @@ import Foundation
 
  It is a wrapper of Int type, used to store an integer value.
  */
-public class LCInt: LCType {
+public class LCInt: LCType, IntegerLiteralConvertible {
     public private(set) var value: Int?
 
     var intValue: Int {
@@ -27,6 +27,11 @@ public class LCInt: LCType {
     public convenience init(_ value: Int) {
         self.init()
         self.value = value
+    }
+
+    public convenience required init(integerLiteral value: IntegerLiteralType) {
+        self.init()
+        self.value = Int(value)
     }
 
     public override func copyWithZone(zone: NSZone) -> AnyObject {

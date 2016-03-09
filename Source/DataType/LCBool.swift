@@ -13,7 +13,7 @@ import Foundation
 
  It is a wrapper of Bool type, used to store a bool value.
  */
-public class LCBool: LCType {
+public class LCBool: LCType, BooleanLiteralConvertible {
     public private(set) var value: Bool?
 
     public required init() {
@@ -23,6 +23,11 @@ public class LCBool: LCType {
     public convenience init(_ value: Bool) {
         self.init()
         self.value = value
+    }
+
+    public convenience required init(booleanLiteral value: BooleanLiteralType) {
+        self.init()
+        self.value = Bool(value)
     }
 
     public override func copyWithZone(zone: NSZone) -> AnyObject {
