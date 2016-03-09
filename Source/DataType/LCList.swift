@@ -13,7 +13,7 @@ import Foundation
 
  It is a wrapper of NSArray type, used to store a list of objects.
  */
-public class LCList: LCType {
+public class LCList: LCType, ArrayLiteralConvertible {
     public private(set) var value: NSArray?
 
     public required init() {
@@ -23,6 +23,10 @@ public class LCList: LCType {
     public convenience init(_ value: NSArray) {
         self.init()
         self.value = value
+    }
+
+    public convenience required init(arrayLiteral elements: AnyObject...) {
+        self.init(elements)
     }
 
     public override func copyWithZone(zone: NSZone) -> AnyObject {

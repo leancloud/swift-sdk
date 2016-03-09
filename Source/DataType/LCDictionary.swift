@@ -13,7 +13,7 @@ import Foundation
 
  It is a wrapper of NSDictionary type, used to store a dictionary value.
  */
-public class LCDictionary: LCType {
+public class LCDictionary: LCType, DictionaryLiteralConvertible {
     public private(set) var value: NSDictionary?
 
     public required init() {
@@ -23,6 +23,14 @@ public class LCDictionary: LCType {
     public convenience init(_ value: NSDictionary) {
         self.init()
         self.value = value
+    }
+
+    public convenience required init(dictionaryLiteral elements: (String, AnyObject)...) {
+        let value = NSMutableDictionary()
+
+        elements.forEach { value[$0] = $1 }
+
+        self.init(value)
     }
 
     public override func copyWithZone(zone: NSZone) -> AnyObject {
