@@ -29,18 +29,15 @@ public class LCString: LCType, StringLiteralConvertible {
     }
 
     public convenience required init(unicodeScalarLiteral value: UnicodeScalarLiteralType) {
-        self.init()
-        self.value = String(value)
+        self.init(String(value))
     }
 
     public convenience required init(extendedGraphemeClusterLiteral value: ExtendedGraphemeClusterLiteralType) {
-        self.init()
-        self.value = String(value)
+        self.init(String(value))
     }
 
     public convenience required init(stringLiteral value: StringLiteralType) {
-        self.init()
-        self.value = String(value)
+        self.init(String(value))
     }
 
     public override func copyWithZone(zone: NSZone) -> AnyObject {

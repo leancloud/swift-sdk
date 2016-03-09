@@ -30,13 +30,11 @@ public class LCDouble: LCType, IntegerLiteralConvertible, FloatLiteralConvertibl
     }
 
     public convenience required init(integerLiteral value: IntegerLiteralType) {
-        self.init()
-        self.value = Double(value)
+        self.init(Double(value))
     }
 
     public convenience required init(floatLiteral value: FloatLiteralType) {
-        self.init()
-        self.value = Double(value)
+        self.init(Double(value))
     }
 
     public override func copyWithZone(zone: NSZone) -> AnyObject {

@@ -30,8 +30,7 @@ public class LCInt: LCType, IntegerLiteralConvertible {
     }
 
     public convenience required init(integerLiteral value: IntegerLiteralType) {
-        self.init()
-        self.value = Int(value)
+        self.init(Int(value))
     }
 
     public override func copyWithZone(zone: NSZone) -> AnyObject {

@@ -26,8 +26,7 @@ public class LCBool: LCType, BooleanLiteralConvertible {
     }
 
     public convenience required init(booleanLiteral value: BooleanLiteralType) {
-        self.init()
-        self.value = Bool(value)
+        self.init(Bool(value))
     }
 
     public override func copyWithZone(zone: NSZone) -> AnyObject {
