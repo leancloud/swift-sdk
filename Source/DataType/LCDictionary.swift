@@ -14,19 +14,19 @@ import Foundation
  It is a wrapper of NSDictionary type, used to store a dictionary value.
  */
 public class LCDictionary: LCType, DictionaryLiteralConvertible {
-    public private(set) var value: NSDictionary?
+    public private(set) var value: [String:LCType]?
 
     public required init() {
         super.init()
     }
 
-    public convenience init(_ value: NSDictionary) {
+    public convenience init(_ value: [String:LCType]) {
         self.init()
         self.value = value
     }
 
-    public convenience required init(dictionaryLiteral elements: (String, AnyObject)...) {
-        let value = NSMutableDictionary()
+    public convenience required init(dictionaryLiteral elements: (String, LCType)...) {
+        var value:[String:LCType] = [:]
 
         elements.forEach { value[$0] = $1 }
 
@@ -35,11 +35,7 @@ public class LCDictionary: LCType, DictionaryLiteralConvertible {
 
     public override func copyWithZone(zone: NSZone) -> AnyObject {
         let copy = super.copyWithZone(zone) as! LCDictionary
-
-        if let value = self.value {
-            copy.value = NSDictionary(dictionary: value as [NSObject : AnyObject], copyItems: false)
-        }
-
+        copy.value = value
         return copy
     }
 
@@ -47,7 +43,16 @@ public class LCDictionary: LCType, DictionaryLiteralConvertible {
         if another === self {
             return true
         } else if let another = another as? LCDictionary {
-            return another.value === value || another.value == value
+            let lhs = value
+            let rhs = another.value
+
+            if lhs == nil && rhs == nil {
+                return true
+            } else if let lhs = lhs, rhs = rhs {
+                return lhs == rhs
+            } else {
+                return false
+            }
         } else {
             return false
         }
