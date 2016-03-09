@@ -39,6 +39,16 @@ public class LCInt: LCType, IntegerLiteralConvertible {
         return copy
     }
 
+    override public func isEqual(another: AnyObject?) -> Bool {
+        if another === self {
+            return true
+        } else if let another = another as? LCInt {
+            return another.value == value
+        } else {
+            return false
+        }
+    }
+
     override class func operationReducerType() -> OperationReducer.Type {
         return OperationReducer.Number.self
     }

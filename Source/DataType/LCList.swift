@@ -39,6 +39,16 @@ public class LCList: LCType, ArrayLiteralConvertible {
         return copy
     }
 
+    override public func isEqual(another: AnyObject?) -> Bool {
+        if another === self {
+            return true
+        } else if let another = another as? LCList {
+            return another.value === value || another.value == value
+        } else {
+            return false
+        }
+    }
+
     override class func operationReducerType() -> OperationReducer.Type {
         return OperationReducer.List.self
     }

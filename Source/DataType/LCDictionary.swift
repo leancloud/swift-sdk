@@ -42,4 +42,14 @@ public class LCDictionary: LCType, DictionaryLiteralConvertible {
 
         return copy
     }
+
+    override public func isEqual(another: AnyObject?) -> Bool {
+        if another === self {
+            return true
+        } else if let another = another as? LCDictionary {
+            return another.value === value || another.value == value
+        } else {
+            return false
+        }
+    }
 }

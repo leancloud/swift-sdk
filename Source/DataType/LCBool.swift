@@ -34,4 +34,14 @@ public class LCBool: LCType, BooleanLiteralConvertible {
         copy.value = self.value
         return copy
     }
+
+    override public func isEqual(another: AnyObject?) -> Bool {
+        if another === self {
+            return true
+        } else if let another = another as? LCBool {
+            return another.value == value
+        } else {
+            return false
+        }
+    }
 }

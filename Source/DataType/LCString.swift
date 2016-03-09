@@ -45,4 +45,14 @@ public class LCString: LCType, StringLiteralConvertible {
         copy.value = self.value
         return copy
     }
+
+    override public func isEqual(another: AnyObject?) -> Bool {
+        if another === self {
+            return true
+        } else if let another = another as? LCString {
+            return another.value == value
+        } else {
+            return false
+        }
+    }
 }
