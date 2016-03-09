@@ -14,28 +14,26 @@ import Foundation
  It is a wrapper of NSArray type, used to store a list of objects.
  */
 public class LCList: LCType, ArrayLiteralConvertible {
-    public private(set) var value: NSArray?
+    public typealias Element = LCType
+
+    public private(set) var value: [Element]?
 
     public required init() {
         super.init()
     }
 
-    public convenience init(_ value: NSArray) {
+    public convenience init(_ value: [Element]) {
         self.init()
         self.value = value
     }
 
-    public convenience required init(arrayLiteral elements: AnyObject...) {
+    public convenience required init(arrayLiteral elements: Element...) {
         self.init(elements)
     }
 
     public override func copyWithZone(zone: NSZone) -> AnyObject {
         let copy = super.copyWithZone(zone) as! LCList
-
-        if let value = self.value {
-            copy.value = NSArray(array: value as [AnyObject], copyItems: false)
-        }
-
+        copy.value = value
         return copy
     }
 
@@ -43,7 +41,16 @@ public class LCList: LCType, ArrayLiteralConvertible {
         if another === self {
             return true
         } else if let another = another as? LCList {
-            return another.value === value || another.value == value
+            let lhs = value
+            let rhs = another.value
+
+            if lhs == nil && rhs == nil {
+                return true
+            } else if let lhs = lhs, rhs = rhs {
+                return lhs == rhs
+            } else {
+                return false
+            }
         } else {
             return false
         }
@@ -58,7 +65,7 @@ public class LCList: LCType, ArrayLiteralConvertible {
 
      - parameter element: The element to be appended.
      */
-    public func append(element: AnyObject) {
+    public func append(element: Element) {
         self.value = concatenateObjects([element])
 
         updateParent { (object, key) in
@@ -76,7 +83,7 @@ public class LCList: LCType, ArrayLiteralConvertible {
      - parameter element: The element to be appended.
      - parameter unique:  Unique or not.
      */
-    public func append(element: AnyObject, unique: Bool) {
+    public func append(element: Element, unique: Bool) {
         self.value = concatenateObjects([element], unique: unique)
 
         updateParent { (object, key) in
@@ -89,7 +96,7 @@ public class LCList: LCType, ArrayLiteralConvertible {
 
      - parameter element: The element to be removed.
      */
-    public func remove(element: AnyObject) {
+    public func remove(element: Element) {
         self.value = subtractObjects([element])
 
         updateParent { (object, key) -> Void in
@@ -104,7 +111,7 @@ public class LCList: LCType, ArrayLiteralConvertible {
 
      - returns: A new concatenated array.
      */
-    func concatenateObjects(another: NSArray?) -> NSArray? {
+    func concatenateObjects(another: [Element]?) -> [Element]? {
         return concatenateObjects(another, unique: false)
     }
 
@@ -118,21 +125,21 @@ public class LCList: LCType, ArrayLiteralConvertible {
 
      - returns: A new concatenated array.
      */
-    func concatenateObjects(another: NSArray?, unique: Bool) -> NSArray? {
+    func concatenateObjects(another: [Element]?, unique: Bool) -> [Element]? {
         guard let another = another else {
             return self.value
         }
 
-        let result = NSMutableArray(array: (self.value ?? []) as [AnyObject], copyItems: false)
+        var result = self.value ?? []
 
         if unique {
             another.forEach({ (element) in
-                if !result.containsObject(element) {
-                    result.addObject(element)
+                if !result.contains(element) {
+                    result.append(element)
                 }
             })
         } else {
-            result.addObjectsFromArray(another as [AnyObject])
+            result.appendContentsOf(another)
         }
 
         return result
@@ -145,7 +152,7 @@ public class LCList: LCType, ArrayLiteralConvertible {
 
      - returns: A new subtracted array.
      */
-    func subtractObjects(another: NSArray?) -> NSArray? {
+    func subtractObjects(another: [Element]?) -> [Element]? {
         guard let minuend = self.value else {
             return nil
         }
@@ -154,11 +161,7 @@ public class LCList: LCType, ArrayLiteralConvertible {
             return minuend
         }
 
-        let result = NSMutableArray(array: minuend)
-
-        result.removeObjectsInArray(subtrahend as [AnyObject])
-
-        return result
+        return minuend.filter { !subtrahend.contains($0) }
     }
 
     // MARK: Arithmetic
