@@ -44,16 +44,14 @@ public class LCList: LCType, ArrayLiteralConvertible {
             let lhs = value
             let rhs = another.value
 
-            if lhs == nil && rhs == nil {
-                return true
-            } else if let lhs = lhs, rhs = rhs {
+            if let lhs = lhs, rhs = rhs {
                 return lhs == rhs
-            } else {
-                return false
+            } else if lhs == nil && rhs == nil {
+                return true
             }
-        } else {
-            return false
         }
+
+        return false
     }
 
     override class func operationReducerType() -> OperationReducer.Type {
