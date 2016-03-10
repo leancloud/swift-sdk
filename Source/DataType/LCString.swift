@@ -13,7 +13,7 @@ import Foundation
 
  It is a wrapper of String type, used to store a string value.
  */
-public class LCString: LCType, StringLiteralConvertible {
+public final class LCString: LCType, StringLiteralConvertible {
     public private(set) var value: String?
 
     public typealias UnicodeScalarLiteralType = Character

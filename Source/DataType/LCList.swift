@@ -13,7 +13,7 @@ import Foundation
 
  It is a wrapper of NSArray type, used to store a list of objects.
  */
-public class LCList: LCType, ArrayLiteralConvertible {
+public final class LCList: LCType, ArrayLiteralConvertible {
     public typealias Element = LCType
 
     public private(set) var value: [Element]?

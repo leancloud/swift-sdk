@@ -13,7 +13,7 @@ import Foundation
 
  It is a wrapper of NSDictionary type, used to store a dictionary value.
  */
-public class LCDictionary: LCType, DictionaryLiteralConvertible {
+public final class LCDictionary: LCType, DictionaryLiteralConvertible {
     public private(set) var value: [String:LCType]?
 
     public required init() {

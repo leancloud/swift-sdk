@@ -13,7 +13,7 @@ import Foundation
 
  It is a wrapper of Bool type, used to store a bool value.
  */
-public class LCBool: LCType, BooleanLiteralConvertible {
+public final class LCBool: LCType, BooleanLiteralConvertible {
     public private(set) var value: Bool?
 
     public required init() {

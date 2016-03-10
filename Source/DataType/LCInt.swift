@@ -13,7 +13,7 @@ import Foundation
 
  It is a wrapper of Int type, used to store an integer value.
  */
-public class LCInt: LCType, IntegerLiteralConvertible {
+public final class LCInt: LCType, IntegerLiteralConvertible {
     public private(set) var value: Int?
 
     var intValue: Int {

@@ -13,7 +13,7 @@ import Foundation
 
  It is a wrapper of Double type, used to store a double value.
  */
-public class LCDouble: LCType, IntegerLiteralConvertible, FloatLiteralConvertible {
+public final class LCDouble: LCType, IntegerLiteralConvertible, FloatLiteralConvertible {
     public private(set) var value: Double?
 
     var doubleValue: Double {
