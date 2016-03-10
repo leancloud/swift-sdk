@@ -170,7 +170,7 @@ class OperationHub {
      each operation will be extracted to each operation table in an operation table list.
 
      For example, `["foo":[op1,op2]]` will extracted as `[["foo":op1],["foo":op2]]`.
-     
+
      The reason for making this transformation is that one request should
      not contain multiple operations on one key.
 
