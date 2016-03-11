@@ -13,7 +13,7 @@ import Foundation
 
  It is a wrapper of NSArray type, used to store a list of objects.
  */
-public final class LCList: LCType, ArrayLiteralConvertible {
+public final class LCList: LCType, SequenceType, ArrayLiteralConvertible {
     public typealias Element = LCType
 
     public private(set) var value: [Element]?
@@ -52,6 +52,10 @@ public final class LCList: LCType, ArrayLiteralConvertible {
         }
 
         return false
+    }
+
+    public func generate() -> IndexingGenerator<[Element]> {
+        return (value ?? []).generate()
     }
 
     override class func operationReducerType() -> OperationReducer.Type {

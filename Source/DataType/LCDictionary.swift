@@ -13,7 +13,7 @@ import Foundation
 
  It is a wrapper of NSDictionary type, used to store a dictionary value.
  */
-public final class LCDictionary: LCType, DictionaryLiteralConvertible {
+public final class LCDictionary: LCType, SequenceType, DictionaryLiteralConvertible {
     public private(set) var value: [String:LCType]?
 
     public required init() {
@@ -54,5 +54,9 @@ public final class LCDictionary: LCType, DictionaryLiteralConvertible {
         }
 
         return false
+    }
+
+    public func generate() -> DictionaryGenerator<String, LCType> {
+        return (value ?? [:]).generate()
     }
 }
