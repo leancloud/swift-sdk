@@ -68,13 +68,15 @@ public class LCObject: LCType {
 
      The detail save process is described as follows:
 
-     1. Save all leaf orphan newborn objects in one batch request.
-     2. Repeat step 1 until all descendant newborn objects saved.
-     3. Then, save object and all descendant dirty objects in one batch request.
+     1. Save all leaf newborn orphan objects in one batch request.
+     2. Repeat step 1 until all descendant newborn objects saved. When repeation done, all descendant newborn objects should be saved.
+     3. Save root object and all descendant dirty objects in one batch request.
 
-     The newborn object is object which has no object id.
-     The orphan object is object which exists in array or dictionary of another object.
-     The dirty object is object which has object id and was changed (has operations).
+     Definition:
+
+     - Newborn object: object which has no object id.
+     - Orphan  object: object which exists in array or dictionary of another object.
+     - Dirty   object: object which has object id and was changed (has operations).
 
      The reason to apply above steps is that:
 
