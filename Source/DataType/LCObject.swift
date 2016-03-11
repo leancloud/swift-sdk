@@ -64,7 +64,16 @@ public class LCObject: LCType {
     }
 
     /**
-     Save object.
+     Save object and its all descendant objects synchronously.
+
+     The detail save process is described as follows:
+
+     1. Save all leaf newborn objects in one batch request.
+     2. Repeat step 1 until all descendant newborn objects saved.
+     3. Then, save object and all descendant dirty objects in one batch request.
+
+     The newborn object is object which has no object id.
+     The dirty object is object which has object id and was changed.
      */
     public func save() {
         /* Stub method */
