@@ -68,12 +68,18 @@ public class LCObject: LCType {
 
      The detail save process is described as follows:
 
-     1. Save all leaf newborn objects in one batch request.
+     1. Save all leaf orphan newborn objects in one batch request.
      2. Repeat step 1 until all descendant newborn objects saved.
      3. Then, save object and all descendant dirty objects in one batch request.
 
      The newborn object is object which has no object id.
-     The dirty object is object which has object id and was changed.
+     The orphan object is object which exists in array or dictionary of another object.
+     The dirty object is object which has object id and was changed (has operations).
+
+     The reason to apply above steps is that:
+
+     We can construct a batch request when newborn object directly attachs on another object.
+     However, we cannot construct a batch request for orphan object.
      */
     public func save() {
         /* Stub method */
