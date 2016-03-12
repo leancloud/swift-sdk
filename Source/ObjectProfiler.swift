@@ -127,6 +127,23 @@ class ObjectProfiler {
     }
 
     /**
+     Iterate properties of object.
+
+     - parameter object: The object which you want to iterate.
+     - parameter block:  A callback block for each property name and property value.
+     */
+    static func iterateProperties(object: LCObject, block: (String, LCType?) -> ()) {
+        let properties = ObjectProfiler.synthesizableProperties(object_getClass(object))
+
+        properties.forEach { (property) in
+            let propertyName  = Runtime.propertyName(property)
+            let propertyValue = Runtime.instanceVariableValue(object, propertyName) as? LCType
+
+            block(propertyName, propertyValue)
+        }
+    }
+
+    /**
      Update value of an object property.
 
      - parameter object:        The object which you want to update.
@@ -175,6 +192,80 @@ class ObjectProfiler {
         } else {
             propertyValue.parent = parent
         }
+    }
+
+    /**
+     Get deepest descendant newborn orphan objects of an object recursively.
+
+     - parameter object:  The root object.
+     - parameter parent:  The parent object for each iteration.
+     - parameter visited: The visited objects.
+     - parameter output:  A set of deepest descendant newborn orphan objects.
+
+     - returns: true if object has newborn orphan object, false otherwise.
+     */
+    static func deepestNewbornOrphans(object: LCType, parent: LCType?, inout visited: Set<LCObject>, inout output: Set<LCObject>) -> Bool {
+        var hasNewbornOrphan = false
+
+        switch object {
+        case let list as LCList:
+            list.forEach {
+                if deepestNewbornOrphans($0, parent: list, visited: &visited, output: &output) {
+                    hasNewbornOrphan = true
+                }
+            }
+        case let dictionary as LCDictionary:
+            dictionary.forEach {
+                if deepestNewbornOrphans($1, parent: dictionary, visited: &visited, output: &output) {
+                    hasNewbornOrphan = true
+                }
+            }
+        case let object as LCObject:
+            if visited.contains(object) {
+                /* TODO: Throw an exception that objects are twisted together. */
+            } else {
+                visited.insert(object)
+            }
+
+            iterateProperties(object) { (_, value) in
+                if let value = value {
+                    if deepestNewbornOrphans(value, parent: object, visited: &visited, output: &output) {
+                        hasNewbornOrphan = true
+                    }
+                }
+            }
+
+            /* Check if object is a newborn orphan.
+               If parent is not an LCObject, we think that it is an orphan. */
+            if object.objectId == nil && !(parent is LCObject) {
+                if !hasNewbornOrphan {
+                    output.insert(object)
+                }
+
+                hasNewbornOrphan = true
+            }
+        default:
+            break
+        }
+
+        return hasNewbornOrphan
+    }
+
+    /**
+     Get deepest descendant newborn orphan objects.
+
+     - parameter object: The root object.
+
+     - returns: A set of deepest descendant newborn orphan objects.
+     */
+    static func deepestNewbornOrphans(object: LCObject) -> Set<LCObject> {
+        var output: Set<LCObject> = []
+        var visited: Set<LCObject> = []
+
+        deepestNewbornOrphans(object, parent: nil, visited: &visited, output: &output)
+        output.remove(object)
+
+        return output
     }
 
     /**

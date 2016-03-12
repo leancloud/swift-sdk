@@ -16,6 +16,9 @@ import Foundation
  Each object is correspond to a record in data storage.
  */
 public class LCObject: LCType {
+    /// Object identifier.
+    public private(set) var objectId: String?
+
     /// Stable data of object.
     /// Used to store values that have commited.
     lazy var stableData = NSMutableDictionary()
@@ -68,7 +71,7 @@ public class LCObject: LCType {
 
      The detail save process is described as follows:
 
-     1. Save all leaf newborn orphan objects in one batch request.
+     1. Save all deepest newborn orphan objects in one batch request.
      2. Repeat step 1 until all descendant newborn objects saved. When repeation done, all descendant newborn objects should be saved.
      3. Save root object and all descendant dirty objects in one batch request.
 
