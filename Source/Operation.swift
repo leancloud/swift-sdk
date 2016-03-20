@@ -150,14 +150,14 @@ class OperationHub {
     func extractOperationTable(inout operationPile: OperationPile) -> OperationTable? {
         var table: OperationTable = [:]
 
-        operationPile.forEach({ (key, var operations) in
+        operationPile.forEach { (key, var operations) in
             if operations.isEmpty {
                 operationPile.removeValueForKey(key)
             } else {
                 table[key] = operations.removeAtIndex(0)
                 operationPile[key] = operations
             }
-        })
+        }
 
         return table.isEmpty ? nil : table
     }
@@ -432,7 +432,7 @@ class OperationReducer {
                 operations.append(Operation(name: operation.name, key: operation.key, value: minuend - subtrahend))
             }
 
-            operations.forEach({ setOperation($0) })
+            operations.forEach { setOperation($0) }
         }
 
         /**

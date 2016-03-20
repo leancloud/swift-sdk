@@ -135,11 +135,11 @@ public final class LCList: LCType, SequenceType, ArrayLiteralConvertible {
         var result = self.value ?? []
 
         if unique {
-            another.forEach({ (element) in
+            another.forEach { (element) in
                 if !result.contains(element) {
                     result.append(element)
                 }
-            })
+            }
         } else {
             result.appendContentsOf(another)
         }

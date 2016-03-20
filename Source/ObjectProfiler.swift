@@ -13,7 +13,7 @@ class ObjectProfiler {
      Register all subclasses.
      */
     static func registerSubclasses() {
-        Runtime.subclasses(LCObject.self).forEach({ synthesizeProperties($0) })
+        Runtime.subclasses(LCObject.self).forEach { synthesizeProperties($0) }
     }
 
     /**
@@ -36,7 +36,7 @@ class ObjectProfiler {
      - parameter aClass: Target class.
      */
     static func synthesizableProperties(aClass: AnyClass) -> [objc_property_t] {
-        return Runtime.nonComputedProperties(aClass).filter({ isLCType(property: $0) })
+        return Runtime.nonComputedProperties(aClass).filter { isLCType(property: $0) }
     }
 
     /**

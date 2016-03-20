@@ -90,9 +90,9 @@ class Runtime {
     static func nonComputedProperties(aClass: AnyClass) -> [objc_property_t] {
         let properties = self.properties(aClass)
 
-        return properties.filter({ (property) -> Bool in
+        return properties.filter { (property) -> Bool in
             property_copyAttributeValue(property, "V") != nil
-        })
+        }
     }
 
     /**
