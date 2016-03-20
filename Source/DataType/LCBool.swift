@@ -11,7 +11,7 @@ import Foundation
 /**
  LeanCloud boolean type.
 
- It is a wrapper of Bool type, used to store a bool value.
+ It is a wrapper of Swift.Bool type, used to store a boolean value.
  */
 public final class LCBool: LCType, BooleanLiteralConvertible {
     public private(set) var value: Bool?

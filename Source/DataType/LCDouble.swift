@@ -11,7 +11,7 @@ import Foundation
 /**
  LeanCloud double type.
 
- It is a wrapper of Double type, used to store a double value.
+ It is a wrapper of Swift.Double type, used to store a double value.
  */
 public final class LCDouble: LCType, IntegerLiteralConvertible, FloatLiteralConvertible {
     public private(set) var value: Double?

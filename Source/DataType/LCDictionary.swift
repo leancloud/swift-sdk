@@ -11,7 +11,7 @@ import Foundation
 /**
  LeanCloud dictionary type.
 
- It is a wrapper of NSDictionary type, used to store a dictionary value.
+ It is a wrapper of Swift.Dictionary type, used to store a dictionary value.
  */
 public final class LCDictionary: LCType, SequenceType, DictionaryLiteralConvertible {
     public private(set) var value: [String:LCType]?

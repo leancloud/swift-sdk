@@ -11,7 +11,7 @@ import Foundation
 /**
  LeanCloud integer type.
 
- It is a wrapper of Int type, used to store an integer value.
+ It is a wrapper of Swift.Int type, used to store an integer value.
  */
 public final class LCInt: LCType, IntegerLiteralConvertible {
     public private(set) var value: Int?

@@ -11,7 +11,7 @@ import Foundation
 /**
  LeanCloud list type.
 
- It is a wrapper of NSArray type, used to store a list of objects.
+ It is a wrapper of Swift.Array type, used to store a list of objects.
  */
 public final class LCList: LCType, SequenceType, ArrayLiteralConvertible {
     public typealias Element = LCType

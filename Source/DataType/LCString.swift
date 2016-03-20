@@ -11,7 +11,7 @@ import Foundation
 /**
  LeanCloud string type.
 
- It is a wrapper of String type, used to store a string value.
+ It is a wrapper of Swift.String type, used to store a string value.
  */
 public final class LCString: LCType, StringLiteralConvertible {
     public private(set) var value: String?
