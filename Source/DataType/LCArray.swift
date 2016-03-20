@@ -1,5 +1,5 @@
 //
-//  LCList.swift
+//  LCArray.swift
 //  LeanCloud
 //
 //  Created by Tang Tianyong on 2/27/16.
@@ -13,7 +13,7 @@ import Foundation
 
  It is a wrapper of Swift.Array type, used to store a list of objects.
  */
-public final class LCList: LCType, SequenceType, ArrayLiteralConvertible {
+public final class LCArray: LCType, SequenceType, ArrayLiteralConvertible {
     public typealias Element = LCType
 
     public private(set) var value: [Element]?
@@ -32,7 +32,7 @@ public final class LCList: LCType, SequenceType, ArrayLiteralConvertible {
     }
 
     public override func copyWithZone(zone: NSZone) -> AnyObject {
-        let copy = super.copyWithZone(zone) as! LCList
+        let copy = super.copyWithZone(zone) as! LCArray
         copy.value = value
         return copy
     }
@@ -40,7 +40,7 @@ public final class LCList: LCType, SequenceType, ArrayLiteralConvertible {
     override public func isEqual(another: AnyObject?) -> Bool {
         if another === self {
             return true
-        } else if let another = another as? LCList {
+        } else if let another = another as? LCArray {
             let lhs = value
             let rhs = another.value
 
@@ -71,7 +71,7 @@ public final class LCList: LCType, SequenceType, ArrayLiteralConvertible {
         self.value = concatenateObjects([element])
 
         updateParent { (object, key) in
-            object.addOperation(.Add, key, LCList([element]))
+            object.addOperation(.Add, key, LCArray([element]))
         }
     }
 
@@ -89,7 +89,7 @@ public final class LCList: LCType, SequenceType, ArrayLiteralConvertible {
         self.value = concatenateObjects([element], unique: unique)
 
         updateParent { (object, key) in
-            object.addOperation(.AddUnique, key, LCList([element]))
+            object.addOperation(.AddUnique, key, LCArray([element]))
         }
     }
 
@@ -102,7 +102,7 @@ public final class LCList: LCType, SequenceType, ArrayLiteralConvertible {
         self.value = subtractObjects([element])
 
         updateParent { (object, key) -> Void in
-            object.addOperation(.Remove, key, LCList([element]))
+            object.addOperation(.Remove, key, LCArray([element]))
         }
     }
 
@@ -173,28 +173,28 @@ public final class LCList: LCType, SequenceType, ArrayLiteralConvertible {
     }
 
     override func add(another: LCType?, unique: Bool) -> LCType? {
-        guard let another = another as? LCList else {
+        guard let another = another as? LCArray else {
             /* TODO: throw an exception that one type cannot be appended to another type. */
             return nil
         }
 
         if let array = concatenateObjects(another.value, unique: unique) {
-            return LCList(array)
+            return LCArray(array)
         } else {
-            return LCList()
+            return LCArray()
         }
     }
 
     override func subtract(another: LCType?) -> LCType? {
-        guard let another = another as? LCList else {
+        guard let another = another as? LCArray else {
             /* TODO: throw an exception that one type cannot be appended to another type. */
             return nil
         }
 
         if let array = subtractObjects(another.value) {
-            return LCList(array)
+            return LCArray(array)
         } else {
-            return LCList()
+            return LCArray()
         }
     }
 }

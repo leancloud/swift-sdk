@@ -21,7 +21,7 @@
 		83ACD2681C819D3B00F7E2DE /* LCDouble.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83ACD2671C819D3B00F7E2DE /* LCDouble.swift */; };
 		83ACD26A1C819D5A00F7E2DE /* LCBool.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83ACD2691C819D5A00F7E2DE /* LCBool.swift */; };
 		83ACD26C1C819D6900F7E2DE /* LCString.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83ACD26B1C819D6900F7E2DE /* LCString.swift */; };
-		83ACD26E1C819D8000F7E2DE /* LCList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83ACD26D1C819D8000F7E2DE /* LCList.swift */; };
+		83ACD26E1C819D8000F7E2DE /* LCArray.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83ACD26D1C819D8000F7E2DE /* LCArray.swift */; };
 		83ACD2701C819DA400F7E2DE /* LCDictionary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83ACD26F1C819DA400F7E2DE /* LCDictionary.swift */; };
 /* End PBXBuildFile section */
 
@@ -53,7 +53,7 @@
 		83ACD2671C819D3B00F7E2DE /* LCDouble.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LCDouble.swift; sourceTree = "<group>"; };
 		83ACD2691C819D5A00F7E2DE /* LCBool.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LCBool.swift; sourceTree = "<group>"; };
 		83ACD26B1C819D6900F7E2DE /* LCString.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LCString.swift; sourceTree = "<group>"; };
-		83ACD26D1C819D8000F7E2DE /* LCList.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LCList.swift; sourceTree = "<group>"; };
+		83ACD26D1C819D8000F7E2DE /* LCArray.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LCArray.swift; sourceTree = "<group>"; };
 		83ACD26F1C819DA400F7E2DE /* LCDictionary.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LCDictionary.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -134,7 +134,7 @@
 				83ACD2671C819D3B00F7E2DE /* LCDouble.swift */,
 				83ACD2691C819D5A00F7E2DE /* LCBool.swift */,
 				83ACD26B1C819D6900F7E2DE /* LCString.swift */,
-				83ACD26D1C819D8000F7E2DE /* LCList.swift */,
+				83ACD26D1C819D8000F7E2DE /* LCArray.swift */,
 				83ACD26F1C819DA400F7E2DE /* LCDictionary.swift */,
 				83ACD25B1C8197BE00F7E2DE /* LCObject.swift */,
 			);
@@ -259,7 +259,7 @@
 				83ACD25C1C8197BE00F7E2DE /* LCObject.swift in Sources */,
 				830B0F631C7C127700D9FC41 /* LeanCloud.swift in Sources */,
 				83ACD2701C819DA400F7E2DE /* LCDictionary.swift in Sources */,
-				83ACD26E1C819D8000F7E2DE /* LCList.swift in Sources */,
+				83ACD26E1C819D8000F7E2DE /* LCArray.swift in Sources */,
 				83ACD2681C819D3B00F7E2DE /* LCDouble.swift in Sources */,
 				83ACD26C1C819D6900F7E2DE /* LCString.swift in Sources */,
 			);

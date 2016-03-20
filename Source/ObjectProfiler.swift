@@ -208,7 +208,7 @@ class ObjectProfiler {
         var hasNewbornOrphan = false
 
         switch object {
-        case let list as LCList:
+        case let list as LCArray:
             list.forEach {
                 if deepestNewbornOrphans($0, parent: list, visited: &visited, output: &output) {
                     hasNewbornOrphan = true
