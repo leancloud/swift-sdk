@@ -71,8 +71,8 @@ public class LCObject: LCType {
 
      The detail save process is described as follows:
 
-     1. Save all deepest newborn orphan objects in one batch request.
-     2. Repeat step 1 until all descendant newborn objects saved. When repeation done, all descendant newborn objects should be saved.
+     1. Save deepest newborn orphan objects in one batch request.
+     2. Repeat step 1 until all descendant newborn objects saved.
      3. Save root object and all descendant dirty objects in one batch request.
 
      Definition:
