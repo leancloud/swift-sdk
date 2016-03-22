@@ -269,6 +269,40 @@ class ObjectProfiler {
     }
 
     /**
+     Iterate object and its descendant objects by DFS.
+
+     - parameter object: The root object to iterate.
+     - parameter depth:  The max iteration depth.
+     - parameter body:   The closure to call for each iteration.
+     */
+    static func iterateObject(object: LCObject, depth: Int, body: (object: LCObject) -> Void) {
+        iterateObject(object, depth: depth, currentDepth: 0, body: body)
+        body(object: object)
+    }
+
+    /**
+     Iterate descendant objects of an object by DFS.
+
+     - parameter object:       The root object to iterate.
+     - parameter depth:        The max iteration depth.
+     - parameter currentDepth: The depth value of each iteration.
+     - parameter body:         The closure to call for each iteration.
+     */
+    static func iterateObject(object: LCType, depth: Int, currentDepth: Int, body: (object: LCObject) -> Void) {
+        object.forEachChild { (child) in
+            if let object = child as? LCObject {
+                if depth > 0 && currentDepth >= depth {
+                    return
+                }
+                iterateObject(object, depth: depth, currentDepth: currentDepth + 1, body: body)
+                body(object: object)
+            } else {
+                iterateObject(child, depth: depth, currentDepth: currentDepth, body: body)
+            }
+        }
+    }
+
+    /**
      Get property name from a setter selector.
 
      - parameter selector: The setter selector.

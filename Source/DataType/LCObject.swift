@@ -89,4 +89,14 @@ public class LCObject: LCType {
     public func save() {
         /* Stub method */
     }
+
+    // MARK: Iteration
+
+    override func forEachChild(body: (child: LCType) -> Void) {
+        ObjectProfiler.iterateProperties(self) { (_, child) in
+            if let child = child {
+                body(child: child)
+            }
+        }
+    }
 }

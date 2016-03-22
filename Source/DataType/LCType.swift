@@ -127,6 +127,12 @@ public class LCType: NSObject {
         }
     }
 
+    // MARK: Iteration
+
+    func forEachChild(body: (child: LCType) -> Void) {
+        /* Stub method. */
+    }
+
     // MARK: Arithmetic
 
     func add(another: LCType?) -> LCType? {

@@ -59,4 +59,10 @@ public final class LCDictionary: LCType, SequenceType, DictionaryLiteralConverti
     public func generate() -> DictionaryGenerator<String, LCType> {
         return (value ?? [:]).generate()
     }
+
+    // MARK: Iteration
+
+    override func forEachChild(body: (child: LCType) -> Void) {
+        forEach { body(child: $1) }
+    }
 }

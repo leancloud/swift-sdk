@@ -166,6 +166,12 @@ public final class LCArray: LCType, SequenceType, ArrayLiteralConvertible {
         return minuend.filter { !subtrahend.contains($0) }
     }
 
+    // MARK: Iteration
+
+    override func forEachChild(body: (child: LCType) -> Void) {
+        forEach { body(child: $0) }
+    }
+
     // MARK: Arithmetic
 
     override func add(another: LCType?) -> LCType? {
