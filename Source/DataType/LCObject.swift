@@ -33,6 +33,10 @@ public class LCObject: LCType {
         return OperationHub(self)
     }()
 
+    public override func copyWithZone(zone: NSZone) -> AnyObject {
+        return self
+    }
+
     /**
      Get object for key.
 
