@@ -291,7 +291,7 @@ class ObjectProfiler {
     static func iterateObject(object: LCType, depth: Int, currentDepth: Int, body: (object: LCObject) -> Void) {
         object.forEachChild { (child) in
             if let object = child as? LCObject {
-                if depth > 0 && currentDepth >= depth {
+                if depth >= 0 && currentDepth >= depth {
                     return
                 }
                 iterateObject(object, depth: depth, currentDepth: currentDepth + 1, body: body)
