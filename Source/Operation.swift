@@ -39,7 +39,7 @@ class Operation {
     }
 }
 
-typealias OperationPile      = [String:[Operation]]
+typealias OperationStack     = [String:[Operation]]
 typealias OperationTable     = [String:Operation]
 typealias OperationTableList = [OperationTable]
 
@@ -120,42 +120,42 @@ class OperationHub {
     }
 
     /**
-     Get an operation pile.
+     Get an operation stack.
 
-     The operation pile is a structure that maps operation key to a list of operations.
+     The operation stack is a structure that maps operation key to a list of operations.
 
-     - returns: An operation pile indexed by property key.
+     - returns: An operation stack indexed by property key.
      */
-    func operationPile() -> OperationPile {
-        var operationPile: OperationPile = [:]
+    func operationStack() -> OperationStack {
+        var operationStack: OperationStack = [:]
 
         operationReducerTable.forEach { (key, operationReducer) in
             let operations = operationReducer.operations()
 
             if operations.count > 0 {
-                operationPile[key] = operations
+                operationStack[key] = operations
             }
         }
 
-        return operationPile
+        return operationStack
     }
 
     /**
-     Extract an operation table from an operation pile.
+     Extract an operation table from an operation stack.
 
-     - parameter operationPile: An operation pile from which the operation table will be extracted.
+     - parameter operationStack: An operation stack from which the operation table will be extracted.
 
      - returns: An operation table, or nil if no operations can be extracted.
      */
-    func extractOperationTable(inout operationPile: OperationPile) -> OperationTable? {
+    func extractOperationTable(inout operationStack: OperationStack) -> OperationTable? {
         var table: OperationTable = [:]
 
-        operationPile.forEach { (key, var operations) in
+        operationStack.forEach { (key, var operations) in
             if operations.isEmpty {
-                operationPile.removeValueForKey(key)
+                operationStack.removeValueForKey(key)
             } else {
                 table[key] = operations.removeAtIndex(0)
-                operationPile[key] = operations
+                operationStack[key] = operations
             }
         }
 
@@ -165,8 +165,8 @@ class OperationHub {
     /**
      Get an operation table list.
 
-     Operation table list is flat version of operation pile.
-     When a key has two or more operations in operation pile,
+     Operation table list is flat version of operation stack.
+     When a key has two or more operations in operation stack,
      each operation will be extracted to each operation table in an operation table list.
 
      For example, `["foo":[op1,op2]]` will extracted as `[["foo":op1],["foo":op2]]`.
@@ -178,10 +178,10 @@ class OperationHub {
      */
     func operationTableList() -> OperationTableList {
         var list: OperationTableList = []
-        var operationPile = self.operationPile()
+        var operationStack = self.operationStack()
 
-        while !operationPile.isEmpty {
-            if let operationTable = extractOperationTable(&operationPile) {
+        while !operationStack.isEmpty {
+            if let operationTable = extractOperationTable(&operationStack) {
                 list.append(operationTable)
             }
         }
