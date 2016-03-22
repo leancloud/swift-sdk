@@ -35,7 +35,7 @@ class Operation {
     required init(name: Name, key: String, value: LCType?) {
         self.name  = name
         self.key   = key
-        self.value = value
+        self.value = value?.copy() as? LCType
     }
 }
 
@@ -69,8 +69,7 @@ class OperationHub {
      - parameter value: Value to be assigned.
      */
     func append(name: Operation.Name, _ key: String, _ value: LCType?) {
-        let copyValue = value?.copy() as? LCType
-        let operation = Operation(name: name, key: key, value: copyValue)
+        let operation = Operation(name: name, key: key, value: value)
         operations.append(operation)
         reduce(operation)
     }
