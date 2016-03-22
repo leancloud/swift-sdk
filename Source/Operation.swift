@@ -188,15 +188,6 @@ class OperationHub {
 
         return list
     }
-
-    /**
-     Produce a payload dictionary for request.
-
-     - returns: A payload dictionary.
-     */
-    func payload() -> NSDictionary {
-        return [:]
-    }
 }
 
 /**
