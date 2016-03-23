@@ -103,7 +103,6 @@ class ObjectProfiler {
             /* TODO: throw an exception. */
         }
 
-        class_replaceMethod(aClass, Selector(getterName), unsafeBitCast(self.propertyGetter, IMP.self), "@@:")
         class_replaceMethod(aClass, Selector(setterName), unsafeBitCast(self.propertySetter, IMP.self), "v@:@")
     }
 
@@ -319,23 +318,6 @@ class ObjectProfiler {
         let tailString = capitalizedKey.substringFromIndex(capitalizedKey.startIndex.advancedBy(1))
 
         return "\(headString)\(tailString)"
-    }
-
-    /**
-     Getter implementation of LeanCloud data type property.
-     */
-    static let propertyGetter: @convention(c) (LCObject!, Selector) -> LCType = {
-        (object: LCObject!, cmd: Selector) -> LCType in
-        let propertyName  = NSStringFromSelector(cmd)
-        var propertyValue = Runtime.instanceVariableValue(object, propertyName) as? LCType
-
-        if propertyValue == nil {
-            propertyValue = ObjectProfiler.initializeProperty(object, propertyName)
-        }
-
-        ObjectProfiler.bindParent(object, propertyName, propertyValue!)
-
-        return propertyValue!
     }
 
     /**
