@@ -1,5 +1,5 @@
 //
-//  LCInt.swift
+//  LCNumber.swift
 //  LeanCloud
 //
 //  Created by Tang Tianyong on 2/27/16.
@@ -9,14 +9,14 @@
 import Foundation
 
 /**
- LeanCloud integer type.
+ LeanCloud number type.
 
- It is a wrapper of Swift.Int type, used to store an integer value.
+ It is a wrapper of Swift.Double type, used to store a number value.
  */
-public final class LCInt: LCType, IntegerLiteralConvertible {
-    public private(set) var value: Int?
+public final class LCNumber: LCType, IntegerLiteralConvertible, FloatLiteralConvertible {
+    public private(set) var value: Double?
 
-    var intValue: Int {
+    var doubleValue: Double {
         return value ?? 0
     }
 
@@ -24,17 +24,21 @@ public final class LCInt: LCType, IntegerLiteralConvertible {
         super.init()
     }
 
-    public convenience init(_ value: Int) {
+    public convenience init(_ value: Double) {
         self.init()
         self.value = value
     }
 
     public convenience required init(integerLiteral value: IntegerLiteralType) {
-        self.init(Int(value))
+        self.init(Double(value))
+    }
+
+    public convenience required init(floatLiteral value: FloatLiteralType) {
+        self.init(Double(value))
     }
 
     public override func copyWithZone(zone: NSZone) -> AnyObject {
-        let copy = super.copyWithZone(zone) as! LCInt
+        let copy = super.copyWithZone(zone) as! LCNumber
         copy.value = self.value
         return copy
     }
@@ -42,7 +46,7 @@ public final class LCInt: LCType, IntegerLiteralConvertible {
     override public func isEqual(another: AnyObject?) -> Bool {
         if another === self {
             return true
-        } else if let another = another as? LCInt {
+        } else if let another = another as? LCNumber {
             return another.value == value
         } else {
             return false
@@ -58,11 +62,11 @@ public final class LCInt: LCType, IntegerLiteralConvertible {
 
      - parameter amount: The amount to increase.
      */
-    public func increaseBy(amount: Int) {
-        self.value = intValue + amount
+    public func increaseBy(amount: Double) {
+        value = doubleValue + amount
 
         updateParent { (object, key) -> Void in
-            object.addOperation(.Increment, key, LCInt(amount))
+            object.addOperation(.Increment, key, LCNumber(amount))
         }
     }
 
@@ -76,14 +80,14 @@ public final class LCInt: LCType, IntegerLiteralConvertible {
     // MARK: Arithmetic
 
     override func add(another: LCType?) -> LCType? {
-        guard let another = another as? LCInt else {
+        guard let another = another as? LCNumber else {
             /* TODO: throw an exception that two type cannot be added. */
             return nil
         }
 
-        let base = self.intValue
-        let increment = another.intValue
+        let base = self.doubleValue
+        let increment = another.doubleValue
 
-        return LCInt(base + increment)
+        return LCNumber(base + increment)
     }
 }
