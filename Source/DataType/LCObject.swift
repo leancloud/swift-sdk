@@ -19,14 +19,6 @@ public class LCObject: LCType {
     /// Object identifier.
     public private(set) var objectId: String?
 
-    /// Stable data of object.
-    /// Used to store values that have commited.
-    lazy var stableData = NSMutableDictionary()
-
-    /// Latest data of object.
-    /// Used to store values that haven't committed yet.
-    lazy var latestData = NSMutableDictionary()
-
     /// Operation hub.
     /// Used to manage object operations.
     lazy var operationHub: OperationHub = {
@@ -35,28 +27,6 @@ public class LCObject: LCType {
 
     public override func copyWithZone(zone: NSZone) -> AnyObject {
         return self
-    }
-
-    /**
-     Get object for key.
-
-     - parameter key: Specified key.
-
-     - returns: Object for key.
-     */
-    func objectForKey(key: String) -> AnyObject? {
-        return latestData[key]
-    }
-
-    /**
-     Set object for key.
-
-     - parameter object: New object.
-     - parameter key:    Specified key.
-     */
-    func setObject(object: LCType?, forKey key: String) {
-        latestData[key] = object
-        self.addOperation(.Set, key, object)
     }
 
     /**
