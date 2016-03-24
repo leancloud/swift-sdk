@@ -87,6 +87,18 @@ class ObjectProfiler {
     }
 
     /**
+     Check whether an object has a LCType property for given name.
+
+     - parameter object:       The object.
+     - parameter propertyName: The property name.
+
+     - returns: true if object has such a property, false otherwise.
+     */
+    static func hasProperty(object: LCObject, propertyName: String) -> Bool {
+        return getLCType(object: object, propertyName: propertyName) != nil
+    }
+
+    /**
      Synthesize a single property for class.
 
      - parameter property: Property which to be synthesized.
