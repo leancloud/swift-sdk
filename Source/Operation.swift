@@ -37,6 +37,24 @@ class Operation {
         self.key   = key
         self.value = value?.copy() as? LCType
     }
+
+    /**
+     Get the JSON representation of operation.
+
+     - returns: The JSON representation of operation.
+     */
+    func JSONValue() -> AnyObject {
+        switch name {
+        case .Set:
+            return value!.JSONValue!
+        case .Delete:
+            return ["__op": name.rawValue]
+        case .Increment:
+            return ["__op": name.rawValue,  "amount": value!.JSONValue!]
+        case .Add, .AddUnique, .AddRelation, .Remove, .RemoveRelation:
+            return ["__op": name.rawValue, "objects": value!.JSONValue!]
+        }
+    }
 }
 
 typealias OperationStack     = [String:[Operation]]
