@@ -16,6 +16,10 @@ import Foundation
 public final class LCString: LCType, StringLiteralConvertible {
     public private(set) var value: String?
 
+    override var JSONValue: AnyObject {
+        return value ?? ""
+    }
+
     public typealias UnicodeScalarLiteralType = Character
     public typealias ExtendedGraphemeClusterLiteralType = StringLiteralType
 

@@ -16,6 +16,10 @@ import Foundation
 public final class LCBool: LCType, BooleanLiteralConvertible {
     public private(set) var value: Bool?
 
+    override var JSONValue: AnyObject {
+        return value ?? false
+    }
+
     public required init() {
         super.init()
     }

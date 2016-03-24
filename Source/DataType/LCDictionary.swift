@@ -16,6 +16,10 @@ import Foundation
 public final class LCDictionary: LCType, SequenceType, DictionaryLiteralConvertible {
     public private(set) var value: [String:LCType]?
 
+    override var JSONValue: AnyObject {
+        return value ?? [:]
+    }
+
     public required init() {
         super.init()
     }

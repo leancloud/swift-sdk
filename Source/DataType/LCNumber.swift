@@ -20,6 +20,10 @@ public final class LCNumber: LCType, IntegerLiteralConvertible, FloatLiteralConv
         return value ?? 0
     }
 
+    override var JSONValue: AnyObject? {
+        return doubleValue
+    }
+
     public required init() {
         super.init()
     }

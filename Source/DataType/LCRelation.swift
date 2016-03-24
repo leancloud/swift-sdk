@@ -13,6 +13,10 @@ public final class LCRelation: LCType {
 
     var value: [Element]?
 
+    override var JSONValue: AnyObject {
+        return value ?? []
+    }
+
     public override func copyWithZone(zone: NSZone) -> AnyObject {
         return self
     }
