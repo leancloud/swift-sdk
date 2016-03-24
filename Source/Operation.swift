@@ -524,7 +524,23 @@ class OperationReducer {
      - ADDRELATION
      - REMOVERELATION
      */
-    class Relation: OperationReducer {
+    class Relation: List {
+        override class func validOperationNames() -> [Operation.Name] {
+            return [.AddRelation, .RemoveRelation]
+        }
+
+        override func reduce(operation: Operation) {
+            switch operation.name {
+            case .AddRelation:
+                removeObjects(operation, [.RemoveRelation])
+                addObjects(operation, .AddRelation)
+            case .RemoveRelation:
+                removeObjects(operation, [.AddRelation])
+                unionObjects(operation, .RemoveRelation)
+            default:
+                break
+            }
+        }
         /* Stub class. */
     }
 }
