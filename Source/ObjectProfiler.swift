@@ -107,25 +107,6 @@ class ObjectProfiler {
     }
 
     /**
-     Initialize LeanCloud data type property of LCObject.
-
-     - parameter object:       The object which you want to initialize.
-     - parameter propertyName: The name of property.
-
-     - returns: Initialized value.
-     */
-    static func initializeProperty(object: LCObject, _ propertyName: String) -> LCType {
-        let property = class_getProperty(object_getClass(object), propertyName)
-
-        let propertyClass = ObjectProfiler.getLCType(property: property) as LCType.Type!
-        let propertyValue = Runtime.retainedObject(propertyClass.init())
-
-        Runtime.setInstanceVariable(object, propertyName, propertyValue)
-
-        return propertyValue
-    }
-
-    /**
      Iterate properties of object.
 
      - parameter object: The object which you want to iterate.
