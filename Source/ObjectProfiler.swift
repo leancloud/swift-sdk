@@ -167,6 +167,32 @@ class ObjectProfiler {
     }
 
     /**
+     Load property value of object with initialization if needed.
+
+     - parameter object:       The object.
+     - parameter propertyName: The property name.
+     - parameter type:         The type which the property should be.
+
+     - returns: The property value.
+     */
+    static func loadPropertyValue<T: LCType>(object: LCObject, _ propertyName: String, _ type: T.Type) -> T {
+        validateType(object, propertyName: propertyName, type: type)
+
+        if let propertyValue = Runtime.instanceVariableValue(object, propertyName) {
+            return propertyValue as! T
+        } else {
+            let property = class_getProperty(object_getClass(object), propertyName)
+
+            let propertyClass = ObjectProfiler.getLCType(property: property) as! T.Type
+            let propertyValue = propertyClass.init()
+
+            Runtime.setInstanceVariable(object, propertyName, Runtime.retainedObject(propertyValue))
+
+            return propertyValue
+        }
+    }
+
+    /**
      Get deepest descendant newborn orphan objects of an object recursively.
 
      - parameter object:  The root object.
