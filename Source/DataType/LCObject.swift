@@ -39,6 +39,7 @@ public class LCObject: LCType {
     public class func name() -> String {
         let className = String(UTF8String: class_getName(self))!
 
+        /* Strip root namespace to cope with application package name's change. */
         if let index = className.characters.indexOf(".") {
             return className.substringFromIndex(index.successor())
         } else {
