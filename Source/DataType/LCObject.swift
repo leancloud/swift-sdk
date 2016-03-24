@@ -30,6 +30,23 @@ public class LCObject: LCType {
     }
 
     /**
+     Set the name of current type.
+
+     The default implementation returns the class name of current type.
+
+     - returns: Name of current type.
+     */
+    public class func name() -> String {
+        let className = String(UTF8String: class_getName(self))!
+
+        if let index = className.characters.indexOf(".") {
+            return className.substringFromIndex(index.successor())
+        } else {
+            return className
+        }
+    }
+
+    /**
      Add an operation.
 
      - parameter name:  Operation name.
