@@ -103,6 +103,26 @@ public class LCObject: LCType {
     }
 
     /**
+     Insert an object to a relation property.
+
+     - parameter key:    The name of property into which you want to insert the object.
+     - parameter object: The object to insert.
+     */
+    public func insertRelation(key: String, object: LCObject) {
+        addOperation(.AddRelation, key, object)
+    }
+
+    /**
+     Remove an object from a relation property.
+
+     - parameter key:    The name of property from which you want to remove the object.
+     - parameter object: The object to remove.
+     */
+    public func removeRelation(key: String, object: LCObject) {
+        addOperation(.RemoveRelation, key, object)
+    }
+
+    /**
      Save object and its all descendant objects synchronously.
 
      The detail save process is described as follows:
