@@ -62,19 +62,8 @@ public final class LCNumber: LCType, IntegerLiteralConvertible, FloatLiteralConv
 
      - parameter amount: The amount to increase.
      */
-    public func increaseBy(amount: Double) {
-        value = doubleValue + amount
-
-        updateParent { (object, key) -> Void in
-            object.addOperation(.Increment, key, LCNumber(amount))
-        }
-    }
-
-    /**
-     Increase value by 1.
-     */
-    public func increase() {
-        increaseBy(1)
+    func increase(amount: LCNumber) {
+        value = doubleValue + amount.doubleValue
     }
 
     // MARK: Arithmetic

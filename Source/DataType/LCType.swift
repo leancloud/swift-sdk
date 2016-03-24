@@ -99,25 +99,6 @@ public class LCType: NSObject {
         return OperationReducer.Key.self
     }
 
-    /**
-     Update reverse object.
-
-     - parameter block: The update logic block.
-     */
-    func updateParent(block: (object: LCObject, key: String) -> Void) {
-        guard let parent = parent else {
-            /* TODO: throw an exception. */
-            return
-        }
-
-        guard let object = parent.object as? LCObject else {
-            /* TODO: throw an exception. */
-            return
-        }
-
-        block(object: object, key: parent.propertyName)
-    }
-
     // MARK: Iteration
 
     func forEachChild(body: (child: LCType) -> Void) {

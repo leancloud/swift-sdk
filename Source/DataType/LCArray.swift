@@ -69,10 +69,6 @@ public final class LCArray: LCType, SequenceType, ArrayLiteralConvertible {
      */
     public func append(element: Element) {
         self.value = concatenateObjects([element])
-
-        updateParent { (object, key) in
-            object.addOperation(.Add, key, LCArray([element]))
-        }
     }
 
     /**
@@ -87,10 +83,6 @@ public final class LCArray: LCType, SequenceType, ArrayLiteralConvertible {
      */
     public func append(element: Element, unique: Bool) {
         self.value = concatenateObjects([element], unique: unique)
-
-        updateParent { (object, key) in
-            object.addOperation(.AddUnique, key, LCArray([element]))
-        }
     }
 
     /**
@@ -100,10 +92,6 @@ public final class LCArray: LCType, SequenceType, ArrayLiteralConvertible {
      */
     public func remove(element: Element) {
         self.value = subtractObjects([element])
-
-        updateParent { (object, key) -> Void in
-            object.addOperation(.Remove, key, LCArray([element]))
-        }
     }
 
     /**
