@@ -67,7 +67,7 @@ public final class LCArray: LCType, SequenceType, ArrayLiteralConvertible {
 
      - parameter element: The element to be appended.
      */
-    public func append(element: Element) {
+    func append(element: Element) {
         self.value = concatenateObjects([element])
     }
 
@@ -81,7 +81,7 @@ public final class LCArray: LCType, SequenceType, ArrayLiteralConvertible {
      - parameter element: The element to be appended.
      - parameter unique:  Unique or not.
      */
-    public func append(element: Element, unique: Bool) {
+    func append(element: Element, unique: Bool) {
         self.value = concatenateObjects([element], unique: unique)
     }
 
@@ -90,7 +90,7 @@ public final class LCArray: LCType, SequenceType, ArrayLiteralConvertible {
 
      - parameter element: The element to be removed.
      */
-    public func remove(element: Element) {
+    func remove(element: Element) {
         self.value = subtractObjects([element])
     }
 
