@@ -124,14 +124,46 @@ class ObjectProfiler {
     }
 
     /**
+     Validate that whether the given type matches object's property type.
+
+     - parameter object:       The object.
+     - parameter propertyName: The property name.
+     - parameter type:         The type which you want to validate.
+     */
+    static func validateType(object: LCObject, propertyName: String, type: LCType.Type) {
+        let propertyType = getLCType(object: object, propertyName: propertyName)
+
+        guard type == propertyType || Runtime.isSubclass(type, superclass: propertyType) else {
+            /* TODO: throw an exception that types are mismatched. */
+            return
+        }
+    }
+
+    /**
+     Validate that whether the given value matches object's property type.
+
+     - parameter object:       The object.
+     - parameter propertyName: The property name.
+     - parameter value:        The value which you want to validate.
+     */
+    static func validateType(object: LCObject, propertyName: String, value: LCType) {
+        validateType(object, propertyName: propertyName, type: object_getClass(value) as! LCType.Type)
+    }
+
+    /**
      Update value of an object property.
 
      - parameter object:        The object which you want to update.
      - parameter propertyName:  The property name which you want to update.
      - parameter propertyValue: The new property value.
      */
-    static func updateProperty(object: LCType, _ propertyName: String, _ propertyValue: LCType?) {
-        Runtime.setInstanceVariable(object, propertyName, Runtime.retainedObject(propertyValue))
+    static func updateProperty(object: LCObject, _ propertyName: String, _ propertyValue: LCType?) {
+        if let propertyValue = propertyValue {
+            validateType(object, propertyName: propertyName, value: propertyValue)
+            Runtime.setInstanceVariable(object, propertyName, Runtime.retainedObject(propertyValue))
+        } else {
+            Runtime.setInstanceVariable(object, propertyName, nil)
+        }
     }
 
     /**
