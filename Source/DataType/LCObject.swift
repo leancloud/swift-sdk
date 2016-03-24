@@ -134,7 +134,7 @@ public class LCObject: LCType {
      Definition:
 
      - Newborn object: object which has no object id.
-     - Orphan  object: object which exists in array or dictionary of another object.
+     - Orphan  object: object which its parent is not object.
      - Dirty   object: object which has object id and was changed (has operations).
 
      The reason to apply above steps is that:
