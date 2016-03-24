@@ -96,19 +96,15 @@ class OperationHub {
         case .AddUnique:
             ObjectProfiler.loadPropertyValue(object, key, LCArray.self).append(value!, unique: true)
         case .AddRelation:
-            // ObjectProfiler.loadPropertyValue(object, key, LCRelation.self).append(value!)
-            break
+             ObjectProfiler.loadPropertyValue(object, key, LCRelation.self).append(value as! LCObject)
         case .Remove:
             if let array = ObjectProfiler.getPropertyValue(object, key, LCArray.self) {
                 array.remove(value!)
             }
         case .RemoveRelation:
-            /*
             if let relation = ObjectProfiler.getPropertyValue(object, key, LCRelation.self) {
-                relation.remove(value!)
+                relation.remove(value as! LCObject)
             }
-            */
-            break
         }
     }
 
