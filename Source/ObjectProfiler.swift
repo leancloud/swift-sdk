@@ -150,46 +150,10 @@ class ObjectProfiler {
      - parameter propertyValue: The new property value.
      */
     static func updateProperty(object: LCType, _ propertyName: String, _ propertyValue: LCType?) {
-        Runtime.setInstanceVariable(object, propertyName, propertyValue)
-
         if let propertyValue = propertyValue {
-            bindParent(object, propertyName, Runtime.retainedObject(propertyValue))
-        }
-    }
-
-    /**
-     Bind all unbound LCType properties of an object to object.
-
-     This method iterates all LCType properties of an LCType object and adds reverse binding on these properties.
-
-     - parameter object: Parent object.
-     */
-    static func bindParent(object: LCType) {
-        synthesizableProperties(object_getClass(object)).forEach { (property) in
-            let propertyName = Runtime.propertyName(property)
-
-            if let propertyValue = Runtime.instanceVariableValue(object, propertyName) as? LCType {
-                bindParent(object, propertyName, propertyValue)
-            }
-        }
-    }
-
-    /**
-     Bind a property to an object.
-
-     - parameter object:        The object where you want to bind.
-     - parameter propertyName:  The property name which you want to bind.
-     - parameter propertyValue: The property value.
-     */
-    static func bindParent(object: LCType, _ propertyName: String, _ propertyValue: LCType) {
-        let parent = LCParent(object: object, propertyName: propertyName)
-
-        if let previousParent = propertyValue.parent {
-            if previousParent != parent {
-                /* TODO: throw an exception. */
-            }
+            Runtime.setInstanceVariable(object, propertyName, Runtime.retainedObject(propertyValue))
         } else {
-            propertyValue.parent = parent
+            Runtime.setInstanceVariable(object, propertyName, nil)
         }
     }
 
@@ -330,7 +294,6 @@ class ObjectProfiler {
         Runtime.setInstanceVariable(object, propertyName, value)
 
         if let propertyValue = value {
-            ObjectProfiler.bindParent(object, propertyName, propertyValue)
             object.addOperation(.Set, propertyName, Runtime.retainedObject(propertyValue))
         } else {
             object.addOperation(.Delete, propertyName, nil)

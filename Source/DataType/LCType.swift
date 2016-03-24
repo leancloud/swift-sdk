@@ -63,7 +63,6 @@ public class LCType: NSObject {
 
     public override required init() {
         super.init()
-        ObjectProfiler.bindParent(self)
     }
 
     public func copyWithZone(zone: NSZone) -> AnyObject {
