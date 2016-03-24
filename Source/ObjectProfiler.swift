@@ -131,11 +131,7 @@ class ObjectProfiler {
      - parameter propertyValue: The new property value.
      */
     static func updateProperty(object: LCType, _ propertyName: String, _ propertyValue: LCType?) {
-        if let propertyValue = propertyValue {
-            Runtime.setInstanceVariable(object, propertyName, Runtime.retainedObject(propertyValue))
-        } else {
-            Runtime.setInstanceVariable(object, propertyName, nil)
-        }
+        Runtime.setInstanceVariable(object, propertyName, Runtime.retainedObject(propertyValue))
     }
 
     /**
@@ -272,12 +268,12 @@ class ObjectProfiler {
         (object: LCObject!, cmd: Selector, value: LCType?) -> Void in
         let propertyName = ObjectProfiler.propertyName(cmd)
 
-        Runtime.setInstanceVariable(object, propertyName, value)
+        Runtime.setInstanceVariable(object, propertyName, Runtime.retainedObject(value))
 
-        if let propertyValue = value {
-            object.addOperation(.Set, propertyName, Runtime.retainedObject(propertyValue))
-        } else {
+        if value == nil {
             object.addOperation(.Delete, propertyName, nil)
+        } else {
+            object.addOperation(.Set, propertyName, value)
         }
     }
 }

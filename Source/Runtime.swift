@@ -164,8 +164,10 @@ class Runtime {
      Get retained object.
 
      - parameter object: The object which you want to retain.
+
+     - returns: An retained object.
      */
-    static func retainedObject<T: AnyObject>(object: T) -> T {
-        return Unmanaged.passRetained(object).takeUnretainedValue()
+    static func retainedObject<T: AnyObject>(object: T?) -> T? {
+        return object != nil ? Unmanaged.passRetained(object!).takeUnretainedValue() : nil
     }
 }
