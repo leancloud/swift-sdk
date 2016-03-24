@@ -68,7 +68,7 @@ public final class LCArray: LCType, SequenceType, ArrayLiteralConvertible {
      - parameter element: The element to be appended.
      */
     func append(element: Element) {
-        self.value = concatenateObjects([element])
+        self.value = self.value + [element]
     }
 
     /**
@@ -82,7 +82,7 @@ public final class LCArray: LCType, SequenceType, ArrayLiteralConvertible {
      - parameter unique:  Unique or not.
      */
     func append(element: Element, unique: Bool) {
-        self.value = concatenateObjects([element], unique: unique)
+        self.value = unique ? (self.value +~ [element]) : (self.value + [element])
     }
 
     /**
@@ -91,67 +91,7 @@ public final class LCArray: LCType, SequenceType, ArrayLiteralConvertible {
      - parameter element: The element to be removed.
      */
     func remove(element: Element) {
-        self.value = subtractObjects([element])
-    }
-
-    /**
-     Concatenate objects.
-
-     - parameter another: Another array of objects to be concatenated.
-
-     - returns: A new concatenated array.
-     */
-    func concatenateObjects(another: [Element]?) -> [Element]? {
-        return concatenateObjects(another, unique: false)
-    }
-
-    /**
-     Concatenate objects with unique option.
-
-     If unique is true, element in another array will not be concatenated if it had existed.
-
-     - parameter another: Another array of objects to be concatenated.
-     - parameter unique:  Unique or not.
-
-     - returns: A new concatenated array.
-     */
-    func concatenateObjects(another: [Element]?, unique: Bool) -> [Element]? {
-        guard let another = another else {
-            return self.value
-        }
-
-        var result = self.value ?? []
-
-        if unique {
-            another.forEach { (element) in
-                if !result.contains(element) {
-                    result.append(element)
-                }
-            }
-        } else {
-            result.appendContentsOf(another)
-        }
-
-        return result
-    }
-
-    /**
-     Subtract objects.
-
-     - parameter another: Another array of objects to be subtracted.
-
-     - returns: A new subtracted array.
-     */
-    func subtractObjects(another: [Element]?) -> [Element]? {
-        guard let minuend = self.value else {
-            return nil
-        }
-
-        guard let subtrahend = another else {
-            return minuend
-        }
-
-        return minuend.filter { !subtrahend.contains($0) }
+        self.value = self.value - [element]
     }
 
     // MARK: Iteration
@@ -172,7 +112,7 @@ public final class LCArray: LCType, SequenceType, ArrayLiteralConvertible {
             return nil
         }
 
-        if let array = concatenateObjects(another.value, unique: unique) {
+        if let array = unique ? (self.value +~ another.value) : (self.value + another.value) {
             return LCArray(array)
         } else {
             return LCArray()
@@ -185,7 +125,7 @@ public final class LCArray: LCType, SequenceType, ArrayLiteralConvertible {
             return nil
         }
 
-        if let array = subtractObjects(another.value) {
+        if let array = self.value - another.value {
             return LCArray(array)
         } else {
             return LCArray()
