@@ -179,6 +179,21 @@ class ObjectProfiler {
     }
 
     /**
+     Get property value of object.
+
+     - parameter object:       The object.
+     - parameter propertyName: The property name.
+     - parameter type:         The type which the property should be.
+
+     - returns: The property value.
+     */
+    static func getPropertyValue<T: LCType>(object: LCObject, _ propertyName: String, _ type: T.Type) -> T? {
+        validateType(object, propertyName: propertyName, type: type)
+
+        return Runtime.instanceVariableValue(object, propertyName) as? T
+    }
+
+    /**
      Load property value of object with initialization if needed.
 
      - parameter object:       The object.
@@ -190,8 +205,8 @@ class ObjectProfiler {
     static func loadPropertyValue<T: LCType>(object: LCObject, _ propertyName: String, _ type: T.Type) -> T {
         validateType(object, propertyName: propertyName, type: type)
 
-        if let propertyValue = Runtime.instanceVariableValue(object, propertyName) {
-            return propertyValue as! T
+        if let propertyValue = getPropertyValue(object, propertyName, T.self) {
+            return propertyValue
         } else {
             let property = class_getProperty(object_getClass(object), propertyName)
 

@@ -41,6 +41,68 @@ public class LCObject: LCType {
     }
 
     /**
+     Update a property to given value.
+
+     - parameter key:   The name of property which you want to update.
+     - parameter value: The new value.
+     */
+    public func update(key: String, _ value: LCType) {
+        addOperation(.Set, key, value)
+    }
+
+    /**
+     Delete a property.
+
+     - parameter key: The name of property which you want to delete.
+     */
+    public func delete(key key: String) {
+        addOperation(.Delete, key, nil)
+    }
+
+    /**
+     Increase a property by amount.
+
+     - parameter key:    The name of property on which you want to increase.
+     - parameter amount: The amount to increase.
+     */
+    public func increase(key: String, _ amount: LCNumber) {
+        addOperation(.Increment, key, amount)
+    }
+
+    /**
+     Append an element to an array property.
+
+     - parameter key:     The name of property into which you want to append the element.
+     - parameter element: The element to append.
+     */
+    public func append(key: String, element: LCType) {
+        addOperation(.Add, key, element)
+    }
+
+    /**
+     Append an element to an array property with unique option.
+
+     - parameter key:     The name of property into which you want to append the element.
+     - parameter element: The element to append.
+     - parameter unique:  Whether append element by unique or not.
+                          If true, element will not be appended if it had already existed in array;
+                          otherwise, element will always be appended.
+     */
+    public func append(key: String, element: LCType, unique: Bool) {
+        addOperation(unique ? .AddUnique : .Add, key, element)
+    }
+
+    /**
+     Remove an element from an array property.
+
+     - parameter key:     The name of property from which you want to remove the element.
+     - parameter element: The element to remove.
+     */
+    public func remove(key: String, element: LCType) {
+        addOperation(.Remove, key, element)
+    }
+
+    /**
      Save object and its all descendant objects synchronously.
 
      The detail save process is described as follows:

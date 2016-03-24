@@ -70,8 +70,46 @@ class OperationHub {
      */
     func append(name: Operation.Name, _ key: String, _ value: LCType?) {
         let operation = Operation(name: name, key: key, value: value)
+
+        updateProperty(operation)
         operations.append(operation)
         reduce(operation)
+    }
+
+    func updateProperty(operation: Operation) {
+        let (key, value) = (operation.key, operation.value)
+
+        guard ObjectProfiler.hasProperty(object, propertyName: key) else {
+            /* TODO: throw an exception that object has no such a property. */
+            return
+        }
+
+        switch operation.name {
+        case .Set:
+            ObjectProfiler.updateProperty(object, key, value)
+        case .Delete:
+            ObjectProfiler.updateProperty(object, key, nil)
+        case .Increment:
+            ObjectProfiler.loadPropertyValue(object, key, LCNumber.self).increase(value as! LCNumber)
+        case .Add:
+            ObjectProfiler.loadPropertyValue(object, key, LCArray.self).append(value!)
+        case .AddUnique:
+            ObjectProfiler.loadPropertyValue(object, key, LCArray.self).append(value!, unique: true)
+        case .AddRelation:
+            // ObjectProfiler.loadPropertyValue(object, key, LCRelation.self).append(value!)
+            break
+        case .Remove:
+            if let array = ObjectProfiler.getPropertyValue(object, key, LCArray.self) {
+                array.remove(value!)
+            }
+        case .RemoveRelation:
+            /*
+            if let relation = ObjectProfiler.getPropertyValue(object, key, LCRelation.self) {
+                relation.remove(value!)
+            }
+            */
+            break
+        }
     }
 
     /**
