@@ -13,7 +13,7 @@ public final class LCRelation: LCType {
 
     var value: [Element]?
 
-    override var JSONValue: AnyObject {
+    override var JSONValue: AnyObject? {
         return value ?? []
     }
 

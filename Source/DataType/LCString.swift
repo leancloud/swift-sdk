@@ -16,7 +16,7 @@ import Foundation
 public final class LCString: LCType, StringLiteralConvertible {
     public private(set) var value: String?
 
-    override var JSONValue: AnyObject {
+    override var JSONValue: AnyObject? {
         return value ?? ""
     }
 
