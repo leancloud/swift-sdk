@@ -51,7 +51,7 @@ public class LCObject: LCType {
 
      - returns: Name of current type.
      */
-    public class func name() -> String {
+    public class func className() -> String {
         let className = String(UTF8String: class_getName(self))!
 
         /* Strip root namespace to cope with application package name's change. */
