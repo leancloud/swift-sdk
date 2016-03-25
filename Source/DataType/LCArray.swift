@@ -18,8 +18,8 @@ public final class LCArray: LCType, SequenceType, ArrayLiteralConvertible {
 
     public private(set) var value: [Element]?
 
-    override var JSONValue: AnyObject {
-        return value ?? []
+    override var JSONValue: AnyObject? {
+        return (value ?? []).map { (element) in element.JSONValue! }
     }
 
     public required init() {
