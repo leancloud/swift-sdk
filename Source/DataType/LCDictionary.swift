@@ -30,11 +30,7 @@ public final class LCDictionary: LCType, SequenceType, DictionaryLiteralConverti
     }
 
     public convenience required init(dictionaryLiteral elements: (String, LCType)...) {
-        var value:[String:LCType] = [:]
-
-        elements.forEach { value[$0] = $1 }
-
-        self.init(value)
+        self.init(Dictionary<String, LCType>(elements: elements))
     }
 
     public override func copyWithZone(zone: NSZone) -> AnyObject {

@@ -49,7 +49,7 @@ func -<T: LCType>(left: [T]?, right: [T]?) -> [T]? {
 }
 
 extension Dictionary {
-    init(_ elements: [Element]) {
+    init(elements: [Element]) {
         self.init()
 
         for (key, value) in elements {
@@ -59,6 +59,6 @@ extension Dictionary {
 
     func mapValue<T>(@noescape transform: Value throws -> T) rethrows -> [Key: T] {
         let elements = try map { (key, value) in (key, try transform(value)) }
-        return Dictionary<Key, T>(elements)
+        return Dictionary<Key, T>(elements: elements)
     }
 }
