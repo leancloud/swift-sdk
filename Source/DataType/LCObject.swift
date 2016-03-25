@@ -34,6 +34,16 @@ public class LCObject: LCType {
         return self
     }
 
+    override public func isEqual(another: AnyObject?) -> Bool {
+        if another === self {
+            return true
+        } else if another?.objectId != nil && objectId != nil {
+            return another?.objectId == objectId
+        } else {
+            return false
+        }
+    }
+
     /**
      Set the name of current type.
 
