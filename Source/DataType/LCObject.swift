@@ -30,6 +30,18 @@ public class LCObject: LCType {
         return OperationHub(self)
     }()
 
+    override var JSONValue: AnyObject? {
+        if let objectId = objectId {
+            return [
+                "__type": "Pointer",
+                "className": self.dynamicType.className(),
+                "objectId": objectId
+            ]
+        }
+
+        return nil
+    }
+
     public override func copyWithZone(zone: NSZone) -> AnyObject {
         return self
     }
