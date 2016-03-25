@@ -19,6 +19,11 @@ public class LCObject: LCType {
     /// Object identifier.
     public private(set) var objectId: String?
 
+    /// The temp in-memory object identifier.
+    lazy var internalId: String = {
+        return Utility.uuid()
+    }()
+
     /// Operation hub.
     /// Used to manage object operations.
     lazy var operationHub: OperationHub = {
