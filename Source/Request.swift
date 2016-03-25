@@ -21,7 +21,7 @@ class Request {
     }
 
     var isNew: Bool {
-        return object.objectId == nil
+        return !object.hasObjectId
     }
 
     var method: String {
@@ -44,7 +44,7 @@ class Request {
             case .Set:
                 /* If object is newborn, put it in __children field. */
                 if let child = operation.value as? LCObject {
-                    if child.objectId == nil {
+                    if !child.hasObjectId {
                         children.append((key, child))
                         break
                     }
@@ -117,7 +117,7 @@ class RequestBuilder {
      - returns: A list of operation tables.
      */
     static func operationTableList(object: LCObject) -> OperationTableList {
-        if object.objectId != nil {
+        if object.hasObjectId {
             return object.operationHub.operationTableList()
         } else {
             var operationTable: OperationTable = [:]

@@ -19,6 +19,10 @@ public class LCObject: LCType {
     /// Object identifier.
     public private(set) var objectId: String?
 
+    var hasObjectId: Bool {
+        return objectId != nil
+    }
+
     /// The temp in-memory object identifier.
     lazy var internalId: String = {
         return Utility.uuid()

@@ -262,7 +262,7 @@ class ObjectProfiler {
 
             /* Check if object is a newborn orphan.
                If parent is not an LCObject, we think that it is an orphan. */
-            if object.objectId == nil && !(parent is LCObject) {
+            if !object.hasObjectId && !(parent is LCObject) {
                 if !hasNewbornOrphan {
                     output.insert(object)
                 }
