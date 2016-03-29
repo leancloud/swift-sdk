@@ -19,7 +19,7 @@
 		837753541CA3D9D300C2053D /* Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 837753531CA3D9D300C2053D /* Extension.swift */; };
 		837753561CA3DB8B00C2053D /* LCRelation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 837753551CA3DB8B00C2053D /* LCRelation.swift */; };
 		837753581CA4CB0300C2053D /* Utility.swift in Sources */ = {isa = PBXBuildFile; fileRef = 837753571CA4CB0300C2053D /* Utility.swift */; };
-		83A566DC1CA1414700E2EB12 /* Request.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83A566DB1CA1414700E2EB12 /* Request.swift */; };
+		83A566DC1CA1414700E2EB12 /* BatchRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83A566DB1CA1414700E2EB12 /* BatchRequest.swift */; };
 		83ACD25C1C8197BE00F7E2DE /* LCObject.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83ACD25B1C8197BE00F7E2DE /* LCObject.swift */; };
 		83ACD25E1C81981F00F7E2DE /* LCType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83ACD25D1C81981F00F7E2DE /* LCType.swift */; };
 		83ACD2681C819D3B00F7E2DE /* LCNumber.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83ACD2671C819D3B00F7E2DE /* LCNumber.swift */; };
@@ -55,7 +55,7 @@
 		837753531CA3D9D300C2053D /* Extension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Extension.swift; sourceTree = "<group>"; };
 		837753551CA3DB8B00C2053D /* LCRelation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LCRelation.swift; sourceTree = "<group>"; };
 		837753571CA4CB0300C2053D /* Utility.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Utility.swift; sourceTree = "<group>"; };
-		83A566DB1CA1414700E2EB12 /* Request.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Request.swift; sourceTree = "<group>"; };
+		83A566DB1CA1414700E2EB12 /* BatchRequest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BatchRequest.swift; sourceTree = "<group>"; };
 		83ACD25B1C8197BE00F7E2DE /* LCObject.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LCObject.swift; sourceTree = "<group>"; };
 		83ACD25D1C81981F00F7E2DE /* LCType.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LCType.swift; sourceTree = "<group>"; };
 		83ACD2671C819D3B00F7E2DE /* LCNumber.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LCNumber.swift; sourceTree = "<group>"; };
@@ -131,7 +131,7 @@
 				830B0F641C7C20CE00D9FC41 /* Configuration.swift */,
 				830046E91C7C92B8004C88A7 /* ObjectProfiler.swift */,
 				834E59C11C7ED06A009762AC /* Operation.swift */,
-				83A566DB1CA1414700E2EB12 /* Request.swift */,
+				83A566DB1CA1414700E2EB12 /* BatchRequest.swift */,
 				8343EF271CA91E5B0023D0CA /* Response.swift */,
 				830B0F6B1C7C60DA00D9FC41 /* Runtime.swift */,
 			);
@@ -275,7 +275,7 @@
 				837753541CA3D9D300C2053D /* Extension.swift in Sources */,
 				83ACD26E1C819D8000F7E2DE /* LCArray.swift in Sources */,
 				837753581CA4CB0300C2053D /* Utility.swift in Sources */,
-				83A566DC1CA1414700E2EB12 /* Request.swift in Sources */,
+				83A566DC1CA1414700E2EB12 /* BatchRequest.swift in Sources */,
 				83ACD2681C819D3B00F7E2DE /* LCNumber.swift in Sources */,
 				83ACD26C1C819D6900F7E2DE /* LCString.swift in Sources */,
 			);

@@ -1,5 +1,5 @@
 //
-//  RequestBuilder.swift
+//  BatchRequest.swift
 //  LeanCloud
 //
 //  Created by Tang Tianyong on 3/22/16.
@@ -8,7 +8,7 @@
 
 import Foundation
 
-class Request {
+class BatchRequest {
     let object: LCObject
     let operationTable: OperationTable
 
@@ -29,7 +29,7 @@ class Request {
     }
 
     var path: String {
-        return "/\(Request.APIVersion)/classes/\(object.dynamicType.className())"
+        return "/\(BatchRequest.APIVersion)/classes/\(object.dynamicType.className())"
     }
 
     var body: AnyObject {
@@ -88,7 +88,7 @@ class Request {
     }
 }
 
-class RequestBuilder {
+class BatchRequestBuilder {
     /**
      Get a list of requests of an object.
 
@@ -96,7 +96,7 @@ class RequestBuilder {
 
      - returns: A list of requests.
      */
-    static func buildShallowRequests(object: LCObject) -> [Request] {
+    static func buildShallowRequests(object: LCObject) -> [BatchRequest] {
         return buildRequests(object, depth: 0)
     }
 
@@ -107,7 +107,7 @@ class RequestBuilder {
 
      - returns: A list of requests.
      */
-    static func buildDeepRequests(object: LCObject) -> [Request] {
+    static func buildDeepRequests(object: LCObject) -> [BatchRequest] {
         return buildRequests(object, depth: -1)
     }
 
@@ -140,8 +140,8 @@ class RequestBuilder {
 
      - returns: A list of request.
      */
-    static func buildRequests(object: LCObject) -> [Request] {
-        return operationTableList(object).map { Request(object: object, operationTable: $0) }
+    static func buildRequests(object: LCObject) -> [BatchRequest] {
+        return operationTableList(object).map { BatchRequest(object: object, operationTable: $0) }
     }
 
     /**
@@ -152,8 +152,8 @@ class RequestBuilder {
 
      - returns: A list of requests.
      */
-    static func buildRequests(object: LCObject, depth: Int) -> [Request] {
-        var result: [Request] = []
+    static func buildRequests(object: LCObject, depth: Int) -> [BatchRequest] {
+        var result: [BatchRequest] = []
 
         ObjectProfiler.iterateObject(object, depth: depth) { (object) in
             let requests = buildRequests(object)
