@@ -15,4 +15,11 @@ public class Error {
 public enum BooleanResultType {
     case Success
     case Failure(error: Error)
+
+    var succeeded: Bool {
+        switch self {
+        case .Success: return true
+        default: return false
+        }
+    }
 }
