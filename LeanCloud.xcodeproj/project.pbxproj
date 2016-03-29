@@ -123,8 +123,8 @@
 		83724CC61C7B547000E59BED /* Source */ = {
 			isa = PBXGroup;
 			children = (
-				83724CC91C7B54A700E59BED /* LeanCloud.h */,
 				83ACD25A1C8197BE00F7E2DE /* DataType */,
+				83724CC91C7B54A700E59BED /* LeanCloud.h */,
 				830B0F621C7C127700D9FC41 /* LeanCloud.swift */,
 				837753571CA4CB0300C2053D /* Utility.swift */,
 				837753531CA3D9D300C2053D /* Extension.swift */,
