@@ -468,7 +468,7 @@ class OperationReducer {
             let subtrahend = operation.value as! LCArray
 
             operationTable.forEach { (operationName, operation) in
-                guard operationNames.contains(operationName)   else { return }
+                guard operationNames.contains(operationName) else { return }
                 guard let minuend = operation.value as? LCArray else { return }
 
                 operations.append(Operation(name: operation.name, key: operation.key, value: minuend - subtrahend))
