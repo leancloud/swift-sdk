@@ -14,6 +14,7 @@
 		8342FCC61C7B13A700C3CF15 /* LeanCloud.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8342FCBB1C7B13A700C3CF15 /* LeanCloud.framework */; };
 		8342FCCB1C7B13A700C3CF15 /* LeanCloudTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8342FCCA1C7B13A700C3CF15 /* LeanCloudTests.swift */; };
 		8343EF281CA91E5B0023D0CA /* Response.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8343EF271CA91E5B0023D0CA /* Response.swift */; };
+		83451E201CABB63600A378D7 /* Request.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83451E1F1CABB63600A378D7 /* Request.swift */; };
 		834E59C21C7ED06A009762AC /* Operation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 834E59C11C7ED06A009762AC /* Operation.swift */; };
 		83724CCA1C7B54A700E59BED /* LeanCloud.h in Headers */ = {isa = PBXBuildFile; fileRef = 83724CC91C7B54A700E59BED /* LeanCloud.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		837753541CA3D9D300C2053D /* Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 837753531CA3D9D300C2053D /* Extension.swift */; };
@@ -101,6 +102,7 @@
 		8342FCCA1C7B13A700C3CF15 /* LeanCloudTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeanCloudTests.swift; sourceTree = "<group>"; };
 		8342FCCC1C7B13A700C3CF15 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		8343EF271CA91E5B0023D0CA /* Response.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Response.swift; sourceTree = "<group>"; };
+		83451E1F1CABB63600A378D7 /* Request.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Request.swift; sourceTree = "<group>"; };
 		834E59C11C7ED06A009762AC /* Operation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Operation.swift; sourceTree = "<group>"; };
 		83724CC91C7B54A700E59BED /* LeanCloud.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LeanCloud.h; sourceTree = "<group>"; };
 		837753531CA3D9D300C2053D /* Extension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Extension.swift; sourceTree = "<group>"; };
@@ -188,6 +190,7 @@
 				834E59C11C7ED06A009762AC /* Operation.swift */,
 				837E04FF1CABAAB4008CC3FF /* RESTClient.swift */,
 				83A566DB1CA1414700E2EB12 /* BatchRequest.swift */,
+				83451E1F1CABB63600A378D7 /* Request.swift */,
 				8343EF271CA91E5B0023D0CA /* Response.swift */,
 				830B0F6B1C7C60DA00D9FC41 /* Runtime.swift */,
 			);
@@ -401,6 +404,7 @@
 				830B0F631C7C127700D9FC41 /* LeanCloud.swift in Sources */,
 				83ACD2701C819DA400F7E2DE /* LCDictionary.swift in Sources */,
 				837753541CA3D9D300C2053D /* Extension.swift in Sources */,
+				83451E201CABB63600A378D7 /* Request.swift in Sources */,
 				83ACD26E1C819D8000F7E2DE /* LCArray.swift in Sources */,
 				837753581CA4CB0300C2053D /* Utility.swift in Sources */,
 				83A566DC1CA1414700E2EB12 /* BatchRequest.swift in Sources */,

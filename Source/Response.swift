@@ -7,19 +7,12 @@
 //
 
 import Foundation
+import Alamofire
 
-public class Error {
-    /* Stub class. */
-}
+public class Response {
+    let alamofireResponse: Alamofire.Response<AnyObject, NSError>
 
-public enum BooleanResultType {
-    case Success
-    case Failure(error: Error)
-
-    var succeeded: Bool {
-        switch self {
-        case .Success: return true
-        default: return false
-        }
+    init(_ alamofireResponse: Alamofire.Response<AnyObject, NSError>) {
+        self.alamofireResponse = alamofireResponse
     }
 }
