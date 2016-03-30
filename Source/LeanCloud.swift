@@ -22,3 +22,12 @@ public func initialize(applicationID applicationID: String, applicationKey: Stri
 
     ObjectProfiler.registerSubclasses()
 }
+
+/**
+ Set service region.
+
+ - parameter serviceRegion: The service region.
+ */
+public func setServiceRegion(serviceRegion: ServiceRegion) {
+    Configuration.sharedInstance.serviceRegion = serviceRegion
+}

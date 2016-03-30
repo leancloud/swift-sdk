@@ -8,9 +8,16 @@
 
 import Foundation
 
+/// Service region.
+public enum ServiceRegion {
+    case CN, US
+}
+
 class Configuration {
     static let sharedInstance = Configuration()
 
     var applicationID:  String?!
     var applicationKey: String?!
+
+    var serviceRegion: ServiceRegion = .CN
 }
