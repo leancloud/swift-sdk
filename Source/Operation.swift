@@ -201,12 +201,12 @@ class OperationHub {
     func extractOperationTable(inout operationStack: OperationStack) -> OperationTable? {
         var table: OperationTable = [:]
 
-        operationStack.forEach { (key, var operations) in
+        operationStack.forEach { (key, operations) in
             if operations.isEmpty {
                 operationStack.removeValueForKey(key)
             } else {
-                table[key] = operations.removeAtIndex(0)
-                operationStack[key] = operations
+                table[key] = operations.first
+                operationStack[key] = Array(operations[1..<operations.count])
             }
         }
 
