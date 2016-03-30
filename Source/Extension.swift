@@ -62,3 +62,19 @@ extension Dictionary {
         return Dictionary<Key, T>(elements: elements)
     }
 }
+
+extension String {
+    var MD5String: String {
+        let bytes = Array<MD5.Byte>(self.utf8)
+        let encodedBytes = MD5.calculate(bytes)
+
+        let string = encodedBytes.reduce("") { string, byte in
+            let radix = 16
+            let hex = String(byte, radix: radix)
+            let sum = string + (byte < MD5.Byte(radix) ? "0" : "") + hex
+            return sum
+        }
+
+        return string
+    }
+}

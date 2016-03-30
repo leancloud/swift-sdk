@@ -15,6 +15,7 @@
 		8342FCCB1C7B13A700C3CF15 /* LeanCloudTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8342FCCA1C7B13A700C3CF15 /* LeanCloudTests.swift */; };
 		8343EF281CA91E5B0023D0CA /* Response.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8343EF271CA91E5B0023D0CA /* Response.swift */; };
 		83451E201CABB63600A378D7 /* Request.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83451E1F1CABB63600A378D7 /* Request.swift */; };
+		83451E431CAC23E900A378D7 /* MD5.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83451E421CAC23E900A378D7 /* MD5.swift */; };
 		834E59C21C7ED06A009762AC /* Operation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 834E59C11C7ED06A009762AC /* Operation.swift */; };
 		83724CCA1C7B54A700E59BED /* LeanCloud.h in Headers */ = {isa = PBXBuildFile; fileRef = 83724CC91C7B54A700E59BED /* LeanCloud.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		837753541CA3D9D300C2053D /* Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 837753531CA3D9D300C2053D /* Extension.swift */; };
@@ -103,6 +104,7 @@
 		8342FCCC1C7B13A700C3CF15 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		8343EF271CA91E5B0023D0CA /* Response.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Response.swift; sourceTree = "<group>"; };
 		83451E1F1CABB63600A378D7 /* Request.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Request.swift; sourceTree = "<group>"; };
+		83451E421CAC23E900A378D7 /* MD5.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MD5.swift; sourceTree = "<group>"; };
 		834E59C11C7ED06A009762AC /* Operation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Operation.swift; sourceTree = "<group>"; };
 		83724CC91C7B54A700E59BED /* LeanCloud.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LeanCloud.h; sourceTree = "<group>"; };
 		837753531CA3D9D300C2053D /* Extension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Extension.swift; sourceTree = "<group>"; };
@@ -177,9 +179,18 @@
 			path = LeanCloudTests;
 			sourceTree = "<group>";
 		};
+		83451E3A1CAC23D100A378D7 /* Library */ = {
+			isa = PBXGroup;
+			children = (
+				83451E421CAC23E900A378D7 /* MD5.swift */,
+			);
+			path = Library;
+			sourceTree = "<group>";
+		};
 		83724CC61C7B547000E59BED /* Source */ = {
 			isa = PBXGroup;
 			children = (
+				83451E3A1CAC23D100A378D7 /* Library */,
 				83ACD25A1C8197BE00F7E2DE /* DataType */,
 				83724CC91C7B54A700E59BED /* LeanCloud.h */,
 				830B0F621C7C127700D9FC41 /* LeanCloud.swift */,
@@ -398,6 +409,7 @@
 				8343EF281CA91E5B0023D0CA /* Response.swift in Sources */,
 				83ACD25E1C81981F00F7E2DE /* LCType.swift in Sources */,
 				830B0F651C7C20CE00D9FC41 /* Configuration.swift in Sources */,
+				83451E431CAC23E900A378D7 /* MD5.swift in Sources */,
 				834E59C21C7ED06A009762AC /* Operation.swift in Sources */,
 				830046EA1C7C92B8004C88A7 /* ObjectProfiler.swift in Sources */,
 				83ACD25C1C8197BE00F7E2DE /* LCObject.swift in Sources */,
