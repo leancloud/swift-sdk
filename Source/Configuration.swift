@@ -16,8 +16,8 @@ public enum ServiceRegion {
 class Configuration {
     static let sharedInstance = Configuration()
 
-    var applicationID:  String?!
-    var applicationKey: String?!
+    var applicationID:  String!
+    var applicationKey: String!
 
     var serviceRegion: ServiceRegion = .CN
 }
