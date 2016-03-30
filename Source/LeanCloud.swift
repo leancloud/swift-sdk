@@ -24,5 +24,5 @@ public func initialize(applicationID applicationID: String, applicationKey: Stri
     configure.applicationID  = applicationID
     configure.applicationKey = applicationKey
 
-    prepare();
+    prepare()
 }
