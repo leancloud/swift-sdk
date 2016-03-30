@@ -12,9 +12,6 @@ class BatchRequest {
     let object: LCObject
     let operationTable: OperationTable
 
-    /// REST API version
-    static let APIVersion = "1.1"
-
     init(object: LCObject, operationTable: OperationTable) {
         self.object = object
         self.operationTable = operationTable
@@ -29,7 +26,7 @@ class BatchRequest {
     }
 
     var path: String {
-        return "/\(BatchRequest.APIVersion)/classes/\(object.dynamicType.className())"
+        return "/\(RESTClient.APIVersion)/classes/\(object.dynamicType.className())"
     }
 
     var body: AnyObject {
