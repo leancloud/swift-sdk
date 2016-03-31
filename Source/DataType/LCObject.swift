@@ -34,6 +34,9 @@ public class LCObject: LCType {
         return OperationHub(self)
     }()
 
+    /// Action dispatch queue.
+    lazy var actionDispatchQueue = dispatch_queue_create("LeanCloud.Object.Action", DISPATCH_QUEUE_SERIAL)
+
     override var JSONValue: AnyObject? {
         if let objectId = objectId {
             return [
@@ -87,6 +90,15 @@ public class LCObject: LCType {
     }
 
     /**
+     Enqueue an action for serial execution.
+
+     - parameter action: The action closure to enqueue.
+     */
+    func enqueueAction(action: () -> Void) {
+        dispatch_sync(actionDispatchQueue, action)
+    }
+
+    /**
      Add an operation.
 
      - parameter name:  Operation name.
@@ -94,7 +106,9 @@ public class LCObject: LCType {
      - parameter value: Value to be assigned.
      */
     func addOperation(name: Operation.Name, _ key: String, _ value: LCType?) {
-        self.operationHub.append(name, key, value)
+        enqueueAction {
+            self.operationHub.append(name, key, value)
+        }
     }
 
     /**
