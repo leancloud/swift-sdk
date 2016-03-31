@@ -196,24 +196,15 @@ public class LCObject: LCType {
     /**
      Save object and its all descendant objects synchronously.
 
-     The detail save process is described as follows:
-
-     1. Save deepest newborn orphan objects in one batch request.
-     2. Repeat step 1 until all descendant newborn objects saved.
-     3. Save root object and all descendant dirty objects in one batch request.
-
-     Definition:
-
-     - Newborn object: object which has no object id.
-     - Orphan  object: object which its parent is not object.
-     - Dirty   object: object which has object id and was changed (has operations).
-
-     The reason to apply above steps is that:
-
-     We can construct a batch request when newborn object directly attachs on another object.
-     However, we cannot construct a batch request for orphan object.
+     - returns: The response of saving request.
      */
-    public func save() {
-        /* Stub method */
+    public func save() -> Response {
+        var response: Response!
+
+        enqueueAction { [unowned self] in
+            response = ObjectUpdater.save(self)
+        }
+
+        return response
     }
 }
