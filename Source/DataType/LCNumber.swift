@@ -47,7 +47,7 @@ public final class LCNumber: LCType, IntegerLiteralConvertible, FloatLiteralConv
         return copy
     }
 
-    override public func isEqual(another: AnyObject?) -> Bool {
+    public override func isEqual(another: AnyObject?) -> Bool {
         if another === self {
             return true
         } else if let another = another as? LCNumber {

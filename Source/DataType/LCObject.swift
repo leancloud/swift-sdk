@@ -50,7 +50,7 @@ public class LCObject: LCType {
         return self
     }
 
-    override public func isEqual(another: AnyObject?) -> Bool {
+    public override func isEqual(another: AnyObject?) -> Bool {
         if another === self {
             return true
         } else if another?.objectId != nil && objectId != nil {
