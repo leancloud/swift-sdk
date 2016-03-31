@@ -101,8 +101,20 @@ class RESTClient {
      - parameter endpoint: The REST API endpoint.
      - returns: An absolute REST API URL string.
      */
-    static func URLString(endpoint: String) -> String {
+    static func absoluteURLString(endpoint: String) -> String {
         return "https://\(self.host)/\(self.APIVersion)/\(endpoint)"
+    }
+
+    /**
+     Merge headers with common headers.
+
+     - parameter headers: The headers to be merged.
+     - returns: The merged headers.
+     */
+    static func mergeCommonHeaders(headers: [String: String]?) -> [String: String] {
+        var headers = headers ?? [:]
+        commonHeaders.forEach { (key, value) in headers[key] = value }
+        return headers
     }
 
     /**
@@ -111,25 +123,59 @@ class RESTClient {
      - parameter method:            The HTTP Method.
      - parameter endpoint:          The REST API endpoint.
      - parameter parameters:        The request parameters.
+     - parameter headers:           The request headers.
      - parameter completionHandler: The completion callback closure.
 
      - returns: A request object.
      */
-    func request(
+    static func request(
         method: Method,
-        endpoint: String,
+        _ endpoint: String,
         parameters: [String: AnyObject]? = nil,
+        headers: [String: String]? = nil,
         completionHandler: (Response) -> Void)
         -> Request
     {
-        let manager   = RESTClient.requestManager
-        let URLString = RESTClient.URLString(endpoint)
-        let request   = manager.request(method.alamofireMethod, URLString, parameters: parameters, encoding: .JSON, headers: RESTClient.commonHeaders)
+        let method    = method.alamofireMethod
+        let URLString = absoluteURLString(endpoint)
+        let headers   = mergeCommonHeaders(headers)
+
+        let request = requestManager.request(method, URLString, parameters: parameters, encoding: .JSON, headers: headers)
 
         request.responseJSON(queue: RESTClient.dispatchQueue) { response in
             completionHandler(Response(response))
         }
 
         return Request(request)
+    }
+
+    /**
+     Creates a request to REST API and sends it synchronously.
+
+     - parameter method:            The HTTP Method.
+     - parameter endpoint:          The REST API endpoint.
+     - parameter parameters:        The request parameters.
+     - parameter headers:           The request headers.
+
+     - returns: A response object.
+     */
+    static func request(
+        method: Method,
+        _ endpoint: String,
+        headers: [String: String]? = nil,
+        parameters: [String: AnyObject]? = nil)
+        -> Response
+    {
+        var result: Response!
+
+        let semaphore = dispatch_semaphore_create(0)
+
+        request(method, endpoint, parameters: parameters, headers: headers) { response in
+            result = response
+        }
+
+        dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER)
+
+        return result
     }
 }
