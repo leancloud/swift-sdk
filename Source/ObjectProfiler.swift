@@ -335,7 +335,7 @@ class ObjectProfiler {
      - parameter object: The object to validate.
      */
     static func validateCircularReference(object: LCObject) {
-        var visitStatusTable: [String: Int] = [:]
+        var visitStatusTable: [UInt: Int] = [:]
         validateCircularReference(object, visitStatusTable: &visitStatusTable)
     }
 
@@ -345,29 +345,21 @@ class ObjectProfiler {
      - parameter object: The object to validate.
      - parameter visitStatusTable: The object visit status table.
      */
-    private static func validateCircularReference(object: LCType, inout visitStatusTable: [String: Int]) {
-        switch object {
-        case let object as LCObject:
-            let key = object.internalId
-            let status = visitStatusTable[key] ?? 0
+    private static func validateCircularReference(object: LCType, inout visitStatusTable: [UInt: Int]) {
+        let key = ObjectIdentifier(object).uintValue
 
-            switch status {
-            case 0: /* Unvisited */
-                visitStatusTable[key] = 1
-                object.forEachChild { (child) in
-                    validateCircularReference(child, visitStatusTable: &visitStatusTable)
-                }
-                visitStatusTable[key] = 2
-            case 1: /* Visiting */
-                /* TODO: throw an exception that object has circular reference. */
-                break
-            default: /* Visited */
-                break
-            }
-        default:
+        switch visitStatusTable[key] ?? 0 {
+        case 0: /* Unvisited */
+            visitStatusTable[key] = 1
             object.forEachChild { (child) in
                 validateCircularReference(child, visitStatusTable: &visitStatusTable)
             }
+            visitStatusTable[key] = 2
+        case 1: /* Visiting */
+            /* TODO: throw an exception that object has circular reference. */
+            break
+        default: /* Visited */
+            break
         }
     }
 
