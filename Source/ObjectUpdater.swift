@@ -96,6 +96,8 @@ class ObjectUpdater {
      - returns: The response of request.
      */
     static func save(object: LCObject) -> Response {
+        object.validateBeforeSaving()
+
         var response = saveNewbornOrphanObjects(object)
 
         guard response.isSuccess else {

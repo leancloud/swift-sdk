@@ -194,6 +194,16 @@ public class LCObject: LCType {
     }
 
     /**
+     Validate object before saving.
+
+     Subclass can override this method to add custom validation logic.
+     */
+    func validateBeforeSaving() {
+        /* Validate circular reference. */
+        ObjectProfiler.validateCircularReference(self)
+    }
+
+    /**
      Save object and its all descendant objects synchronously.
 
      - returns: The response of saving request.
