@@ -147,7 +147,7 @@ public class LCObject: LCType {
      - parameter element: The element to append.
      */
     public func append(key: String, element: LCType) {
-        addOperation(.Add, key, element)
+        addOperation(.Add, key, LCArray([element]))
     }
 
     /**
@@ -160,7 +160,7 @@ public class LCObject: LCType {
                           otherwise, element will always be appended.
      */
     public func append(key: String, element: LCType, unique: Bool) {
-        addOperation(unique ? .AddUnique : .Add, key, element)
+        addOperation(unique ? .AddUnique : .Add, key, LCArray([element]))
     }
 
     /**
@@ -170,7 +170,7 @@ public class LCObject: LCType {
      - parameter element: The element to remove.
      */
     public func remove(key: String, element: LCType) {
-        addOperation(.Remove, key, element)
+        addOperation(.Remove, key, LCArray([element]))
     }
 
     /**
@@ -180,7 +180,7 @@ public class LCObject: LCType {
      - parameter object: The object to insert.
      */
     public func insertRelation(key: String, object: LCObject) {
-        addOperation(.AddRelation, key, object)
+        addOperation(.AddRelation, key, LCArray([object]))
     }
 
     /**
@@ -190,7 +190,7 @@ public class LCObject: LCType {
      - parameter object: The object to remove.
      */
     public func removeRelation(key: String, object: LCObject) {
-        addOperation(.RemoveRelation, key, object)
+        addOperation(.RemoveRelation, key, LCArray([object]))
     }
 
     /**
