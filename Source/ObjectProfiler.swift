@@ -328,6 +328,50 @@ class ObjectProfiler {
     }
 
     /**
+     Validate circular reference in object graph.
+
+     This method will check object and its all descendant objects.
+
+     - parameter object: The object to validate.
+     */
+    static func validateCircularReference(object: LCObject) {
+        var visitStatusTable: [String: Int] = [:]
+        validateCircularReference(object, visitStatusTable: &visitStatusTable)
+    }
+
+    /**
+     Validate circular reference in object graph iteratively.
+
+     - parameter object: The object to validate.
+     - parameter visitStatusTable: The object visit status table.
+     */
+    private static func validateCircularReference(object: LCType, inout visitStatusTable: [String: Int]) {
+        switch object {
+        case let object as LCObject:
+            let key = object.internalId
+            let status = visitStatusTable[key] ?? 0
+
+            switch status {
+            case 0: /* Unvisited */
+                visitStatusTable[key] = 1
+                object.forEachChild { (child) in
+                    validateCircularReference(child, visitStatusTable: &visitStatusTable)
+                }
+                visitStatusTable[key] = 2
+            case 1: /* Visiting */
+                /* TODO: throw an exception that object has circular reference. */
+                break
+            default: /* Visited */
+                break
+            }
+        default:
+            object.forEachChild { (child) in
+                validateCircularReference(child, visitStatusTable: &visitStatusTable)
+            }
+        }
+    }
+
+    /**
      Get property name from a setter selector.
 
      - parameter selector: The setter selector.
