@@ -8,6 +8,11 @@
 
 import Foundation
 
+/**
+ LeanCloud relation type.
+
+ This type can be used to make one-to-many relation between objects.
+ */
 public final class LCRelation: LCType {
     typealias Element = LCObject
 
