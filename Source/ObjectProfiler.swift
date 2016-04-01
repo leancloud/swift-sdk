@@ -389,8 +389,6 @@ class ObjectProfiler {
         (object: LCObject!, cmd: Selector, value: LCType?) -> Void in
         let propertyName = ObjectProfiler.propertyName(cmd)
 
-        Runtime.setInstanceVariable(object, propertyName, Runtime.retainedObject(value))
-
         if value == nil {
             object.addOperation(.Delete, propertyName, nil)
         } else {
