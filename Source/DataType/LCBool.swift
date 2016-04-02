@@ -14,10 +14,10 @@ import Foundation
  It is a wrapper of Swift.Bool type, used to store a boolean value.
  */
 public final class LCBool: LCType, BooleanLiteralConvertible {
-    public private(set) var value: Bool?
+    public private(set) var value: Bool = false
 
     override var JSONValue: AnyObject? {
-        return value ?? false
+        return value
     }
 
     public required init() {
@@ -35,7 +35,7 @@ public final class LCBool: LCType, BooleanLiteralConvertible {
 
     public override func copyWithZone(zone: NSZone) -> AnyObject {
         let copy = super.copyWithZone(zone) as! LCBool
-        copy.value = self.value
+        copy.value = value
         return copy
     }
 

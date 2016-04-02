@@ -8,43 +8,29 @@
 
 import Foundation
 
-func +<T: LCType>(left: [T]?, right: [T]?) -> [T]? {
-    if let right = right {
-        var result = left ?? []
+func +<T: LCType>(left: [T], right: [T]) -> [T] {
+    var result = left
 
-        result.appendContentsOf(right)
+    result.appendContentsOf(right)
 
-        return result
-    } else {
-        return left
-    }
+    return result
 }
 
-func +~<T: LCType>(left: [T]?, right: [T]?) -> [T]? {
-    if let right = right {
-        var result = left ?? []
+func +~<T: LCType>(left: [T], right: [T]) -> [T] {
+    var result = left
 
-        right.forEach { (element) in
-            if !result.contains(element) {
-                result.append(element)
-            }
+    right.forEach { element in
+        if !result.contains(element) {
+            result.append(element)
         }
-
-        return result
-    } else {
-        return left
     }
+
+    return result
 }
 
-func -<T: LCType>(left: [T]?, right: [T]?) -> [T]? {
-    if let left = left {
-        if let right = right {
-            return left.filter { !right.contains($0) }
-        } else {
-            return left
-        }
-    } else {
-        return nil
+func -<T: LCType>(left: [T], right: [T]) -> [T] {
+    return left.filter { element in
+        !right.contains(element)
     }
 }
 

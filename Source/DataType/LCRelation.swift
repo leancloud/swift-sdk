@@ -16,10 +16,10 @@ import Foundation
 public final class LCRelation: LCType {
     typealias Element = LCObject
 
-    var value: [Element]?
+    var value: [Element] = []
 
     override var JSONValue: AnyObject? {
-        return (value ?? []).map { (element) in element.JSONValue! }
+        return value.map { (element) in element.JSONValue! }
     }
 
     public override func copyWithZone(zone: NSZone) -> AnyObject {
@@ -27,7 +27,7 @@ public final class LCRelation: LCType {
     }
 
     override func forEachChild(body: (child: LCType) -> Void) {
-        value?.forEach { body(child: $0) }
+        value.forEach { body(child: $0) }
     }
 
     /**
@@ -36,7 +36,7 @@ public final class LCRelation: LCType {
      - parameter element: The element to be appended.
      */
     func append(element: Element) {
-        self.value = self.value + [element]
+        value = value + [element]
     }
 
     /**
@@ -45,6 +45,6 @@ public final class LCRelation: LCType {
      - parameter element: The element to be removed.
      */
     func remove(element: Element) {
-        self.value = self.value - [element]
+        value = value - [element]
     }
 }

@@ -16,10 +16,10 @@ import Foundation
 public final class LCArray: LCType, SequenceType, ArrayLiteralConvertible {
     public typealias Element = LCType
 
-    public private(set) var value: [Element]?
+    public private(set) var value: [Element] = []
 
     override var JSONValue: AnyObject? {
-        return (value ?? []).map { (element) in element.JSONValue! }
+        return value.map { element in element.JSONValue! }
     }
 
     public required init() {
@@ -45,21 +45,14 @@ public final class LCArray: LCType, SequenceType, ArrayLiteralConvertible {
         if another === self {
             return true
         } else if let another = another as? LCArray {
-            let lhs = value
-            let rhs = another.value
-
-            if let lhs = lhs, rhs = rhs {
-                return lhs == rhs
-            } else if lhs == nil && rhs == nil {
-                return true
-            }
+            return another.value == value
+        } else {
+            return false
         }
-
-        return false
     }
 
     public func generate() -> IndexingGenerator<[Element]> {
-        return (value ?? []).generate()
+        return value.generate()
     }
 
     override class func operationReducerType() -> OperationReducer.Type {
@@ -72,7 +65,7 @@ public final class LCArray: LCType, SequenceType, ArrayLiteralConvertible {
      - parameter element: The element to be appended.
      */
     func append(element: Element) {
-        self.value = self.value + [element]
+        append(element, unique: false)
     }
 
     /**
@@ -86,7 +79,7 @@ public final class LCArray: LCType, SequenceType, ArrayLiteralConvertible {
      - parameter unique:  Unique or not.
      */
     func append(element: Element, unique: Bool) {
-        self.value = unique ? (self.value +~ [element]) : (self.value + [element])
+        value = unique ? (value +~ [element]) : (value + [element])
     }
 
     /**
@@ -95,13 +88,13 @@ public final class LCArray: LCType, SequenceType, ArrayLiteralConvertible {
      - parameter element: The element to be removed.
      */
     func remove(element: Element) {
-        self.value = self.value - [element]
+        value = value - [element]
     }
 
     // MARK: Iteration
 
     override func forEachChild(body: (child: LCType) -> Void) {
-        forEach { body(child: $0) }
+        forEach { element in body(child: element) }
     }
 
     // MARK: Arithmetic
@@ -116,11 +109,9 @@ public final class LCArray: LCType, SequenceType, ArrayLiteralConvertible {
             return nil
         }
 
-        if let array = unique ? (self.value +~ another.value) : (self.value + another.value) {
-            return LCArray(array)
-        } else {
-            return LCArray()
-        }
+        let sum = unique ? (value +~ another.value) : (value + another.value)
+
+        return LCArray(sum)
     }
 
     override func subtract(another: LCType?) -> LCType? {
@@ -129,10 +120,8 @@ public final class LCArray: LCType, SequenceType, ArrayLiteralConvertible {
             return nil
         }
 
-        if let array = self.value - another.value {
-            return LCArray(array)
-        } else {
-            return LCArray()
-        }
+        let difference = value - another.value
+
+        return LCArray(difference)
     }
 }

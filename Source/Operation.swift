@@ -439,8 +439,8 @@ class OperationReducer {
          - returns: true if operation has objects, false otherwise.
          */
         func hasObjects(operation: Operation) -> Bool {
-            if let list = operation.value as? LCArray {
-                return list.value?.count > 0
+            if let array = operation.value as? LCArray {
+                return !array.value.isEmpty
             } else {
                 return false
             }

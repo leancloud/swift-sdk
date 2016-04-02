@@ -14,17 +14,17 @@ import Foundation
  It is a wrapper of Swift.Dictionary type, used to store a dictionary value.
  */
 public final class LCDictionary: LCType, SequenceType, DictionaryLiteralConvertible {
-    public private(set) var value: [String:LCType]?
+    public private(set) var value: [String: LCType] = [:]
 
     override var JSONValue: AnyObject? {
-        return (value ?? [:]).mapValue { $0.JSONValue! }
+        return value.mapValue { value in value.JSONValue! }
     }
 
     public required init() {
         super.init()
     }
 
-    public convenience init(_ value: [String:LCType]) {
+    public convenience init(_ value: [String: LCType]) {
         self.init()
         self.value = value
     }
@@ -43,26 +43,19 @@ public final class LCDictionary: LCType, SequenceType, DictionaryLiteralConverti
         if another === self {
             return true
         } else if let another = another as? LCDictionary {
-            let lhs = value
-            let rhs = another.value
-
-            if let lhs = lhs, rhs = rhs {
-                return lhs == rhs
-            } else if lhs == nil && rhs == nil {
-                return true
-            }
+            return another.value == value
+        } else {
+            return false
         }
-
-        return false
     }
 
     public func generate() -> DictionaryGenerator<String, LCType> {
-        return (value ?? [:]).generate()
+        return value.generate()
     }
 
     // MARK: Iteration
 
     override func forEachChild(body: (child: LCType) -> Void) {
-        forEach { body(child: $1) }
+        forEach { (_, value) in body(child: value) }
     }
 }

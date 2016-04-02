@@ -14,14 +14,10 @@ import Foundation
  It is a wrapper of Swift.Double type, used to store a number value.
  */
 public final class LCNumber: LCType, IntegerLiteralConvertible, FloatLiteralConvertible {
-    public private(set) var value: Double?
-
-    var doubleValue: Double {
-        return value ?? 0
-    }
+    public private(set) var value: Double = 0
 
     override var JSONValue: AnyObject? {
-        return doubleValue
+        return value
     }
 
     public required init() {
@@ -43,7 +39,7 @@ public final class LCNumber: LCType, IntegerLiteralConvertible, FloatLiteralConv
 
     public override func copyWithZone(zone: NSZone) -> AnyObject {
         let copy = super.copyWithZone(zone) as! LCNumber
-        copy.value = self.value
+        copy.value = value
         return copy
     }
 
@@ -67,7 +63,7 @@ public final class LCNumber: LCType, IntegerLiteralConvertible, FloatLiteralConv
      - parameter amount: The amount to increase.
      */
     func increase(amount: LCNumber) {
-        value = doubleValue + amount.doubleValue
+        value += amount.value
     }
 
     // MARK: Arithmetic
@@ -78,9 +74,8 @@ public final class LCNumber: LCType, IntegerLiteralConvertible, FloatLiteralConv
             return nil
         }
 
-        let base = self.doubleValue
-        let increment = another.doubleValue
+        let sum = value + another.value
 
-        return LCNumber(base + increment)
+        return LCNumber(sum)
     }
 }

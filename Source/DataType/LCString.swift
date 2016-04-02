@@ -14,10 +14,10 @@ import Foundation
  It is a wrapper of Swift.String type, used to store a string value.
  */
 public final class LCString: LCType, StringLiteralConvertible {
-    public private(set) var value: String?
+    public private(set) var value: String = ""
 
     override var JSONValue: AnyObject? {
-        return value ?? ""
+        return value
     }
 
     public typealias UnicodeScalarLiteralType = Character
@@ -46,7 +46,7 @@ public final class LCString: LCType, StringLiteralConvertible {
 
     public override func copyWithZone(zone: NSZone) -> AnyObject {
         let copy = super.copyWithZone(zone) as! LCString
-        copy.value = self.value
+        copy.value = value
         return copy
     }
 
