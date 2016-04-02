@@ -33,6 +33,25 @@ class RESTClient {
         }
     }
 
+    /// Data type.
+    enum DataType: String {
+        case Object   = "Object"
+        case Pointer  = "Pointer"
+        case Bytes    = "Bytes"
+        case Date     = "Date"
+        case GeoPoint = "GeoPoint"
+        case File     = "File"
+        case Relation = "Relation"
+    }
+
+    /// Reserved key.
+    class ReservedKey {
+        static let Op         = "__op"
+        static let Type       = "__type"
+        static let InternalId = "__internalId"
+        static let Children   = "__children"
+    }
+
     /// Header field name.
     class HeaderFieldName {
         static let ID         = "X-LC-Id"
