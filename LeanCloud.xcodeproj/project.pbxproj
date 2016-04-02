@@ -17,6 +17,10 @@
 		83451E201CABB63600A378D7 /* Request.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83451E1F1CABB63600A378D7 /* Request.swift */; };
 		83451E431CAC23E900A378D7 /* MD5.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83451E421CAC23E900A378D7 /* MD5.swift */; };
 		83451E491CAD0E2300A378D7 /* ObjectUpdater.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83451E481CAD0E2300A378D7 /* ObjectUpdater.swift */; };
+		83451E9F1CAEBA3000A378D7 /* LCGeoPoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83451E9E1CAEBA3000A378D7 /* LCGeoPoint.swift */; };
+		83451EA81CAEBA8900A378D7 /* LCData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83451EA71CAEBA8900A378D7 /* LCData.swift */; };
+		83451EAA1CAEBA9600A378D7 /* LCDate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83451EA91CAEBA9600A378D7 /* LCDate.swift */; };
+		83451EAC1CAEBAFE00A378D7 /* LCFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83451EAB1CAEBAFE00A378D7 /* LCFile.swift */; };
 		834E59C21C7ED06A009762AC /* Operation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 834E59C11C7ED06A009762AC /* Operation.swift */; };
 		83724CCA1C7B54A700E59BED /* LeanCloud.h in Headers */ = {isa = PBXBuildFile; fileRef = 83724CC91C7B54A700E59BED /* LeanCloud.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		837753541CA3D9D300C2053D /* Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 837753531CA3D9D300C2053D /* Extension.swift */; };
@@ -107,6 +111,10 @@
 		83451E1F1CABB63600A378D7 /* Request.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Request.swift; sourceTree = "<group>"; };
 		83451E421CAC23E900A378D7 /* MD5.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MD5.swift; sourceTree = "<group>"; };
 		83451E481CAD0E2300A378D7 /* ObjectUpdater.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ObjectUpdater.swift; sourceTree = "<group>"; };
+		83451E9E1CAEBA3000A378D7 /* LCGeoPoint.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LCGeoPoint.swift; sourceTree = "<group>"; };
+		83451EA71CAEBA8900A378D7 /* LCData.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LCData.swift; sourceTree = "<group>"; };
+		83451EA91CAEBA9600A378D7 /* LCDate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LCDate.swift; sourceTree = "<group>"; };
+		83451EAB1CAEBAFE00A378D7 /* LCFile.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LCFile.swift; sourceTree = "<group>"; };
 		834E59C11C7ED06A009762AC /* Operation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Operation.swift; sourceTree = "<group>"; };
 		83724CC91C7B54A700E59BED /* LeanCloud.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LeanCloud.h; sourceTree = "<group>"; };
 		837753531CA3D9D300C2053D /* Extension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Extension.swift; sourceTree = "<group>"; };
@@ -234,8 +242,12 @@
 				83ACD26B1C819D6900F7E2DE /* LCString.swift */,
 				83ACD26D1C819D8000F7E2DE /* LCArray.swift */,
 				83ACD26F1C819DA400F7E2DE /* LCDictionary.swift */,
-				837753551CA3DB8B00C2053D /* LCRelation.swift */,
 				83ACD25B1C8197BE00F7E2DE /* LCObject.swift */,
+				837753551CA3DB8B00C2053D /* LCRelation.swift */,
+				83451E9E1CAEBA3000A378D7 /* LCGeoPoint.swift */,
+				83451EA71CAEBA8900A378D7 /* LCData.swift */,
+				83451EA91CAEBA9600A378D7 /* LCDate.swift */,
+				83451EAB1CAEBAFE00A378D7 /* LCFile.swift */,
 			);
 			path = DataType;
 			sourceTree = "<group>";
@@ -407,9 +419,11 @@
 			buildActionMask = 2147483647;
 			files = (
 				837753561CA3DB8B00C2053D /* LCRelation.swift in Sources */,
+				83451E9F1CAEBA3000A378D7 /* LCGeoPoint.swift in Sources */,
 				83ACD26A1C819D5A00F7E2DE /* LCBool.swift in Sources */,
 				830B0F6C1C7C60DA00D9FC41 /* Runtime.swift in Sources */,
 				8343EF281CA91E5B0023D0CA /* Response.swift in Sources */,
+				83451EA81CAEBA8900A378D7 /* LCData.swift in Sources */,
 				83ACD25E1C81981F00F7E2DE /* LCType.swift in Sources */,
 				830B0F651C7C20CE00D9FC41 /* Configuration.swift in Sources */,
 				83451E431CAC23E900A378D7 /* MD5.swift in Sources */,
@@ -423,7 +437,9 @@
 				83451E201CABB63600A378D7 /* Request.swift in Sources */,
 				83ACD26E1C819D8000F7E2DE /* LCArray.swift in Sources */,
 				837753581CA4CB0300C2053D /* Utility.swift in Sources */,
+				83451EAC1CAEBAFE00A378D7 /* LCFile.swift in Sources */,
 				83A566DC1CA1414700E2EB12 /* BatchRequest.swift in Sources */,
+				83451EAA1CAEBA9600A378D7 /* LCDate.swift in Sources */,
 				83ACD2681C819D3B00F7E2DE /* LCNumber.swift in Sources */,
 				837E05001CABAAB4008CC3FF /* RESTClient.swift in Sources */,
 				83ACD26C1C819D6900F7E2DE /* LCString.swift in Sources */,
