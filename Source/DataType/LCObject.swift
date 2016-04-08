@@ -24,18 +24,14 @@ public class LCObject: LCType {
     }
 
     /// The temp in-memory object identifier.
-    lazy var internalId: String = {
-        return Utility.uuid()
-    }()
+    var internalId = Utility.uuid()
 
     /// Operation hub.
     /// Used to manage object operations.
-    lazy var operationHub: OperationHub = {
-        return OperationHub(self)
-    }()
+    var operationHub: OperationHub!
 
     /// Action dispatch queue.
-    lazy var actionDispatchQueue = dispatch_queue_create("LeanCloud.Object.Action", DISPATCH_QUEUE_SERIAL)
+    var actionDispatchQueue = dispatch_queue_create("LeanCloud.Object.Action", DISPATCH_QUEUE_SERIAL)
 
     override var JSONValue: AnyObject? {
         if let objectId = objectId {
@@ -47,6 +43,11 @@ public class LCObject: LCType {
         }
 
         return nil
+    }
+
+    public required init() {
+        super.init()
+        operationHub = OperationHub(self)
     }
 
     public override func copyWithZone(zone: NSZone) -> AnyObject {

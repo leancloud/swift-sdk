@@ -70,10 +70,10 @@ class OperationHub {
     weak var object: LCObject!
 
     /// A list of all operations.
-    lazy var operations = [Operation]()
+    var operations: [Operation] = []
 
     /// A table of operation reducer indexed by operation key.
-    lazy var operationReducerTable: [String:OperationReducer] = [:]
+    var operationReducerTable: [String: OperationReducer] = [:]
 
     init(_ object: LCObject) {
         self.object = object
