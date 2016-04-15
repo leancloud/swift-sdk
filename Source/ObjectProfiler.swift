@@ -9,11 +9,30 @@
 import Foundation
 
 class ObjectProfiler {
+    /// LCObject class table.
+    /// A dictionary of LCObject classes indexed by name.
+    static var objectClassTable: [String: LCObject.Type] = [:]
+
     /**
-     Register all subclasses.
+     Add an LCObject class.
+
+     - parameter aClass: An LCObject class.
      */
-    static func registerSubclasses() {
-        Runtime.subclasses(LCObject.self).forEach { synthesizeProperties($0) }
+    static func addObjectClass(aClass: LCObject.Type) {
+        objectClassTable[aClass.className()] = aClass
+    }
+
+    /**
+     Register LCObject and its subclasses.
+     */
+    static func registerClasses() {
+        var classes = [LCObject.self]
+
+        classes.appendContentsOf(Runtime.subclasses(LCObject.self) as! [LCObject.Type])
+        classes.forEach {
+            synthesizeProperties($0)
+            addObjectClass($0)
+        }
     }
 
     /**
