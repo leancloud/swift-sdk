@@ -171,12 +171,7 @@ class ObjectProfiler {
      - parameter propertyValue: The new property value.
      */
     static func updateProperty(object: LCObject, _ propertyName: String, _ propertyValue: LCType?) {
-        if let propertyValue = propertyValue {
-            validateType(object, propertyName: propertyName, value: propertyValue)
-            Runtime.setInstanceVariable(object, propertyName, Runtime.retainedObject(propertyValue))
-        } else {
-            Runtime.setInstanceVariable(object, propertyName, nil)
-        }
+        Runtime.setInstanceVariable(object, propertyName, Runtime.retainedObject(propertyValue))
     }
 
     /**

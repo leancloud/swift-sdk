@@ -119,6 +119,7 @@ public class LCObject: LCType {
      - parameter value: The new value.
      */
     public func update(key: String, _ value: LCType) {
+        ObjectProfiler.validateType(self, propertyName: key, value: value)
         addOperation(.Set, key, value)
     }
 
