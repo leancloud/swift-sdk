@@ -65,13 +65,14 @@ class ObjectProfiler {
         }
 
         let name = propertyType[propertyType.startIndex.advancedBy(2)..<propertyType.endIndex.advancedBy(-1)];
-        let subclass = objc_getClass(name)
 
-        if Runtime.isSubclass(subclass as! AnyClass, superclass: LCType.self) {
-            return subclass as? LCType.Type
-        } else {
-            return nil
+        if let subclass = objc_getClass(name) as? AnyClass {
+            if Runtime.isSubclass(subclass, superclass: LCType.self) {
+                return subclass as? LCType.Type
+            }
         }
+
+        return nil
     }
 
     /**
