@@ -191,6 +191,7 @@ class RESTClient {
 
         request(method, endpoint, parameters: parameters, headers: headers) { response in
             result = response
+            dispatch_semaphore_signal(semaphore)
         }
 
         dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER)
