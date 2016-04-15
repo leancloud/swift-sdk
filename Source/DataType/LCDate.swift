@@ -16,15 +16,15 @@ import Foundation
 public final class LCDate: LCType {
     public private(set) var value: NSDate = NSDate()
 
-    static let ISOFormat = "yyyy'-'MM'-'dd'T'HH':'mm':'ss.SSS'Z'"
+    static let dateFormatter: NSDateFormatter = {
+        let formatter = NSDateFormatter()
+        formatter.dateFormat = "yyyy'-'MM'-'dd'T'HH':'mm':'ss.SSS'Z'"
+        formatter.timeZone = NSTimeZone(forSecondsFromGMT: 0)
+        return formatter
+    }()
 
     var ISOString: String {
-        let formatter = NSDateFormatter()
-
-        formatter.dateFormat = LCDate.ISOFormat
-        formatter.timeZone = NSTimeZone(forSecondsFromGMT: 0)
-
-        return formatter.stringFromDate(value)
+        return LCDate.dateFormatter.stringFromDate(value)
     }
 
     override var JSONValue: AnyObject? {
@@ -40,7 +40,17 @@ public final class LCDate: LCType {
 
     public convenience init(_ date: NSDate) {
         self.init()
-        self.value = date
+        value = date
+    }
+
+    convenience init(ISOString: String?) {
+        self.init()
+
+        if let ISOString = ISOString {
+            if let date = LCDate.dateFormatter.dateFromString(ISOString) {
+                value = date
+            }
+        }
     }
 
     public override func copyWithZone(zone: NSZone) -> AnyObject {

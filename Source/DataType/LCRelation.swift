@@ -16,10 +16,21 @@ import Foundation
 public final class LCRelation: LCType {
     typealias Element = LCObject
 
+    var className: String?
+
     var value: [Element] = []
 
     override var JSONValue: AnyObject? {
         return value.map { (element) in element.JSONValue! }
+    }
+
+    public required init() {
+        super.init()
+    }
+
+    convenience init(className: String?) {
+        self.init()
+        self.className = className
     }
 
     public override func copyWithZone(zone: NSZone) -> AnyObject {

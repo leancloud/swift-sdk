@@ -33,7 +33,17 @@ public final class LCData: LCType {
 
     public convenience init(_ data: NSData) {
         self.init()
-        self.value = data
+        value = data
+    }
+
+    convenience init(base64String: String?) {
+        self.init()
+
+        if let base64String = base64String {
+            if let data = NSData(base64EncodedString: base64String, options: NSDataBase64DecodingOptions(rawValue: 0)) {
+                value = data
+            }
+        }
     }
 
     public override func copyWithZone(zone: NSZone) -> AnyObject {
