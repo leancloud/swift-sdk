@@ -20,6 +20,10 @@ public class Response {
         self.alamofireResponse = alamofireResponse
     }
 
+    var value: AnyObject? {
+        return alamofireResponse?.result.value
+    }
+
     /**
      A boolean property indicates whether response is OK or not.
      */
