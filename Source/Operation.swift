@@ -240,6 +240,9 @@ class OperationHub {
         return list
     }
 
+    /**
+     Remove all operations.
+     */
     func reset() {
         operationReducerTable.removeAll()
     }
