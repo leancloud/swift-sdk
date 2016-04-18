@@ -37,11 +37,11 @@ class RESTClient {
     enum DataType: String {
         case Object   = "Object"
         case Pointer  = "Pointer"
-        case Bytes    = "Bytes"
-        case Date     = "Date"
-        case GeoPoint = "GeoPoint"
         case File     = "File"
         case Relation = "Relation"
+        case GeoPoint = "GeoPoint"
+        case Bytes    = "Bytes"
+        case Date     = "Date"
     }
 
     /// Reserved key.

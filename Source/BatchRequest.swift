@@ -91,10 +91,12 @@ class BatchRequestBuilder {
 
      - parameter object: The object from which you want to get.
 
-     - returns: A list of requests.
+     - returns: A list of request.
      */
-    static func buildShallowRequests(object: LCObject) -> [BatchRequest] {
-        return buildRequests(object, depth: 0)
+    static func buildRequests(object: LCObject) -> [BatchRequest] {
+        return operationTableList(object).map { element in
+            BatchRequest(object: object, operationTable: element)
+        }
     }
 
     /**
@@ -105,11 +107,20 @@ class BatchRequestBuilder {
      - returns: A list of requests.
      */
     static func buildDeepRequests(object: LCObject) -> [BatchRequest] {
-        return buildRequests(object, depth: -1)
+        var result: [BatchRequest] = []
+        let objects = ObjectProfiler.toposort(ObjectProfiler.family(object))
+
+        objects.forEach { object in
+            result.appendContentsOf(buildRequests(object))
+        }
+
+        return result
     }
 
     /**
      Get operation table list of object.
+
+     - parameter object: The object from which you want to get.
 
      - returns: A list of operation tables.
      */
@@ -128,38 +139,5 @@ class BatchRequestBuilder {
 
             return [operationTable]
         }
-    }
-
-    /**
-     Get a list of requests of an object.
-
-     - parameter object: The object from which you want to get.
-
-     - returns: A list of request.
-     */
-    static func buildRequests(object: LCObject) -> [BatchRequest] {
-        return operationTableList(object).map { BatchRequest(object: object, operationTable: $0) }
-    }
-
-    /**
-     Get a list of requests of an object with depth option.
-
-     - parameter object: The object from which you want to get.
-     - parameter depth:  The depth of objects to deal with.
-
-     - returns: A list of requests.
-     */
-    static func buildRequests(object: LCObject, depth: Int) -> [BatchRequest] {
-        var result: [BatchRequest] = []
-
-        ObjectProfiler.iterateObject(object, depth: depth) { (object) in
-            let requests = buildRequests(object)
-
-            if requests.count > 0 {
-                result.appendContentsOf(requests)
-            }
-        }
-
-        return result
     }
 }

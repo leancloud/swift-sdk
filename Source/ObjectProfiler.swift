@@ -309,36 +309,75 @@ class ObjectProfiler {
     }
 
     /**
-     Iterate object and its descendant objects by DFS.
+     Create toposort for a set of objects.
 
-     - parameter object: The root object to iterate.
-     - parameter depth:  The max iteration depth.
-     - parameter body:   The closure to call for each iteration.
+     - parameter objects: A set of objects need to be sorted.
+
+     - returns: An array of objects ordered by toposort.
      */
-    static func iterateObject(object: LCObject, depth: Int, body: (object: LCObject) -> Void) {
-        iterateObject(object, depth: depth, currentDepth: 0, body: body)
-        body(object: object)
+    static func toposort(objects: Set<LCObject>) -> [LCObject] {
+        var result: [LCObject] = []
+        var visitStatusTable: [UInt: Int] = [:]
+        toposortStart(objects, &result, &visitStatusTable)
+        return result
+    }
+
+    private static func toposortStart(objects: Set<LCObject>, inout _ result: [LCObject], inout _ visitStatusTable: [UInt: Int]) {
+        objects.forEach { toposortVisit($0, objects, &result, &visitStatusTable) }
+    }
+
+    private static func toposortVisit(value: LCType, _ objects: Set<LCObject>, inout _ result: [LCObject], inout _ visitStatusTable: [UInt: Int]) {
+        guard value is LCObject else {
+            value.forEachChild { child in
+                toposortVisit(child, objects, &result, &visitStatusTable)
+            }
+            return
+        }
+
+        let object = value as! LCObject
+        let key = ObjectIdentifier(object).uintValue
+
+        switch visitStatusTable[key] ?? 0 {
+        case 0: /* Unvisited */
+            visitStatusTable[key] = 1
+            object.forEachChild { child in
+                toposortVisit(child, objects, &result, &visitStatusTable)
+            }
+            visitStatusTable[key] = 2
+
+            if objects.contains(object) {
+                result.append(object)
+            }
+        case 1: /* Visiting */
+            /* TODO: throw an exception that object has circular reference. */
+            break
+        default: /* Visited */
+            break
+        }
     }
 
     /**
-     Iterate descendant objects of an object by DFS.
+     Get all objects of an object family.
 
-     - parameter object:       The root object to iterate.
-     - parameter depth:        The max iteration depth.
-     - parameter currentDepth: The depth value of each iteration.
-     - parameter body:         The closure to call for each iteration.
+     This method presumes that there is no circle in object graph.
+
+     - parameter object: The ancestor object.
+
+     - returns: A set of objects in family.
      */
-    static func iterateObject(object: LCType, depth: Int, currentDepth: Int, body: (object: LCObject) -> Void) {
-        object.forEachChild { (child) in
-            if let object = child as? LCObject {
-                if depth >= 0 && currentDepth >= depth {
-                    return
-                }
-                iterateObject(object, depth: depth, currentDepth: currentDepth + 1, body: body)
-                body(object: object)
-            } else {
-                iterateObject(child, depth: depth, currentDepth: currentDepth, body: body)
-            }
+    static func family(object: LCObject) -> Set<LCObject> {
+        var result: Set<LCObject> = []
+        familyVisit(object, result: &result)
+        return result
+    }
+
+    private static func familyVisit(value: LCType, inout result: Set<LCObject>) {
+        value.forEachChild { child in
+            familyVisit(child, result: &result)
+        }
+
+        if let object = value as? LCObject {
+            result.insert(object)
         }
     }
 
@@ -376,6 +415,160 @@ class ObjectProfiler {
         default: /* Visited */
             break
         }
+    }
+
+    /**
+     */
+    private static func isBoolean(JSONValue: AnyObject) -> Bool {
+        switch String(JSONValue.dynamicType) {
+        case "__NSCFBoolean", "Bool": return true
+        default: return false
+        }
+    }
+
+    /**
+     Map key values dictionary to object.
+
+     - parameter keyValues: A dictionary of keys and values.
+     - parameter object:    The target object.
+     */
+    static func mapKeyValues(keyValues: [String: LCType], _ object: LCObject) {
+        keyValues.forEach { (key, value) in
+            updateProperty(object, key, value)
+        }
+    }
+
+    /**
+     Create LCObject object for class name.
+
+     - parameter className: The class name of LCObject type.
+
+     - returns: An LCObject object for class name.
+     */
+    static func object(className className: String) -> LCObject {
+        let objectClass = ObjectProfiler.objectClassTable[className] ?? LCObject.self
+        return objectClass.init()
+    }
+
+    /**
+     Convert a dictionary to an object with specified class name.
+
+     - parameter dictionary: The source dictionary to be converted.
+     - parameter className:  The class name.
+
+     - returns: An LCType object.
+     */
+    private static func object(dictionary dictionary: [String: AnyObject], className: String) -> LCType {
+        let result = object(className: className)
+        let keyValues = dictionary.mapValue { object(JSONValue: $0) }
+
+        mapKeyValues(keyValues, result)
+
+        return result
+    }
+
+    /**
+     Convert a dictionary to an object of specified data type.
+
+     - parameter dictionary: The source dictionary to be converted.
+     - parameter dataType:   The data type.
+
+     - returns: An LCType object, or nil if object can not be decoded.
+     */
+    static func object(dictionary dictionary: [String: AnyObject], dataType: RESTClient.DataType) -> LCType? {
+        switch dataType {
+        case .Object, .Pointer:
+            let className = dictionary["className"] as! String
+
+            return object(dictionary: dictionary, className: className)
+        case .File:
+            return object(dictionary: dictionary, className: LCFile.className())
+        case .Relation:
+            return LCRelation(dictionary: dictionary)
+        case .GeoPoint:
+            return LCGeoPoint(dictionary: dictionary)
+        case .Bytes:
+            return LCData(dictionary: dictionary)
+        case .Date:
+            return LCDate(dictionary: dictionary)
+        }
+    }
+
+    /**
+     Convert a dictionary to an LCType object.
+
+     - parameter dictionary: The source dictionary to be converted.
+
+     - returns: An LCType object.
+     */
+    private static func object(dictionary dictionary: [String: AnyObject]) -> LCType {
+        var result: LCType!
+
+        if let type = dictionary["__type"] as? String {
+            if let dataType = RESTClient.DataType(rawValue: type) {
+                result = object(dictionary: dictionary, dataType: dataType)
+            }
+        }
+
+        if result == nil {
+            result = LCDictionary(dictionary.mapValue { object(JSONValue: $0) })
+        }
+
+        return result
+    }
+
+    /**
+     Convert JSON value to LCType object.
+
+     - parameter JSONValue: The JSON value.
+
+     - returns: An LCType object of the corresponding JSON value.
+     */
+    static func object(JSONValue JSONValue: AnyObject) -> LCType {
+        switch JSONValue {
+        case let string as String:
+            return LCString(string)
+        case let array as [AnyObject]:
+            return LCArray(array.map { object(JSONValue: $0) })
+        case let dictionary as [String: AnyObject]:
+            return object(dictionary: dictionary)
+        case let object as LCType:
+            return object
+        default:
+            if isBoolean(JSONValue) {
+                return LCBool(JSONValue as! Bool)
+            } else if let number = JSONValue as? Double {
+                return LCNumber(number)
+            }
+            /* TODO: throw an exception that object can not be recognized. */
+            return LCType()
+        }
+    }
+
+    /**
+     Update object with a dictionary.
+
+     - parameter object:     The object to be updated.
+     - parameter dictionary: A dictionary of key-value pairs.
+     */
+    static func updateObject(object: LCObject, _ dictionary: AnyObject) {
+        guard var dictionary = dictionary as? [String: AnyObject] else {
+            return
+        }
+
+        if let createdAt = dictionary["createdAt"] {
+            updateProperty(object, "createdAt", LCDate(JSONValue: createdAt))
+            dictionary.removeValueForKey("createdAt")
+        }
+
+        if let updatedAt = dictionary["updatedAt"] {
+            updateProperty(object, "updatedAt", LCDate(JSONValue: updatedAt))
+            dictionary.removeValueForKey("updatedAt")
+        }
+
+        let keyValues = dictionary.mapValue { self.object(JSONValue: $0) }
+
+        mapKeyValues(keyValues, object)
     }
 
     /**
