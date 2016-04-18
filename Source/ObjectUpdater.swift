@@ -211,6 +211,7 @@ class ObjectUpdater {
                 if let value = response.value {
                     ObjectProfiler.updateObject(object, value)
                 }
+                object.resetOperation()
             }
         }
 
