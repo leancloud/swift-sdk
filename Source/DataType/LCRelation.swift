@@ -13,8 +13,8 @@ import Foundation
 
  This type can be used to make one-to-many relation between objects.
  */
-public final class LCRelation: LCType {
-    typealias Element = LCObject
+public final class LCRelation: LCType, SequenceType {
+    public typealias Element = LCObject
 
     var className: String?
 
@@ -49,6 +49,10 @@ public final class LCRelation: LCType {
 
     public override func copyWithZone(zone: NSZone) -> AnyObject {
         return self
+    }
+
+    public func generate() -> IndexingGenerator<[Element]> {
+        return value.generate()
     }
 
     override func forEachChild(body: (child: LCType) -> Void) {
