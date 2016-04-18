@@ -13,7 +13,11 @@ class BaseTestCase: XCTestCase {
     
     override func setUp() {
         super.setUp()
-        // Put setup code here. This method is called before the invocation of each test method in the class.
+        /* App name is "iOS SDK UnitTest". */
+        LeanCloud.initialize(
+            applicationID:  "nq0awk3lh1dpmbkziz54377mryii8ny4xvp6njoygle5nlyg",
+            applicationKey: "6vdnmdkdi4fva9i06lt50s4mcsfhppjpzm3zf5zjc9ty4pdz"
+        )
     }
     
     override func tearDown() {
