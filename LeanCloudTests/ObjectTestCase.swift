@@ -104,4 +104,31 @@ class ObjectTestCase: BaseTestCase {
         XCTAssertEqual(shadow.dictionaryField, dictionary)
     }
 
+    func testRelationProperty() {
+        let object   = TestObject()
+        let relation = TestObject()
+
+        object.insertRelation("relationField", object: relation)
+
+        XCTAssertTrue(object.save().isSuccess)
+        XCTAssertNotNil(relation.objectId)
+        XCTAssertNotNil(object.objectId)
+
+        let shadow = TestObject(objectId: object.objectId!.value)
+
+        XCTAssertTrue(shadow.fetch().isSuccess)
+        XCTAssertNotNil(shadow.relationField)
+    }
+
+    func testObjectProperty() {
+        let object = TestObject()
+        let child  = TestObject()
+
+        object.objectField = child
+
+        XCTAssertTrue(object.save().isSuccess)
+        XCTAssertNotNil(child.objectId)
+        XCTAssertNotNil(object.objectId)
+    }
+
 }
