@@ -121,7 +121,7 @@ public class LCObject: LCType {
      - parameter key:   The name of property which you want to update.
      - parameter value: The new value.
      */
-    public func update(key: String, _ value: LCType) {
+    public func set(key: String, value: LCType) {
         ObjectProfiler.validateType(self, propertyName: key, value: value)
         addOperation(.Set, key, value)
     }
@@ -131,7 +131,7 @@ public class LCObject: LCType {
 
      - parameter key: The name of property which you want to delete.
      */
-    public func delete(key key: String) {
+    public func unset(key: String) {
         addOperation(.Delete, key, nil)
     }
 
@@ -141,7 +141,7 @@ public class LCObject: LCType {
      - parameter key:    The name of property on which you want to increase.
      - parameter amount: The amount to increase.
      */
-    public func increase(key: String, _ amount: LCNumber) {
+    public func increase(key: String, amount: LCNumber) {
         addOperation(.Increment, key, amount)
     }
 
