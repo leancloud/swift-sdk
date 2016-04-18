@@ -19,6 +19,9 @@ public class LCObject: LCType {
     /// Object identifier.
     public private(set) dynamic var objectId: LCString?
 
+    public private(set) dynamic var createdAt: LCDate?
+    public private(set) dynamic var updatedAt: LCDate?
+
     var hasObjectId: Bool {
         return objectId != nil
     }
