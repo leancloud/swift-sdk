@@ -33,6 +33,20 @@ public final class LCRelation: LCType {
         self.className = className
     }
 
+    init?(dictionary: [String: AnyObject]) {
+        guard let type = dictionary["__type"] as? String else {
+            return nil
+        }
+        guard let dataType = RESTClient.DataType(rawValue: type) else {
+            return nil
+        }
+        guard case dataType = RESTClient.DataType.Relation else {
+            return nil
+        }
+
+        className = dictionary["className"] as? String
+    }
+
     public override func copyWithZone(zone: NSZone) -> AnyObject {
         return self
     }

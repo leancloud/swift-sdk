@@ -23,8 +23,16 @@ public final class LCDate: LCType {
         return formatter
     }()
 
+    static func dateFromString(string: String) -> NSDate? {
+        return dateFormatter.dateFromString(string)
+    }
+
+    static func stringFromDate(date: NSDate) -> String {
+        return dateFormatter.stringFromDate(date)
+    }
+
     var ISOString: String {
-        return LCDate.dateFormatter.stringFromDate(value)
+        return LCDate.stringFromDate(value)
     }
 
     override var JSONValue: AnyObject? {
@@ -43,14 +51,50 @@ public final class LCDate: LCType {
         value = date
     }
 
-    convenience init(ISOString: String?) {
-        self.init()
+    init?(ISOString: String) {
+        guard let date = LCDate.dateFromString(ISOString) else {
+            return nil
+        }
 
-        if let ISOString = ISOString {
-            if let date = LCDate.dateFormatter.dateFromString(ISOString) {
-                value = date
+        value = date
+    }
+
+    init?(dictionary: [String: AnyObject]) {
+        guard let type = dictionary["__type"] as? String else {
+            return nil
+        }
+        guard let dataType = RESTClient.DataType(rawValue: type) else {
+            return nil
+        }
+        guard case dataType = RESTClient.DataType.Date else {
+            return nil
+        }
+        guard let ISOString = dictionary["iso"] as? String else {
+            return nil
+        }
+        guard let date = LCDate.dateFromString(ISOString) else {
+            return nil
+        }
+
+        value = date
+    }
+
+    init?(JSONValue: AnyObject) {
+        var date: NSDate?
+
+        if let ISOString = JSONValue as? String {
+            date = LCDate.dateFromString(ISOString)
+        } else if let dictionary = JSONValue as? [String: AnyObject] {
+            if let object = LCDate(dictionary: dictionary) {
+                date = object.value
             }
         }
+
+        guard let someDate = date else {
+            return nil
+        }
+
+        value = someDate
     }
 
     public override func copyWithZone(zone: NSZone) -> AnyObject {

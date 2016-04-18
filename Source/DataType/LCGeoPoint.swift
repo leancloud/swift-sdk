@@ -35,6 +35,27 @@ public final class LCGeoPoint: LCType {
         self.longitude = longitude
     }
 
+    init?(dictionary: [String: AnyObject]) {
+        guard let type = dictionary["__type"] as? String else {
+            return nil
+        }
+        guard let dataType = RESTClient.DataType(rawValue: type) else {
+            return nil
+        }
+        guard case dataType = RESTClient.DataType.GeoPoint else {
+            return nil
+        }
+        guard let latitude = dictionary["latitude"] as? Double else {
+            return nil
+        }
+        guard let longitude = dictionary["longitude"] as? Double else {
+            return nil
+        }
+
+        self.latitude  = latitude
+        self.longitude = longitude
+    }
+
     public override func copyWithZone(zone: NSZone) -> AnyObject {
         let copy = super.copyWithZone(zone) as! LCGeoPoint
         copy.latitude = latitude
