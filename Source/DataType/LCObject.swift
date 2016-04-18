@@ -26,6 +26,14 @@ public class LCObject: LCType {
         return objectId != nil
     }
 
+    var endpoint: String? {
+        guard let objectId = objectId else {
+            return nil
+        }
+
+        return "classes/\(self.dynamicType.className())/\(objectId.value)"
+    }
+
     /// The temp in-memory object identifier.
     var internalId = Utility.uuid()
 
@@ -51,6 +59,11 @@ public class LCObject: LCType {
     public required init() {
         super.init()
         operationHub = OperationHub(self)
+    }
+
+    public convenience init(objectId: String) {
+        self.init()
+        self.objectId = LCString(objectId)
     }
 
     public override func copyWithZone(zone: NSZone) -> AnyObject {
@@ -225,6 +238,21 @@ public class LCObject: LCType {
 
         enqueueAction { [unowned self] in
             response = ObjectUpdater.save(self)
+        }
+
+        return response
+    }
+
+    /**
+     Delete current object synchronously.
+
+     - returns: The response of deleting request.
+     */
+    public func delete() -> Response {
+        var response: Response!
+
+        enqueueAction { [unowned self] in
+            response = ObjectUpdater.delete(self)
         }
 
         return response

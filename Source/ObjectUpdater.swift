@@ -180,4 +180,17 @@ class ObjectUpdater {
 
         return response
     }
+
+    /**
+     Delete object synchronously.
+     */
+    static func delete(object: LCObject) -> Response {
+        var response = Response()
+
+        if let endpoint = object.endpoint {
+            response = RESTClient.request(.DELETE, endpoint, parameters: nil)
+        }
+
+        return response
+    }
 }
