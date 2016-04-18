@@ -79,6 +79,19 @@ class ObjectUpdater {
     }
 
     /**
+     Validate that all objects should have object ID.
+
+     - parameter objects: A set of objects to validate.
+     */
+    private static func validateObjectId(objects: Set<LCObject>) {
+        objects.forEach { object in
+            if object.objectId == nil {
+                /* TODO: throw an exception that object has no object id. */
+            }
+        }
+    }
+
+    /**
      Save independent objects in one batch request synchronously.
 
      - parameter objects: A set of independent objects to save.
@@ -94,6 +107,11 @@ class ObjectUpdater {
 
         let requests = batchRequests(family)
         let response = sendBatchRequests(requests, family)
+
+        /* Validate object ID here to avoid infinite loop when save newborn orphans. */
+        if response.isSuccess {
+            validateObjectId(family)
+        }
 
         return response
     }
