@@ -65,6 +65,7 @@ public final class LCRelation: LCType, SequenceType {
      - parameter elements: The elements to be appended.
      */
     func appendElements(elements: [Element]) {
+        /* TODO: validate that all elements should have valid class name. */
         value = value + elements
     }
 
