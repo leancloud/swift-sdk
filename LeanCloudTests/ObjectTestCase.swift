@@ -67,4 +67,41 @@ class ObjectTestCase: BaseTestCase {
         XCTAssertEqual(shadow.dateField,     object.dateField)
     }
 
+    func testArrayProperty() {
+        let object  = TestObject()
+        let element = TestObject()
+
+        object.append("arrayField", element: element)
+
+        XCTAssertTrue(object.save().isSuccess)
+        XCTAssertNotNil(element.objectId)
+        XCTAssertNotNil(object.objectId)
+
+        let shadow = TestObject(objectId: object.objectId!.value)
+
+        XCTAssertTrue(shadow.fetch().isSuccess)
+        XCTAssertEqual(shadow.arrayField, LCArray([element]))
+    }
+
+    func testDictionaryProperty() {
+        let object  = TestObject()
+        let element = TestObject()
+
+        let dictionary: LCDictionary = [
+            "foo": element,
+            "bar": LCString("foo and bar")
+        ]
+
+        object.dictionaryField = dictionary
+
+        XCTAssertTrue(object.save().isSuccess)
+        XCTAssertNotNil(element.objectId)
+        XCTAssertNotNil(object.objectId)
+
+        let shadow = TestObject(objectId: object.objectId!.value)
+
+        XCTAssertTrue(shadow.fetch().isSuccess)
+        XCTAssertEqual(shadow.dictionaryField, dictionary)
+    }
+
 }
