@@ -110,19 +110,15 @@ class OperationHub {
         case .Increment:
             ObjectProfiler.loadPropertyValue(object, key, LCNumber.self).increase(value as! LCNumber)
         case .Add:
-            ObjectProfiler.loadPropertyValue(object, key, LCArray.self).append(value!)
+            ObjectProfiler.loadPropertyValue(object, key, LCArray.self).appendElements((value as! LCArray).value)
         case .AddUnique:
-            ObjectProfiler.loadPropertyValue(object, key, LCArray.self).append(value!, unique: true)
+            ObjectProfiler.loadPropertyValue(object, key, LCArray.self).appendElements((value as! LCArray).value, unique: true)
         case .AddRelation:
-             ObjectProfiler.loadPropertyValue(object, key, LCRelation.self).append(value as! LCObject)
+            ObjectProfiler.loadPropertyValue(object, key, LCRelation.self).appendElements((value as! LCArray).value as! [LCRelation.Element])
         case .Remove:
-            if let array = ObjectProfiler.getPropertyValue(object, key, LCArray.self) {
-                array.remove(value!)
-            }
+            ObjectProfiler.getPropertyValue(object, key, LCArray.self)?.removeElements((value as! LCArray).value)
         case .RemoveRelation:
-            if let relation = ObjectProfiler.getPropertyValue(object, key, LCRelation.self) {
-                relation.remove(value as! LCObject)
-            }
+            ObjectProfiler.getPropertyValue(object, key, LCRelation.self)?.removeElements((value as! LCArray).value as! [LCRelation.Element])
         }
     }
 

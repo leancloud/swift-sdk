@@ -60,20 +60,20 @@ public final class LCRelation: LCType, SequenceType {
     }
 
     /**
-     Append an element.
+     Append elements.
 
-     - parameter element: The element to be appended.
+     - parameter elements: The elements to be appended.
      */
-    func append(element: Element) {
-        value = value + [element]
+    func appendElements(elements: [Element]) {
+        value = value + elements
     }
 
     /**
-     Remove an element from list.
+     Remove elements.
 
-     - parameter element: The element to be removed.
+     - parameter elements: The elements to be removed.
      */
-    func remove(element: Element) {
-        value = value - [element]
+    func removeElements(elements: [Element]) {
+        value = value - elements
     }
 }

@@ -60,35 +60,35 @@ public final class LCArray: LCType, SequenceType, ArrayLiteralConvertible {
     }
 
     /**
-     Append an element.
+     Append elements.
 
-     - parameter element: The element to be appended.
+     - parameter elements: The elements to be appended.
      */
-    func append(element: Element) {
-        append(element, unique: false)
+    func appendElements(elements: [Element]) {
+        appendElements(elements, unique: false)
     }
 
     /**
-     Append an element with unique option.
+     Append elements with unique option.
 
-     This method will append an element based on the `unique` option.
+     This method will append elements based on the `unique` option.
      If `unique` is true, element will not be appended if it had already existed in array.
      Otherwise, the element will always be appended.
 
-     - parameter element: The element to be appended.
-     - parameter unique:  Unique or not.
+     - parameter elements: The elements to be appended.
+     - parameter unique:   Unique or not.
      */
-    func append(element: Element, unique: Bool) {
-        value = unique ? (value +~ [element]) : (value + [element])
+    func appendElements(elements: [Element], unique: Bool) {
+        value = unique ? (value +~ elements) : (value + elements)
     }
 
     /**
-     Remove an element from list.
+     Remove elements.
 
-     - parameter element: The element to be removed.
+     - parameter elements: The elements to be removed.
      */
-    func remove(element: Element) {
-        value = value - [element]
+    func removeElements(elements: [Element]) {
+        value = value - elements
     }
 
     // MARK: Iteration
