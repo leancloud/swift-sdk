@@ -206,6 +206,13 @@ public class LCObject: LCType {
     }
 
     /**
+     Reset operations, make object unmodified.
+     */
+    func resetOperation() {
+        self.operationHub.reset()
+    }
+
+    /**
      Save object and its all descendant objects synchronously.
 
      - returns: The response of saving request.

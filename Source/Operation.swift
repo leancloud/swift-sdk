@@ -239,6 +239,10 @@ class OperationHub {
 
         return list
     }
+
+    func reset() {
+        operationReducerTable.removeAll()
+    }
 }
 
 /**
