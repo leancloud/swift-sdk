@@ -31,7 +31,7 @@ class BatchRequest {
 
     var body: AnyObject {
         var body: [String: AnyObject] = [
-            "__internalId": object.objectId ?? object.internalId
+            "__internalId": object.objectId?.value ?? object.internalId
         ]
 
         var children: [(String, LCObject)] = []

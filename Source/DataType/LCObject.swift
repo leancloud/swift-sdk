@@ -17,7 +17,7 @@ import Foundation
  */
 public class LCObject: LCType {
     /// Object identifier.
-    public private(set) var objectId: String?
+    public private(set) dynamic var objectId: LCString?
 
     var hasObjectId: Bool {
         return objectId != nil
@@ -38,7 +38,7 @@ public class LCObject: LCType {
             return [
                 "__type": "Pointer",
                 "className": self.dynamicType.className(),
-                "objectId": objectId
+                "objectId": objectId.value
             ]
         }
 
