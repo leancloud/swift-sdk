@@ -257,4 +257,19 @@ public class LCObject: LCType {
 
         return response
     }
+
+    /**
+     Fetch object from server synchronously.
+
+     - returns: The response of fetching request.
+     */
+    public func fetch() -> Response {
+        var response: Response!
+
+        enqueueAction { [unowned self] in
+            response = ObjectUpdater.fetch(self)
+        }
+
+        return response
+    }
 }

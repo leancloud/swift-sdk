@@ -183,12 +183,35 @@ class ObjectUpdater {
 
     /**
      Delete object synchronously.
+
+     - returns: The response of request.
      */
     static func delete(object: LCObject) -> Response {
         var response = Response()
 
         if let endpoint = object.endpoint {
             response = RESTClient.request(.DELETE, endpoint, parameters: nil)
+        }
+
+        return response
+    }
+
+    /**
+     Fetch object synchronously.
+
+     - returns: The response of request.
+     */
+    static func fetch(object: LCObject) -> Response {
+        var response = Response()
+
+        if let endpoint = object.endpoint {
+            response = RESTClient.request(.GET, endpoint, parameters: nil)
+
+            if response.isSuccess {
+                if let value = response.value {
+                    ObjectProfiler.updateObject(object, value)
+                }
+            }
         }
 
         return response
