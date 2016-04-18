@@ -100,21 +100,31 @@ class BatchRequestBuilder {
     }
 
     /**
-     Get a list of requests of an object and its descendant objects.
+     Get initial operation table list of an object.
 
-     - parameter object: The object from which you want to get.
+     - parameter object: The object from which to get.
 
-     - returns: A list of requests.
+     - returns: The operation table list.
      */
-    static func buildDeepRequests(object: LCObject) -> [BatchRequest] {
-        var result: [BatchRequest] = []
-        let objects = ObjectProfiler.toposort(ObjectProfiler.family(object))
+    private static func initialOperationTableList(object: LCObject) -> OperationTableList {
+        var operationTable: OperationTable = [:]
 
-        objects.forEach { object in
-            result.appendContentsOf(buildRequests(object))
+        /* Collect all non-null properties. */
+        ObjectProfiler.iterateProperties(object) { (key, value) in
+            guard let value = value else { return }
+
+            switch value {
+            case let relation as LCRelation:
+                /* If the property type is relation,
+                   We should use "AddRelation" instead of "Set" as operation type.
+                   Otherwise, the relations will added as an array. */
+                operationTable[key] = Operation(name: .AddRelation, key: key, value: LCArray(relation.value))
+            default:
+                operationTable[key] = Operation(name: .Set, key: key, value: value)
+            }
         }
 
-        return result
+        return [operationTable]
     }
 
     /**
@@ -124,20 +134,11 @@ class BatchRequestBuilder {
 
      - returns: A list of operation tables.
      */
-    static func operationTableList(object: LCObject) -> OperationTableList {
+    private static func operationTableList(object: LCObject) -> OperationTableList {
         if object.hasObjectId {
             return object.operationHub.operationTableList()
         } else {
-            var operationTable: OperationTable = [:]
-
-            /* Collect all non-null properties. */
-            ObjectProfiler.iterateProperties(object) { (key, value) in
-                if let value = value {
-                    operationTable[key] = Operation(name: .Set, key: key, value: value)
-                }
-            }
-
-            return [operationTable]
+            return initialOperationTableList(object)
         }
     }
 }
