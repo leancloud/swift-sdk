@@ -248,18 +248,6 @@ class ObjectProfiler {
         var hasNewbornOrphan = false
 
         switch object {
-        case let list as LCArray:
-            list.forEach {
-                if deepestNewbornOrphans($0, parent: list, visited: &visited, output: &output) {
-                    hasNewbornOrphan = true
-                }
-            }
-        case let dictionary as LCDictionary:
-            dictionary.forEach {
-                if deepestNewbornOrphans($1, parent: dictionary, visited: &visited, output: &output) {
-                    hasNewbornOrphan = true
-                }
-            }
         case let object as LCObject:
             if visited.contains(object) {
                 /* TODO: Throw an exception that objects are twisted together. */
@@ -285,7 +273,11 @@ class ObjectProfiler {
                 hasNewbornOrphan = true
             }
         default:
-            break
+            object.forEachChild { child in
+                if deepestNewbornOrphans(child, parent: object, visited: &visited, output: &output) {
+                    hasNewbornOrphan = true
+                }
+            }
         }
 
         return hasNewbornOrphan
