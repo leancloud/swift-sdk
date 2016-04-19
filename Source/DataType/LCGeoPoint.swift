@@ -17,6 +17,17 @@ public final class LCGeoPoint: LCType {
     public private(set) var latitude: Double = 0
     public private(set) var longitude: Double = 0
 
+    public enum Unit {
+        case Mile
+        case Kilometer
+        case Radian
+    }
+
+    public struct Distance {
+        let value: Double
+        let unit: Unit
+    }
+
     override var JSONValue: AnyObject? {
         return [
             "__type": "GeoPoint",

@@ -37,6 +37,7 @@
 		83ACD26E1C819D8000F7E2DE /* LCArray.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83ACD26D1C819D8000F7E2DE /* LCArray.swift */; };
 		83ACD2701C819DA400F7E2DE /* LCDictionary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83ACD26F1C819DA400F7E2DE /* LCDictionary.swift */; };
 		83FAF0931CC4D1E400A84063 /* ObjectTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83FAF0921CC4D1E400A84063 /* ObjectTestCase.swift */; };
+		83FAF09E1CC5D85B00A84063 /* Query.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83FAF09D1CC5D85B00A84063 /* Query.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -132,6 +133,7 @@
 		83ACD26D1C819D8000F7E2DE /* LCArray.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LCArray.swift; sourceTree = "<group>"; };
 		83ACD26F1C819DA400F7E2DE /* LCDictionary.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LCDictionary.swift; sourceTree = "<group>"; };
 		83FAF0921CC4D1E400A84063 /* ObjectTestCase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ObjectTestCase.swift; sourceTree = "<group>"; };
+		83FAF09D1CC5D85B00A84063 /* Query.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Query.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -218,6 +220,7 @@
 				83451E1F1CABB63600A378D7 /* Request.swift */,
 				8343EF271CA91E5B0023D0CA /* Response.swift */,
 				830B0F6B1C7C60DA00D9FC41 /* Runtime.swift */,
+				83FAF09D1CC5D85B00A84063 /* Query.swift */,
 			);
 			path = Source;
 			sourceTree = "<group>";
@@ -441,6 +444,7 @@
 				83ACD26E1C819D8000F7E2DE /* LCArray.swift in Sources */,
 				837753581CA4CB0300C2053D /* Utility.swift in Sources */,
 				83451EAC1CAEBAFE00A378D7 /* LCFile.swift in Sources */,
+				83FAF09E1CC5D85B00A84063 /* Query.swift in Sources */,
 				83A566DC1CA1414700E2EB12 /* BatchRequest.swift in Sources */,
 				83451EAA1CAEBA9600A378D7 /* LCDate.swift in Sources */,
 				83ACD2681C819D3B00F7E2DE /* LCNumber.swift in Sources */,
