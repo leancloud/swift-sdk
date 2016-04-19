@@ -34,9 +34,9 @@ final public class Query {
         case ContainedAllIn(array: LCArray)
         case EqualToSize(size: LCNumber)
 
-        case Near(point: LCGeoPoint)
-        case NearInRange(point: LCGeoPoint, min: LCGeoPoint.Distance?, max: LCGeoPoint.Distance?)
-        case NearInRectangle(point: LCGeoPoint, southwest: LCGeoPoint, northeast: LCGeoPoint)
+        case NearbyPoint(point: LCGeoPoint)
+        case NearbyPointWithRange(point: LCGeoPoint, min: LCGeoPoint.Distance?, max: LCGeoPoint.Distance?)
+        case NearbyPointWithRectangle(point: LCGeoPoint, southwest: LCGeoPoint, northeast: LCGeoPoint)
 
         case MatchedQuery(query: Query)
         case NotMatchedQuery(query: Query)
@@ -45,8 +45,8 @@ final public class Query {
 
         case MatchedPattern(pattern: String, option: String?)
         case MatchedSubstring(string: String)
-        case Prefixed(string: String)
-        case Suffixed(string: String)
+        case PrefixedBy(string: String)
+        case SuffixedBy(string: String)
     }
 
     /**
