@@ -158,8 +158,14 @@ class RESTClient {
         let method    = method.alamofireMethod
         let URLString = absoluteURLString(endpoint)
         let headers   = mergeCommonHeaders(headers)
+        var encoding: ParameterEncoding!
 
-        let request = requestManager.request(method, URLString, parameters: parameters, encoding: .JSON, headers: headers)
+        switch method {
+        case .GET: encoding = .URLEncodedInURL
+        default:   encoding = .JSON
+        }
+
+        let request = requestManager.request(method, URLString, parameters: parameters, encoding: encoding, headers: headers)
 
         request.responseJSON(queue: RESTClient.dispatchQueue) { response in
             completionHandler(Response(response))
