@@ -431,6 +431,17 @@ class ObjectProfiler {
     }
 
     /**
+     Get object class by name.
+
+     - parameter className: The name of object class.
+
+     - returns: The class.
+     */
+    static func objectClass(className: String) -> LCObject.Type {
+        return ObjectProfiler.objectClassTable[className]!
+    }
+
+    /**
      Create LCObject object for class name.
 
      - parameter className: The class name of LCObject type.
@@ -438,8 +449,7 @@ class ObjectProfiler {
      - returns: An LCObject object for class name.
      */
     static func object(className className: String) -> LCObject {
-        let objectClass = ObjectProfiler.objectClassTable[className] ?? LCObject.self
-        return objectClass.init()
+        return objectClass(className).init()
     }
 
     /**
