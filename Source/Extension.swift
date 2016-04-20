@@ -63,4 +63,8 @@ extension String {
 
         return string
     }
+
+    var regularEscapedString: String {
+        return NSRegularExpression.escapedPatternForString(self)
+    }
 }
