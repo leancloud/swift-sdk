@@ -107,6 +107,17 @@ public class LCObject: LCType {
     }
 
     /**
+     Set the REST endpoint of current type.
+
+     The default implementation returns the "classes/{className}".
+
+     - returns: REST endpoint of current type.
+     */
+    public class func classEndpoint() -> String {
+        return "classes/\(className())"
+    }
+
+    /**
      Enqueue an action for serial execution.
 
      - parameter action: The action closure to enqueue.
