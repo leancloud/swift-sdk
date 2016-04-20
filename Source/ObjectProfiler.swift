@@ -548,6 +548,26 @@ class ObjectProfiler {
     }
 
     /**
+     Convert an AnyObject object to JSON value.
+
+     - parameter object: The object to be converted.
+
+     - returns: The JSON value of object.
+     */
+    static func JSONValue(object: AnyObject) -> AnyObject {
+        switch object {
+        case let array as [AnyObject]:
+            return array.map { JSONValue($0) }
+        case let dictionary as [String: AnyObject]:
+            return dictionary.mapValue { JSONValue($0) }
+        case let object as LCType:
+            return object.JSONValue!
+        default:
+            return object
+        }
+    }
+
+    /**
      Update object with a dictionary.
 
      - parameter object:     The object to be updated.
