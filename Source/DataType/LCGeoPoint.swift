@@ -17,10 +17,10 @@ public final class LCGeoPoint: LCType {
     public private(set) var latitude: Double = 0
     public private(set) var longitude: Double = 0
 
-    public enum Unit {
-        case Mile
-        case Kilometer
-        case Radian
+    public enum Unit: String {
+        case Mile = "Miles"
+        case Kilometer = "Kilometers"
+        case Radian = "Radians"
     }
 
     public struct Distance {
