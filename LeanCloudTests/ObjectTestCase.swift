@@ -9,20 +9,6 @@
 import XCTest
 @testable import LeanCloud
 
-class TestObject: LCObject {
-    dynamic var numberField: LCNumber?
-    dynamic var booleanField: LCBool?
-    dynamic var stringField: LCString?
-    dynamic var arrayField: LCArray?
-    dynamic var dictionaryField: LCDictionary?
-    dynamic var objectField: LCObject?
-    dynamic var relationField: LCRelation?
-    dynamic var geoPointField: LCGeoPoint?
-    dynamic var dataField: LCData?
-    dynamic var dateField: LCDate?
-    dynamic var fileField: LCFile?
-}
-
 class ObjectTestCase: BaseTestCase {
 
     override func setUp() {
