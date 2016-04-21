@@ -106,6 +106,10 @@ public class LCObject: LCType {
         }
     }
 
+    public static func register() {
+        ObjectProfiler.registerClass(self)
+    }
+
     /**
      Set the REST endpoint of current type.
 
