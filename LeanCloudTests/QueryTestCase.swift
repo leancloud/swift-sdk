@@ -17,6 +17,7 @@ let sharedObject: TestObject = {
     object.stringField  = "foo"
     object.arrayField   = [LCNumber(42), LCString("bar"), sharedArrayElement]
     object.dateField    = LCDate(NSDate(timeIntervalSince1970: 1024))
+    object.geoPointField = LCGeoPoint(latitude: 45, longitude: -45)
 
     XCTAssertTrue(object.save().isSuccess)
 
@@ -232,6 +233,44 @@ class QueryTestCase: BaseTestCase {
 
         query.whereKey("objectId", .EqualTo(value: object.objectId!))
         query.whereKey("arrayField", .EqualToSize(size: 3))
+
+        let (response, objects) = query.find()
+        XCTAssertTrue(response.isSuccess && !objects.isEmpty)
+    }
+
+    func testNearbyPoint() {
+        let query = Query(className: TestObject.className())
+
+        query.whereKey("geoPointField", .NearbyPoint(point: LCGeoPoint(latitude: 45, longitude: -45)))
+        query.limit = 1
+
+        let (response, objects) = query.find()
+        XCTAssertTrue(response.isSuccess && !objects.isEmpty)
+    }
+
+    func testNearbyPointWithRange() {
+        let query = Query(className: TestObject.className())
+
+        /* Tip: At the equator, one degree of longitude and latitude is approximately equal to about 111 kilometers, or 70 miles. */
+
+        let from = LCGeoPoint.Distance(value: 0, unit: .Kilometer)
+        let to   = LCGeoPoint.Distance(value: 150, unit: .Kilometer)
+
+        query.whereKey("geoPointField", .NearbyPointWithRange(point: LCGeoPoint(latitude: 44, longitude: -45), from: from, to: to))
+        query.limit = 1
+
+        let (response, objects) = query.find()
+        XCTAssertTrue(response.isSuccess && !objects.isEmpty)
+    }
+
+    func testNearbyPointWithRectangle() {
+        let query = Query(className: TestObject.className())
+
+        let southwest = LCGeoPoint(latitude: 44, longitude: -46)
+        let northeast = LCGeoPoint(latitude: 46, longitude: -44)
+
+        query.whereKey("geoPointField", .NearbyPointWithRectangle(southwest: southwest, northeast: northeast))
+        query.limit = 1
 
         let (response, objects) = query.find()
         XCTAssertTrue(response.isSuccess && !objects.isEmpty)
