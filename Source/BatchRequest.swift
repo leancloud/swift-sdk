@@ -26,7 +26,13 @@ class BatchRequest {
     }
 
     var path: String {
-        return "/\(RESTClient.APIVersion)/classes/\(object.dynamicType.className())"
+        var endpoint = "/\(RESTClient.APIVersion)/\(object.dynamicType.classEndpoint())"
+
+        if let objectId = object.objectId {
+            endpoint = (endpoint as NSString).stringByAppendingPathComponent(objectId.value)
+        }
+
+        return endpoint
     }
 
     var body: AnyObject {
