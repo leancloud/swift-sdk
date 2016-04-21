@@ -12,12 +12,20 @@ import XCTest
 let sharedObject: TestObject = {
     let object = TestObject()
 
-    object.stringField = "foo"
-    object.booleanField = true
     object.numberField  = 42
+    object.booleanField = true
+    object.stringField  = "foo"
+    object.arrayField   = [LCNumber(42), LCString("bar"), sharedArrayElement]
+    object.dateField    = LCDate(NSDate(timeIntervalSince1970: 1024))
 
     XCTAssertTrue(object.save().isSuccess)
 
+    return object
+}()
+
+let sharedArrayElement: TestObject = {
+    let object = TestObject()
+    XCTAssertTrue(object.save().isSuccess)
     return object
 }()
 
@@ -58,8 +66,8 @@ class QueryTestCase: BaseTestCase {
 
     func testSelected() {
         let object = sharedObject
+        let query  = Query(className: TestObject.className())
 
-        let query = Query(className: TestObject.className())
         query.whereKey("objectId", .EqualTo(value: object.objectId!))
         query.whereKey("stringField", .Selected)
         query.whereKey("booleanField", .Selected)
@@ -76,8 +84,8 @@ class QueryTestCase: BaseTestCase {
 
     func testExisted() {
         let object = sharedObject
+        let query  = Query(className: TestObject.className())
 
-        let query = Query(className: TestObject.className())
         query.whereKey("objectId", .EqualTo(value: object.objectId!))
         query.whereKey("stringField", .Existed)
 
@@ -95,9 +103,75 @@ class QueryTestCase: BaseTestCase {
 
     func testEqualTo() {
         let object = sharedObject
+        let query  = Query(className: TestObject.className())
 
-        let query = Query(className: TestObject.className())
         query.whereKey("objectId", .EqualTo(value: object.objectId!))
+        query.whereKey("dateField", .EqualTo(value: LCDate(NSDate(timeIntervalSince1970: 1024))))
+
+        /* Tip: you can use EqualTo to compare an value against elements in an array field.
+           If the given value is equal to any element in the array referenced by key, the comparation will be success. */
+        query.whereKey("arrayField", .EqualTo(value: sharedArrayElement))
+
+        let (response, objects) = query.find()
+        XCTAssertTrue(response.isSuccess && !objects.isEmpty)
+    }
+
+    func testNotEqualTo() {
+        let object = sharedObject
+        let query  = Query(className: TestObject.className())
+
+        query.whereKey("objectId", .EqualTo(value: object.objectId!))
+        query.whereKey("numberField", .NotEqualTo(value: LCNumber(42)))
+
+        let (response, objects) = query.find()
+        XCTAssertTrue(response.isSuccess && objects.isEmpty)
+    }
+
+    func testLessThan() {
+        let object = sharedObject
+        let query  = Query(className: TestObject.className())
+
+        query.whereKey("objectId", .EqualTo(value: object.objectId!))
+        query.whereKey("numberField", .LessThan(value: LCNumber(42)))
+
+        let (response1, objects1) = query.find()
+        XCTAssertTrue(response1.isSuccess && objects1.isEmpty)
+
+        query.whereKey("numberField", .LessThan(value: LCNumber(43)))
+        query.whereKey("dateField", .LessThan(value: LCDate(NSDate(timeIntervalSince1970: 1025))))
+
+        let (response2, objects2) = query.find()
+        XCTAssertTrue(response2.isSuccess && !objects2.isEmpty)
+    }
+
+    func testLessThanOrEqualTo() {
+        let object = sharedObject
+        let query  = Query(className: TestObject.className())
+
+        query.whereKey("objectId", .EqualTo(value: object.objectId!))
+        query.whereKey("numberField", .LessThanOrEqualTo(value: LCNumber(42)))
+
+        let (response, objects) = query.find()
+        XCTAssertTrue(response.isSuccess && !objects.isEmpty)
+    }
+
+    func testGreaterThan() {
+        let object = sharedObject
+        let query  = Query(className: TestObject.className())
+
+        query.whereKey("objectId", .EqualTo(value: object.objectId!))
+        query.whereKey("numberField", .GreaterThan(value: LCNumber(41.9)))
+
+        let (response, objects) = query.find()
+        XCTAssertTrue(response.isSuccess && !objects.isEmpty)
+    }
+
+    func testGreaterThanOrEqualTo() {
+        let object = sharedObject
+        let query  = Query(className: TestObject.className())
+
+        query.whereKey("objectId", .EqualTo(value: object.objectId!))
+        query.whereKey("dateField", .GreaterThanOrEqualTo(value: LCDate(NSDate(timeIntervalSince1970: 1023.9))))
 
         let (response, objects) = query.find()
         XCTAssertTrue(response.isSuccess && !objects.isEmpty)
