@@ -67,4 +67,14 @@ extension String {
     var regularEscapedString: String {
         return NSRegularExpression.escapedPatternForString(self)
     }
+
+    var firstCapitalizedString: String {
+        guard !isEmpty else {
+            return self
+        }
+
+        var result = self
+        result.replaceRange(startIndex...startIndex, with: String(self[startIndex]).uppercaseString)
+        return result
+    }
 }
