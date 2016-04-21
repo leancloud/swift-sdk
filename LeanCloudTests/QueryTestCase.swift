@@ -108,8 +108,8 @@ class QueryTestCase: BaseTestCase {
         query.whereKey("objectId", .EqualTo(value: object.objectId!))
         query.whereKey("dateField", .EqualTo(value: LCDate(NSDate(timeIntervalSince1970: 1024))))
 
-        /* Tip: you can use EqualTo to compare an value against elements in an array field.
-           If the given value is equal to any element in the array referenced by key, the comparation will be success. */
+        /* Tip: You can use EqualTo to compare an value against elements in an array field.
+           If the given value is equal to any element in the array referenced by key, the comparation will be successful. */
         query.whereKey("arrayField", .EqualTo(value: sharedArrayElement))
 
         let (response, objects) = query.find()
@@ -172,6 +172,66 @@ class QueryTestCase: BaseTestCase {
 
         query.whereKey("objectId", .EqualTo(value: object.objectId!))
         query.whereKey("dateField", .GreaterThanOrEqualTo(value: LCDate(NSDate(timeIntervalSince1970: 1023.9))))
+
+        let (response, objects) = query.find()
+        XCTAssertTrue(response.isSuccess && !objects.isEmpty)
+    }
+
+    func testContainedIn() {
+        let object = sharedObject
+        let query  = Query(className: TestObject.className())
+
+        query.whereKey("objectId", .EqualTo(value: object.objectId!))
+
+        /* Tip: You can use ContainedIn to compare an array of values against a non-array field.
+           If any value in given array is equal to the value referenced by key, the comparation will be successful. */
+        query.whereKey("dateField", .ContainedIn(array: [LCDate(NSDate(timeIntervalSince1970: 1024))]))
+
+        /* Tip: Also, you can apply the constraint to array field. */
+        query.whereKey("arrayField", .ContainedIn(array: [LCNumber(42), LCString("bar")]))
+
+        let (response, objects) = query.find()
+        XCTAssertTrue(response.isSuccess && !objects.isEmpty)
+    }
+
+    func testNotContainedIn() {
+        let object = sharedObject
+        let query  = Query(className: TestObject.className())
+
+        query.whereKey("objectId", .EqualTo(value: object.objectId!))
+
+        /* Tip: Like ContainedIn, you can apply NotContainedIn to non-array field. */
+        query.whereKey("numberField", .NotContainedIn(array: [LCNumber(42)]))
+
+        /* Tip: Also, you can apply the constraint to array field. */
+        query.whereKey("arrayField", .NotContainedIn(array: [LCNumber(42), LCString("bar")]))
+
+        let (response, objects) = query.find()
+        XCTAssertTrue(response.isSuccess && objects.isEmpty)
+    }
+
+    func testContainedAllIn() {
+        let object = sharedObject
+        let query  = Query(className: TestObject.className())
+
+        query.whereKey("objectId", .EqualTo(value: object.objectId!))
+
+        /* Tip: Like ContainedIn, you can apply ContainedAllIn to non-array field. */
+        query.whereKey("numberField", .ContainedAllIn(array: [LCNumber(42)]))
+
+        /* Tip: Also, you can apply the constraint to array field. */
+        query.whereKey("arrayField", .ContainedAllIn(array: [LCNumber(42), LCString("bar"), sharedArrayElement]))
+
+        let (response, objects) = query.find()
+        XCTAssertTrue(response.isSuccess && !objects.isEmpty)
+    }
+
+    func testEqualToSize() {
+        let object = sharedObject
+        let query  = Query(className: TestObject.className())
+
+        query.whereKey("objectId", .EqualTo(value: object.objectId!))
+        query.whereKey("arrayField", .EqualToSize(size: 3))
 
         let (response, objects) = query.find()
         XCTAssertTrue(response.isSuccess && !objects.isEmpty)
