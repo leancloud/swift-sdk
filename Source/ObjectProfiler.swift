@@ -29,10 +29,12 @@ class ObjectProfiler {
         var classes = [LCObject.self]
 
         classes.appendContentsOf(Runtime.subclasses(LCObject.self) as! [LCObject.Type])
-        classes.forEach {
-            synthesizeProperties($0)
-            addObjectClass($0)
-        }
+        classes.forEach { registerClass($0) }
+    }
+
+    static func registerClass(aClass: LCObject.Type) {
+        synthesizeProperties(aClass)
+        addObjectClass(aClass)
     }
 
     /**
