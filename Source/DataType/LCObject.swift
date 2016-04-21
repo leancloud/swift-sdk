@@ -106,6 +106,9 @@ public class LCObject: LCType {
         }
     }
 
+    /**
+     Register current object class manually.
+     */
     public static func register() {
         ObjectProfiler.registerClass(self)
     }
