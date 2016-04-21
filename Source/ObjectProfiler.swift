@@ -126,9 +126,9 @@ class ObjectProfiler {
      */
     static func synthesizeProperty(property: objc_property_t, _ aClass: AnyClass) {
         let getterName = Runtime.propertyName(property)
-        let setterName = "set\(getterName.capitalizedString):"
+        let setterName = "set\(getterName.firstCapitalizedString):"
 
-        let firstLetter = String(getterName.characters.first)
+        let firstLetter = String(getterName[getterName.startIndex])
 
         /* The property name must be lowercase prefixed, or synthesization will be ambiguous. */
         if firstLetter.lowercaseString != firstLetter {
