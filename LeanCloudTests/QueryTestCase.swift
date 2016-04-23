@@ -52,10 +52,6 @@ class QueryTestCase: BaseTestCase {
 
     func testIncluded() {
         let object = sharedObject
-        let child  = TestObject()
-
-        object.objectField = child
-        child.stringField = "bar"
 
         XCTAssertTrue(object.save().isSuccess)
 
@@ -67,7 +63,7 @@ class QueryTestCase: BaseTestCase {
         XCTAssertTrue(response.isSuccess && !objects.isEmpty)
 
         if let child = (objects.first as? TestObject)?.objectField as? TestObject {
-            XCTAssertEqual(child.stringField, "bar")
+            XCTAssertEqual(child.stringField, "child")
         } else {
             XCTFail()
         }
