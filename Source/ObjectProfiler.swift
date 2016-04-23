@@ -564,6 +564,8 @@ class ObjectProfiler {
             return dictionary.mapValue { JSONValue($0) }
         case let object as LCType:
             return object.JSONValue!
+        case let query as Query:
+            return query.JSONValue
         default:
             return object
         }

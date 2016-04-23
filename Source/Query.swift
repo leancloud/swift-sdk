@@ -39,23 +39,14 @@ final public class Query {
     /// Note that it may contains LCType or Query value.
     private var constraintDictionary: [String: AnyObject] = [:]
 
-    /// JSON string of constraint dictionary.
-    private var constraintJSONString: String {
-        let JSONValue = ObjectProfiler.JSONValue(constraintDictionary)
-        let data = try! NSJSONSerialization.dataWithJSONObject(JSONValue, options: NSJSONWritingOptions(rawValue: 0))
-
-        return String(data: data, encoding: NSUTF8StringEncoding)!
-    }
-
-    // The JSON value of query.
-    // It will replace all LCType and Query values in dictionary with corresponding JSON value.
-    private var JSONValue: [String: AnyObject] {
+    /// JSON representation of query.
+    var JSONValue: [String: AnyObject] {
         var dictionary: [String: AnyObject] = [:]
 
         dictionary["className"] = className
 
         if !constraintDictionary.isEmpty {
-            dictionary["where"] = constraintJSONString
+            dictionary["where"] = ObjectProfiler.JSONValue(constraintDictionary)
         }
         if !includedKeys.isEmpty {
             dictionary["include"] = includedKeys.joinWithSeparator(",")
@@ -74,6 +65,18 @@ final public class Query {
         }
 
         return dictionary
+    }
+
+    /// Parameters for query request.
+    private var parameters: [String: AnyObject] {
+        var parameter = JSONValue
+
+        /* Encode where field to string. */
+        if let object = parameter["where"] {
+            parameter["where"] = Utility.JSONString(object)
+        }
+
+        return parameter
     }
 
     /**
@@ -255,7 +258,7 @@ final public class Query {
      */
     public func find() -> (Response, [LCObject]) {
         var objects: [LCObject] = []
-        let response = RESTClient.request(.GET, endpoint, parameters: JSONValue)
+        let response = RESTClient.request(.GET, endpoint, parameters: parameters)
 
         if response.isSuccess {
             if let results = response.value?["results"] as? [AnyObject] {

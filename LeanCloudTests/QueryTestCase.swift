@@ -12,12 +12,13 @@ import XCTest
 let sharedObject: TestObject = {
     let object = TestObject()
 
-    object.numberField  = 42
-    object.booleanField = true
-    object.stringField  = "foo"
-    object.arrayField   = [LCNumber(42), LCString("bar"), sharedArrayElement]
-    object.dateField    = LCDate(NSDate(timeIntervalSince1970: 1024))
+    object.numberField   = 42
+    object.booleanField  = true
+    object.stringField   = "foo"
+    object.arrayField    = [LCNumber(42), LCString("bar"), sharedArrayElement]
+    object.dateField     = LCDate(NSDate(timeIntervalSince1970: 1024))
     object.geoPointField = LCGeoPoint(latitude: 45, longitude: -45)
+    object.objectField   = sharedChild
 
     XCTAssertTrue(object.save().isSuccess)
 
@@ -26,6 +27,13 @@ let sharedObject: TestObject = {
 
 let sharedArrayElement: TestObject = {
     let object = TestObject()
+    XCTAssertTrue(object.save().isSuccess)
+    return object
+}()
+
+let sharedChild: TestObject = {
+    let object = TestObject()
+    object.stringField = "child"
     XCTAssertTrue(object.save().isSuccess)
     return object
 }()
@@ -271,6 +279,20 @@ class QueryTestCase: BaseTestCase {
 
         query.whereKey("geoPointField", .NearbyPointWithRectangle(southwest: southwest, northeast: northeast))
         query.limit = 1
+
+        let (response, objects) = query.find()
+        XCTAssertTrue(response.isSuccess && !objects.isEmpty)
+    }
+
+    func testMatchedQuery() {
+        let object   = sharedObject
+        let query    = Query(className: TestObject.className())
+        let subQuery = Query(className: TestObject.className())
+
+        subQuery.whereKey("stringField", .EqualTo(value: LCString("child")))
+
+        query.whereKey("objectId", .EqualTo(value: object.objectId!))
+        query.whereKey("objectField", .MatchedQuery(query: subQuery))
 
         let (response, objects) = query.find()
         XCTAssertTrue(response.isSuccess && !objects.isEmpty)

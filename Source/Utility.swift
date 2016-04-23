@@ -18,4 +18,9 @@ class Utility {
     static func uuid() -> String {
         return NSUUID().UUIDString.stringByReplacingOccurrencesOfString("-", withString: "").lowercaseString
     }
+
+    static func JSONString(object: AnyObject) -> String {
+        let data = try! NSJSONSerialization.dataWithJSONObject(object, options: NSJSONWritingOptions(rawValue: 0))
+        return String(data: data, encoding: NSUTF8StringEncoding)!
+    }
 }
