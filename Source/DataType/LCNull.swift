@@ -1,0 +1,17 @@
+//
+//  LCNull.swift
+//  LeanCloud
+//
+//  Created by Tang Tianyong on 4/23/16.
+//  Copyright © 2016 LeanCloud. All rights reserved.
+//
+
+import Foundation
+
+/// LeanCloud null type.
+/// A singleton object that represent null value.
+public class LCNull: LCType {
+    public static let null = LCNull()
+
+    private override init() {}
+}
