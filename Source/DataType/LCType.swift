@@ -62,7 +62,7 @@ public class LCType: NSObject {
     }
 
     var JSONValue: AnyObject? {
-        /* TODO: throw an exception that current type has no JSON presentation. */
+        /* TODO: throw an exception that current type has no JSON representation. */
         return nil
     }
 
