@@ -20,7 +20,7 @@ public final class LCDictionary: LCType, SequenceType, DictionaryLiteralConverti
         return value.mapValue { value in value.JSONValue! }
     }
 
-    public required init() {
+    public override init() {
         super.init()
     }
 
@@ -31,6 +31,10 @@ public final class LCDictionary: LCType, SequenceType, DictionaryLiteralConverti
 
     public convenience required init(dictionaryLiteral elements: (String, LCType)...) {
         self.init(Dictionary<String, LCType>(elements: elements))
+    }
+
+    class override func instance() -> LCType? {
+        return self.init([:])
     }
 
     public override func copyWithZone(zone: NSZone) -> AnyObject {

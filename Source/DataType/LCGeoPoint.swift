@@ -36,7 +36,7 @@ public final class LCGeoPoint: LCType {
         ]
     }
 
-    public required init() {
+    public override init() {
         super.init()
     }
 
@@ -65,6 +65,10 @@ public final class LCGeoPoint: LCType {
 
         self.latitude  = latitude
         self.longitude = longitude
+    }
+
+    class override func instance() -> LCType? {
+        return self.init()
     }
 
     public override func copyWithZone(zone: NSZone) -> AnyObject {

@@ -42,7 +42,7 @@ public final class LCDate: LCType {
         ]
     }
 
-    public required init() {
+    public override init() {
         super.init()
     }
 
@@ -95,6 +95,10 @@ public final class LCDate: LCType {
         }
 
         value = someDate
+    }
+
+    class override func instance() -> LCType? {
+        return self.init()
     }
 
     public override func copyWithZone(zone: NSZone) -> AnyObject {

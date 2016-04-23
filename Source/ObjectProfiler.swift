@@ -228,7 +228,7 @@ class ObjectProfiler {
             let property = class_getProperty(object_getClass(object), propertyName)
 
             let propertyClass = ObjectProfiler.getLCType(property: property) as! T.Type
-            let propertyValue = propertyClass.init()
+            let propertyValue = propertyClass.instance() as! T
 
             Runtime.setInstanceVariable(object, propertyName, Runtime.retainedObject(propertyValue))
 
@@ -451,7 +451,7 @@ class ObjectProfiler {
      - returns: An LCObject object for class name.
      */
     static func object(className className: String) -> LCObject {
-        return objectClass(className).init()
+        return objectClass(className).instance() as! LCObject
     }
 
     /**

@@ -31,7 +31,7 @@ public final class LCData: LCType {
         ]
     }
 
-    public required init() {
+    public override init() {
         super.init()
     }
 
@@ -66,6 +66,10 @@ public final class LCData: LCType {
         }
 
         value = data
+    }
+
+    class override func instance() -> LCType? {
+        return self.init()
     }
 
     public override func copyWithZone(zone: NSZone) -> AnyObject {

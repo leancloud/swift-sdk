@@ -23,7 +23,7 @@ public final class LCString: LCType, StringLiteralConvertible {
     public typealias UnicodeScalarLiteralType = Character
     public typealias ExtendedGraphemeClusterLiteralType = StringLiteralType
 
-    public required init() {
+    public override init() {
         super.init()
     }
 
@@ -42,6 +42,10 @@ public final class LCString: LCType, StringLiteralConvertible {
 
     public convenience required init(stringLiteral value: StringLiteralType) {
         self.init(String(value))
+    }
+
+    class override func instance() -> LCType? {
+        return self.init()
     }
 
     public override func copyWithZone(zone: NSZone) -> AnyObject {

@@ -66,12 +66,18 @@ public class LCType: NSObject {
         return nil
     }
 
-    public override required init() {
+    /// Make class abstract.
+    internal override init() {
         super.init()
     }
 
+    class func instance() -> LCType? {
+        /* TODO: throw an exception that current type cannot be instantiated. */
+        return nil
+    }
+
     public func copyWithZone(zone: NSZone) -> AnyObject {
-        return self.dynamicType.init()
+        return self
     }
 
     /**

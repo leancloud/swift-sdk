@@ -24,7 +24,7 @@ public final class LCRelation: LCType, SequenceType {
         return value.map { (element) in element.JSONValue! }
     }
 
-    public required init() {
+    public override init() {
         super.init()
     }
 
@@ -45,6 +45,10 @@ public final class LCRelation: LCType, SequenceType {
         }
 
         className = dictionary["className"] as? String
+    }
+
+    class override func instance() -> LCType? {
+        return self.init()
     }
 
     public override func copyWithZone(zone: NSZone) -> AnyObject {

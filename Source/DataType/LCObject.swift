@@ -56,7 +56,7 @@ public class LCObject: LCType {
         return nil
     }
 
-    public required init() {
+    public override required init() {
         super.init()
         operationHub = OperationHub(self)
     }
@@ -64,6 +64,10 @@ public class LCObject: LCType {
     public convenience init(objectId: String) {
         self.init()
         self.objectId = LCString(objectId)
+    }
+
+    class override func instance() -> LCType? {
+        return self.init()
     }
 
     public override func copyWithZone(zone: NSZone) -> AnyObject {

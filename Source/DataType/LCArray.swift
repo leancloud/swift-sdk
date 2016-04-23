@@ -22,7 +22,7 @@ public final class LCArray: LCType, SequenceType, ArrayLiteralConvertible {
         return value.map { element in element.JSONValue! }
     }
 
-    public required init() {
+    public override init() {
         super.init()
     }
 
@@ -33,6 +33,10 @@ public final class LCArray: LCType, SequenceType, ArrayLiteralConvertible {
 
     public convenience required init(arrayLiteral elements: Element...) {
         self.init(elements)
+    }
+
+    class override func instance() -> LCType? {
+        return self.init([])
     }
 
     public override func copyWithZone(zone: NSZone) -> AnyObject {

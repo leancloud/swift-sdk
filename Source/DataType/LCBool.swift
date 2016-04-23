@@ -20,7 +20,7 @@ public final class LCBool: LCType, BooleanLiteralConvertible {
         return value
     }
 
-    public required init() {
+    public override init() {
         super.init()
     }
 
@@ -31,6 +31,10 @@ public final class LCBool: LCType, BooleanLiteralConvertible {
 
     public convenience required init(booleanLiteral value: BooleanLiteralType) {
         self.init(Bool(value))
+    }
+
+    class override func instance() -> LCType? {
+        return self.init()
     }
 
     public override func copyWithZone(zone: NSZone) -> AnyObject {

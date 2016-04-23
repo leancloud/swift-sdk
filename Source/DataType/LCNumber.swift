@@ -20,7 +20,7 @@ public final class LCNumber: LCType, IntegerLiteralConvertible, FloatLiteralConv
         return value
     }
 
-    public required init() {
+    public override init() {
         super.init()
     }
 
@@ -35,6 +35,10 @@ public final class LCNumber: LCType, IntegerLiteralConvertible, FloatLiteralConv
 
     public convenience required init(floatLiteral value: FloatLiteralType) {
         self.init(Double(value))
+    }
+
+    class override func instance() -> LCType? {
+        return self.init()
     }
 
     public override func copyWithZone(zone: NSZone) -> AnyObject {
