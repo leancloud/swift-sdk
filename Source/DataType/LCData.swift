@@ -73,9 +73,7 @@ public final class LCData: LCType {
     }
 
     public override func copyWithZone(zone: NSZone) -> AnyObject {
-        let copy = super.copyWithZone(zone) as! LCData
-        copy.value = value
-        return copy
+        return LCData(value.copy() as! NSData)
     }
 
     public override func isEqual(another: AnyObject?) -> Bool {

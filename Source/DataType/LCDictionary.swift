@@ -38,9 +38,7 @@ public final class LCDictionary: LCType, SequenceType, DictionaryLiteralConverti
     }
 
     public override func copyWithZone(zone: NSZone) -> AnyObject {
-        let copy = super.copyWithZone(zone) as! LCDictionary
-        copy.value = value
-        return copy
+        return LCDictionary(value)
     }
 
     public override func isEqual(another: AnyObject?) -> Bool {

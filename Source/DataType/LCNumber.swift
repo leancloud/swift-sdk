@@ -42,9 +42,7 @@ public final class LCNumber: LCType, IntegerLiteralConvertible, FloatLiteralConv
     }
 
     public override func copyWithZone(zone: NSZone) -> AnyObject {
-        let copy = super.copyWithZone(zone) as! LCNumber
-        copy.value = value
-        return copy
+        return LCNumber(value)
     }
 
     public override func isEqual(another: AnyObject?) -> Bool {

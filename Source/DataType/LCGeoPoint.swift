@@ -72,10 +72,7 @@ public final class LCGeoPoint: LCType {
     }
 
     public override func copyWithZone(zone: NSZone) -> AnyObject {
-        let copy = super.copyWithZone(zone) as! LCGeoPoint
-        copy.latitude = latitude
-        copy.longitude = longitude
-        return copy
+        return LCGeoPoint(latitude: latitude, longitude: longitude)
     }
 
     public override func isEqual(another: AnyObject?) -> Bool {

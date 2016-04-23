@@ -40,9 +40,7 @@ public final class LCArray: LCType, SequenceType, ArrayLiteralConvertible {
     }
 
     public override func copyWithZone(zone: NSZone) -> AnyObject {
-        let copy = super.copyWithZone(zone) as! LCArray
-        copy.value = value
-        return copy
+        return LCArray(value)
     }
 
     public override func isEqual(another: AnyObject?) -> Bool {

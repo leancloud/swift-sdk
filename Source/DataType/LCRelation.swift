@@ -51,10 +51,6 @@ public final class LCRelation: LCType, SequenceType {
         return self.init()
     }
 
-    public override func copyWithZone(zone: NSZone) -> AnyObject {
-        return self
-    }
-
     public func generate() -> IndexingGenerator<[Element]> {
         return value.generate()
     }

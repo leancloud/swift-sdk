@@ -70,10 +70,6 @@ public class LCObject: LCType {
         return self.init()
     }
 
-    public override func copyWithZone(zone: NSZone) -> AnyObject {
-        return self
-    }
-
     public override func isEqual(another: AnyObject?) -> Bool {
         if another === self {
             return true

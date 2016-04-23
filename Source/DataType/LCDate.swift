@@ -102,9 +102,7 @@ public final class LCDate: LCType {
     }
 
     public override func copyWithZone(zone: NSZone) -> AnyObject {
-        let copy = super.copyWithZone(zone) as! LCDate
-        copy.value = value
-        return copy
+        return LCDate(value.copy() as! NSDate)
     }
 
     public override func isEqual(another: AnyObject?) -> Bool {

@@ -53,7 +53,7 @@ func != (
  
  It is superclass of all LeanCloud data type.
  */
-public class LCType: NSObject {
+public class LCType: NSObject, NSCopying {
     /// Parent object.
     var parent: LCParent? {
         willSet {

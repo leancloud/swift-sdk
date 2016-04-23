@@ -49,9 +49,7 @@ public final class LCString: LCType, StringLiteralConvertible {
     }
 
     public override func copyWithZone(zone: NSZone) -> AnyObject {
-        let copy = super.copyWithZone(zone) as! LCString
-        copy.value = value
-        return copy
+        return LCString(value)
     }
 
     public override func isEqual(another: AnyObject?) -> Bool {

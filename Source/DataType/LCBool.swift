@@ -38,9 +38,7 @@ public final class LCBool: LCType, BooleanLiteralConvertible {
     }
 
     public override func copyWithZone(zone: NSZone) -> AnyObject {
-        let copy = super.copyWithZone(zone) as! LCBool
-        copy.value = value
-        return copy
+        return LCBool(value)
     }
 
     public override func isEqual(another: AnyObject?) -> Bool {
