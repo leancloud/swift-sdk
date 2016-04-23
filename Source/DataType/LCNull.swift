@@ -13,5 +13,9 @@ import Foundation
 public class LCNull: LCType {
     public static let null = LCNull()
 
+    override var JSONValue: AnyObject? {
+        return NSNull()
+    }
+
     private override init() {}
 }

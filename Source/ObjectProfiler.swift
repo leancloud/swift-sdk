@@ -536,6 +536,8 @@ class ObjectProfiler {
             return LCArray(array.map { object(JSONValue: $0) })
         case let dictionary as [String: AnyObject]:
             return object(dictionary: dictionary)
+        case is NSNull:
+            return LCNull.null
         case let object as LCType:
             return object
         default:
