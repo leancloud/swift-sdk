@@ -220,9 +220,9 @@ class ObjectProfiler {
      - returns: The property value.
      */
     static func loadPropertyValue<T: LCType>(object: LCObject, _ propertyName: String, _ type: T.Type) -> T {
-        validateType(object, propertyName: propertyName, type: type)
+        let propertyValue = getPropertyValue(object, propertyName, T.self)
 
-        if let propertyValue = getPropertyValue(object, propertyName, T.self) {
+        if let propertyValue = propertyValue {
             return propertyValue
         } else {
             let property = class_getProperty(object_getClass(object), propertyName)
