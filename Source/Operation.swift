@@ -108,17 +108,17 @@ class OperationHub {
         case .Delete:
             ObjectProfiler.updateProperty(object, key, nil)
         case .Increment:
-            ObjectProfiler.loadPropertyValue(object, key, LCNumber.self).increase(value as! LCNumber)
+            ObjectProfiler.loadProperty(object, key, LCNumber.self).increase(value as! LCNumber)
         case .Add:
-            ObjectProfiler.loadPropertyValue(object, key, LCArray.self).appendElements((value as! LCArray).value)
+            ObjectProfiler.loadProperty(object, key, LCArray.self).appendElements((value as! LCArray).value)
         case .AddUnique:
-            ObjectProfiler.loadPropertyValue(object, key, LCArray.self).appendElements((value as! LCArray).value, unique: true)
+            ObjectProfiler.loadProperty(object, key, LCArray.self).appendElements((value as! LCArray).value, unique: true)
         case .AddRelation:
-            ObjectProfiler.loadPropertyValue(object, key, LCRelation.self).appendElements((value as! LCArray).value as! [LCRelation.Element])
+            ObjectProfiler.loadProperty(object, key, LCRelation.self).appendElements((value as! LCArray).value as! [LCRelation.Element])
         case .Remove:
-            ObjectProfiler.getPropertyValue(object, key, LCArray.self)?.removeElements((value as! LCArray).value)
+            ObjectProfiler.getProperty(object, key, LCArray.self)?.removeElements((value as! LCArray).value)
         case .RemoveRelation:
-            ObjectProfiler.getPropertyValue(object, key, LCRelation.self)?.removeElements((value as! LCArray).value as! [LCRelation.Element])
+            ObjectProfiler.getProperty(object, key, LCRelation.self)?.removeElements((value as! LCArray).value as! [LCRelation.Element])
         }
     }
 
