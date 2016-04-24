@@ -230,7 +230,7 @@ class ObjectProfiler {
             let propertyClass = ObjectProfiler.getLCType(property: property) as! T.Type
             let propertyValue = propertyClass.instance() as! T
 
-            Runtime.setInstanceVariable(object, propertyName, Runtime.retainedObject(propertyValue))
+            updateProperty(object, propertyName, propertyValue)
 
             return propertyValue
         }
