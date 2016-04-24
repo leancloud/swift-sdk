@@ -74,7 +74,7 @@ class ObjectProfiler {
     /**
      Get concrete LCType subclass of property.
 
-     - parameter property: Target property.
+     - parameter property: The property to be inspected.
 
      - returns: Concrete LCType subclass, or nil if property type is not LCType.
      */
@@ -105,7 +105,13 @@ class ObjectProfiler {
      - returns: Concrete LCType subclass, or nil if property type is not LCType.
      */
     static func getLCType(object object: LCObject, propertyName: String) -> LCType.Type? {
-        return getLCType(property: class_getProperty(object_getClass(object), propertyName))
+        let property = class_getProperty(object_getClass(object), propertyName)
+
+        if property != nil {
+            return getLCType(property: property)
+        } else {
+            return nil
+        }
     }
 
     /**
@@ -158,41 +164,65 @@ class ObjectProfiler {
     }
 
     /**
-     Validate that whether the given type matches object's property type.
+     Check whether a property matches the given type.
 
-     - parameter object:       The object.
-     - parameter propertyName: The property name.
-     - parameter type:         The type which you want to validate.
+     - parameter object:       The object to be inspected.
+     - parameter propertyName: The name of property which to be inspected.
+     - parameter type:         The expected type.
+
+     - returns: true if property matches the given type, false otherwise.
      */
-    static func validateType(object: LCObject, propertyName: String, type: LCType.Type) {
+    static func matchType(object: LCObject, propertyName: String, type: LCType.Type) -> Bool {
         let propertyType = getLCType(object: object, propertyName: propertyName)
 
+        guard propertyType != nil else {
+            return false
+        }
         guard type == propertyType || Runtime.isSubclass(type, superclass: propertyType) else {
+            return false
+        }
+
+        return true
+    }
+
+    /**
+     Validate that whether the given type matches object's property type.
+
+     - parameter object:       The object to be validated.
+     - parameter propertyName: The name of property which to be validated.
+     - parameter type:         The expected type.
+     */
+    static func validateType(object: LCObject, propertyName: String, type: LCType.Type) {
+        guard matchType(object, propertyName: propertyName, type: type) else {
             /* TODO: throw an exception that types are mismatched. */
             return
         }
     }
 
     /**
-     Validate that whether the given value matches object's property type.
-
-     - parameter object:       The object.
-     - parameter propertyName: The property name.
-     - parameter value:        The value which you want to validate.
-     */
-    static func validateType(object: LCObject, propertyName: String, value: LCType) {
-        validateType(object, propertyName: propertyName, type: object_getClass(value) as! LCType.Type)
-    }
-
-    /**
      Update value of an object property.
 
-     - parameter object:        The object which you want to update.
-     - parameter propertyName:  The property name which you want to update.
-     - parameter propertyValue: The new property value.
+     - parameter object:       The object which you want to update.
+     - parameter propertyName: The property name which you want to update.
+     - parameter value:        The new property value.
      */
-    static func updateProperty(object: LCObject, _ propertyName: String, _ propertyValue: LCType?) {
-        Runtime.setInstanceVariable(object, propertyName, Runtime.retainedObject(propertyValue))
+    static func updateProperty(object: LCObject, _ propertyName: String, _ value: LCType?) {
+        let propertyType = getLCType(object: object, propertyName: propertyName)
+
+        /* If object has no such an LCType property, ignore. */
+        guard propertyType != nil else {
+            return
+        }
+
+        var finalValue: LCType?
+
+        if let someValue = value {
+            if matchType(object, propertyName: propertyName, type: someValue.dynamicType) {
+                finalValue = Runtime.retainedObject(someValue)
+            }
+        }
+
+        Runtime.setInstanceVariable(object, propertyName, finalValue)
     }
 
     /**
@@ -225,9 +255,7 @@ class ObjectProfiler {
         if let propertyValue = propertyValue {
             return propertyValue
         } else {
-            let property = class_getProperty(object_getClass(object), propertyName)
-
-            let propertyClass = ObjectProfiler.getLCType(property: property) as! T.Type
+            let propertyClass = getLCType(object: object, propertyName: propertyName)!
             let propertyValue = propertyClass.instance() as! T
 
             updateProperty(object, propertyName, propertyValue)

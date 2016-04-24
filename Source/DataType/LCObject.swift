@@ -153,7 +153,7 @@ public class LCObject: LCType {
      - parameter value: The new value.
      */
     public func set(key: String, value: LCType) {
-        ObjectProfiler.validateType(self, propertyName: key, value: value)
+        ObjectProfiler.validateType(self, propertyName: key, type: value.dynamicType)
         addOperation(.Set, key, value)
     }
 
