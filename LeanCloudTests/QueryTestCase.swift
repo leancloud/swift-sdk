@@ -15,18 +15,26 @@ let sharedObject: TestObject = {
     object.numberField   = 42
     object.booleanField  = true
     object.stringField   = "foo"
-    object.arrayField    = [LCNumber(42), LCString("bar"), sharedArrayElement]
+    object.arrayField    = [LCNumber(42), LCString("bar"), sharedElement]
     object.dateField     = LCDate(NSDate(timeIntervalSince1970: 1024))
     object.geoPointField = LCGeoPoint(latitude: 45, longitude: -45)
     object.objectField   = sharedChild
     object.nullField     = LCNull.null
+
+    object.insertRelation("relationField", object: sharedRelation)
 
     XCTAssertTrue(object.save().isSuccess)
 
     return object
 }()
 
-let sharedArrayElement: TestObject = {
+let sharedElement: TestObject = {
+    let object = TestObject()
+    XCTAssertTrue(object.save().isSuccess)
+    return object
+}()
+
+let sharedRelation: TestObject = {
     let object = TestObject()
     XCTAssertTrue(object.save().isSuccess)
     return object
@@ -117,7 +125,7 @@ class QueryTestCase: BaseTestCase {
 
         /* Tip: You can use EqualTo to compare an value against elements in an array field.
            If the given value is equal to any element in the array referenced by key, the comparation will be successful. */
-        query.whereKey("arrayField", .EqualTo(value: sharedArrayElement))
+        query.whereKey("arrayField", .EqualTo(value: sharedElement))
 
         let (response, objects) = query.find()
         XCTAssertTrue(response.isSuccess && !objects.isEmpty)
@@ -227,7 +235,7 @@ class QueryTestCase: BaseTestCase {
         query.whereKey("numberField", .ContainedAllIn(array: [LCNumber(42)]))
 
         /* Tip: Also, you can apply the constraint to array field. */
-        query.whereKey("arrayField", .ContainedAllIn(array: [LCNumber(42), LCString("bar"), sharedArrayElement]))
+        query.whereKey("arrayField", .ContainedAllIn(array: [LCNumber(42), LCString("bar"), sharedElement]))
 
         let (response, objects) = query.find()
         XCTAssertTrue(response.isSuccess && !objects.isEmpty)
@@ -385,6 +393,19 @@ class QueryTestCase: BaseTestCase {
         let (response, objects) = query.find()
         XCTAssertTrue(response.isSuccess && !objects.isEmpty)
         XCTAssertEqual(objects.first, object)
+    }
+
+    func testRelatedTo() {
+        let object   = sharedObject
+        let relation = sharedRelation
+        let query    = Query(className: TestObject.className())
+
+        query.whereKey("objectId", .EqualTo(value: relation.objectId!))
+        query.whereKey("relationField", .RelatedTo(object: object))
+
+        let (response, objects) = query.find()
+        XCTAssertTrue(response.isSuccess && !objects.isEmpty)
+        XCTAssertEqual(objects.first, relation)
     }
 
     func testAscending() {

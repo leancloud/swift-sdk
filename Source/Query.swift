@@ -114,6 +114,8 @@ final public class Query {
         case PrefixedBy(string: String)
         case SuffixedBy(string: String)
 
+        case RelatedTo(object: LCObject)
+
         case Ascending
         case Descending
     }
@@ -205,6 +207,9 @@ final public class Query {
             dictionary = ["$regex": "^\(string.regularEscapedString)"]
         case let .SuffixedBy(string):
             dictionary = ["$regex": "\(string.regularEscapedString)$"]
+
+        case let .RelatedTo(object):
+            constraintDictionary["$relatedTo"] = ["object": object, "key": key]
 
         case .Ascending:
             appendOrderedKey(key)
