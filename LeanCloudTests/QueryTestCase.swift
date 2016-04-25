@@ -310,4 +310,33 @@ class QueryTestCase: BaseTestCase {
         XCTAssertTrue(response.isSuccess && objects.isEmpty)
     }
 
+    func testMatchedQueryAndKey() {
+        let object   = sharedObject
+        let query    = Query(className: TestObject.className())
+        let subQuery = Query(className: TestObject.className())
+
+        subQuery.whereKey("objectId", .EqualTo(value: object.objectId!))
+        query.whereKey("objectId", .MatchedQueryAndKey(query: subQuery, key: "objectId"))
+
+        let (response, objects) = query.find()
+        XCTAssertTrue(response.isSuccess && !objects.isEmpty)
+        XCTAssertEqual(objects.first, object)
+    }
+
+    func testNotMatchedQueryAndKey() {
+        let object   = sharedObject
+        let query    = Query(className: TestObject.className())
+        let subQuery = Query(className: TestObject.className())
+
+        subQuery.whereKey("objectId", .NotEqualTo(value: object.objectId!))
+        query.whereKey("objectId", .NotMatchedQueryAndKey(query: subQuery, key: "objectId"))
+
+        let (response, objects) = query.find()
+
+        /* Tip: Like query, the maximum number of subquery is 1000.
+           If number of records exceeds 1000, NotMatchedQueryAndKey will return the objects that are not existed in subquery.
+           So, we cannot use equality assertion here. */
+        XCTAssertTrue(response.isSuccess && !objects.isEmpty)
+    }
+
 }
