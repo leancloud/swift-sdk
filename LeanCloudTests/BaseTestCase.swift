@@ -21,6 +21,7 @@ class TestObject: LCObject {
     dynamic var dataField: LCData?
     dynamic var dateField: LCDate?
     dynamic var fileField: LCFile?
+    dynamic var nullField: LCNull?
 }
 
 class BaseTestCase: XCTestCase {

@@ -19,6 +19,7 @@ let sharedObject: TestObject = {
     object.dateField     = LCDate(NSDate(timeIntervalSince1970: 1024))
     object.geoPointField = LCGeoPoint(latitude: 45, longitude: -45)
     object.objectField   = sharedChild
+    object.nullField     = LCNull.null
 
     XCTAssertTrue(object.save().isSuccess)
 
