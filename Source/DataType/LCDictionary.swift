@@ -51,6 +51,11 @@ public final class LCDictionary: LCType, SequenceType, DictionaryLiteralConverti
         }
     }
 
+    public subscript(key: String) -> LCType? {
+        get { return value[key] }
+        set { value[key] = newValue }
+    }
+
     public func generate() -> DictionaryGenerator<String, LCType> {
         return value.generate()
     }
