@@ -56,6 +56,18 @@ public class LCObject: LCType {
         return nil
     }
 
+    /// Dictionary representation of object.
+    var dictionary: LCDictionary {
+        var dictionary: [String: LCType] = [:]
+
+        ObjectProfiler.iterateProperties(self) { (key, value) in
+            guard let value = value else { return }
+            dictionary[key] = value
+        }
+
+        return LCDictionary(dictionary)
+    }
+
     public override required init() {
         super.init()
         operationHub = OperationHub(self)
@@ -64,6 +76,11 @@ public class LCObject: LCType {
     public convenience init(objectId: String) {
         self.init()
         self.objectId = LCString(objectId)
+    }
+
+    convenience init(dictionary: LCDictionary) {
+        self.init()
+        ObjectProfiler.updateObject(self, dictionary.value)
     }
 
     class override func instance() -> LCType? {

@@ -116,9 +116,7 @@ class BatchRequestBuilder {
         var operationTable: OperationTable = [:]
 
         /* Collect all non-null properties. */
-        ObjectProfiler.iterateProperties(object) { (key, value) in
-            guard let value = value else { return }
-
+        object.dictionary.forEach { (key, value) in
             switch value {
             case let relation as LCRelation:
                 /* If the property type is relation,
