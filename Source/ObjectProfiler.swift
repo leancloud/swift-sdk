@@ -651,12 +651,6 @@ class ObjectProfiler {
      */
     static let propertySetter: @convention(c) (LCObject!, Selector, LCType?) -> Void = {
         (object: LCObject!, cmd: Selector, value: LCType?) -> Void in
-        let propertyName = ObjectProfiler.propertyName(cmd)
-
-        if value == nil {
-            object.addOperation(.Delete, propertyName, nil)
-        } else {
-            object.addOperation(.Set, propertyName, value)
-        }
+        object.set(ObjectProfiler.propertyName(cmd), value: value)
     }
 }

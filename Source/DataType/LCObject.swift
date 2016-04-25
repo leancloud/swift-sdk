@@ -157,7 +157,7 @@ public class LCObject: LCType {
      - parameter key:   Key on which to perform.
      - parameter value: Value to be assigned.
      */
-    func addOperation(name: Operation.Name, _ key: String, _ value: LCType?) {
+    func addOperation(name: Operation.Name, _ key: String, _ value: LCType? = nil) {
         enqueueAction {
             self.operationHub.append(name, key, value)
         }
@@ -169,9 +169,13 @@ public class LCObject: LCType {
      - parameter key:   The name of property which you want to update.
      - parameter value: The new value.
      */
-    public func set(key: String, value: LCType) {
-        ObjectProfiler.validateType(self, propertyName: key, type: value.dynamicType)
-        addOperation(.Set, key, value)
+    public func set(key: String, value: LCType?) {
+        if let value = value {
+            ObjectProfiler.validateType(self, propertyName: key, type: value.dynamicType)
+            addOperation(.Set, key, value)
+        } else {
+            addOperation(.Delete, key)
+        }
     }
 
     /**
