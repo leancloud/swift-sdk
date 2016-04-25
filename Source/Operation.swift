@@ -69,9 +69,6 @@ typealias OperationTableList = [OperationTable]
 class OperationHub {
     weak var object: LCObject!
 
-    /// A list of all operations.
-    var operations: [Operation] = []
-
     /// A table of operation reducer indexed by operation key.
     var operationReducerTable: [String: OperationReducer] = [:]
 
@@ -90,7 +87,6 @@ class OperationHub {
         let operation = Operation(name: name, key: key, value: value)
 
         updateProperty(operation)
-        operations.append(operation)
         reduce(operation)
     }
 
