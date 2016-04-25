@@ -387,4 +387,40 @@ class QueryTestCase: BaseTestCase {
         XCTAssertEqual(objects.first, object)
     }
 
+    func testAscending() {
+        let object = sharedObject
+        let child  = sharedChild
+        let query  = Query(className: TestObject.className())
+
+        query.whereKey("objectId", .ContainedIn(array: [object.objectId!, child.objectId!]))
+        query.whereKey("objectId", .Ascending)
+
+        let (response, objects) = query.find()
+
+        XCTAssertTrue(response.isSuccess && !objects.isEmpty)
+
+        let objectId1 = objects[0].objectId!
+        let objectId2 = objects.last?.objectId!
+
+        XCTAssertTrue((objectId1.value as NSString).compare(objectId2!.value) == .OrderedAscending)
+    }
+
+    func testDescending() {
+        let object = sharedObject
+        let child  = sharedChild
+        let query  = Query(className: TestObject.className())
+
+        query.whereKey("objectId", .ContainedIn(array: [object.objectId!, child.objectId!]))
+        query.whereKey("objectId", .Descending)
+
+        let (response, objects) = query.find()
+
+        XCTAssertTrue(response.isSuccess && !objects.isEmpty)
+
+        let objectId1 = objects[0].objectId!
+        let objectId2 = objects.last?.objectId!
+
+        XCTAssertTrue((objectId1.value as NSString).compare(objectId2!.value) == .OrderedDescending)
+    }
+
 }
