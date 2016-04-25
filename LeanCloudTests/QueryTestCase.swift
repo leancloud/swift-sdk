@@ -113,6 +113,7 @@ class QueryTestCase: BaseTestCase {
 
         query.whereKey("objectId", .EqualTo(value: object.objectId!))
         query.whereKey("dateField", .EqualTo(value: LCDate(NSDate(timeIntervalSince1970: 1024))))
+        query.whereKey("nullField", .EqualTo(value: LCNull.null))
 
         /* Tip: You can use EqualTo to compare an value against elements in an array field.
            If the given value is equal to any element in the array referenced by key, the comparation will be successful. */
@@ -293,6 +294,20 @@ class QueryTestCase: BaseTestCase {
 
         let (response, objects) = query.find()
         XCTAssertTrue(response.isSuccess && !objects.isEmpty)
+    }
+
+    func testNotMatchedQuery() {
+        let object   = sharedObject
+        let query    = Query(className: TestObject.className())
+        let subQuery = Query(className: TestObject.className())
+
+        subQuery.whereKey("objectId", .EqualTo(value: sharedChild.objectId!))
+
+        query.whereKey("objectId", .EqualTo(value: object.objectId!))
+        query.whereKey("objectField", .NotMatchedQuery(query: subQuery))
+
+        let (response, objects) = query.find()
+        XCTAssertTrue(response.isSuccess && objects.isEmpty)
     }
 
 }
