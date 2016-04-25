@@ -22,6 +22,10 @@ class TestObject: LCObject {
     dynamic var dateField: LCDate?
     dynamic var fileField: LCFile?
     dynamic var nullField: LCNull?
+
+    /* The non-LCType and non-dynamic property cannot be handled. */
+    dynamic var nonLCTypeField: String?
+            var nonDynamicField: LCString?
 }
 
 class BaseTestCase: XCTestCase {

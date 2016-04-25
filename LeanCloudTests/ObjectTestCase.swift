@@ -117,4 +117,29 @@ class ObjectTestCase: BaseTestCase {
         XCTAssertNotNil(object.objectId)
     }
 
+    func testNonLCTypeProperty() {
+        let object1 = TestObject()
+        let object2 = TestObject(dictionary: ["nonLCTypeField": LCString("foo")])
+
+        object1.nonLCTypeField = "foo"
+
+        XCTAssertNil(object1.dictionary["nonLCTypeField"])
+        XCTAssertNil(object2.nonLCTypeField)
+    }
+
+    func testNonDynamicProperty() {
+        let object1 = TestObject(objectId: "1010101010101010")
+        let object2 = TestObject(objectId: "1010101010101010")
+
+        object1.nonDynamicField = "foo"
+        object2.set("nonDynamicField", value: LCString("foo"))
+
+        /* Non-dynamic property cannot record update operation by accessor assignment.
+           However, you can use set(_:value:) method to get things done. */
+        XCTAssertFalse(object1.hasDataToUpload)
+
+        XCTAssertEqual(object2.nonDynamicField, LCString("foo"))
+        XCTAssertTrue(object2.hasDataToUpload)
+    }
+
 }
