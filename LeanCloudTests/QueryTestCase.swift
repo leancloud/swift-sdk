@@ -339,4 +339,52 @@ class QueryTestCase: BaseTestCase {
         XCTAssertTrue(response.isSuccess && !objects.isEmpty)
     }
 
+    func testMatchedPattern() {
+        let object = sharedObject
+        let query  = Query(className: TestObject.className())
+
+        query.whereKey("objectId", .EqualTo(value: object.objectId!))
+        query.whereKey("stringField", .MatchedPattern(pattern: "^foo$", option: nil))
+
+        let (response, objects) = query.find()
+        XCTAssertTrue(response.isSuccess && !objects.isEmpty)
+        XCTAssertEqual(objects.first, object)
+    }
+
+    func testMatchedSubstring() {
+        let object = sharedObject
+        let query  = Query(className: TestObject.className())
+
+        query.whereKey("objectId", .EqualTo(value: object.objectId!))
+        query.whereKey("stringField", .MatchedSubstring(string: "foo"))
+
+        let (response, objects) = query.find()
+        XCTAssertTrue(response.isSuccess && !objects.isEmpty)
+        XCTAssertEqual(objects.first, object)
+    }
+
+    func testPrefixedBy() {
+        let object = sharedObject
+        let query  = Query(className: TestObject.className())
+
+        query.whereKey("objectId", .EqualTo(value: object.objectId!))
+        query.whereKey("stringField", .PrefixedBy(string: "f"))
+
+        let (response, objects) = query.find()
+        XCTAssertTrue(response.isSuccess && !objects.isEmpty)
+        XCTAssertEqual(objects.first, object)
+    }
+
+    func testSuffixedBy() {
+        let object = sharedObject
+        let query  = Query(className: TestObject.className())
+
+        query.whereKey("objectId", .EqualTo(value: object.objectId!))
+        query.whereKey("stringField", .SuffixedBy(string: "o"))
+
+        let (response, objects) = query.find()
+        XCTAssertTrue(response.isSuccess && !objects.isEmpty)
+        XCTAssertEqual(objects.first, object)
+    }
+
 }

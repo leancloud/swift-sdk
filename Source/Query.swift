@@ -198,7 +198,7 @@ final public class Query {
 
         /* String matching. */
         case let .MatchedPattern(pattern, option):
-            dictionary = ["$regex": pattern, "option": option ?? ""]
+            dictionary = ["$regex": pattern, "$options": option ?? ""]
         case let .MatchedSubstring(string):
             dictionary = ["$regex": "\(string.regularEscapedString)"]
         case let .PrefixedBy(string):
