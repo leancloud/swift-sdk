@@ -423,4 +423,32 @@ class QueryTestCase: BaseTestCase {
         XCTAssertTrue((objectId1.value as NSString).compare(objectId2!.value) == .OrderedDescending)
     }
 
+    func testLogicAnd() {
+        let object = sharedObject
+        let child  = sharedChild
+        let query1  = Query(className: TestObject.className())
+        let query2  = Query(className: TestObject.className())
+
+        query1.whereKey("objectId", .EqualTo(value: object.objectId!))
+        query2.whereKey("objectId", .EqualTo(value: child.objectId!))
+
+        let query = query1 && query2
+        let (response, objects) = query.find()
+        XCTAssertTrue(response.isSuccess && objects.isEmpty)
+    }
+
+    func testLogicOr() {
+        let object = sharedObject
+        let child  = sharedChild
+        let query1  = Query(className: TestObject.className())
+        let query2  = Query(className: TestObject.className())
+
+        query1.whereKey("objectId", .EqualTo(value: object.objectId!))
+        query2.whereKey("objectId", .EqualTo(value: child.objectId!))
+
+        let query = query1 || query2
+        let (response, objects) = query.find()
+        XCTAssertTrue(response.isSuccess && objects.count == 2)
+    }
+
 }

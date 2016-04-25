@@ -218,6 +218,52 @@ final public class Query {
     }
 
     /**
+     Validate query class name.
+
+     - parameter query: The query to be validated.
+     */
+    func validateClassName(query: Query) {
+        guard query.className == className else {
+            /* TODO: throw an exception that two query classes are not equal. */
+            return
+        }
+    }
+
+    /**
+     Get logic AND of another query.
+
+     - parameter query: The another query.
+
+     - returns: The logic AND of two queries.
+     */
+    func logicAnd(query: Query) -> Query {
+        validateClassName(query)
+
+        let result = Query(className: className)
+
+        result.constraintDictionary["$and"] = [self.constraintDictionary, query.constraintDictionary]
+
+        return result
+    }
+
+    /**
+     Get logic OR of another query.
+
+     - parameter query: The another query.
+
+     - returns: The logic OR of two queries.
+     */
+    func logicOr(query: Query) -> Query {
+        validateClassName(query)
+
+        let result = Query(className: className)
+
+        result.constraintDictionary["$or"] = [self.constraintDictionary, query.constraintDictionary]
+
+        return result
+    }
+
+    /**
      Append ordered key to ordered keys string.
 
      - parameter orderedKey: The ordered key with optional '-' prefixed.
@@ -268,4 +314,14 @@ final public class Query {
 
         return (response, objects)
     }
+}
+
+/// Query operators.
+
+func && (left: Query, right: Query) -> Query {
+    return left.logicAnd(right)
+}
+
+func || (left: Query, right: Query) -> Query {
+    return left.logicOr(right)
 }
