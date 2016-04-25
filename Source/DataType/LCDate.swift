@@ -80,21 +80,26 @@ public final class LCDate: LCType {
     }
 
     init?(JSONValue: AnyObject) {
-        var date: NSDate?
+        var value: NSDate?
 
-        if let ISOString = JSONValue as? String {
-            date = LCDate.dateFromString(ISOString)
-        } else if let dictionary = JSONValue as? [String: AnyObject] {
-            if let object = LCDate(dictionary: dictionary) {
-                date = object.value
+        switch JSONValue {
+        case let ISOString as String:
+            value = LCDate.dateFromString(ISOString)
+        case let dictionary as [String: AnyObject]:
+            if let date = LCDate(dictionary: dictionary) {
+                value = date.value
             }
+        case let date as LCDate:
+            value = date.value
+        default:
+            break
         }
 
-        guard let someDate = date else {
+        guard let someValue = value else {
             return nil
         }
 
-        value = someDate
+        value = someValue
     }
 
     class override func instance() -> LCType? {
