@@ -41,6 +41,11 @@ public class LCObject: LCType {
     /// Used to manage object operations.
     var operationHub: OperationHub!
 
+    /// Whether object has data to upload or not.
+    var hasDataToUpload: Bool {
+        return hasObjectId ? (!operationHub.isEmpty) : true
+    }
+
     /// Action dispatch queue.
     var actionDispatchQueue = dispatch_queue_create("LeanCloud.Object.Action", DISPATCH_QUEUE_SERIAL)
 

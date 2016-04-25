@@ -72,6 +72,11 @@ class OperationHub {
     /// A table of operation reducer indexed by operation key.
     var operationReducerTable: [String: OperationReducer] = [:]
 
+    /// Whether operation reducer table is empty or not.
+    var isEmpty: Bool {
+        return operationReducerTable.isEmpty
+    }
+
     init(_ object: LCObject) {
         self.object = object
     }
