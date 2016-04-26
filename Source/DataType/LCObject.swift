@@ -302,6 +302,22 @@ public class LCObject: LCType {
         return result
     }
 
+    public static func deleteObjects(objects: [LCObject]) -> BooleanResult {
+        var result: BooleanResult!
+
+        guard !objects.isEmpty else { return result }
+
+        let requests = Set<LCObject>(objects).map { object in
+            BatchRequest(object: object, method: .DELETE).JSONValue()
+        }
+
+        let response = RESTClient.request(.POST, "batch", parameters: ["requests": requests])
+
+        result = BooleanResult(response: response)
+
+        return result
+    }
+
     /**
      Fetch object from server synchronously.
 

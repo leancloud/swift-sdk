@@ -10,29 +10,32 @@ import Foundation
 
 class BatchRequest {
     let object: LCObject
-    let operationTable: OperationTable
+    let method: RESTClient.Method?
+    let operationTable: OperationTable?
 
-    init(object: LCObject, operationTable: OperationTable) {
+    init(object: LCObject, method: RESTClient.Method? = nil, operationTable: OperationTable? = nil) {
         self.object = object
+        self.method = method
         self.operationTable = operationTable
     }
 
-    var isNew: Bool {
+    var isNewborn: Bool {
         return !object.hasObjectId
     }
 
-    var method: String {
-        return isNew ? "POST" : "PUT"
+    var actualMethod: RESTClient.Method {
+        return method ?? (isNewborn ? .POST : .PUT)
     }
 
     var path: String {
-        var endpoint = "/\(RESTClient.APIVersion)/\(object.dynamicType.classEndpoint())"
+        let path = "/\(RESTClient.APIVersion)/\(object.dynamicType.classEndpoint())"
 
-        if let objectId = object.objectId {
-            endpoint = (endpoint as NSString).stringByAppendingPathComponent(objectId.value)
+        switch actualMethod {
+        case .GET, .PUT, .DELETE:
+            return path + "/\(object.objectId!.value)"
+        case .POST:
+            return path
         }
-
-        return endpoint
     }
 
     var body: AnyObject {
@@ -42,7 +45,7 @@ class BatchRequest {
 
         var children: [(String, LCObject)] = []
 
-        operationTable.forEach { (key, operation) in
+        operationTable?.forEach { (key, operation) in
             switch operation.name {
             case .Set:
                 /* If object is newborn, put it in __children field. */
@@ -77,14 +80,24 @@ class BatchRequest {
     }
 
     func JSONValue() -> AnyObject {
+        let method = actualMethod
+
         var request: [String: AnyObject] = [
             "path": path,
-            "method": method,
-            "body": body
+            "method": method.rawValue
         ]
 
-        if isNew {
-            request["new"] = true
+        switch method {
+        case .GET:
+            break
+        case .POST, .PUT:
+            request["body"] = body
+
+            if isNewborn {
+                request["new"] = true
+            }
+        case .DELETE:
+            break
         }
 
         return request
