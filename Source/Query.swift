@@ -301,9 +301,9 @@ final public class Query {
 
      - returns: An array of LCObject objects.
      */
-    func processResults(results: [AnyObject], className: String?) -> [LCObject] {
+    func processResults<T: LCObject>(results: [AnyObject], className: String?) -> [T] {
         return results.map { dictionary in
-            let object = ObjectProfiler.object(className: className ?? self.className)
+            let object = ObjectProfiler.object(className: className ?? self.className) as! T
             ObjectProfiler.updateObject(object, dictionary)
             return object
         }
@@ -314,17 +314,17 @@ final public class Query {
 
      - returns: The result of the query request.
      */
-    public func find() -> (Response, [LCObject]) {
-        var objects: [LCObject] = []
+    public func find<T: LCObject>() -> QueryResult<T> {
         let response = RESTClient.request(.GET, endpoint, parameters: parameters)
 
-        if response.isSuccess {
-            if let results = response.value?["results"] as? [AnyObject] {
-                objects = processResults(results, className: response.value?["className"] as? String)
-            }
-        }
+        if let error = response.error {
+            return .Failure(error: error)
+        } else {
+            let className = response.value?["className"] as? String
+            let objects: [T] = processResults(response.results, className: className)
 
-        return (response, objects)
+            return .Success(objects: objects)
+        }
     }
 
     /**

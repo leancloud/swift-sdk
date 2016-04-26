@@ -54,4 +54,8 @@ extension Response {
     var count: Int {
         return (self["count"] as? Int) ?? 0
     }
+
+    var results: [AnyObject] {
+        return (self["results"] as? [AnyObject]) ?? []
+    }
 }
