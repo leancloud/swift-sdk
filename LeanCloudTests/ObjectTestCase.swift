@@ -142,4 +142,44 @@ class ObjectTestCase: BaseTestCase {
         XCTAssertTrue(object2.hasDataToUpload)
     }
 
+    func testFetch() {
+        let object = sharedObject
+        let shadow = TestObject(objectId: object.objectId!.value)
+
+        let result = shadow.fetch()
+        XCTAssertTrue(result.isSuccess)
+        XCTAssertEqual(shadow.stringField, "foo")
+    }
+
+    func testDelete() {
+        let object = TestObject()
+        XCTAssertTrue(object.save().isSuccess)
+
+        let shadow = TestObject(objectId: object.objectId!.value)
+        shadow.stringField = "bar"
+
+        /* After deleted, we cannot update shadow object any more, because object not found. */
+        XCTAssertTrue(object.delete().isSuccess)
+        XCTAssertFalse(shadow.save().isSuccess)
+    }
+
+    func testDeleteAll() {
+        let object1 = TestObject()
+        let object2 = TestObject()
+
+        XCTAssertTrue(object1.save().isSuccess)
+        XCTAssertTrue(object2.save().isSuccess)
+
+        let shadow1 = TestObject(objectId: object1.objectId!.value)
+        let shadow2 = TestObject(objectId: object1.objectId!.value)
+
+        shadow1.stringField = "bar"
+        shadow2.stringField = "bar"
+
+        /* After deleted, we cannot update shadow object any more, because object not found. */
+        XCTAssertTrue(LCObject.deleteObjects([object1, object2]).isSuccess)
+        XCTAssertFalse(shadow1.save().isSuccess)
+        XCTAssertFalse(shadow2.save().isSuccess)
+    }
+
 }
