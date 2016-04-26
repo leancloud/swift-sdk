@@ -302,6 +302,13 @@ public class LCObject: LCType {
         return result
     }
 
+    /**
+     Delete a batch of objects in one request synchronously.
+
+     - parameter objects: An array of objects to be deleted.
+
+     - returns: The result of deletion request.
+     */
     public static func deleteObjects(objects: [LCObject]) -> BooleanResult {
         var result: BooleanResult!
 
