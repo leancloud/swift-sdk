@@ -24,15 +24,34 @@ public class Response {
         return alamofireResponse?.result.value
     }
 
+    var error: Error? {
+        var result: Error?
+
+        if let response = alamofireResponse {
+            if let error = response.result.error {
+                result = Error(error: error)
+            } else {
+                result = ObjectProfiler.error(JSONValue: value)
+            }
+        }
+
+        return result
+    }
+
+    public subscript(key: String) -> AnyObject? {
+        return value?[key]
+    }
+
     /**
      A boolean property indicates whether response is OK or not.
      */
     public var isSuccess: Bool {
-        if let response = alamofireResponse {
-            /* TODO: Handle the business error. */
-            return response.result.isSuccess
-        } else {
-            return true
-        }
+        return error == nil
+    }
+}
+
+extension Response {
+    var count: Int {
+        return (self["count"] as? Int) ?? 0
     }
 }

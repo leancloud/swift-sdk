@@ -23,6 +23,8 @@
 		83451EAC1CAEBAFE00A378D7 /* LCFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83451EAB1CAEBAFE00A378D7 /* LCFile.swift */; };
 		834E59C21C7ED06A009762AC /* Operation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 834E59C11C7ED06A009762AC /* Operation.swift */; };
 		835F52EB1CCBC0D7008EE3AC /* LCNull.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F52EA1CCBC0D7008EE3AC /* LCNull.swift */; };
+		835F53011CCF0CF5008EE3AC /* Result.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F53001CCF0CF5008EE3AC /* Result.swift */; };
+		835F530A1CCF1620008EE3AC /* Error.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F53091CCF1620008EE3AC /* Error.swift */; };
 		83724CCA1C7B54A700E59BED /* LeanCloud.h in Headers */ = {isa = PBXBuildFile; fileRef = 83724CC91C7B54A700E59BED /* LeanCloud.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		837753541CA3D9D300C2053D /* Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 837753531CA3D9D300C2053D /* Extension.swift */; };
 		837753561CA3DB8B00C2053D /* LCRelation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 837753551CA3DB8B00C2053D /* LCRelation.swift */; };
@@ -121,6 +123,8 @@
 		83451EAB1CAEBAFE00A378D7 /* LCFile.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LCFile.swift; sourceTree = "<group>"; };
 		834E59C11C7ED06A009762AC /* Operation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Operation.swift; sourceTree = "<group>"; };
 		835F52EA1CCBC0D7008EE3AC /* LCNull.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LCNull.swift; sourceTree = "<group>"; };
+		835F53001CCF0CF5008EE3AC /* Result.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Result.swift; sourceTree = "<group>"; };
+		835F53091CCF1620008EE3AC /* Error.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Error.swift; sourceTree = "<group>"; };
 		83724CC91C7B54A700E59BED /* LeanCloud.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LeanCloud.h; sourceTree = "<group>"; };
 		837753531CA3D9D300C2053D /* Extension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Extension.swift; sourceTree = "<group>"; };
 		837753551CA3DB8B00C2053D /* LCRelation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LCRelation.swift; sourceTree = "<group>"; };
@@ -224,6 +228,8 @@
 				83A566DB1CA1414700E2EB12 /* BatchRequest.swift */,
 				83451E1F1CABB63600A378D7 /* Request.swift */,
 				8343EF271CA91E5B0023D0CA /* Response.swift */,
+				835F53001CCF0CF5008EE3AC /* Result.swift */,
+				835F53091CCF1620008EE3AC /* Error.swift */,
 				830B0F6B1C7C60DA00D9FC41 /* Runtime.swift */,
 				83FAF09D1CC5D85B00A84063 /* Query.swift */,
 			);
@@ -448,8 +454,10 @@
 				837753541CA3D9D300C2053D /* Extension.swift in Sources */,
 				83451E201CABB63600A378D7 /* Request.swift in Sources */,
 				83ACD26E1C819D8000F7E2DE /* LCArray.swift in Sources */,
+				835F53011CCF0CF5008EE3AC /* Result.swift in Sources */,
 				837753581CA4CB0300C2053D /* Utility.swift in Sources */,
 				83451EAC1CAEBAFE00A378D7 /* LCFile.swift in Sources */,
+				835F530A1CCF1620008EE3AC /* Error.swift in Sources */,
 				83FAF09E1CC5D85B00A84063 /* Query.swift in Sources */,
 				83A566DC1CA1414700E2EB12 /* BatchRequest.swift in Sources */,
 				83451EAA1CAEBA9600A378D7 /* LCDate.swift in Sources */,

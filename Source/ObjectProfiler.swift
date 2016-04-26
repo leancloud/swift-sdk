@@ -602,6 +602,45 @@ class ObjectProfiler {
     }
 
     /**
+     Find an error in JSON value.
+
+     - parameter JSONValue: The JSON value from which to find the error.
+
+     - returns: An error object, or nil if error not found.
+     */
+    static func error(JSONValue JSONValue: AnyObject?) -> Error? {
+        var result: Error?
+
+        switch JSONValue {
+        case let array as [AnyObject]:
+            for element in array {
+                if let error = self.error(JSONValue: element) {
+                    result = error
+                    break
+                }
+            }
+        case let dictionary as [String: AnyObject]:
+            let code  = dictionary["code"]  as? Int
+            let error = dictionary["error"] as? String
+
+            if code != nil || error != nil {
+                result = Error(dictionary: dictionary)
+            } else {
+                for (_, value) in dictionary {
+                    if let error = self.error(JSONValue: value) {
+                        result = error
+                        break
+                    }
+                }
+            }
+        default:
+            break
+        }
+
+        return result
+    }
+
+    /**
      Update object with a dictionary.
 
      - parameter object:     The object to be updated.
