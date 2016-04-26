@@ -472,4 +472,21 @@ class QueryTestCase: BaseTestCase {
         XCTAssertTrue(response.isSuccess && objects.count == 2)
     }
 
+    func testCount() {
+        let object = sharedObject
+        let child  = sharedChild
+        let query  = Query(className: TestObject.className())
+
+        query.whereKey("objectId", .ContainedIn(array: [object.objectId!, child.objectId!]))
+
+        let result = query.count()
+
+        switch result {
+        case let .Success(count):
+            XCTAssertEqual(count, 2)
+        default:
+            XCTFail()
+        }
+    }
+
 }

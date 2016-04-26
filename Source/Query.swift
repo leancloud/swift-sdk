@@ -312,7 +312,7 @@ final public class Query {
     /**
      Query objects synchronously.
 
-     - returns: The response of the query request.
+     - returns: The result of the query request.
      */
     public func find() -> (Response, [LCObject]) {
         var objects: [LCObject] = []
@@ -325,6 +325,23 @@ final public class Query {
         }
 
         return (response, objects)
+    }
+
+    /**
+     Count objects synchronously.
+
+     - returns: The result of the count request.
+     */
+    public func count() -> CountResult {
+        var parameters = self.parameters
+
+        parameters["count"] = 1
+        parameters["limit"] = 0
+
+        let response = RESTClient.request(.GET, endpoint, parameters: parameters)
+        let result = CountResult(response: response)
+
+        return result
     }
 }
 
