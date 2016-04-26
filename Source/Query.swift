@@ -8,6 +8,9 @@
 
 import Foundation
 
+/**
+ Query defines a query for objects.
+ */
 final public class Query {
     /// Query class name.
     public private(set) var className: String

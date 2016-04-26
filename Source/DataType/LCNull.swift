@@ -8,8 +8,11 @@
 
 import Foundation
 
-/// LeanCloud null type.
-/// A singleton object that represent null value.
+/**
+ LeanCloud null type.
+
+ A singleton object that represents null value.
+ */
 public class LCNull: LCType {
     public static let null = LCNull()
 
