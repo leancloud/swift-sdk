@@ -8,7 +8,36 @@
 
 import Foundation
 
-public enum QueryResult<T: LCObject> {
+public protocol ResultType {
+    var isSuccess: Bool { get }
+    var isFailure: Bool { get }
+}
+
+public enum BooleanResult: ResultType {
+    case Success
+    case Failure(error: Error)
+
+    public var isSuccess: Bool {
+        switch self {
+        case .Success: return true
+        case .Failure: return false
+        }
+    }
+
+    public var isFailure: Bool {
+        return !isSuccess
+    }
+
+    init(response: Response) {
+        if let error = response.error {
+            self = .Failure(error: error)
+        } else {
+            self = .Success
+        }
+    }
+}
+
+public enum QueryResult<T: LCObject>: ResultType {
     case Success(objects: [T])
     case Failure(error: Error)
 
@@ -17,6 +46,10 @@ public enum QueryResult<T: LCObject> {
         case .Success: return true
         case .Failure: return false
         }
+    }
+
+    public var isFailure: Bool {
+        return !isSuccess
     }
 
     public var objects: [T]? {
@@ -29,7 +62,7 @@ public enum QueryResult<T: LCObject> {
     }
 }
 
-public enum CountResult {
+public enum CountResult: ResultType {
     case Success(count: Int)
     case Failure(error: Error)
 
@@ -38,6 +71,10 @@ public enum CountResult {
         case .Success: return true
         case .Failure: return false
         }
+    }
+
+    public var isFailure: Bool {
+        return !isSuccess
     }
 
     init(response: Response) {

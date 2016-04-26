@@ -275,45 +275,45 @@ public class LCObject: LCType {
     /**
      Save object and its all descendant objects synchronously.
 
-     - returns: The response of saving request.
+     - returns: The result of saving request.
      */
-    public func save() -> Response {
-        var response: Response!
+    public func save() -> BooleanResult {
+        var result: BooleanResult!
 
         enqueueAction { [unowned self] in
-            response = ObjectUpdater.save(self)
+            result = BooleanResult(response: ObjectUpdater.save(self))
         }
 
-        return response
+        return result
     }
 
     /**
      Delete current object synchronously.
 
-     - returns: The response of deleting request.
+     - returns: The result of deleting request.
      */
-    public func delete() -> Response {
-        var response: Response!
+    public func delete() -> BooleanResult {
+        var result: BooleanResult!
 
         enqueueAction { [unowned self] in
-            response = ObjectUpdater.delete(self)
+            result = BooleanResult(response: ObjectUpdater.delete(self))
         }
 
-        return response
+        return result
     }
 
     /**
      Fetch object from server synchronously.
 
-     - returns: The response of fetching request.
+     - returns: The result of fetching request.
      */
-    public func fetch() -> Response {
-        var response: Response!
+    public func fetch() -> BooleanResult {
+        var result: BooleanResult!
 
         enqueueAction { [unowned self] in
-            response = ObjectUpdater.fetch(self)
+            result = BooleanResult(response: ObjectUpdater.fetch(self))
         }
 
-        return response
+        return result
     }
 }
