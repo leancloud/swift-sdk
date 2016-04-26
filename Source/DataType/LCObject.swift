@@ -31,7 +31,7 @@ public class LCObject: LCType {
             return nil
         }
 
-        return "classes/\(self.dynamicType.className())/\(objectId.value)"
+        return "\(self.dynamicType.classEndpoint())/\(objectId.value)"
     }
 
     /// The temp in-memory object identifier.
