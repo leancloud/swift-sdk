@@ -240,6 +240,8 @@ final public class Query {
     /**
      Get logic AND of another query.
 
+     Note that it only combine constraints of two queries, the limit and skip option will be discarded.
+
      - parameter query: The another query.
 
      - returns: The logic AND of two queries.
@@ -256,6 +258,8 @@ final public class Query {
 
     /**
      Get logic OR of another query.
+
+     Note that it only combine constraints of two queries, the limit and skip option will be discarded.
 
      - parameter query: The another query.
 
@@ -324,12 +328,26 @@ final public class Query {
     }
 }
 
-/// Query operators.
+/**
+ Perform logic AND of two queries.
 
+ - parameter left:  The left operand.
+ - parameter right: Tne right operand.
+
+ - returns: The logic AND of two queries.
+ */
 func && (left: Query, right: Query) -> Query {
     return left.logicAnd(right)
 }
 
+/**
+ Perform logic OR of two queries.
+
+ - parameter left:  The left operand.
+ - parameter right: Tne right operand.
+
+ - returns: The logic OR of two queries.
+ */
 func || (left: Query, right: Query) -> Query {
     return left.logicOr(right)
 }
