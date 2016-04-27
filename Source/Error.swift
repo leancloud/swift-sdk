@@ -15,8 +15,18 @@ public struct Error: ErrorType {
     public let reason: String?
     public let userInfo: UserInfo?
 
+    enum InternalErrorCode: Int {
+        case NotFound = 9973
+    }
+
     init(code: Int, reason: String? = nil, userInfo: UserInfo? = nil) {
         self.code = code
+        self.reason = reason
+        self.userInfo = userInfo
+    }
+
+    init(code: InternalErrorCode, reason: String? = nil, userInfo: UserInfo? = nil) {
+        self.code = code.rawValue
         self.reason = reason
         self.userInfo = userInfo
     }
