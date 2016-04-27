@@ -19,6 +19,10 @@ public struct Error: ErrorType {
         case NotFound = 9973
     }
 
+    enum ServerErrorCode: Int {
+        case ObjectNotFound = 101
+    }
+
     init(code: Int, reason: String? = nil, userInfo: UserInfo? = nil) {
         self.code = code
         self.reason = reason
@@ -26,9 +30,11 @@ public struct Error: ErrorType {
     }
 
     init(code: InternalErrorCode, reason: String? = nil, userInfo: UserInfo? = nil) {
-        self.code = code.rawValue
-        self.reason = reason
-        self.userInfo = userInfo
+        self = Error(code: code.rawValue, reason: reason, userInfo: userInfo)
+    }
+
+    init(code: ServerErrorCode, reason: String? = nil, userInfo: UserInfo? = nil) {
+        self = Error(code: code.rawValue, reason: reason, userInfo: userInfo)
     }
 
     init(dictionary: [String: AnyObject]) {
