@@ -151,16 +151,27 @@ class ObjectTestCase: BaseTestCase {
         XCTAssertEqual(shadow.stringField, "foo")
     }
 
+    func testFetchNewborn() {
+        let object = TestObject()
+
+        let result = object.fetch()
+        XCTAssertTrue(result.isFailure)
+        XCTAssertEqual(Error.InternalErrorCode(rawValue: result.error!.code), .NotFound)
+    }
+
+    func testFetchNotFound() {
+        let object = TestObject(objectId: "000")
+
+        let result = object.fetch()
+        XCTAssertTrue(result.isFailure)
+        XCTAssertEqual(Error.ServerErrorCode(rawValue: result.error!.code), .ObjectNotFound)
+    }
+
     func testDelete() {
         let object = TestObject()
         XCTAssertTrue(object.save().isSuccess)
-
-        let shadow = TestObject(objectId: object.objectId!.value)
-        shadow.stringField = "bar"
-
-        /* After deleted, we cannot update shadow object any more, because object not found. */
         XCTAssertTrue(object.delete().isSuccess)
-        XCTAssertFalse(shadow.save().isSuccess)
+        XCTAssertTrue(object.fetch().isFailure)
     }
 
     func testDeleteAll() {
