@@ -9,6 +9,7 @@
 import Foundation
 
 public protocol ResultType {
+    var error: Error? { get }
     var isSuccess: Bool { get }
     var isFailure: Bool { get }
 }
@@ -16,6 +17,15 @@ public protocol ResultType {
 public enum BooleanResult: ResultType {
     case Success
     case Failure(error: Error)
+
+    public var error: Error? {
+        switch self {
+        case .Success:
+            return nil
+        case let .Failure(error):
+            return error
+        }
+    }
 
     public var isSuccess: Bool {
         switch self {
@@ -41,6 +51,15 @@ public enum QueryResult<T: LCObject>: ResultType {
     case Success(objects: [T])
     case Failure(error: Error)
 
+    public var error: Error? {
+        switch self {
+        case .Success:
+            return nil
+        case let .Failure(error):
+            return error
+        }
+    }
+
     public var isSuccess: Bool {
         switch self {
         case .Success: return true
@@ -65,6 +84,15 @@ public enum QueryResult<T: LCObject>: ResultType {
 public enum CountResult: ResultType {
     case Success(count: Int)
     case Failure(error: Error)
+
+    public var error: Error? {
+        switch self {
+        case .Success:
+            return nil
+        case let .Failure(error):
+            return error
+        }
+    }
 
     public var isSuccess: Bool {
         switch self {
