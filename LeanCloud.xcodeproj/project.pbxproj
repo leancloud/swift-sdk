@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		830046EA1C7C92B8004C88A7 /* ObjectProfiler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 830046E91C7C92B8004C88A7 /* ObjectProfiler.swift */; };
+		83072FA61CD0C31B004BE97A /* Semaphore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83072FA51CD0C31B004BE97A /* Semaphore.swift */; };
 		830B0F631C7C127700D9FC41 /* LeanCloud.swift in Sources */ = {isa = PBXBuildFile; fileRef = 830B0F621C7C127700D9FC41 /* LeanCloud.swift */; };
 		830B0F651C7C20CE00D9FC41 /* Configuration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 830B0F641C7C20CE00D9FC41 /* Configuration.swift */; };
 		830B0F6C1C7C60DA00D9FC41 /* Runtime.swift in Sources */ = {isa = PBXBuildFile; fileRef = 830B0F6B1C7C60DA00D9FC41 /* Runtime.swift */; };
@@ -105,6 +106,7 @@
 
 /* Begin PBXFileReference section */
 		830046E91C7C92B8004C88A7 /* ObjectProfiler.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ObjectProfiler.swift; sourceTree = "<group>"; };
+		83072FA51CD0C31B004BE97A /* Semaphore.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Semaphore.swift; sourceTree = "<group>"; };
 		830B0F621C7C127700D9FC41 /* LeanCloud.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LeanCloud.swift; sourceTree = "<group>"; };
 		830B0F641C7C20CE00D9FC41 /* Configuration.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Configuration.swift; sourceTree = "<group>"; };
 		830B0F6B1C7C60DA00D9FC41 /* Runtime.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Runtime.swift; sourceTree = "<group>"; };
@@ -231,6 +233,7 @@
 				835F53001CCF0CF5008EE3AC /* Result.swift */,
 				835F53091CCF1620008EE3AC /* Error.swift */,
 				830B0F6B1C7C60DA00D9FC41 /* Runtime.swift */,
+				83072FA51CD0C31B004BE97A /* Semaphore.swift */,
 				83FAF09D1CC5D85B00A84063 /* Query.swift */,
 			);
 			path = Source;
@@ -458,6 +461,7 @@
 				837753581CA4CB0300C2053D /* Utility.swift in Sources */,
 				83451EAC1CAEBAFE00A378D7 /* LCFile.swift in Sources */,
 				835F530A1CCF1620008EE3AC /* Error.swift in Sources */,
+				83072FA61CD0C31B004BE97A /* Semaphore.swift in Sources */,
 				83FAF09E1CC5D85B00A84063 /* Query.swift in Sources */,
 				83A566DC1CA1414700E2EB12 /* BatchRequest.swift in Sources */,
 				83451EAA1CAEBA9600A378D7 /* LCDate.swift in Sources */,
