@@ -202,18 +202,25 @@ class ObjectUpdater {
      - returns: The response of request.
      */
     static func fetch(object: LCObject) -> Response {
-        var response = Response()
-
-        if let endpoint = object.endpoint {
-            response = RESTClient.request(.GET, endpoint, parameters: nil)
-
-            if response.isSuccess {
-                if let value = response.value {
-                    ObjectProfiler.updateObject(object, value)
-                }
-                object.resetOperation()
-            }
+        guard object.hasObjectId else {
+            return Response(Error(code: .NotFound, reason: "Object ID not found."))
         }
+
+        let response = RESTClient.request(.GET, object.endpoint!, parameters: nil)
+
+        guard response.isSuccess else {
+            return response
+        }
+
+        let dictionary = (response.value as? [String: AnyObject]) ?? [:]
+
+        guard !dictionary.isEmpty else {
+            return Response(Error(code: .ObjectNotFound, reason: "Object not found."))
+        }
+
+        ObjectProfiler.updateObject(object, dictionary)
+
+        object.resetOperation()
 
         return response
     }
