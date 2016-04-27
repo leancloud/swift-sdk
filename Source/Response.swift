@@ -10,10 +10,15 @@ import Foundation
 import Alamofire
 
 public class Response {
-    let alamofireResponse: Alamofire.Response<AnyObject, NSError>?
+    /// Internal error.
+    /// It will override alamofire's response error.
+    private var internalError: Error?
+    private var alamofireResponse: Alamofire.Response<AnyObject, NSError>?
 
-    init() {
-        alamofireResponse = nil
+    init() {}
+
+    init(_ error: Error) {
+        internalError = error
     }
 
     init(_ alamofireResponse: Alamofire.Response<AnyObject, NSError>) {
@@ -27,7 +32,14 @@ public class Response {
     var error: Error? {
         var result: Error?
 
-        if let response = alamofireResponse {
+        /* There are 3 kinds of errors:
+           1. Internal error.
+           2. Network error.
+           3. Business error. */
+
+        if let error = internalError {
+            result = error
+        } else if let response = alamofireResponse {
             if let error = response.result.error {
                 result = Error(error: error)
             } else {
