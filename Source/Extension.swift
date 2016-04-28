@@ -78,3 +78,24 @@ extension String {
         return result
     }
 }
+
+extension CollectionType {
+    func unique(equal: (a: Generator.Element, b: Generator.Element) -> Bool) -> [Generator.Element] {
+        var result: [Generator.Element] = []
+
+        for candidate in self {
+            var existed = false
+            for element in result {
+                if equal(a: candidate, b: element) {
+                    existed = true
+                    break
+                }
+            }
+            if !existed {
+                result.append(candidate)
+            }
+        }
+
+        return result
+    }
+}
