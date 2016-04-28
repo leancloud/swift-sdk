@@ -349,21 +349,6 @@ public class LCObject: LCType {
     }
 
     /**
-     Delete current object synchronously.
-
-     - returns: The result of deleting request.
-     */
-    public func delete() -> BooleanResult {
-        var result: BooleanResult!
-
-        enqueueAction { [unowned self] in
-            result = BooleanResult(response: ObjectUpdater.delete(self))
-        }
-
-        return result
-    }
-
-    /**
      Delete a batch of objects in one request synchronously.
 
      - parameter objects: An array of objects to be deleted.
@@ -375,6 +360,21 @@ public class LCObject: LCType {
 
         enqueueAction(objects) {
             result = BooleanResult(response: ObjectUpdater.delete(objects))
+        }
+
+        return result
+    }
+
+    /**
+     Delete current object synchronously.
+
+     - returns: The result of deleting request.
+     */
+    public func delete() -> BooleanResult {
+        var result: BooleanResult!
+
+        enqueueAction { [unowned self] in
+            result = BooleanResult(response: ObjectUpdater.delete(self))
         }
 
         return result
