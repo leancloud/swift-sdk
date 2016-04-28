@@ -188,7 +188,7 @@ class ObjectTestCase: BaseTestCase {
         shadow2.stringField = "bar"
 
         /* After deleted, we cannot update shadow object any more, because object not found. */
-        XCTAssertTrue(LCObject.deleteObjects([object1, object2]).isSuccess)
+        XCTAssertTrue(LCObject.delete([object1, object2]).isSuccess)
         XCTAssertFalse(shadow1.save().isSuccess)
         XCTAssertFalse(shadow2.save().isSuccess)
     }

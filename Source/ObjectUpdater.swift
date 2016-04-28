@@ -197,6 +197,111 @@ class ObjectUpdater {
     }
 
     /**
+     Delete a batch of objects in one request synchronously.
+
+     - parameter objects: An array of objects to be deleted.
+
+     - returns: The response of deletion request.
+     */
+    static func delete<T: LCObject>(objects: [T]) -> Response {
+        var response = Response()
+
+        /* If no objects, do nothing. */
+        guard !objects.isEmpty else { return response }
+
+        let requests = Set<T>(objects).map { object in
+            BatchRequest(object: object, method: .DELETE).JSONValue()
+        }
+
+        response = RESTClient.request(.POST, "batch", parameters: ["requests": requests])
+
+        return response
+    }
+
+    /**
+     Handle fetched result.
+
+     - parameter result:  The result returned from server.
+     - parameter objects: The objects to be fetched.
+
+     - returns: The error response, or nil if error not found.
+     */
+    static func handleFetchedResult(result: AnyObject?, _ objects: [LCObject]) -> Response? {
+        guard let objectId = result?["objectId"] as? String else {
+            return Response(Error(code: .ObjectNotFound, reason: "Object not found."))
+        }
+
+        let matched = objects.filter { object in
+            objectId == object.objectId!.value
+        }
+
+        matched.forEach { object in
+            ObjectProfiler.updateObject(object, result!)
+            object.resetOperation()
+        }
+
+        return nil
+    }
+
+    /**
+     Handle fetched response.
+
+     - parameter response: The response of fetch request.
+     - parameter objects:  The objects to be fetched.
+
+     - returns: The handled response.
+     */
+    static func handleFetchedResponse(response: Response, _ objects: [LCObject]) -> Response {
+        guard response.isSuccess else {
+            return response
+        }
+        guard let results = response.value as? [AnyObject] else {
+            return Response(Error(code: .ObjectNotFound, reason: "Object not found."))
+        }
+
+        var response = response
+
+        for result in results {
+            if let errorResponse = handleFetchedResult(result["success"], objects) {
+                response = errorResponse
+            }
+        }
+
+        return response
+    }
+
+    /**
+     Fetch multiple objects in one request synchronously.
+
+     - parameter objects: An array of objects to be fetched.
+
+     - returns: The response of fetching request.
+     */
+    static func fetch(objects: [LCObject]) -> Response {
+        var response = Response()
+
+        /* If no object, do nothing. */
+        guard !objects.isEmpty else { return response }
+
+        /* If any object has no object ID, return not found error. */
+        for object in objects {
+            guard object.hasObjectId else {
+                return Response(Error(code: .NotFound, reason: "Object ID not found."))
+            }
+        }
+
+        let requests = Set(objects).map { object in
+            BatchRequest(object: object, method: .GET).JSONValue()
+        }
+
+        response = RESTClient.request(.POST, "batch", parameters: ["requests": requests])
+
+        response = handleFetchedResponse(response, objects)
+
+        return response
+    }
+
+    /**
      Fetch object synchronously.
 
      - returns: The response of request.
@@ -214,7 +319,7 @@ class ObjectUpdater {
 
         let dictionary = (response.value as? [String: AnyObject]) ?? [:]
 
-        guard !dictionary.isEmpty else {
+        guard dictionary["objectId"] != nil else {
             return Response(Error(code: .ObjectNotFound, reason: "Object not found."))
         }
 

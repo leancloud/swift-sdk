@@ -370,18 +370,29 @@ public class LCObject: LCType {
 
      - returns: The result of deletion request.
      */
-    public static func deleteObjects(objects: [LCObject]) -> BooleanResult {
+    public static func delete<T: LCObject>(objects: [T]) -> BooleanResult {
         var result: BooleanResult!
 
-        guard !objects.isEmpty else { return result }
-
-        let requests = Set<LCObject>(objects).map { object in
-            BatchRequest(object: object, method: .DELETE).JSONValue()
+        enqueueAction(objects) {
+            result = BooleanResult(response: ObjectUpdater.delete(objects))
         }
 
-        let response = RESTClient.request(.POST, "batch", parameters: ["requests": requests])
+        return result
+    }
 
-        result = BooleanResult(response: response)
+    /**
+     Fetch a batch of objects in one request synchronously.
+
+     - parameter objects: An array of objects to be fetched.
+
+     - returns: The result of fetching request.
+     */
+    public static func fetch<T: LCObject>(objects: [T]) -> BooleanResult {
+        var result: BooleanResult!
+
+        enqueueAction(objects) {
+            result = BooleanResult(response: ObjectUpdater.fetch(objects))
+        }
 
         return result
     }
