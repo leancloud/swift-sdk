@@ -167,6 +167,17 @@ class ObjectTestCase: BaseTestCase {
         XCTAssertEqual(Error.ServerErrorCode(rawValue: result.error!.code), .ObjectNotFound)
     }
 
+    func testFetchObjects() {
+        let object   = sharedObject
+        let child    = sharedChild
+        let notFound = TestObject(objectId: "000")
+        let newborn  = TestObject()
+
+        XCTAssertEqual(Error.InternalErrorCode(rawValue: LCObject.fetch([object, newborn]).error!.code), .NotFound)
+        XCTAssertEqual(Error.ServerErrorCode(rawValue: LCObject.fetch([object, notFound]).error!.code), .ObjectNotFound)
+        XCTAssertTrue(LCObject.fetch([object, child]).isSuccess)
+    }
+
     func testDelete() {
         let object = TestObject()
         XCTAssertTrue(object.save().isSuccess)
