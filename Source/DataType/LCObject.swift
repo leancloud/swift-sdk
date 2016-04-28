@@ -156,6 +156,64 @@ public class LCObject: LCType {
     }
 
     /**
+     Acquire a trampoline for enqueueing an action.
+
+     Caller should use the trampoline to wait an action suspender.
+
+     - returns: A trampoline.
+     */
+    func actionTrampoline() -> Semaphore<Semaphore<Any>> {
+        let actionTrampoline = Semaphore<Semaphore<Any>>()
+
+        dispatch_async(actionDispatchQueue) {
+            let actionSuspender = Semaphore<Any>()
+            actionTrampoline.signal(actionSuspender)
+            actionSuspender.wait()
+        }
+
+        return actionTrampoline
+    }
+
+    static let actionTrampolineQueue = dispatch_queue_create(nil, DISPATCH_QUEUE_CONCURRENT)
+
+    /**
+     Wait action suspenders concurrently.
+
+     - parameter actionTrampolines: An array of action trampolines.
+
+     - returns: An array of action suspenders corresponding with action trampolines.
+     */
+    static func waitActionSuspenders(actionTrampolines: [Semaphore<Semaphore<Any>>]) -> [Semaphore<Any>] {
+        var suspenders: [Semaphore<Any>] = []
+        let dispatch_group = dispatch_group_create()
+
+        actionTrampolines.forEach { actionTrampoline in
+            dispatch_group_async(dispatch_group, actionTrampolineQueue) {
+                suspenders.append(actionTrampoline.wait()!)
+            }
+        }
+
+        dispatch_group_wait(dispatch_group, DISPATCH_TIME_FOREVER)
+
+        return suspenders
+    }
+
+    /**
+     Enquene an action into action queues of a group of objects.
+
+     - parameter objects: An array of objects into which the action will be enqueued.
+     - parameter action:  The action to be enqueued.
+     */
+    static func enqueueAction(objects: [LCObject], action: () -> Void) {
+        let objects = objects.unique { $0 === $1 }
+        let actionTrampolines = objects.map { $0.actionTrampoline() }
+        let actionSuspenders = waitActionSuspenders(actionTrampolines)
+
+        action()
+        actionSuspenders.forEach { $0.signal() }
+    }
+
+    /**
      Add an operation.
 
      - parameter name:  Operation name.
