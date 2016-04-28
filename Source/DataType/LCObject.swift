@@ -175,6 +175,7 @@ public class LCObject: LCType {
     }
 
     static let actionTrampolineQueue = dispatch_queue_create(nil, DISPATCH_QUEUE_CONCURRENT)
+    static let actionSuspenderQueue  = dispatch_queue_create(nil, DISPATCH_QUEUE_SERIAL)
 
     /**
      Wait action suspenders concurrently.
@@ -189,7 +190,9 @@ public class LCObject: LCType {
 
         actionTrampolines.forEach { actionTrampoline in
             dispatch_group_async(dispatch_group, actionTrampolineQueue) {
-                suspenders.append(actionTrampoline.wait()!)
+                dispatch_sync(actionSuspenderQueue) {
+                    suspenders.append(actionTrampoline.wait()!)
+                }
             }
         }
 
