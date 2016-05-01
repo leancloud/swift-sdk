@@ -50,15 +50,15 @@ public class LCObject: LCType {
     var actionDispatchQueue = dispatch_queue_create("LeanCloud.Object.Action", DISPATCH_QUEUE_SERIAL)
 
     override var JSONValue: AnyObject? {
-        if let objectId = objectId {
-            return [
-                "__type": "Pointer",
-                "className": self.dynamicType.className(),
-                "objectId": objectId.value
-            ]
+        guard let objectId = objectId else {
+            return nil
         }
 
-        return nil
+        return [
+            "__type": "Pointer",
+            "className": self.dynamicType.className(),
+            "objectId": objectId.value
+        ]
     }
 
     /// Dictionary representation of object.
