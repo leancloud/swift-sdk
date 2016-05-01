@@ -46,8 +46,8 @@ public class LCObject: LCType {
         return hasObjectId ? (!operationHub.isEmpty) : true
     }
 
-    /// Action dispatch queue.
-    var actionDispatchQueue = dispatch_queue_create("LeanCloud.Object.Action", DISPATCH_QUEUE_SERIAL)
+    /// Action execution lock.
+    var actionLock = NSRecursiveLock()
 
     override var JSONValue: AnyObject? {
         guard let objectId = objectId else {
@@ -147,73 +147,28 @@ public class LCObject: LCType {
     }
 
     /**
-     Enqueue an action for serial execution.
+     Synchronize an action for atomic execution.
 
-     - parameter action: The action closure to enqueue.
+     - parameter action: The action closure to be synchronized.
      */
-    func enqueueAction(action: () -> Void) {
-        dispatch_sync(actionDispatchQueue, action)
-    }
-
-    /**
-     Acquire a trampoline for enqueueing an action.
-
-     Caller should use the trampoline to wait an action suspender.
-
-     - returns: A trampoline.
-     */
-    func actionTrampoline() -> Semaphore<Semaphore<Any>> {
-        let actionTrampoline = Semaphore<Semaphore<Any>>()
-
-        dispatch_async(actionDispatchQueue) {
-            let actionSuspender = Semaphore<Any>()
-            actionTrampoline.signal(actionSuspender)
-            actionSuspender.wait()
-        }
-
-        return actionTrampoline
-    }
-
-    static let actionTrampolineQueue = dispatch_queue_create(nil, DISPATCH_QUEUE_CONCURRENT)
-    static let actionSuspenderQueue  = dispatch_queue_create(nil, DISPATCH_QUEUE_SERIAL)
-
-    /**
-     Wait action suspenders concurrently.
-
-     - parameter actionTrampolines: An array of action trampolines.
-
-     - returns: An array of action suspenders corresponding with action trampolines.
-     */
-    static func waitActionSuspenders(actionTrampolines: [Semaphore<Semaphore<Any>>]) -> [Semaphore<Any>] {
-        var suspenders: [Semaphore<Any>] = []
-        let dispatch_group = dispatch_group_create()
-
-        actionTrampolines.forEach { actionTrampoline in
-            dispatch_group_async(dispatch_group, actionTrampolineQueue) {
-                dispatch_sync(actionSuspenderQueue) {
-                    suspenders.append(actionTrampoline.wait()!)
-                }
-            }
-        }
-
-        dispatch_group_wait(dispatch_group, DISPATCH_TIME_FOREVER)
-
-        return suspenders
-    }
-
-    /**
-     Enquene an action into action queues of a group of objects.
-
-     - parameter objects: An array of objects into which the action will be enqueued.
-     - parameter action:  The action to be enqueued.
-     */
-    static func enqueueAction(objects: [LCObject], action: () -> Void) {
-        let objects = objects.unique { $0 === $1 }
-        let actionTrampolines = objects.map { $0.actionTrampoline() }
-        let actionSuspenders = waitActionSuspenders(actionTrampolines)
-
+    func synchronizeAction(action: () -> Void) {
+        actionLock.lock()
         action()
-        actionSuspenders.forEach { $0.signal() }
+        actionLock.unlock()
+    }
+
+    /**
+     Synchronize an action on a group of objects.
+
+     - parameter objects: An array of objects on which the action will be synchronized.
+     - parameter action:  The action to be synchronized.
+     */
+    static func synchronizeAction(objects: [LCObject], _ action: () -> Void) {
+        let locks = objects.unique { $0 === $1 }.map { $0.actionLock }
+
+        locks.forEach { $0.lock() }
+        action()
+        locks.forEach { $0.unlock() }
     }
 
     /**
@@ -224,7 +179,7 @@ public class LCObject: LCType {
      - parameter value: Value to be assigned.
      */
     func addOperation(name: Operation.Name, _ key: String, _ value: LCType? = nil) {
-        enqueueAction {
+        synchronizeAction {
             self.operationHub.append(name, key, value)
         }
     }
@@ -341,7 +296,7 @@ public class LCObject: LCType {
     public func save() -> BooleanResult {
         var result: BooleanResult!
 
-        enqueueAction { [unowned self] in
+        synchronizeAction {
             result = BooleanResult(response: ObjectUpdater.save(self))
         }
 
@@ -358,7 +313,7 @@ public class LCObject: LCType {
     public static func delete<T: LCObject>(objects: [T]) -> BooleanResult {
         var result: BooleanResult!
 
-        enqueueAction(objects) {
+        synchronizeAction(objects) {
             result = BooleanResult(response: ObjectUpdater.delete(objects))
         }
 
@@ -373,7 +328,7 @@ public class LCObject: LCType {
     public func delete() -> BooleanResult {
         var result: BooleanResult!
 
-        enqueueAction { [unowned self] in
+        synchronizeAction {
             result = BooleanResult(response: ObjectUpdater.delete(self))
         }
 
@@ -390,7 +345,7 @@ public class LCObject: LCType {
     public static func fetch<T: LCObject>(objects: [T]) -> BooleanResult {
         var result: BooleanResult!
 
-        enqueueAction(objects) {
+        synchronizeAction(objects) {
             result = BooleanResult(response: ObjectUpdater.fetch(objects))
         }
 
@@ -405,7 +360,7 @@ public class LCObject: LCType {
     public func fetch() -> BooleanResult {
         var result: BooleanResult!
 
-        enqueueAction { [unowned self] in
+        synchronizeAction {
             result = BooleanResult(response: ObjectUpdater.fetch(self))
         }
 
