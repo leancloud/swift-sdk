@@ -59,13 +59,27 @@ public final class LCRelation: LCType, SequenceType {
         value.forEach { body(child: $0) }
     }
 
+    func validateClassName(objects: [Element]) {
+        guard !objects.isEmpty else { return }
+
+        let className = self.className ?? objects.first!.dynamicType.className()
+
+        for object in objects {
+            guard object.dynamicType.className() == className else {
+                Exception.raise(.InvalidType, reason: "Invalid class name.")
+                return
+            }
+        }
+    }
+
     /**
      Append elements.
 
      - parameter elements: The elements to be appended.
      */
     func appendElements(elements: [Element]) {
-        /* TODO: validate that all elements should have valid class name. */
+        validateClassName(elements)
+
         value = value + elements
     }
 
