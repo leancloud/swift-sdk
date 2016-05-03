@@ -301,13 +301,7 @@ public class LCObject: LCType {
      - returns: The result of saving request.
      */
     public func save() -> BooleanResult {
-        var result: BooleanResult!
-
-        synchronizeAction {
-            result = BooleanResult(response: ObjectUpdater.save(self))
-        }
-
-        return result
+        return BooleanResult(response: ObjectUpdater.save(self))
     }
 
     /**

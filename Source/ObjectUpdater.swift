@@ -162,21 +162,22 @@ class ObjectUpdater {
      - returns: The response of request.
      */
     static func save(object: LCObject) -> Response {
+        var response: Response!
+
         object.validateBeforeSaving()
-
-        var response = saveNewbornOrphans(object)
-
-        guard response.isSuccess else {
-            return response
-        }
-
-        /* Now, all newborn orphan objects should saved. We can save the object family safely. */
 
         let family = ObjectProfiler.family(object)
 
-        let requests = batchRequests(family)
+        LCObject.synchronizeAction(Array(family)) {
+            response = saveNewbornOrphans(object)
 
-        response = sendBatchRequests(requests, family)
+            guard response.isSuccess else { return }
+
+            /* Now, all newborn orphan objects should saved. We can save the object family safely. */
+            let requests = batchRequests(family)
+
+            response = sendBatchRequests(requests, family)
+        }
 
         return response
     }
