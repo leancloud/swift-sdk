@@ -157,6 +157,9 @@ public class LCObject: LCType {
         actionLock.unlock()
     }
 
+    /// Dispatch queue of action on a batch of objects.
+    static let batchActionQueue = dispatch_queue_create("LeanCloud.BatchAction", DISPATCH_QUEUE_SERIAL)
+
     /**
      Synchronize an action on a group of objects.
 
@@ -164,11 +167,15 @@ public class LCObject: LCType {
      - parameter action:  The action to be synchronized.
      */
     static func synchronizeAction(objects: [LCObject], _ action: () -> Void) {
-        let locks = objects.unique { $0 === $1 }.map { $0.actionLock }
+        let objects = objects.unique { $0 === $1 }
+        let actionLocks = objects.map { $0.actionLock }
 
-        locks.forEach { $0.lock() }
-        action()
-        locks.forEach { $0.unlock() }
+        /* Dispatch in serial queue to avoid dead lock due to two threads wait lock each other. */
+        dispatch_sync(batchActionQueue) {
+            actionLocks.forEach { $0.lock() }
+            action()
+            actionLocks.forEach { $0.unlock() }
+        }
     }
 
     /**
