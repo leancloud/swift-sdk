@@ -55,6 +55,10 @@ public final class LCRelation: LCType, SequenceType {
         return value.generate()
     }
 
+    override class func operationReducerType() -> OperationReducer.Type {
+        return OperationReducer.Relation.self
+    }
+
     override func forEachChild(body: (child: LCType) -> Void) {
         value.forEach { body(child: $0) }
     }
