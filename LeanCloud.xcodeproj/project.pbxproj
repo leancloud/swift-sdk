@@ -41,6 +41,7 @@
 		83ACD2701C819DA400F7E2DE /* LCDictionary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83ACD26F1C819DA400F7E2DE /* LCDictionary.swift */; };
 		83D0DE6F1CC7B3FF00FC204E /* QueryTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83D0DE6E1CC7B3FF00FC204E /* QueryTestCase.swift */; };
 		83D592311CD8871E007177C5 /* Exception.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83D592301CD8871E007177C5 /* Exception.swift */; };
+		83D5923C1CD887CE007177C5 /* XCTestCase+Exception.m in Sources */ = {isa = PBXBuildFile; fileRef = 83D5923B1CD887CE007177C5 /* XCTestCase+Exception.m */; };
 		83FAF0931CC4D1E400A84063 /* ObjectTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83FAF0921CC4D1E400A84063 /* ObjectTestCase.swift */; };
 		83FAF09E1CC5D85B00A84063 /* Query.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83FAF09D1CC5D85B00A84063 /* Query.swift */; };
 /* End PBXBuildFile section */
@@ -142,6 +143,9 @@
 		83ACD26F1C819DA400F7E2DE /* LCDictionary.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LCDictionary.swift; sourceTree = "<group>"; };
 		83D0DE6E1CC7B3FF00FC204E /* QueryTestCase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QueryTestCase.swift; sourceTree = "<group>"; };
 		83D592301CD8871E007177C5 /* Exception.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Exception.swift; sourceTree = "<group>"; };
+		83D5923A1CD887CE007177C5 /* XCTestCase+Exception.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "XCTestCase+Exception.h"; sourceTree = "<group>"; };
+		83D5923B1CD887CE007177C5 /* XCTestCase+Exception.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "XCTestCase+Exception.m"; sourceTree = "<group>"; };
+		83D5923D1CD88846007177C5 /* BridgingHeader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BridgingHeader.h; sourceTree = "<group>"; };
 		83FAF0921CC4D1E400A84063 /* ObjectTestCase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ObjectTestCase.swift; sourceTree = "<group>"; };
 		83FAF09D1CC5D85B00A84063 /* Query.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Query.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -197,6 +201,8 @@
 		8342FCC91C7B13A700C3CF15 /* LeanCloudTests */ = {
 			isa = PBXGroup;
 			children = (
+				83D592391CD887CE007177C5 /* Exception */,
+				83D5923D1CD88846007177C5 /* BridgingHeader.h */,
 				8342FCCA1C7B13A700C3CF15 /* BaseTestCase.swift */,
 				83FAF0921CC4D1E400A84063 /* ObjectTestCase.swift */,
 				83D0DE6E1CC7B3FF00FC204E /* QueryTestCase.swift */,
@@ -271,6 +277,15 @@
 				83451EAB1CAEBAFE00A378D7 /* LCFile.swift */,
 			);
 			path = DataType;
+			sourceTree = "<group>";
+		};
+		83D592391CD887CE007177C5 /* Exception */ = {
+			isa = PBXGroup;
+			children = (
+				83D5923A1CD887CE007177C5 /* XCTestCase+Exception.h */,
+				83D5923B1CD887CE007177C5 /* XCTestCase+Exception.m */,
+			);
+			path = Exception;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -478,6 +493,7 @@
 			files = (
 				83FAF0931CC4D1E400A84063 /* ObjectTestCase.swift in Sources */,
 				8342FCCB1C7B13A700C3CF15 /* BaseTestCase.swift in Sources */,
+				83D5923C1CD887CE007177C5 /* XCTestCase+Exception.m in Sources */,
 				83D0DE6F1CC7B3FF00FC204E /* QueryTestCase.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -626,6 +642,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = cn.leancloud.LeanCloudTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OBJC_BRIDGING_HEADER = LeanCloudTests/BridgingHeader.h;
 			};
 			name = Debug;
 		};
@@ -636,6 +653,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = cn.leancloud.LeanCloudTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OBJC_BRIDGING_HEADER = LeanCloudTests/BridgingHeader.h;
 			};
 			name = Release;
 		};
