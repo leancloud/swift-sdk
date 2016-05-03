@@ -303,9 +303,11 @@ class QueryTestCase: BaseTestCase {
 
     func testMatchedQuery() {
         let object   = sharedObject
+        let child    = sharedChild
         let query    = Query(className: TestObject.className())
         let subQuery = Query(className: TestObject.className())
 
+        subQuery.whereKey("objectId", .EqualTo(value: child.objectId!))
         subQuery.whereKey("stringField", .EqualTo(value: LCString("child")))
 
         query.whereKey("objectId", .EqualTo(value: object.objectId!))
