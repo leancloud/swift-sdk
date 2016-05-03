@@ -253,4 +253,12 @@ class ObjectTestCase: BaseTestCase {
         }
     }
 
+    func testInvalidType() {
+        let object = TestObject()
+
+        XCTAssertThrowsException({object.set("nonExisted", value: nil)})
+        XCTAssertThrowsException({object.set("stringField", value: LCNumber(1))})
+
+        object.set("objectField", value: TestObject())
+    }
 }
