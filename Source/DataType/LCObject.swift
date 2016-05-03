@@ -153,8 +153,8 @@ public class LCObject: LCType {
      */
     func synchronizeAction(action: () -> Void) {
         actionLock.lock()
+        defer { actionLock.unlock() }
         action()
-        actionLock.unlock()
     }
 
     /// Dispatch queue of action on a batch of objects.
@@ -173,8 +173,8 @@ public class LCObject: LCType {
         /* Dispatch in serial queue to avoid dead lock due to two threads wait lock each other. */
         dispatch_sync(batchActionQueue) {
             actionLocks.forEach { $0.lock() }
+            defer { actionLocks.forEach { $0.unlock() } }
             action()
-            actionLocks.forEach { $0.unlock() }
         }
     }
 
