@@ -276,20 +276,14 @@ class ObjectProfiler {
 
      - returns: true if object has newborn orphan object, false otherwise.
      */
-    static func deepestNewbornOrphans(object: LCType, parent: LCType?, inout visited: Set<LCObject>, inout output: Set<LCObject>) -> Bool {
+    static func deepestNewbornOrphans(object: LCType, parent: LCType?, inout output: Set<LCObject>) -> Bool {
         var hasNewbornOrphan = false
 
         switch object {
         case let object as LCObject:
-            if visited.contains(object) {
-                /* TODO: Throw an exception that objects are twisted together. */
-            } else {
-                visited.insert(object)
-            }
-
             iterateProperties(object) { (_, value) in
                 if let value = value {
-                    if deepestNewbornOrphans(value, parent: object, visited: &visited, output: &output) {
+                    if deepestNewbornOrphans(value, parent: object, output: &output) {
                         hasNewbornOrphan = true
                     }
                 }
@@ -306,7 +300,7 @@ class ObjectProfiler {
             }
         default:
             object.forEachChild { child in
-                if deepestNewbornOrphans(child, parent: object, visited: &visited, output: &output) {
+                if deepestNewbornOrphans(child, parent: object, output: &output) {
                     hasNewbornOrphan = true
                 }
             }
@@ -324,9 +318,8 @@ class ObjectProfiler {
      */
     static func deepestNewbornOrphans(object: LCObject) -> Set<LCObject> {
         var output: Set<LCObject> = []
-        var visited: Set<LCObject> = []
 
-        deepestNewbornOrphans(object, parent: nil, visited: &visited, output: &output)
+        deepestNewbornOrphans(object, parent: nil, output: &output)
         output.remove(object)
 
         return output
