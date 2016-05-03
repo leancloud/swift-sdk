@@ -72,7 +72,7 @@ public final class LCNumber: LCType, IntegerLiteralConvertible, FloatLiteralConv
 
     override func add(another: LCType?) -> LCType? {
         guard let another = another as? LCNumber else {
-            /* TODO: throw an exception that two type cannot be added. */
+            Exception.raise(.InvalidType, reason: "Number expected.")
             return nil
         }
 

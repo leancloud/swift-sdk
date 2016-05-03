@@ -232,7 +232,7 @@ final public class Query {
      */
     func validateClassName(query: Query) {
         guard query.className == className else {
-            /* TODO: throw an exception that two query classes are not equal. */
+            Exception.raise(.Inconsistency, reason: "Different class names.")
             return
         }
     }

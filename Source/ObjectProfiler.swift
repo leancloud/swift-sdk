@@ -140,7 +140,7 @@ class ObjectProfiler {
 
         /* The property name must be lowercase prefixed, or synthesization will be ambiguous. */
         if firstLetter.lowercaseString != firstLetter {
-            /* TODO: throw an exception. */
+            Exception.raise(.Inconsistency, reason: "Property name must be prefixed by lowercase for unambiguous synthesization.")
         }
 
         class_replaceMethod(aClass, Selector(setterName), unsafeBitCast(self.propertySetter, IMP.self), "v@:@")
@@ -194,7 +194,8 @@ class ObjectProfiler {
      */
     static func validateType(object: LCObject, propertyName: String, type: LCType.Type) {
         guard matchType(object, propertyName: propertyName, type: type) else {
-            /* TODO: throw an exception that types are mismatched. */
+            let objectClassName = class_getName(type)
+            Exception.raise(.InvalidType, reason: String(format: "No such a property with name \"%@\" and type \"%s\".", propertyName, objectClassName))
             return
         }
     }
@@ -366,7 +367,7 @@ class ObjectProfiler {
                 result.append(object)
             }
         case 1: /* Visiting */
-            /* TODO: throw an exception that object has circular reference. */
+            Exception.raise(.Inconsistency, reason: "Circular reference.")
             break
         default: /* Visited */
             break
@@ -427,7 +428,7 @@ class ObjectProfiler {
             }
             visitStatusTable[key] = 2
         case 1: /* Visiting */
-            /* TODO: throw an exception that object has circular reference. */
+            Exception.raise(.Inconsistency, reason: "Circular reference.")
             break
         default: /* Visited */
             break
@@ -569,7 +570,7 @@ class ObjectProfiler {
             } else if let number = JSONValue as? Double {
                 return LCNumber(number)
             }
-            /* TODO: throw an exception that object can not be recognized. */
+            Exception.raise(.InvalidType, reason: "Unrecognized object.")
             return LCType()
         }
     }

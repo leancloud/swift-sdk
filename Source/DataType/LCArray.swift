@@ -107,7 +107,7 @@ public final class LCArray: LCType, SequenceType, ArrayLiteralConvertible {
 
     override func add(another: LCType?, unique: Bool) -> LCType? {
         guard let another = another as? LCArray else {
-            /* TODO: throw an exception that one type cannot be appended to another type. */
+            Exception.raise(.InvalidType, reason: "Array expected.")
             return nil
         }
 
@@ -118,7 +118,7 @@ public final class LCArray: LCType, SequenceType, ArrayLiteralConvertible {
 
     override func subtract(another: LCType?) -> LCType? {
         guard let another = another as? LCArray else {
-            /* TODO: throw an exception that one type cannot be appended to another type. */
+            Exception.raise(.InvalidType, reason: "Array expected.")
             return nil
         }
 

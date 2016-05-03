@@ -86,7 +86,7 @@ class ObjectUpdater {
     private static func validateObjectId(objects: Set<LCObject>) {
         objects.forEach { object in
             if object.objectId == nil {
-                /* TODO: throw an exception that object has no object id. */
+                Exception.raise(.NotFound, reason: "Object ID not found.")
             }
         }
     }

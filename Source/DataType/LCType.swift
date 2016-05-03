@@ -62,7 +62,7 @@ public class LCType: NSObject, NSCopying {
     }
 
     var JSONValue: AnyObject? {
-        /* TODO: throw an exception that current type has no JSON representation. */
+        Exception.raise(.InvalidType, reason: "No JSON representation.")
         return nil
     }
 
@@ -72,7 +72,7 @@ public class LCType: NSObject, NSCopying {
     }
 
     class func instance() -> LCType? {
-        /* TODO: throw an exception that current type cannot be instantiated. */
+        Exception.raise(.InvalidType, reason: "Cannot be instantiated.")
         return nil
     }
 
@@ -119,22 +119,21 @@ public class LCType: NSObject, NSCopying {
     // MARK: Arithmetic
 
     func add(another: LCType?) -> LCType? {
-        /* TODO: throw an exception that two types cannot be added. */
-        return nil
+        return add(another, unique: false)
     }
 
     func add(another: LCType?, unique: Bool) -> LCType? {
-        /* TODO: throw an exception that two types cannot be added by unique. */
+        Exception.raise(.InvalidType, reason: "Two types cannot be added.")
         return nil
     }
 
     func subtract(another: LCType?) -> LCType? {
-        /* TODO: throw an exception that two types cannot be subtracted. */
+        Exception.raise(.InvalidType, reason: "Two types cannot be subtracted.")
         return nil
     }
 
     func union(another: LCType?) -> LCType? {
-        /* TODO: throw an exception that two types cannot be unioned. */
+        Exception.raise(.InvalidType, reason: "Two types cannot be unioned.")
         return nil
     }
 }

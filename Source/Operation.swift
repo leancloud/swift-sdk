@@ -99,7 +99,7 @@ class OperationHub {
         let (key, value) = (operation.key, operation.value)
 
         guard ObjectProfiler.hasProperty(object, propertyName: key) else {
-            /* TODO: throw an exception that object has no such a property. */
+            Exception.raise(.NotFound, reason: String(format: "No such a property named \"%@\".", key))
             return
         }
 
@@ -268,7 +268,7 @@ class OperationReducer {
         let operationNames = self.dynamicType.validOperationNames()
 
         guard operationNames.contains(operation.name) else {
-            /* TODO: throw an exception that current reducer cannot reduce operation. */
+            Exception.raise(.InvalidType, reason: "Invalid operation type.")
             return
         }
     }
@@ -279,7 +279,7 @@ class OperationReducer {
      - parameter operation: The operation to be reduced.
      */
     func reduce(operation: Operation) {
-        /* TODO: throw an exception that current reducer cannot reduce operation. */
+        Exception.raise(.InvalidType, reason: "Operation cannot be reduced.")
     }
 
     /**

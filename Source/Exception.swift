@@ -11,6 +11,8 @@ import Foundation
 class Exception {
     enum Name: String {
         case InvalidType
+        case Inconsistency
+        case NotFound
     }
 
     static func raise(name: String, reason: String? = nil, userInfo: [NSObject: AnyObject]? = nil) {
