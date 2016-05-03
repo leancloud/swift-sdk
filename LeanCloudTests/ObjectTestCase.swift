@@ -21,6 +21,8 @@ class ObjectTestCase: BaseTestCase {
         super.tearDown()
     }
 
+    var observed = false
+
     func testSaveObject() {
         let object = TestObject()
 
@@ -226,6 +228,29 @@ class ObjectTestCase: BaseTestCase {
         XCTAssertTrue(LCObject.delete([object1, object2]).isSuccess)
         XCTAssertFalse(shadow1.save().isSuccess)
         XCTAssertFalse(shadow2.save().isSuccess)
+    }
+
+    func testKVO() {
+        let object = TestObject()
+
+        object.addObserver( self, forKeyPath: "stringField", options: .New, context: nil)
+        object.stringField = "yet another value"
+        object.removeObserver(self, forKeyPath: "stringField")
+
+        XCTAssertTrue(observed)
+    }
+
+    override func observeValueForKeyPath(
+        keyPath: String?,
+        ofObject object: AnyObject?,
+        change: [String : AnyObject]?,
+        context: UnsafeMutablePointer<Void>)
+    {
+        if let newValue = change?["new"] as? LCString {
+            if newValue == LCString("yet another value") {
+                observed = true
+            }
+        }
     }
 
 }

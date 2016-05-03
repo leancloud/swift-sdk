@@ -222,7 +222,9 @@ class ObjectProfiler {
             }
         }
 
+        object.willChangeValueForKey(propertyName)
         Runtime.setInstanceVariable(object, propertyName, finalValue)
+        object.didChangeValueForKey(propertyName)
     }
 
     /**
