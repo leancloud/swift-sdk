@@ -142,7 +142,7 @@ public class LCObject: LCType {
 
      - returns: REST endpoint of current type.
      */
-    public class func classEndpoint() -> String {
+    class func classEndpoint() -> String {
         return "classes/\(className())"
     }
 
