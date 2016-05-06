@@ -24,10 +24,6 @@ func - (left: LCType, right: LCType?) -> LCType? {
     return left.subtract(right)
 }
 
-func & (left: LCType, right: LCType?) -> LCType? {
-    return left.union(right)
-}
-
 /**
  LeanCloud abstract data type.
  
@@ -86,11 +82,6 @@ public class LCType: NSObject, NSCopying {
 
     func subtract(another: LCType?) -> LCType? {
         Exception.raise(.InvalidType, reason: "Two types cannot be subtracted.")
-        return nil
-    }
-
-    func union(another: LCType?) -> LCType? {
-        Exception.raise(.InvalidType, reason: "Two types cannot be unioned.")
         return nil
     }
 }
