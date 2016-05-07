@@ -25,6 +25,7 @@
 		835F52EB1CCBC0D7008EE3AC /* LCNull.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F52EA1CCBC0D7008EE3AC /* LCNull.swift */; };
 		835F53011CCF0CF5008EE3AC /* Result.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F53001CCF0CF5008EE3AC /* Result.swift */; };
 		835F530A1CCF1620008EE3AC /* Error.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F53091CCF1620008EE3AC /* Error.swift */; };
+		836459C31CDE377800AD98A5 /* LCRole.swift in Sources */ = {isa = PBXBuildFile; fileRef = 836459C21CDE377800AD98A5 /* LCRole.swift */; };
 		83724CCA1C7B54A700E59BED /* LeanCloud.h in Headers */ = {isa = PBXBuildFile; fileRef = 83724CC91C7B54A700E59BED /* LeanCloud.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		837753541CA3D9D300C2053D /* Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 837753531CA3D9D300C2053D /* Extension.swift */; };
 		837753561CA3DB8B00C2053D /* LCRelation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 837753551CA3DB8B00C2053D /* LCRelation.swift */; };
@@ -130,6 +131,7 @@
 		835F52EA1CCBC0D7008EE3AC /* LCNull.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LCNull.swift; sourceTree = "<group>"; };
 		835F53001CCF0CF5008EE3AC /* Result.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Result.swift; sourceTree = "<group>"; };
 		835F53091CCF1620008EE3AC /* Error.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Error.swift; sourceTree = "<group>"; };
+		836459C21CDE377800AD98A5 /* LCRole.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LCRole.swift; sourceTree = "<group>"; };
 		83724CC91C7B54A700E59BED /* LeanCloud.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LeanCloud.h; sourceTree = "<group>"; };
 		837753531CA3D9D300C2053D /* Extension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Extension.swift; sourceTree = "<group>"; };
 		837753551CA3DB8B00C2053D /* LCRelation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LCRelation.swift; sourceTree = "<group>"; };
@@ -283,6 +285,7 @@
 				83451EA91CAEBA9600A378D7 /* LCDate.swift */,
 				83451EAB1CAEBAFE00A378D7 /* LCFile.swift */,
 				839A8B951CDDACD400840831 /* LCUser.swift */,
+				836459C21CDE377800AD98A5 /* LCRole.swift */,
 				83BC11CC1CDD768500D7E7A6 /* LCACL.swift */,
 			);
 			path = DataType;
@@ -478,6 +481,7 @@
 				83ACD25C1C8197BE00F7E2DE /* LCObject.swift in Sources */,
 				830B0F631C7C127700D9FC41 /* LeanCloud.swift in Sources */,
 				83ACD2701C819DA400F7E2DE /* LCDictionary.swift in Sources */,
+				836459C31CDE377800AD98A5 /* LCRole.swift in Sources */,
 				83451E491CAD0E2300A378D7 /* ObjectUpdater.swift in Sources */,
 				837753541CA3D9D300C2053D /* Extension.swift in Sources */,
 				83451E201CABB63600A378D7 /* Request.swift in Sources */,
