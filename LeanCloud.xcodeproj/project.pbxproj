@@ -39,6 +39,8 @@
 		83ACD26C1C819D6900F7E2DE /* LCString.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83ACD26B1C819D6900F7E2DE /* LCString.swift */; };
 		83ACD26E1C819D8000F7E2DE /* LCArray.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83ACD26D1C819D8000F7E2DE /* LCArray.swift */; };
 		83ACD2701C819DA400F7E2DE /* LCDictionary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83ACD26F1C819DA400F7E2DE /* LCDictionary.swift */; };
+		83BC11CD1CDD768500D7E7A6 /* LCACL.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83BC11CC1CDD768500D7E7A6 /* LCACL.swift */; };
+		83BC11D61CDD76E900D7E7A6 /* ACLTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83BC11D51CDD76E900D7E7A6 /* ACLTestCase.swift */; };
 		83D0DE6F1CC7B3FF00FC204E /* QueryTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83D0DE6E1CC7B3FF00FC204E /* QueryTestCase.swift */; };
 		83D592311CD8871E007177C5 /* Exception.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83D592301CD8871E007177C5 /* Exception.swift */; };
 		83D5923C1CD887CE007177C5 /* XCTestCase+Exception.m in Sources */ = {isa = PBXBuildFile; fileRef = 83D5923B1CD887CE007177C5 /* XCTestCase+Exception.m */; };
@@ -141,6 +143,8 @@
 		83ACD26B1C819D6900F7E2DE /* LCString.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LCString.swift; sourceTree = "<group>"; };
 		83ACD26D1C819D8000F7E2DE /* LCArray.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LCArray.swift; sourceTree = "<group>"; };
 		83ACD26F1C819DA400F7E2DE /* LCDictionary.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LCDictionary.swift; sourceTree = "<group>"; };
+		83BC11CC1CDD768500D7E7A6 /* LCACL.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LCACL.swift; sourceTree = "<group>"; };
+		83BC11D51CDD76E900D7E7A6 /* ACLTestCase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ACLTestCase.swift; sourceTree = "<group>"; };
 		83D0DE6E1CC7B3FF00FC204E /* QueryTestCase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QueryTestCase.swift; sourceTree = "<group>"; };
 		83D592301CD8871E007177C5 /* Exception.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Exception.swift; sourceTree = "<group>"; };
 		83D5923A1CD887CE007177C5 /* XCTestCase+Exception.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "XCTestCase+Exception.h"; sourceTree = "<group>"; };
@@ -204,6 +208,7 @@
 				83D592391CD887CE007177C5 /* Exception */,
 				83D5923D1CD88846007177C5 /* BridgingHeader.h */,
 				8342FCCA1C7B13A700C3CF15 /* BaseTestCase.swift */,
+				83BC11D51CDD76E900D7E7A6 /* ACLTestCase.swift */,
 				83FAF0921CC4D1E400A84063 /* ObjectTestCase.swift */,
 				83D0DE6E1CC7B3FF00FC204E /* QueryTestCase.swift */,
 				8342FCCC1C7B13A700C3CF15 /* Info.plist */,
@@ -275,6 +280,7 @@
 				83451EA71CAEBA8900A378D7 /* LCData.swift */,
 				83451EA91CAEBA9600A378D7 /* LCDate.swift */,
 				83451EAB1CAEBAFE00A378D7 /* LCFile.swift */,
+				83BC11CC1CDD768500D7E7A6 /* LCACL.swift */,
 			);
 			path = DataType;
 			sourceTree = "<group>";
@@ -465,6 +471,7 @@
 				83451E431CAC23E900A378D7 /* MD5.swift in Sources */,
 				834E59C21C7ED06A009762AC /* Operation.swift in Sources */,
 				830046EA1C7C92B8004C88A7 /* ObjectProfiler.swift in Sources */,
+				83BC11CD1CDD768500D7E7A6 /* LCACL.swift in Sources */,
 				83ACD25C1C8197BE00F7E2DE /* LCObject.swift in Sources */,
 				830B0F631C7C127700D9FC41 /* LeanCloud.swift in Sources */,
 				83ACD2701C819DA400F7E2DE /* LCDictionary.swift in Sources */,
@@ -495,6 +502,7 @@
 				8342FCCB1C7B13A700C3CF15 /* BaseTestCase.swift in Sources */,
 				83D5923C1CD887CE007177C5 /* XCTestCase+Exception.m in Sources */,
 				83D0DE6F1CC7B3FF00FC204E /* QueryTestCase.swift in Sources */,
+				83BC11D61CDD76E900D7E7A6 /* ACLTestCase.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
