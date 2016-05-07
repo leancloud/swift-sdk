@@ -47,6 +47,52 @@ public enum BooleanResult: ResultType {
     }
 }
 
+public enum ObjectResult<T: LCObject>: ResultType {
+    case Success(object: T)
+    case Failure(error: Error)
+
+    public var error: Error? {
+        switch self {
+        case .Success:
+            return nil
+        case let .Failure(error):
+            return error
+        }
+    }
+
+    public var isSuccess: Bool {
+        switch self {
+        case .Success: return true
+        case .Failure: return false
+        }
+    }
+
+    public var isFailure: Bool {
+        return !isSuccess
+    }
+
+    public var object: T? {
+        switch self {
+        case let .Success(object):
+            return object
+        case .Failure:
+            return nil
+        }
+    }
+
+    init(response: Response) {
+        if let error = response.error {
+            self = .Failure(error: error)
+        } else {
+            let object = T()
+            if let value = response.value {
+                ObjectProfiler.updateObject(object, value)
+            }
+            self = .Success(object: object)
+        }
+    }
+}
+
 public enum QueryResult<T: LCObject>: ResultType {
     case Success(objects: [T])
     case Failure(error: Error)

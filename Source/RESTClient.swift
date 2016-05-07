@@ -93,15 +93,17 @@ class RESTClient {
     }
 
     /// Common REST request headers.
-    static var commonHeaders: [String:String] {
-        let headers: [String:String] = [
+    static var commonHeaders: [String: String] {
+        var headers: [String: String] = [
             HeaderFieldName.ID:        Configuration.sharedInstance.applicationID,
             HeaderFieldName.Signature: self.signature,
             HeaderFieldName.UserAgent: self.userAgent,
             HeaderFieldName.Accept:    "application/json"
         ]
 
-        /* TODO: Add user session and production mode fields etc. */
+        if let sessionToken = LCUser.current?.sessionToken {
+            headers[HeaderFieldName.Session] = sessionToken.value
+        }
 
         return headers
     }

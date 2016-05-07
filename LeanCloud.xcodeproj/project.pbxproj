@@ -31,6 +31,7 @@
 		837753581CA4CB0300C2053D /* Utility.swift in Sources */ = {isa = PBXBuildFile; fileRef = 837753571CA4CB0300C2053D /* Utility.swift */; };
 		837E04FB1CABA694008CC3FF /* Alamofire.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 837E04EE1CABA688008CC3FF /* Alamofire.framework */; };
 		837E05001CABAAB4008CC3FF /* RESTClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 837E04FF1CABAAB4008CC3FF /* RESTClient.swift */; };
+		839A8B961CDDACD400840831 /* LCUser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 839A8B951CDDACD400840831 /* LCUser.swift */; };
 		83A566DC1CA1414700E2EB12 /* BatchRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83A566DB1CA1414700E2EB12 /* BatchRequest.swift */; };
 		83ACD25C1C8197BE00F7E2DE /* LCObject.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83ACD25B1C8197BE00F7E2DE /* LCObject.swift */; };
 		83ACD25E1C81981F00F7E2DE /* LCType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83ACD25D1C81981F00F7E2DE /* LCType.swift */; };
@@ -135,6 +136,7 @@
 		837753571CA4CB0300C2053D /* Utility.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Utility.swift; sourceTree = "<group>"; };
 		837E04E31CABA688008CC3FF /* Alamofire.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Alamofire.xcodeproj; path = Alamofire/Alamofire.xcodeproj; sourceTree = "<group>"; };
 		837E04FF1CABAAB4008CC3FF /* RESTClient.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RESTClient.swift; sourceTree = "<group>"; };
+		839A8B951CDDACD400840831 /* LCUser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LCUser.swift; sourceTree = "<group>"; };
 		83A566DB1CA1414700E2EB12 /* BatchRequest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BatchRequest.swift; sourceTree = "<group>"; };
 		83ACD25B1C8197BE00F7E2DE /* LCObject.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LCObject.swift; sourceTree = "<group>"; };
 		83ACD25D1C81981F00F7E2DE /* LCType.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LCType.swift; sourceTree = "<group>"; };
@@ -280,6 +282,7 @@
 				83451EA71CAEBA8900A378D7 /* LCData.swift */,
 				83451EA91CAEBA9600A378D7 /* LCDate.swift */,
 				83451EAB1CAEBAFE00A378D7 /* LCFile.swift */,
+				839A8B951CDDACD400840831 /* LCUser.swift */,
 				83BC11CC1CDD768500D7E7A6 /* LCACL.swift */,
 			);
 			path = DataType;
@@ -481,6 +484,7 @@
 				83ACD26E1C819D8000F7E2DE /* LCArray.swift in Sources */,
 				835F53011CCF0CF5008EE3AC /* Result.swift in Sources */,
 				837753581CA4CB0300C2053D /* Utility.swift in Sources */,
+				839A8B961CDDACD400840831 /* LCUser.swift in Sources */,
 				83451EAC1CAEBAFE00A378D7 /* LCFile.swift in Sources */,
 				83D592311CD8871E007177C5 /* Exception.swift in Sources */,
 				835F530A1CCF1620008EE3AC /* Error.swift in Sources */,
