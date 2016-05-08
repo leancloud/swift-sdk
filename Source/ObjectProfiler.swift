@@ -9,41 +9,76 @@
 import Foundation
 
 class ObjectProfiler {
-    /// LCObject class table.
-    /// A dictionary of LCObject classes indexed by name.
+    /// Registered object class table indexed by class name.
     static var objectClassTable: [String: LCObject.Type] = [:]
 
     /**
-     Add an LCObject class.
+     Property list table indexed by synthesized class identifier number.
 
-     - parameter aClass: An LCObject class.
+     - note: Any properties declared by superclass are not included in each property list.
      */
-    static func addObjectClass(aClass: LCObject.Type) {
-        objectClassTable[aClass.className()] = aClass
+    static var propertyListTable: [UInt: [objc_property_t]] = [:]
+
+    /**
+     Cache an object class.
+
+     - parameter aClass: The class to be cached.
+     */
+    static func cache(objectClass objectClass: LCObject.Type) {
+        objectClassTable[objectClass.className()] = objectClass
+    }
+
+    /**
+     Get cached properties for class.
+
+     - parameter aClass: The class of properties.
+     */
+    static func cachedProperties(aClass: AnyClass) -> [objc_property_t]? {
+        return propertyListTable[ObjectIdentifier(aClass).uintValue]
+    }
+
+    /**
+     Cache a property list.
+
+     - parameter properties: The property list to be cached.
+     - parameter aClass:     The class of property list.
+     */
+    static func cache(properties properties: [objc_property_t], _ aClass: AnyClass) {
+        propertyListTable[ObjectIdentifier(aClass).uintValue] = properties
+    }
+
+    /**
+     Register an object class.
+
+     - parameter aClass: The object class to be registered.
+     */
+    static func registerClass(aClass: LCObject.Type) {
+        synthesizeProperty(aClass)
+        cache(objectClass: aClass)
     }
 
     /**
      Register LCObject and its subclasses.
+
+     This method will scan the loaded classes list at runtime to find out LCObject subclasses.
      */
     static func registerClasses() {
         var classes = [LCObject.self]
+        let subclasses = Runtime.subclasses(LCObject.self) as! [LCObject.Type]
 
-        classes.appendContentsOf(Runtime.subclasses(LCObject.self) as! [LCObject.Type])
+        classes.appendContentsOf(subclasses)
         classes.forEach { registerClass($0) }
-    }
-
-    static func registerClass(aClass: LCObject.Type) {
-        synthesizeProperties(aClass)
-        addObjectClass(aClass)
     }
 
     /**
      Synthesize all non-computed properties for class.
 
-     - parameter aClass: Target class.
+     - parameter aClass: The class need to be synthesized.
      */
-    static func synthesizeProperties(aClass: AnyClass) {
-        synthesizableProperties(aClass).forEach { synthesizeProperty($0, aClass) }
+    static func synthesizeProperty(aClass: AnyClass) {
+        let properties = synthesizableProperties(aClass)
+        properties.forEach { synthesizeProperty($0, aClass) }
+        cache(properties: properties, aClass)
     }
 
     /**
@@ -54,10 +89,44 @@ class ObjectProfiler {
      * It is a non-computed property.
      * It is a LeanCloud data type property.
 
-     - parameter aClass: Target class.
+     - note: Any synthesizable properties declared by superclass are not included.
+
+     - parameter aClass: The class where the synthesizable properties will be found.
+
+     - returns: An array of synthesizable properties.
      */
     static func synthesizableProperties(aClass: AnyClass) -> [objc_property_t] {
         return Runtime.nonComputedProperties(aClass).filter { isLCType(property: $0) }
+    }
+
+    /**
+     Find all synthesizable properties of an object.
+
+     - note: All synthesizable properties declared by superclass are included.
+
+     - parameter object: The object where the synthesizable properties will be found.
+
+     - returns: An array of synthesizable properties.
+     */
+    static func synthesizableProperties(object: LCObject) -> [objc_property_t] {
+        var propertyTable: [String: objc_property_t] = [:]
+        var objectClass: AnyClass! = object_getClass(object)
+
+        while objectClass != nil && objectClass != LCType.self {
+            guard let properties = cachedProperties(objectClass) else {
+                Exception.raise(.NotFound, reason: "\(class_getName(objectClass)) not registerd.")
+                break
+            }
+            properties.forEach { property in
+                let propertyName = Runtime.propertyName(property)
+                if propertyTable[propertyName] == nil {
+                    propertyTable[propertyName] = property
+                }
+            }
+            objectClass = class_getSuperclass(objectClass)
+        }
+
+        return Array(propertyTable.values)
     }
 
     /**
@@ -134,14 +203,7 @@ class ObjectProfiler {
      */
     static func synthesizeProperty(property: objc_property_t, _ aClass: AnyClass) {
         let getterName = Runtime.propertyName(property)
-        let setterName = "set\(getterName.firstCapitalizedString):"
-
-        let firstLetter = String(getterName[getterName.startIndex])
-
-        /* The property name must be lowercase prefixed, or synthesization will be ambiguous. */
-        if firstLetter.lowercaseString != firstLetter {
-            Exception.raise(.Inconsistency, reason: "Property name must be prefixed by lowercase for unambiguous synthesization.")
-        }
+        let setterName = "set\(getterName.firstUppercaseString):"
 
         class_replaceMethod(aClass, Selector(setterName), unsafeBitCast(self.propertySetter, IMP.self), "v@:@")
     }
@@ -153,7 +215,7 @@ class ObjectProfiler {
      - parameter block:  A callback block for each property name and property value.
      */
     static func iterateProperties(object: LCObject, block: (String, LCType?) -> ()) {
-        let properties = ObjectProfiler.synthesizableProperties(object_getClass(object))
+        let properties = ObjectProfiler.synthesizableProperties(object)
 
         properties.forEach { (property) in
             let propertyName  = Runtime.propertyName(property)
@@ -669,16 +731,13 @@ class ObjectProfiler {
 
      - returns: A property name correspond to the setter selector.
      */
-    static func propertyName(selector: Selector) -> String {
-        var capitalizedKey = selector.description
+    static func propertyName(setter: Selector) -> String {
+        var propertyName = setter.description
 
-        capitalizedKey = capitalizedKey.substringFromIndex(capitalizedKey.startIndex.advancedBy(3))
-        capitalizedKey = capitalizedKey.substringToIndex(capitalizedKey.endIndex.advancedBy(-1))
+        propertyName = propertyName.substringFromIndex(propertyName.startIndex.advancedBy(3))
+        propertyName = propertyName.substringToIndex(propertyName.endIndex.advancedBy(-1))
 
-        let headString = capitalizedKey.substringToIndex(capitalizedKey.startIndex.advancedBy(1)).lowercaseString
-        let tailString = capitalizedKey.substringFromIndex(capitalizedKey.startIndex.advancedBy(1))
-
-        return "\(headString)\(tailString)"
+        return propertyName
     }
 
     /**
@@ -686,6 +745,12 @@ class ObjectProfiler {
      */
     static let propertySetter: @convention(c) (LCObject!, Selector, LCType?) -> Void = {
         (object: LCObject!, cmd: Selector, value: LCType?) -> Void in
-        object.set(ObjectProfiler.propertyName(cmd), value: value)
+        let key = ObjectProfiler.propertyName(cmd)
+
+        if ObjectProfiler.getLCType(object: object, propertyName: key) == nil {
+            object.set(key.firstLowercaseString, value: value)
+        } else {
+            object.set(key, value: value)
+        }
     }
 }
