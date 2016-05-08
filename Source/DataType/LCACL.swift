@@ -28,6 +28,10 @@ public final class LCACL: LCType {
     /// The key for `write` permission.
     static let writePermissionKey = "write"
 
+    override var JSONValue: AnyObject? {
+        return value
+    }
+
     public override init() {
         super.init()
     }
