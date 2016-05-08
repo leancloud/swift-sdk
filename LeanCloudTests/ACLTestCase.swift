@@ -52,4 +52,11 @@ class ACLTestCase: BaseTestCase {
         XCTAssertEqual(acl.value[roleAccessKey]!, [readKey: true])
     }
 
+    func testPublicACL() {
+        let object = TestObject()
+        object.ACL = LCACL()
+        XCTAssertTrue(object.save().isSuccess)
+        XCTAssertTrue(object.fetch().isFailure)
+    }
+
 }
