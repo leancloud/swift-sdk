@@ -24,7 +24,7 @@ public final class LCRelation: LCType, SequenceType {
         return value.map { (element) in element.JSONValue! }
     }
 
-    public override init() {
+    private override init() {
         super.init()
     }
 
