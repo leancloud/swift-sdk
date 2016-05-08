@@ -22,6 +22,9 @@ public class LCObject: LCType {
     public private(set) dynamic var createdAt: LCDate?
     public private(set) dynamic var updatedAt: LCDate?
 
+    /// Access control lists.
+    public dynamic var ACL: LCACL?
+
     var hasObjectId: Bool {
         return objectId != nil
     }
