@@ -68,13 +68,19 @@ extension String {
         return NSRegularExpression.escapedPatternForString(self)
     }
 
-    var firstCapitalizedString: String {
-        guard !isEmpty else {
-            return self
-        }
+    var firstUppercaseString: String {
+        guard !isEmpty else { return self }
 
         var result = self
         result.replaceRange(startIndex...startIndex, with: String(self[startIndex]).uppercaseString)
+        return result
+    }
+
+    var firstLowercaseString: String {
+        guard !isEmpty else { return self }
+
+        var result = self
+        result.replaceRange(startIndex...startIndex, with: String(self[startIndex]).lowercaseString)
         return result
     }
 }
