@@ -41,8 +41,12 @@ class Runtime {
 
      - returns: All subclasses of given base class.
      */
-    static func subclasses(baseclass: AnyClass?) -> [AnyClass] {
+    static func subclasses(baseclass: AnyClass!) -> [AnyClass] {
         var result = [AnyClass]()
+
+        guard let baseclass = baseclass else {
+            return result
+        }
 
         let count = objc_getClassList(nil, 0)
 
