@@ -16,7 +16,8 @@ public struct Error: ErrorType {
     public let userInfo: UserInfo?
 
     enum InternalErrorCode: Int {
-        case NotFound = 9973
+        case NotFound      = 9973
+        case InvalidType   = 9974
     }
 
     enum ServerErrorCode: Int {

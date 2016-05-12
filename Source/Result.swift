@@ -49,7 +49,10 @@ public enum BooleanResult: ResultType {
     }
 }
 
-public enum ObjectResult<T: LCObject>: ResultType {
+/**
+ Result type for object request.
+ */
+public enum ObjectResult<T: LCType>: ResultType {
     case Success(object: T)
     case Failure(error: Error)
 
@@ -78,14 +81,31 @@ public enum ObjectResult<T: LCObject>: ResultType {
         }
     }
 
+    /**
+     Construct an object result with response.
+
+     If request is successful and the response matches the type parameter of the generic type,
+     the result is .Success with associated object. Otherwise, the result will be .Failure with associated error.
+
+     - parameter response: The response of object request.
+     */
     init(response: Response) {
         if let error = response.error {
             self = .Failure(error: error)
         } else {
-            let object = T()
-            if let value = response.value {
-                ObjectProfiler.updateObject(object, value)
+            guard let value = response.value else {
+                self = .Failure(error: Error(code: .NotFound, reason: "Response data not found."))
+                return
             }
+
+            let any = ObjectProfiler.object(JSONValue: value)
+
+            guard let object = any as? T else {
+                let userInfo = ["response": value, "object": any]
+                self = .Failure(error: Error(code: .InvalidType, reason: "Invalid response object.", userInfo: userInfo))
+                return
+            }
+
             self = .Success(object: object)
         }
     }
