@@ -18,15 +18,20 @@ class Runtime {
      - returns: true or false.
      */
     static func isSubclass(subclass: AnyClass!, superclass: AnyClass!) -> Bool {
-        if subclass == nil {
+        guard let superclass = superclass else {
             return false
         }
 
-        if class_getSuperclass(subclass) == superclass {
-            return true
+        var eachSubclass: AnyClass! = subclass
+
+        while let eachSuperclass = class_getSuperclass(eachSubclass) {
+            if eachSuperclass === superclass {
+                return true
+            }
+            eachSubclass = eachSuperclass
         }
 
-        return isSubclass(class_getSuperclass(subclass), superclass: superclass)
+        return false
     }
 
     /**
