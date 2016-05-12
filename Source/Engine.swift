@@ -15,6 +15,10 @@ public final class Engine {
         return call(function, parameters: nil)
     }
 
+    public static func call<Value: LCType>(function: String, parameters: [String: AnyObject]) -> OptionalObjectResult<Value> {
+        return call(function, parameters: ObjectProfiler.JSONValue(parameters) as? Parameters)
+    }
+
     public static func call<Value: LCType>(function: String, parameters: LCDictionary) -> OptionalObjectResult<Value> {
         return call(function, parameters: ObjectProfiler.JSONValue(parameters) as? Parameters)
     }
