@@ -80,33 +80,37 @@ public enum ObjectResult<T: LCType>: ResultType {
             return nil
         }
     }
+}
 
-    /**
-     Construct an object result with response.
+/**
+ Result type for optional object request.
+ */
+public enum OptionalObjectResult<T: LCType>: ResultType {
+    case Success(object: T?)
+    case Failure(error: Error)
 
-     If request is successful and the response matches the type parameter of the generic type,
-     the result is .Success with associated object. Otherwise, the result will be .Failure with associated error.
+    public var error: Error? {
+        switch self {
+        case .Success:
+            return nil
+        case let .Failure(error):
+            return error
+        }
+    }
 
-     - parameter response: The response of object request.
-     */
-    init(response: Response) {
-        if let error = response.error {
-            self = .Failure(error: error)
-        } else {
-            guard let value = response.value else {
-                self = .Failure(error: Error(code: .NotFound, reason: "Response data not found."))
-                return
-            }
+    public var isSuccess: Bool {
+        switch self {
+        case .Success: return true
+        case .Failure: return false
+        }
+    }
 
-            let any = ObjectProfiler.object(JSONValue: value)
-
-            guard let object = any as? T else {
-                let userInfo = ["response": value, "object": any]
-                self = .Failure(error: Error(code: .InvalidType, reason: "Invalid response object.", userInfo: userInfo))
-                return
-            }
-
-            self = .Success(object: object)
+    public var object: T? {
+        switch self {
+        case let .Success(object):
+            return object
+        case .Failure:
+            return nil
         }
     }
 }
@@ -167,5 +171,49 @@ public enum CountResult: ResultType {
         } else {
             self = .Success(count: response.count)
         }
+    }
+}
+
+extension Response {
+    /**
+     Get object result of response.
+
+     - returns: `.Success` if response has no error and response data has valid type, `.Failure` otherwise.
+     */
+    func objectResult<T: LCType>() -> ObjectResult<T> {
+        if let error = error {
+            return .Failure(error: error)
+        }
+
+        guard let value = value else {
+            return .Failure(error: Error(code: .NotFound, reason: "Response data not found."))
+        }
+
+        let any = ObjectProfiler.object(JSONValue: value)
+
+        guard let object = any as? T else {
+            return .Failure(error: Error(code: .InvalidType, reason: "Invalid response data type.", userInfo: ["response": value, "object": any]))
+        }
+
+        return .Success(object: object)
+    }
+
+    /**
+     Get engine result of response.
+
+     - returns: `.Success` if response has no error, `.Failure` otherwise.
+     */
+    func engineResult<T: LCType>() -> OptionalObjectResult<T> {
+        if let error = error {
+            return .Failure(error: error)
+        }
+
+        guard let result = self["result"] else {
+            return .Success(object: nil)
+        }
+
+        let object = ObjectProfiler.object(JSONValue: result) as? T
+
+        return .Success(object: object)
     }
 }

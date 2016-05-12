@@ -126,7 +126,7 @@ public class LCUser: LCObject {
     public static func logIn<User: LCUser>(sessionToken sessionToken: String) -> ObjectResult<User> {
         let parameters = ["session_token": sessionToken]
         let response   = RESTClient.request(.GET, "\(classEndpoint())/me", parameters: parameters)
-        let result     = ObjectResult<User>(response: response)
+        let result     = response.objectResult() as ObjectResult<User>
 
         if case let .Success(user) = result {
             LCUser.current = user
@@ -144,7 +144,7 @@ public class LCUser: LCObject {
      */
     static func logIn<User: LCUser>(parameters parameters: [String: AnyObject]) -> ObjectResult<User> {
         let response = RESTClient.request(.POST, "login", parameters: parameters)
-        let result   = ObjectResult<User>(response: response)
+        let result   = response.objectResult() as ObjectResult<User>
 
         if case let .Success(user) = result {
             LCUser.current = user
