@@ -14,6 +14,12 @@ public protocol ResultType {
     var isFailure: Bool { get }
 }
 
+extension ResultType {
+    public var isFailure: Bool {
+        return !isSuccess
+    }
+}
+
 public enum BooleanResult: ResultType {
     case Success
     case Failure(error: Error)
@@ -32,10 +38,6 @@ public enum BooleanResult: ResultType {
         case .Success: return true
         case .Failure: return false
         }
-    }
-
-    public var isFailure: Bool {
-        return !isSuccess
     }
 
     init(response: Response) {
@@ -65,10 +67,6 @@ public enum ObjectResult<T: LCObject>: ResultType {
         case .Success: return true
         case .Failure: return false
         }
-    }
-
-    public var isFailure: Bool {
-        return !isSuccess
     }
 
     public var object: T? {
@@ -113,10 +111,6 @@ public enum QueryResult<T: LCObject>: ResultType {
         }
     }
 
-    public var isFailure: Bool {
-        return !isSuccess
-    }
-
     public var objects: [T]? {
         switch self {
         case let .Success(objects):
@@ -145,10 +139,6 @@ public enum CountResult: ResultType {
         case .Success: return true
         case .Failure: return false
         }
-    }
-
-    public var isFailure: Bool {
-        return !isSuccess
     }
 
     init(response: Response) {
