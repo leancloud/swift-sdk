@@ -203,16 +203,26 @@ extension Response {
 
      - returns: `.Success` if response has no error, `.Failure` otherwise.
      */
-    func engineResult<T: LCType>() -> OptionalResult<T> {
+    func optionalResult<T: LCType>(keyPath: String? = nil) -> OptionalResult<T> {
         if let error = error {
             return .Failure(error: error)
         }
 
-        guard let result = self["result"] else {
+        guard let value = value else {
             return .Success(object: nil)
         }
 
-        let object = ObjectProfiler.object(JSONValue: result) as? T
+        var optionalValue: AnyObject? = value
+
+        if let keyPath = keyPath {
+            optionalValue = value.valueForKeyPath(keyPath)
+        }
+
+        guard let someValue = optionalValue else {
+            return .Success(object: nil)
+        }
+
+        let object = ObjectProfiler.object(JSONValue: someValue) as? T
 
         return .Success(object: object)
     }

@@ -30,6 +30,6 @@ public final class Engine {
     static func call<Value: LCType>(function: String, parameters: Parameters?) -> OptionalResult<Value> {
         let response = RESTClient.request(.POST, "call/\(function)", parameters: parameters)
 
-        return response.engineResult()
+        return response.optionalResult("result")
     }
 }
