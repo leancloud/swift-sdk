@@ -83,9 +83,9 @@ public enum ObjectResult<T: LCType>: ResultType {
 }
 
 /**
- Result type for optional object request.
+ Result type for optional request.
  */
-public enum OptionalObjectResult<T: LCType>: ResultType {
+public enum OptionalResult<T: LCType>: ResultType {
     case Success(object: T?)
     case Failure(error: Error)
 
@@ -203,7 +203,7 @@ extension Response {
 
      - returns: `.Success` if response has no error, `.Failure` otherwise.
      */
-    func engineResult<T: LCType>() -> OptionalObjectResult<T> {
+    func engineResult<T: LCType>() -> OptionalResult<T> {
         if let error = error {
             return .Failure(error: error)
         }

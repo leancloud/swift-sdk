@@ -11,23 +11,23 @@ import Foundation
 public final class Engine {
     typealias Parameters = [String: AnyObject]
 
-    public static func call<Value: LCType>(function: String) -> OptionalObjectResult<Value> {
+    public static func call<Value: LCType>(function: String) -> OptionalResult<Value> {
         return call(function, parameters: nil)
     }
 
-    public static func call<Value: LCType>(function: String, parameters: [String: AnyObject]) -> OptionalObjectResult<Value> {
+    public static func call<Value: LCType>(function: String, parameters: [String: AnyObject]) -> OptionalResult<Value> {
         return call(function, parameters: ObjectProfiler.JSONValue(parameters) as? Parameters)
     }
 
-    public static func call<Value: LCType>(function: String, parameters: LCDictionary) -> OptionalObjectResult<Value> {
+    public static func call<Value: LCType>(function: String, parameters: LCDictionary) -> OptionalResult<Value> {
         return call(function, parameters: ObjectProfiler.JSONValue(parameters) as? Parameters)
     }
 
-    public static func call<Value: LCType>(function: String, parameters: LCObject) -> OptionalObjectResult<Value> {
+    public static func call<Value: LCType>(function: String, parameters: LCObject) -> OptionalResult<Value> {
         return call(function, parameters: ObjectProfiler.JSONValue(parameters) as? Parameters)
     }
 
-    static func call<Value: LCType>(function: String, parameters: Parameters?) -> OptionalObjectResult<Value> {
+    static func call<Value: LCType>(function: String, parameters: Parameters?) -> OptionalResult<Value> {
         let response = RESTClient.request(.POST, "call/\(function)", parameters: parameters)
 
         return response.engineResult()
