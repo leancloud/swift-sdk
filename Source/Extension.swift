@@ -105,3 +105,18 @@ extension CollectionType {
         return result
     }
 }
+
+extension NSThread {
+    func lc_executeBlock(block: () -> Void) {
+        block()
+    }
+
+    func lc_performBlock(block: () -> Void) {
+        if NSThread.currentThread() !== self {
+            let block = unsafeBitCast(block as @convention(block) () -> Void, AnyObject.self)
+            self.performSelector(#selector(lc_executeBlock(_:)), onThread: self, withObject: block, waitUntilDone: true)
+        } else {
+            block()
+        }
+    }
+}
