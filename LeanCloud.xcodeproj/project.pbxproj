@@ -11,6 +11,7 @@
 		830B0F631C7C127700D9FC41 /* LeanCloud.swift in Sources */ = {isa = PBXBuildFile; fileRef = 830B0F621C7C127700D9FC41 /* LeanCloud.swift */; };
 		830B0F651C7C20CE00D9FC41 /* Configuration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 830B0F641C7C20CE00D9FC41 /* Configuration.swift */; };
 		830B0F6C1C7C60DA00D9FC41 /* Runtime.swift in Sources */ = {isa = PBXBuildFile; fileRef = 830B0F6B1C7C60DA00D9FC41 /* Runtime.swift */; };
+		8334561C1CE589E500D42725 /* EngineTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8334561B1CE589E500D42725 /* EngineTestCase.swift */; };
 		8342FCC61C7B13A700C3CF15 /* LeanCloud.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8342FCBB1C7B13A700C3CF15 /* LeanCloud.framework */; };
 		8342FCCB1C7B13A700C3CF15 /* BaseTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8342FCCA1C7B13A700C3CF15 /* BaseTestCase.swift */; };
 		8343EF281CA91E5B0023D0CA /* Response.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8343EF271CA91E5B0023D0CA /* Response.swift */; };
@@ -115,6 +116,7 @@
 		830B0F621C7C127700D9FC41 /* LeanCloud.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LeanCloud.swift; sourceTree = "<group>"; };
 		830B0F641C7C20CE00D9FC41 /* Configuration.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Configuration.swift; sourceTree = "<group>"; };
 		830B0F6B1C7C60DA00D9FC41 /* Runtime.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Runtime.swift; sourceTree = "<group>"; };
+		8334561B1CE589E500D42725 /* EngineTestCase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EngineTestCase.swift; sourceTree = "<group>"; };
 		8342FCBB1C7B13A700C3CF15 /* LeanCloud.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = LeanCloud.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		8342FCC01C7B13A700C3CF15 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		8342FCC51C7B13A700C3CF15 /* LeanCloudTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LeanCloudTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -214,6 +216,7 @@
 				83D592391CD887CE007177C5 /* Exception */,
 				83D5923D1CD88846007177C5 /* BridgingHeader.h */,
 				8342FCCA1C7B13A700C3CF15 /* BaseTestCase.swift */,
+				8334561B1CE589E500D42725 /* EngineTestCase.swift */,
 				83BC11D51CDD76E900D7E7A6 /* ACLTestCase.swift */,
 				83FAF0921CC4D1E400A84063 /* ObjectTestCase.swift */,
 				83D0DE6E1CC7B3FF00FC204E /* QueryTestCase.swift */,
@@ -515,6 +518,7 @@
 				83D5923C1CD887CE007177C5 /* XCTestCase+Exception.m in Sources */,
 				83D0DE6F1CC7B3FF00FC204E /* QueryTestCase.swift in Sources */,
 				83BC11D61CDD76E900D7E7A6 /* ACLTestCase.swift in Sources */,
+				8334561C1CE589E500D42725 /* EngineTestCase.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
