@@ -44,9 +44,9 @@ class ObjectTestCase: BaseTestCase {
             dispatch_group_async(dispatchGroup, dispatchQueue) {
                 let start = Int(arc4random()) % (size / 2)
                 let children = Array(objects[start...start + size / 2])
-                LCObject.synchronizeAction(children) {
+                LCObject.synchronize(children, networkRequestOperation: {
                     count += 1
-                }
+                })
             }
         }
 

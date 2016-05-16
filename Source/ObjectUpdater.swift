@@ -168,7 +168,7 @@ class ObjectUpdater {
 
         let family = ObjectProfiler.family(object)
 
-        LCObject.synchronizeAction(Array(family)) {
+        LCObject.synchronize(Array(family), networkRequestOperation: {
             response = saveNewbornOrphans(object)
 
             guard response.isSuccess else { return }
@@ -177,7 +177,7 @@ class ObjectUpdater {
             let requests = batchRequests(family)
 
             response = sendBatchRequests(requests, family)
-        }
+        })
 
         return response
     }

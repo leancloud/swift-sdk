@@ -14,6 +14,8 @@ FOUNDATION_EXPORT double LeanCloudVersionNumber;
 //! Project version string for LeanCloud.
 FOUNDATION_EXPORT const unsigned char LeanCloudVersionString[];
 
-// In this header, you should import all the public headers of your framework using statements like #import <LeanCloud/PublicHeader.h>
-
-
+/**
+ To import Objective-C files in the same framework target as your Swift code,
+ you’ll need to import those files into the Objective-C umbrella header for the framework.
+ */
+#import <LeanCloud/LCBridge.h>

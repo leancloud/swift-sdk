@@ -12,7 +12,7 @@
 		830B0F651C7C20CE00D9FC41 /* Configuration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 830B0F641C7C20CE00D9FC41 /* Configuration.swift */; };
 		830B0F6C1C7C60DA00D9FC41 /* Runtime.swift in Sources */ = {isa = PBXBuildFile; fileRef = 830B0F6B1C7C60DA00D9FC41 /* Runtime.swift */; };
 		8334561C1CE589E500D42725 /* EngineTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8334561B1CE589E500D42725 /* EngineTestCase.swift */; };
-		833456901CE9BD1300D42725 /* LCBridge.h in Headers */ = {isa = PBXBuildFile; fileRef = 8334568E1CE9BD1300D42725 /* LCBridge.h */; };
+		833456901CE9BD1300D42725 /* LCBridge.h in Headers */ = {isa = PBXBuildFile; fileRef = 8334568E1CE9BD1300D42725 /* LCBridge.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		833456911CE9BD1300D42725 /* LCBridge.m in Sources */ = {isa = PBXBuildFile; fileRef = 8334568F1CE9BD1300D42725 /* LCBridge.m */; };
 		8342FCC61C7B13A700C3CF15 /* LeanCloud.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8342FCBB1C7B13A700C3CF15 /* LeanCloud.framework */; };
 		8342FCCB1C7B13A700C3CF15 /* BaseTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8342FCCA1C7B13A700C3CF15 /* BaseTestCase.swift */; };
