@@ -12,6 +12,8 @@
 		830B0F651C7C20CE00D9FC41 /* Configuration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 830B0F641C7C20CE00D9FC41 /* Configuration.swift */; };
 		830B0F6C1C7C60DA00D9FC41 /* Runtime.swift in Sources */ = {isa = PBXBuildFile; fileRef = 830B0F6B1C7C60DA00D9FC41 /* Runtime.swift */; };
 		8334561C1CE589E500D42725 /* EngineTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8334561B1CE589E500D42725 /* EngineTestCase.swift */; };
+		833456901CE9BD1300D42725 /* LCBridge.h in Headers */ = {isa = PBXBuildFile; fileRef = 8334568E1CE9BD1300D42725 /* LCBridge.h */; };
+		833456911CE9BD1300D42725 /* LCBridge.m in Sources */ = {isa = PBXBuildFile; fileRef = 8334568F1CE9BD1300D42725 /* LCBridge.m */; };
 		8342FCC61C7B13A700C3CF15 /* LeanCloud.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8342FCBB1C7B13A700C3CF15 /* LeanCloud.framework */; };
 		8342FCCB1C7B13A700C3CF15 /* BaseTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8342FCCA1C7B13A700C3CF15 /* BaseTestCase.swift */; };
 		8343EF281CA91E5B0023D0CA /* Response.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8343EF271CA91E5B0023D0CA /* Response.swift */; };
@@ -117,6 +119,8 @@
 		830B0F641C7C20CE00D9FC41 /* Configuration.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Configuration.swift; sourceTree = "<group>"; };
 		830B0F6B1C7C60DA00D9FC41 /* Runtime.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Runtime.swift; sourceTree = "<group>"; };
 		8334561B1CE589E500D42725 /* EngineTestCase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EngineTestCase.swift; sourceTree = "<group>"; };
+		8334568E1CE9BD1300D42725 /* LCBridge.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LCBridge.h; sourceTree = "<group>"; };
+		8334568F1CE9BD1300D42725 /* LCBridge.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LCBridge.m; sourceTree = "<group>"; };
 		8342FCBB1C7B13A700C3CF15 /* LeanCloud.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = LeanCloud.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		8342FCC01C7B13A700C3CF15 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		8342FCC51C7B13A700C3CF15 /* LeanCloudTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LeanCloudTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -229,6 +233,8 @@
 			isa = PBXGroup;
 			children = (
 				83451E421CAC23E900A378D7 /* MD5.swift */,
+				8334568E1CE9BD1300D42725 /* LCBridge.h */,
+				8334568F1CE9BD1300D42725 /* LCBridge.m */,
 			);
 			path = Library;
 			sourceTree = "<group>";
@@ -313,6 +319,7 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				833456901CE9BD1300D42725 /* LCBridge.h in Headers */,
 				83724CCA1C7B54A700E59BED /* LeanCloud.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -362,7 +369,7 @@
 		8342FCB21C7B13A600C3CF15 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastSwiftUpdateCheck = 0720;
+				LastSwiftUpdateCheck = 0730;
 				LastUpgradeCheck = 0720;
 				ORGANIZATIONNAME = LeanCloud;
 				TargetAttributes = {
@@ -485,6 +492,7 @@
 				830046EA1C7C92B8004C88A7 /* ObjectProfiler.swift in Sources */,
 				83BC11CD1CDD768500D7E7A6 /* LCACL.swift in Sources */,
 				83ACD25C1C8197BE00F7E2DE /* LCObject.swift in Sources */,
+				833456911CE9BD1300D42725 /* LCBridge.m in Sources */,
 				830B0F631C7C127700D9FC41 /* LeanCloud.swift in Sources */,
 				83ACD2701C819DA400F7E2DE /* LCDictionary.swift in Sources */,
 				836459C31CDE377800AD98A5 /* LCRole.swift in Sources */,
