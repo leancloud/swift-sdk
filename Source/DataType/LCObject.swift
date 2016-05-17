@@ -49,15 +49,6 @@ public class LCObject: LCType {
         return hasObjectId ? (!operationHub.isEmpty) : true
     }
 
-    /// Property lock.
-    let propertyLock: UnsafeMutablePointer<OSSpinLock>
-
-    /// Network request lock.
-    let networkRequestLock = NSRecursiveLock()
-
-    /// Dispatch queue for acquiring network request locks on multiple objects.
-    static let networkRequestLockAcquiringQueue = dispatch_queue_create("LeanCloud.NetworkRequestLockAcquiring", DISPATCH_QUEUE_SERIAL)
-
     override var JSONValue: AnyObject? {
         guard let objectId = objectId else {
             return nil
@@ -83,8 +74,6 @@ public class LCObject: LCType {
     }
 
     public override required init() {
-        propertyLock = UnsafeMutablePointer.alloc(1)
-        propertyLock.initialize(OS_SPINLOCK_INIT)
         super.init()
         operationHub = OperationHub(self)
     }
@@ -97,11 +86,6 @@ public class LCObject: LCType {
     convenience init(dictionary: LCDictionary) {
         self.init()
         ObjectProfiler.updateObject(self, dictionary.value)
-    }
-
-    deinit {
-        propertyLock.destroy()
-        propertyLock.dealloc(1)
     }
 
     class override func instance() -> LCType? {
@@ -163,49 +147,6 @@ public class LCObject: LCType {
     }
 
     /**
-     Synchronize a property operation for atomic execution.
-
-     - parameter operation: The property operation to be synchronized.
-     */
-    func synchronize(propertyOperation operation: () -> Void) {
-        OSSpinLockLock(propertyLock)
-        LCBridge.executeBlock(operation, cleanup: {
-            OSSpinLockUnlock(self.propertyLock)
-        })
-    }
-
-    /**
-     Synchronize a network request operation for atomic execution.
-
-     - parameter operation: The network request operation to be synchronized.
-     */
-    func synchronize(networkRequestOperation operation: () -> Void) {
-        networkRequestLock.lock()
-        LCBridge.executeBlock(operation, cleanup: {
-            self.networkRequestLock.unlock()
-        })
-    }
-
-    /**
-     Synchronize a network operation on a group of objects.
-
-     - parameter objects:   An array of objects on which the operation will be synchronized.
-     - parameter operation: The operation to be synchronized.
-     */
-    static func synchronize(objects: [LCObject], networkRequestOperation operation: () -> Void) {
-        /* Dispatch in serial queue to avoid dead lock due to two threads wait lock each other. */
-        dispatch_sync(networkRequestLockAcquiringQueue) {
-            let objects = objects.unique { $0 === $1 }
-            let locks   = objects.map { $0.networkRequestLock }
-
-            locks.forEach { $0.lock() }
-            LCBridge.executeBlock(operation, cleanup: {
-                locks.forEach { $0.unlock() }
-            })
-        }
-    }
-
-    /**
      Add an operation.
 
      - parameter name:  Operation name.
@@ -213,9 +154,7 @@ public class LCObject: LCType {
      - parameter value: Value to be assigned.
      */
     func addOperation(name: Operation.Name, _ key: String, _ value: LCType? = nil) {
-        synchronize(propertyOperation: {
-            self.operationHub.append(name, key, value)
-        })
+        self.operationHub.append(name, key, value)
     }
 
     /**
@@ -339,13 +278,7 @@ public class LCObject: LCType {
      - returns: The result of deletion request.
      */
     public static func delete<T: LCObject>(objects: [T]) -> BooleanResult {
-        var result: BooleanResult!
-
-        synchronize(objects, networkRequestOperation: {
-            result = BooleanResult(response: ObjectUpdater.delete(objects))
-        })
-
-        return result
+        return BooleanResult(response: ObjectUpdater.delete(objects))
     }
 
     /**
@@ -354,13 +287,7 @@ public class LCObject: LCType {
      - returns: The result of deletion request.
      */
     public func delete() -> BooleanResult {
-        var result: BooleanResult!
-
-        synchronize(networkRequestOperation: {
-            result = BooleanResult(response: ObjectUpdater.delete(self))
-        })
-
-        return result
+        return BooleanResult(response: ObjectUpdater.delete(self))
     }
 
     /**
@@ -371,13 +298,7 @@ public class LCObject: LCType {
      - returns: The result of fetching request.
      */
     public static func fetch<T: LCObject>(objects: [T]) -> BooleanResult {
-        var result: BooleanResult!
-
-        synchronize(objects, networkRequestOperation: {
-            result = BooleanResult(response: ObjectUpdater.fetch(objects))
-        })
-
-        return result
+        return BooleanResult(response: ObjectUpdater.fetch(objects))
     }
 
     /**
@@ -386,12 +307,6 @@ public class LCObject: LCType {
      - returns: The result of fetching request.
      */
     public func fetch() -> BooleanResult {
-        var result: BooleanResult!
-
-        synchronize(networkRequestOperation: {
-            result = BooleanResult(response: ObjectUpdater.fetch(self))
-        })
-
-        return result
+        return BooleanResult(response: ObjectUpdater.fetch(self))
     }
 }

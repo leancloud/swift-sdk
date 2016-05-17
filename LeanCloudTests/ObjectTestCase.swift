@@ -30,30 +30,6 @@ class ObjectTestCase: BaseTestCase {
         XCTAssertNotNil(object.objectId)
     }
 
-    func testSynchronizeAction() {
-        var count = 0
-        let times = 10000
-
-        let dispatchGroup = dispatch_group_create()
-        let dispatchQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0)
-
-        let size = 20
-        let objects = (0..<size).map { _ in TestObject() }
-
-        for _ in 0..<times {
-            dispatch_group_async(dispatchGroup, dispatchQueue) {
-                let start = Int(arc4random()) % (size / 2)
-                let children = Array(objects[start...start + size / 2])
-                LCObject.synchronize(children, networkRequestOperation: {
-                    count += 1
-                })
-            }
-        }
-
-        dispatch_group_wait(dispatchGroup, DISPATCH_TIME_FOREVER)
-        XCTAssertEqual(count, times)
-    }
-
     func testPrimitiveProperty() {
         let object = TestObject()
 
