@@ -304,7 +304,11 @@ final public class Query {
     func processResults<T: LCObject>(results: [AnyObject], className: String?) -> [T] {
         return results.map { dictionary in
             let object = ObjectProfiler.object(className: className ?? self.className) as! T
-            ObjectProfiler.updateObject(object, dictionary)
+
+            if let dictionary = dictionary as? [String: AnyObject] {
+                ObjectProfiler.updateObject(object, dictionary)
+            }
+
             return object
         }
     }

@@ -16,14 +16,19 @@ import Foundation
  Each object is correspond to a record in data storage.
  */
 public class LCObject: LCType {
+    /// Access control lists.
+    public dynamic var ACL: LCACL?
+
     /// Object identifier.
     public private(set) dynamic var objectId: LCString?
 
     public private(set) dynamic var createdAt: LCDate?
     public private(set) dynamic var updatedAt: LCDate?
 
-    /// Access control lists.
-    public dynamic var ACL: LCACL?
+    /**
+     The table of all properties.
+     */
+    var propertyTable: LCDictionary = [:]
 
     var hasObjectId: Bool {
         return objectId != nil
@@ -61,18 +66,6 @@ public class LCObject: LCType {
         ]
     }
 
-    /// Dictionary representation of object.
-    var dictionary: LCDictionary {
-        var dictionary: [String: LCType] = [:]
-
-        ObjectProfiler.iterateProperties(self) { (key, value) in
-            guard let value = value else { return }
-            dictionary[key] = value
-        }
-
-        return LCDictionary(dictionary)
-    }
-
     public override required init() {
         super.init()
         operationHub = OperationHub(self)
@@ -80,12 +73,12 @@ public class LCObject: LCType {
 
     public convenience init(objectId: String) {
         self.init()
-        self.objectId = LCString(objectId)
+        self.update("objectId", LCString(objectId))
     }
 
     convenience init(dictionary: LCDictionary) {
         self.init()
-        ObjectProfiler.updateObject(self, dictionary.value)
+        self.propertyTable = dictionary
     }
 
     class override func instance() -> LCType? {
@@ -103,11 +96,7 @@ public class LCObject: LCType {
     }
 
     override func forEachChild(body: (child: LCType) -> Void) {
-        ObjectProfiler.iterateProperties(self) { (_, child) in
-            if let child = child {
-                body(child: child)
-            }
-        }
+        propertyTable.forEachChild(body)
     }
 
     /**
@@ -147,25 +136,145 @@ public class LCObject: LCType {
     }
 
     /**
-     Add an operation.
+     Load a property for key.
 
-     - parameter name:  Operation name.
-     - parameter key:   Key on which to perform.
-     - parameter value: Value to be assigned.
+     If the property value for key is already existed and type is mismatched, it will throw an exception.
+
+     - parameter key: The key to load.
+
+     - returns: The property value.
      */
-    func addOperation(name: Operation.Name, _ key: String, _ value: LCType? = nil) {
-        self.operationHub.append(name, key, value)
+    func getProperty<Value: LCType>(key: String) -> Value? {
+        let value = propertyTable[key]
+
+        if let value = value {
+            guard value is Value else {
+                Exception.raise(.InvalidType, reason: String(format: "No such a property with name \"%@\" and type \"%s\".", key, class_getName(Value.self)))
+                return nil
+            }
+        }
+
+        return value as? Value
     }
 
     /**
-     Update a property to given value.
+     Load a property for key.
 
-     - parameter key:   The name of property which you want to update.
+     If the property value for key is not existed, it will initialize the property.
+     If the property value for key is already existed and type is mismatched, it will throw an exception.
+
+     - parameter key: The key to load.
+
+     - returns: The property value.
+     */
+    func loadProperty<Value: LCType>(key: String) -> Value {
+        if let value = getProperty(key) as? Value {
+            return value
+        }
+
+        let value = Value.instance() as! Value
+        propertyTable[key] = value
+        return value
+    }
+
+    /**
+     Update property with operation.
+
+     - parameter operation: The operation used to update property.
+     */
+    func updateProperty(operation: Operation) {
+        let key   = operation.key
+        let name  = operation.name
+        let value = operation.value
+
+        switch name {
+        case .Set:
+            propertyTable[key] = value
+        case .Delete:
+            propertyTable[key] = nil
+        case .Increment:
+            let number: LCNumber = loadProperty(key)
+
+            number.increase(value as! LCNumber)
+        case .Add:
+            let array: LCArray = loadProperty(key)
+            let elements = (value as! LCArray).value
+
+            array.appendElements(elements)
+        case .AddUnique:
+            let array: LCArray = loadProperty(key)
+            let elements = (value as! LCArray).value
+
+            array.appendElements(elements, unique: true)
+        case .Remove:
+            let array: LCArray? = getProperty(key)
+            let elements = (value as! LCArray).value
+
+            array?.removeElements(elements)
+        case .AddRelation:
+            let relation: LCRelation = loadProperty(key)
+            let elements = (value as! LCArray).value as! [LCRelation.Element]
+
+            relation.appendElements(elements)
+        case .RemoveRelation:
+            let relation: LCRelation? = getProperty(key)
+            let elements = (value as! LCArray).value as! [LCRelation.Element]
+
+            relation?.removeElements(elements)
+        }
+    }
+
+    /**
+     Add an operation.
+
+     - parameter name:  The operation name.
+     - parameter key:   The operation key.
+     - parameter value: The operation value.
+     */
+    func addOperation(name: Operation.Name, _ key: String, _ value: LCType? = nil) {
+        let operation = Operation(name: name, key: key, value: value)
+
+        updateProperty(operation)
+        operationHub.reduce(operation)
+    }
+
+    /**
+     Update a property.
+
+     - parameter key:   The property key to be updated.
+     - parameter value: The property value.
+     */
+    func update(key: String, _ value: LCType?) {
+        propertyTable[key] = value
+    }
+
+    /**
+     Get and set value via subscript syntax.
+     */
+    public subscript(key: String) -> LCType? {
+        get { return get(key) }
+        set { set(key, value: newValue) }
+    }
+
+    /**
+     Get value for key.
+
+     - parameter key: The key for which to get the value.
+
+     - returns: The value for key.
+     */
+    public func get<Value: LCType>(key: String) -> Value? {
+        return propertyTable[key] as? Value
+    }
+
+    /**
+     Set value for key.
+
+     - parameter key:   The key for which to set the value.
      - parameter value: The new value.
      */
     public func set(key: String, value: LCType?) {
         if let value = value {
-            ObjectProfiler.validateType(self, propertyName: key, type: value.dynamicType)
             addOperation(.Set, key, value)
         } else {
             addOperation(.Delete, key)
@@ -173,28 +282,28 @@ public class LCObject: LCType {
     }
 
     /**
-     Delete a property.
+     Unset value for key.
 
-     - parameter key: The name of property which you want to delete.
+     - parameter key: The key for which to unset.
      */
     public func unset(key: String) {
         addOperation(.Delete, key, nil)
     }
 
     /**
-     Increase a property by amount.
+     Increase a number by amount.
 
-     - parameter key:    The name of property on which you want to increase.
+     - parameter key:    The key of number which you want to increase.
      - parameter amount: The amount to increase.
      */
-    public func increase(key: String, amount: LCNumber) {
-        addOperation(.Increment, key, amount)
+    public func increase(key: String, by: LCNumber) {
+        addOperation(.Increment, key, by)
     }
 
     /**
-     Append an element to an array property.
+     Append an element into an array.
 
-     - parameter key:     The name of property into which you want to append the element.
+     - parameter key:     The key of array into which you want to append the element.
      - parameter element: The element to append.
      */
     public func append(key: String, element: LCType) {
@@ -202,9 +311,9 @@ public class LCObject: LCType {
     }
 
     /**
-     Append an element to an array property with unique option.
+     Append an element into an array with unique option.
 
-     - parameter key:     The name of property into which you want to append the element.
+     - parameter key:     The key of array into which you want to append the element.
      - parameter element: The element to append.
      - parameter unique:  Whether append element by unique or not.
                           If true, element will not be appended if it had already existed in array;
@@ -215,9 +324,9 @@ public class LCObject: LCType {
     }
 
     /**
-     Remove an element from an array property.
+     Remove an element from an array.
 
-     - parameter key:     The name of property from which you want to remove the element.
+     - parameter key:     The key of array from which you want to remove the element.
      - parameter element: The element to remove.
      */
     public func remove(key: String, element: LCType) {
@@ -225,9 +334,9 @@ public class LCObject: LCType {
     }
 
     /**
-     Insert an object to a relation property.
+     Insert an object into a relation.
 
-     - parameter key:    The name of property into which you want to insert the object.
+     - parameter key:    The key of relation into which you want to insert the object.
      - parameter object: The object to insert.
      */
     public func insertRelation(key: String, object: LCObject) {
@@ -235,9 +344,9 @@ public class LCObject: LCType {
     }
 
     /**
-     Remove an object from a relation property.
+     Remove an object from a relation.
 
-     - parameter key:    The name of property from which you want to remove the object.
+     - parameter key:    The key of relation from which you want to remove the object.
      - parameter object: The object to remove.
      */
     public func removeRelation(key: String, object: LCObject) {

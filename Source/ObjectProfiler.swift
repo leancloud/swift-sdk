@@ -184,18 +184,6 @@ class ObjectProfiler {
     }
 
     /**
-     Check whether an object has a LCType property for given name.
-
-     - parameter object:       The object.
-     - parameter propertyName: The property name.
-
-     - returns: true if object has such a property, false otherwise.
-     */
-    static func hasProperty(object: LCObject, propertyName: String) -> Bool {
-        return getLCType(object: object, propertyName: propertyName) != nil
-    }
-
-    /**
      Synthesize a single property for class.
 
      - parameter property: Property which to be synthesized.
@@ -205,61 +193,8 @@ class ObjectProfiler {
         let getterName = Runtime.propertyName(property)
         let setterName = "set\(getterName.firstUppercaseString):"
 
+        class_replaceMethod(aClass, Selector(getterName), unsafeBitCast(self.propertyGetter, IMP.self), "@@:")
         class_replaceMethod(aClass, Selector(setterName), unsafeBitCast(self.propertySetter, IMP.self), "v@:@")
-    }
-
-    /**
-     Iterate properties of object.
-
-     - parameter object: The object which you want to iterate.
-     - parameter block:  A callback block for each property name and property value.
-     */
-    static func iterateProperties(object: LCObject, block: (String, LCType?) -> ()) {
-        let properties = ObjectProfiler.synthesizableProperties(object)
-
-        properties.forEach { (property) in
-            let propertyName  = Runtime.propertyName(property)
-            let propertyValue = Runtime.instanceVariableValue(object, propertyName) as? LCType
-
-            block(propertyName, propertyValue)
-        }
-    }
-
-    /**
-     Check whether a property matches the given type.
-
-     - parameter object:       The object to be inspected.
-     - parameter propertyName: The name of property which to be inspected.
-     - parameter type:         The expected type.
-
-     - returns: true if property matches the given type, false otherwise.
-     */
-    static func matchType(object: LCObject, propertyName: String, type: LCType.Type) -> Bool {
-        let propertyType = getLCType(object: object, propertyName: propertyName)
-
-        guard propertyType != nil else {
-            return false
-        }
-        guard type == propertyType || Runtime.isSubclass(type, superclass: propertyType) else {
-            return false
-        }
-
-        return true
-    }
-
-    /**
-     Validate that whether the given type matches object's property type.
-
-     - parameter object:       The object to be validated.
-     - parameter propertyName: The name of property which to be validated.
-     - parameter type:         The expected type.
-     */
-    static func validateType(object: LCObject, propertyName: String, type: LCType.Type) {
-        guard matchType(object, propertyName: propertyName, type: type) else {
-            let objectClassName = class_getName(type)
-            Exception.raise(.InvalidType, reason: String(format: "No such a property with name \"%@\" and type \"%s\".", propertyName, objectClassName))
-            return
-        }
     }
 
     /**
@@ -270,63 +205,7 @@ class ObjectProfiler {
      - parameter value:        The new property value.
      */
     static func updateProperty(object: LCObject, _ propertyName: String, _ value: LCType?) {
-        let propertyType = getLCType(object: object, propertyName: propertyName)
-
-        /* If object has no such an LCType property, ignore. */
-        guard propertyType != nil else {
-            return
-        }
-
-        var finalValue: LCType?
-
-        if let someValue = value {
-            if matchType(object, propertyName: propertyName, type: someValue.dynamicType) {
-                finalValue = Runtime.retainedObject(someValue)
-            }
-        }
-
-        object.willChangeValueForKey(propertyName)
-        Runtime.setInstanceVariable(object, propertyName, finalValue)
-        object.didChangeValueForKey(propertyName)
-    }
-
-    /**
-     Get property value of object.
-
-     - parameter object:       The object.
-     - parameter propertyName: The property name.
-     - parameter type:         The type which the property should be.
-
-     - returns: The property value.
-     */
-    static func getProperty<T: LCType>(object: LCObject, _ propertyName: String, _ type: T.Type) -> T? {
-        validateType(object, propertyName: propertyName, type: type)
-
-        return Runtime.instanceVariableValue(object, propertyName) as? T
-    }
-
-    /**
-     Load property value of object with initialization if needed.
-
-     - parameter object:       The object.
-     - parameter propertyName: The property name.
-     - parameter type:         The type which the property should be.
-
-     - returns: The property value.
-     */
-    static func loadProperty<T: LCType>(object: LCObject, _ propertyName: String, _ type: T.Type) -> T {
-        let propertyValue = getProperty(object, propertyName, T.self)
-
-        if let propertyValue = propertyValue {
-            return propertyValue
-        } else {
-            let propertyClass = getLCType(object: object, propertyName: propertyName)!
-            let propertyValue = propertyClass.instance() as! T
-
-            updateProperty(object, propertyName, propertyValue)
-
-            return propertyValue
-        }
+        object.propertyTable[propertyName] = value
     }
 
     /**
@@ -344,11 +223,9 @@ class ObjectProfiler {
 
         switch object {
         case let object as LCObject:
-            iterateProperties(object) { (_, value) in
-                if let value = value {
-                    if deepestNewbornOrphans(value, parent: object, output: &output) {
-                        hasNewbornOrphan = true
-                    }
+            object.forEachChild { child in
+                if deepestNewbornOrphans(child, parent: object, output: &output) {
+                    hasNewbornOrphan = true
                 }
             }
 
@@ -704,24 +581,10 @@ class ObjectProfiler {
      - parameter object:     The object to be updated.
      - parameter dictionary: A dictionary of key-value pairs.
      */
-    static func updateObject(object: LCObject, _ dictionary: AnyObject) {
-        guard var dictionary = dictionary as? [String: AnyObject] else {
-            return
+    static func updateObject(object: LCObject, _ dictionary: [String: AnyObject]) {
+        dictionary.forEach { (key, value) in
+            object.update(key, self.object(JSONValue: value))
         }
-
-        if let createdAt = dictionary["createdAt"] {
-            updateProperty(object, "createdAt", LCDate(JSONValue: createdAt))
-            dictionary.removeValueForKey("createdAt")
-        }
-
-        if let updatedAt = dictionary["updatedAt"] {
-            updateProperty(object, "updatedAt", LCDate(JSONValue: updatedAt))
-            dictionary.removeValueForKey("updatedAt")
-        }
-
-        let keyValues = dictionary.mapValue { self.object(JSONValue: $0) }
-
-        mapKeyValues(keyValues, object)
     }
 
     /**
@@ -732,12 +595,20 @@ class ObjectProfiler {
      - returns: A property name correspond to the setter selector.
      */
     static func propertyName(setter: Selector) -> String {
-        var propertyName = setter.description
+        var propertyName = NSStringFromSelector(setter)
 
         propertyName = propertyName.substringFromIndex(propertyName.startIndex.advancedBy(3))
         propertyName = propertyName.substringToIndex(propertyName.endIndex.advancedBy(-1))
 
         return propertyName
+    }
+
+    /**
+     Getter implementation of LeanCloud data type property.
+     */
+    static let propertyGetter: @convention(c) (LCObject!, Selector) -> LCType? = {
+        (object: LCObject!, cmd: Selector) -> LCType? in
+        return object.get(NSStringFromSelector(cmd))
     }
 
     /**

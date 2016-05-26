@@ -23,8 +23,8 @@ class Operation {
         case Increment      = "Increment"
         case Add            = "Add"
         case AddUnique      = "AddUnique"
-        case AddRelation    = "AddRelation"
         case Remove         = "Remove"
+        case AddRelation    = "AddRelation"
         case RemoveRelation = "RemoveRelation"
     }
 
@@ -55,6 +55,24 @@ class Operation {
             return ["__op": name.rawValue, "objects": value!.JSONValue!]
         }
     }
+
+    var reducerType: OperationReducer.Type? {
+        switch name {
+        case .Set:
+            return value?.dynamicType.operationReducerType()
+        case .Delete:
+            return nil
+        case .Increment:
+            return OperationReducer.Number.self
+        case .Add,
+             .AddUnique,
+             .Remove:
+            return OperationReducer.List.self
+        case .AddRelation,
+             .RemoveRelation:
+            return OperationReducer.Relation.self
+        }
+    }
 }
 
 typealias OperationStack     = [String:[Operation]]
@@ -69,12 +87,15 @@ typealias OperationTableList = [OperationTable]
 class OperationHub {
     weak var object: LCObject!
 
-    /// A table of operation reducer indexed by operation key.
+    /// The table of operation reducers indexed by operation key.
     var operationReducerTable: [String: OperationReducer] = [:]
 
-    /// Whether operation reducer table is empty or not.
+    /// The table of unreduced operations indexed by operation key.
+    var unreducedOperationTable: [String: Operation] = [:]
+
+    /// Return true iff operation hub has no operations.
     var isEmpty: Bool {
-        return operationReducerTable.isEmpty
+        return operationReducerTable.isEmpty && unreducedOperationTable.isEmpty
     }
 
     init(_ object: LCObject) {
@@ -82,89 +103,48 @@ class OperationHub {
     }
 
     /**
-     Append an operation to hub.
-
-     - parameter name:  Operation name.
-     - parameter key:   Key on which to perform.
-     - parameter value: Value to be assigned.
-     */
-    func append(name: Operation.Name, _ key: String, _ value: LCType?) {
-        let operation = Operation(name: name, key: key, value: value)
-
-        updateProperty(operation)
-        reduce(operation)
-    }
-
-    func updateProperty(operation: Operation) {
-        let (key, value) = (operation.key, operation.value)
-
-        guard ObjectProfiler.hasProperty(object, propertyName: key) else {
-            Exception.raise(.NotFound, reason: String(format: "No such a property named \"%@\".", key))
-            return
-        }
-
-        switch operation.name {
-        case .Set:
-            ObjectProfiler.updateProperty(object, key, value)
-        case .Delete:
-            ObjectProfiler.updateProperty(object, key, nil)
-        case .Increment:
-            ObjectProfiler.loadProperty(object, key, LCNumber.self).increase(value as! LCNumber)
-        case .Add:
-            ObjectProfiler.loadProperty(object, key, LCArray.self).appendElements((value as! LCArray).value)
-        case .AddUnique:
-            ObjectProfiler.loadProperty(object, key, LCArray.self).appendElements((value as! LCArray).value, unique: true)
-        case .AddRelation:
-            ObjectProfiler.loadProperty(object, key, LCRelation.self).appendElements((value as! LCArray).value as! [LCRelation.Element])
-        case .Remove:
-            ObjectProfiler.getProperty(object, key, LCArray.self)?.removeElements((value as! LCArray).value)
-        case .RemoveRelation:
-            ObjectProfiler.getProperty(object, key, LCRelation.self)?.removeElements((value as! LCArray).value as! [LCRelation.Element])
-        }
-    }
-
-    /**
-     Reduce operation to operation table.
+     Reduce an operation.
 
      - parameter operation: The operation which you want to reduce.
      */
     func reduce(operation: Operation) {
-        let reducer = operationReducer(operation)
-
-        reducer.validate(operation)
-        reducer.reduce(operation)
-    }
-
-    /**
-     Get operation reducer for operation.
-
-     - parameter operation: The operation to be reduced.
-
-     - returns: The operation reducer to reduce the given operation.
-     */
-    func operationReducer(operation: Operation) -> OperationReducer {
         let key = operation.key
+        let operationReducer = operationReducerTable[key]
 
-        if let previousOperationReducer = operationReducerTable[key] {
-            return previousOperationReducer
-        } else {
-            let operationReducer = operationReducerSubclass(object, key).init()
+        if let operationReducer = operationReducer {
+            operationReducer.reduce(operation)
+        } else if let operationReducerType = operationReducerType(operation) {
+            let operationReducer = operationReducerType.init()
+
             operationReducerTable[key] = operationReducer
-            return operationReducer
+
+            if let unreducedOperation = unreducedOperationTable[key] {
+                unreducedOperationTable.removeValueForKey(key)
+                operationReducer.reduce(unreducedOperation)
+            }
+
+            operationReducer.reduce(operation)
+        } else {
+            unreducedOperationTable[key] = operation
         }
     }
 
     /**
-     Get operation reducer class of an object property.
+     Get operation reducer type for operation.
 
-     - parameter object:       The object to be inspected.
-     - parameter propertyName: The property name of object.
+     - parameter operation: The operation object.
 
-     - returns: The concrete operation reducer subclass.
+     - returns: Operation reducer type, or nil if not found.
      */
-    func operationReducerSubclass(object: LCObject, _ propertyName: String) -> OperationReducer.Type {
-        let subclass = ObjectProfiler.getLCType(object: object, propertyName: propertyName) as LCType.Type!
-        return subclass.operationReducerType()
+    func operationReducerType(operation: Operation) -> OperationReducer.Type? {
+        let propertyName = operation.key
+        let propertyType = ObjectProfiler.getLCType(object: object, propertyName: propertyName)
+
+        if let propertyType = propertyType {
+            return propertyType.operationReducerType()
+        } else {
+            return operation.reducerType
+        }
     }
 
     /**
@@ -183,6 +163,10 @@ class OperationHub {
             if operations.count > 0 {
                 operationStack[key] = operations
             }
+        }
+
+        unreducedOperationTable.forEach { (key, operation) in
+            operationStack[key] = [operation]
         }
 
         return operationStack
@@ -241,7 +225,8 @@ class OperationHub {
      Remove all operations.
      */
     func reset() {
-        operationReducerTable.removeAll()
+        operationReducerTable = [:]
+        unreducedOperationTable = [:]
     }
 }
 
@@ -307,6 +292,8 @@ class OperationReducer {
         }
 
         override func reduce(operation: Operation) {
+            super.validate(operation)
+
             /* SET or DELETE will always override the previous. */
             self.operation = operation
         }
@@ -333,6 +320,8 @@ class OperationReducer {
         }
 
         override func reduce(operation: Operation) {
+            super.validate(operation)
+
             if let previousOperation = self.operation {
                 self.operation = reduce(operation, previousOperation: previousOperation)
             } else {
@@ -382,6 +371,8 @@ class OperationReducer {
         }
 
         override func reduce(operation: Operation) {
+            super.validate(operation)
+
             switch operation.name {
             case .Set:
                 reset()
@@ -548,6 +539,8 @@ class OperationReducer {
         }
 
         override func reduce(operation: Operation) {
+            super.validate(operation)
+
             switch operation.name {
             case .AddRelation:
                 removeObjects(operation, [.RemoveRelation])

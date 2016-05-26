@@ -125,7 +125,7 @@ class ObjectTestCase: BaseTestCase {
 
         object1.nonLCTypeField = "foo"
 
-        XCTAssertNil(object1.dictionary["nonLCTypeField"])
+        XCTAssertNil(object1.propertyTable["nonLCTypeField"])
         XCTAssertNil(object2.nonLCTypeField)
     }
 
@@ -134,13 +134,15 @@ class ObjectTestCase: BaseTestCase {
         let object2 = TestObject(objectId: "1010101010101010")
 
         object1.nonDynamicField = "foo"
-        object2.set("nonDynamicField", value: LCString("foo"))
-
-        /* Non-dynamic property cannot record update operation by accessor assignment.
-           However, you can use set(_:value:) method to get things done. */
+        XCTAssertEqual(object1.nonDynamicField, "foo")
+        XCTAssertEqual(object1["nonDynamicField"], nil)
         XCTAssertFalse(object1.hasDataToUpload)
 
-        XCTAssertEqual(object2.nonDynamicField, LCString("foo"))
+        /* Non-dynamic property cannot record update operation by accessor assignment.
+           However, you can use subscript to get things done. */
+        object2["nonDynamicField"] = LCString("foo")
+        XCTAssertEqual(object2.nonDynamicField, nil)
+        XCTAssertEqual(object2["nonDynamicField"], LCString("foo"))
         XCTAssertTrue(object2.hasDataToUpload)
     }
 
@@ -232,9 +234,9 @@ class ObjectTestCase: BaseTestCase {
     func testInvalidType() {
         let object = TestObject()
 
-        XCTAssertThrowsException({object.set("nonExisted", value: nil)})
-        XCTAssertThrowsException({object.set("stringField", value: LCNumber(1))})
-
-        object.set("objectField", value: TestObject())
+        XCTAssertThrowsException({
+            object.set("stringField", value: "123" as LCString)
+            object.increase("stringField", by: 1)
+        })
     }
 }

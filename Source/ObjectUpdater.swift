@@ -32,6 +32,8 @@ class ObjectUpdater {
         return requests
     }
 
+    typealias BatchResponse = [String: [String: AnyObject]]
+
     /**
      Update objects with response of batch request.
 
@@ -39,7 +41,9 @@ class ObjectUpdater {
      - parameter response: The response of batch request.
      */
     static func updateObjects(objects: Set<LCObject>, _ response: Response) {
-        guard let dictionary = response.value as? [String: AnyObject] else {
+        let value = response.value
+
+        guard let dictionary = value as? BatchResponse else {
             return
         }
 
@@ -225,16 +229,18 @@ class ObjectUpdater {
      - returns: The error response, or nil if error not found.
      */
     static func handleFetchedResult(result: AnyObject?, _ objects: [LCObject]) -> Response? {
-        guard let objectId = result?["objectId"] as? String else {
+        let dictionary = (result as? [String: AnyObject]) ?? [:]
+
+        guard let objectId = dictionary["objectId"] as? String else {
             return Response(Error(code: .ObjectNotFound, reason: "Object not found."))
         }
 
         let matched = objects.filter { object in
-            objectId == object.objectId!.value
+            objectId == object.objectId?.value
         }
 
         matched.forEach { object in
-            ObjectProfiler.updateObject(object, result!)
+            ObjectProfiler.updateObject(object, dictionary)
             object.resetOperation()
         }
 
