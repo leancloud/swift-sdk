@@ -11,6 +11,19 @@ import Foundation
 public final class Engine {
     typealias Parameters = [String: AnyObject]
 
+    /// The dispatch queue for network request task.
+    static let backgroundQueue = dispatch_queue_create("LeanCloud.Engine", DISPATCH_QUEUE_CONCURRENT)
+
+    /**
+     Asynchronize task into background queue.
+
+     - parameter task:       The task to be performed.
+     - parameter completion: The completion closure to be called on main thread after task finished.
+     */
+    static func asynchronize<Result>(task: () -> Result, completion: (Result) -> Void) {
+        Utility.asynchronize(task, backgroundQueue, completion)
+    }
+
     /**
      Call LeanEngine function.
 
@@ -23,6 +36,17 @@ public final class Engine {
     }
 
     /**
+     Call LeanEngine function.
+
+     - parameter completion: The completion callback closure.
+     */
+    public static func call<Value: LCType>(function: String, completion: (OptionalResult<Value>) -> Void) {
+        asynchronize({ call(function) }) { result in
+            completion(result)
+        }
+    }
+
+    /**
      Call LeanEngine function with parameters.
 
      - parameter function:   The function name.
@@ -32,6 +56,20 @@ public final class Engine {
      */
     public static func call<Value: LCType>(function: String, parameters: [String: AnyObject]) -> OptionalResult<Value> {
         return call(function, parameters: ObjectProfiler.JSONValue(parameters) as? Parameters)
+    }
+
+    /**
+     Call LeanEngine function with parameters asynchronously.
+
+     - parameter function:   The function name.
+     - parameter parameters: The parameters to be passed to remote function.
+
+     - parameter completion: The completion callback closure.
+     */
+    public static func call<Value: LCType>(function: String, parameters: [String: AnyObject], completion: (OptionalResult<Value>) -> Void) {
+        asynchronize({ call(function, parameters: parameters) }) { result in
+            completion(result)
+        }
     }
 
     /**
@@ -49,6 +87,22 @@ public final class Engine {
     }
 
     /**
+     Call LeanEngine function with parameters asynchronously.
+
+     The parameters will be serialized to JSON representation.
+
+     - parameter function:   The function name.
+     - parameter parameters: The parameters to be passed to remote function.
+
+     - parameter completion: The completion callback closure.
+     */
+    public static func call<Value: LCType>(function: String, parameters: LCDictionary, completion: (OptionalResult<Value>) -> Void) {
+        asynchronize({ call(function, parameters: parameters) }) { result in
+            completion(result)
+        }
+    }
+
+    /**
      Call LeanEngine function with parameters.
 
      The parameters will be serialized to JSON representation.
@@ -60,6 +114,22 @@ public final class Engine {
      */
     public static func call<Value: LCType>(function: String, parameters: LCObject) -> OptionalResult<Value> {
         return call(function, parameters: ObjectProfiler.JSONValue(parameters) as? Parameters)
+    }
+
+    /**
+     Call LeanEngine function with parameters asynchronously.
+
+     The parameters will be serialized to JSON representation.
+
+     - parameter function:   The function name.
+     - parameter parameters: The parameters to be passed to remote function.
+
+     - parameter completion: The completion callback closure.
+     */
+    public static func call<Value: LCType>(function: String, parameters: LCObject, completion: (OptionalResult<Value>) -> Void) {
+        asynchronize({ call(function, parameters: parameters) }) { result in
+            completion(result)
+        }
     }
 
     /**

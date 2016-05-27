@@ -82,6 +82,9 @@ final public class Query {
         return parameter
     }
 
+    /// The dispatch queue for network request task.
+    static let backgroundQueue = dispatch_queue_create("LeanCloud.Query", DISPATCH_QUEUE_CONCURRENT)
+
     /**
      Constraint for key.
      */
@@ -314,6 +317,16 @@ final public class Query {
     }
 
     /**
+     Asynchronize task into background queue.
+
+     - parameter task:       The task to be performed.
+     - parameter completion: The completion closure to be called on main thread after task finished.
+     */
+    static func asynchronize<Result>(task: () -> Result, completion: (Result) -> Void) {
+        Utility.asynchronize(task, backgroundQueue, completion)
+    }
+
+    /**
      Query objects synchronously.
 
      - returns: The result of the query request.
@@ -328,6 +341,17 @@ final public class Query {
             let objects: [T] = processResults(response.results, className: className)
 
             return .Success(objects: objects)
+        }
+    }
+
+    /**
+     Query objects asynchronously.
+
+     - parameter completion: The completion callback closure.
+     */
+    public func find<T: LCObject>(completion: (QueryResult<T>) -> Void) {
+        Query.asynchronize({ self.find() }) { result in
+            completion(result)
         }
     }
 
