@@ -171,7 +171,7 @@ class RESTClient {
 
         debugPrint(request)
 
-        request.responseJSON(queue: RESTClient.dispatchQueue) { response in
+        request.responseJSON(queue: dispatchQueue) { response in
             completionHandler(Response(response))
         }
 
@@ -181,10 +181,10 @@ class RESTClient {
     /**
      Creates a request to REST API and sends it synchronously.
 
-     - parameter method:            The HTTP Method.
-     - parameter endpoint:          The REST API endpoint.
-     - parameter parameters:        The request parameters.
-     - parameter headers:           The request headers.
+     - parameter method:     The HTTP Method.
+     - parameter endpoint:   The REST API endpoint.
+     - parameter parameters: The request parameters.
+     - parameter headers:    The request headers.
 
      - returns: A response object.
      */

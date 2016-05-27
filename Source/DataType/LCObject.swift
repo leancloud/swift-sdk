@@ -25,6 +25,8 @@ public class LCObject: LCType {
     public private(set) dynamic var createdAt: LCDate?
     public private(set) dynamic var updatedAt: LCDate?
 
+    static let backgroundQueue = dispatch_queue_create("LeanCloud.UpdateInBackground", DISPATCH_QUEUE_CONCURRENT)
+
     /**
      The table of all properties.
      */
@@ -371,12 +373,33 @@ public class LCObject: LCType {
     }
 
     /**
+     Asynchronize task into background queue.
+
+     - parameter task:       The task to be performed.
+     - parameter completion: The completion closure to be called on main thread after task finished.
+     */
+    func asynchronize<Result>(task: () -> Result, completion: (Result) -> Void) {
+        Utility.asynchronize(task, LCObject.backgroundQueue, completion)
+    }
+
+    /**
      Save object and its all descendant objects synchronously.
 
      - returns: The result of saving request.
      */
     public func save() -> BooleanResult {
         return BooleanResult(response: ObjectUpdater.save(self))
+    }
+
+    /**
+     Save object and its all descendant objects asynchronously.
+
+     - parameter completion: The completion callback closure.
+     */
+    public func save(completion: (BooleanResult) -> Void) {
+        asynchronize({ self.save() }) { result in
+            completion(result)
+        }
     }
 
     /**

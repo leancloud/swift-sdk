@@ -163,6 +163,8 @@ class ObjectUpdater {
      We can construct a batch request when newborn object directly attachs on another object.
      However, we cannot construct a batch request for orphan object.
 
+     - parameter object: The root object to be saved.
+
      - returns: The response of request.
      */
     static func save(object: LCObject) -> Response {
