@@ -15,7 +15,7 @@ import Foundation
  It can be extended into subclass while adding some other properties to form a new type.
  Each object is correspond to a record in data storage.
  */
-public class LCObject: LCType {
+public class LCObject: LCType, SequenceType {
     /// Access control lists.
     public dynamic var ACL: LCACL?
 
@@ -76,7 +76,7 @@ public class LCObject: LCType {
 
     public convenience init(objectId: String) {
         self.init()
-        self.update("objectId", LCString(objectId))
+        propertyTable["objectId"] = LCString(objectId)
     }
 
     convenience init(dictionary: LCDictionary) {
@@ -96,6 +96,18 @@ public class LCObject: LCType {
         } else {
             return false
         }
+    }
+
+    public override func valueForKey(key: String) -> AnyObject? {
+        guard let value = get(key) else {
+            return super.valueForKey(key)
+        }
+
+        return value
+    }
+
+    public func generate() -> DictionaryGenerator<String, LCType> {
+        return propertyTable.generate()
     }
 
     override func forEachChild(body: (child: LCType) -> Void) {
@@ -190,6 +202,8 @@ public class LCObject: LCType {
         let name  = operation.name
         let value = operation.value
 
+        self.willChangeValueForKey(key)
+
         switch name {
         case .Set:
             propertyTable[key] = value
@@ -225,6 +239,8 @@ public class LCObject: LCType {
 
             relation?.removeElements(elements)
         }
+
+        self.didChangeValueForKey(key)
     }
 
     /**
@@ -248,7 +264,9 @@ public class LCObject: LCType {
      - parameter value: The property value.
      */
     func update(key: String, _ value: LCType?) {
+        self.willChangeValueForKey(key)
         propertyTable[key] = value
+        self.didChangeValueForKey(key)
     }
 
     /**

@@ -129,7 +129,7 @@ class BatchRequestBuilder {
         var operationTable: OperationTable = [:]
 
         /* Collect all non-null properties. */
-        object.propertyTable.forEach { (key, value) in
+        object.forEach { (key, value) in
             switch value {
             case let relation as LCRelation:
                 /* If the property type is relation,
