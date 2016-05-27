@@ -125,8 +125,9 @@ class ObjectTestCase: BaseTestCase {
 
         object1.nonLCTypeField = "foo"
 
-        XCTAssertNil(object1.propertyTable["nonLCTypeField"])
+        XCTAssertNil(object1["nonLCTypeField"])
         XCTAssertNil(object2.nonLCTypeField)
+        XCTAssertNotNil(object2["nonLCTypeField"])
     }
 
     func testNonDynamicProperty() {
