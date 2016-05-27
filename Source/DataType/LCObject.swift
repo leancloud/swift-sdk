@@ -379,6 +379,16 @@ public class LCObject: LCType {
      - parameter completion: The completion closure to be called on main thread after task finished.
      */
     func asynchronize<Result>(task: () -> Result, completion: (Result) -> Void) {
+        LCObject.asynchronize(task, completion: completion)
+    }
+
+    /**
+     Asynchronize task into background queue.
+
+     - parameter task:       The task to be performed.
+     - parameter completion: The completion closure to be called on main thread after task finished.
+     */
+    static func asynchronize<Result>(task: () -> Result, completion: (Result) -> Void) {
         Utility.asynchronize(task, LCObject.backgroundQueue, completion)
     }
 
@@ -414,12 +424,34 @@ public class LCObject: LCType {
     }
 
     /**
+     Delete a batch of objects in one request asynchronously.
+
+     - parameter completion: The completion callback closure.
+     */
+    public static func delete<T: LCObject>(objects: [T], completion: (BooleanResult) -> Void) {
+        asynchronize({ delete(objects) }) { result in
+            completion(result)
+        }
+    }
+
+    /**
      Delete current object synchronously.
 
      - returns: The result of deletion request.
      */
     public func delete() -> BooleanResult {
         return BooleanResult(response: ObjectUpdater.delete(self))
+    }
+
+    /**
+     Delete current object asynchronously.
+
+     - parameter completion: The completion callback closure.
+     */
+    public func delete(completion: (BooleanResult) -> Void) {
+        asynchronize({ self.delete() }) { result in
+            completion(result)
+        }
     }
 
     /**
@@ -434,11 +466,33 @@ public class LCObject: LCType {
     }
 
     /**
+     Fetch a batch of objects in one request asynchronously.
+
+     - parameter completion: The completion callback closure.
+     */
+    public static func fetch<T: LCObject>(objects: [T], completion: (BooleanResult) -> Void) {
+        asynchronize({ fetch(objects) }) { result in
+            completion(result)
+        }
+    }
+
+    /**
      Fetch object from server synchronously.
 
      - returns: The result of fetching request.
      */
     public func fetch() -> BooleanResult {
         return BooleanResult(response: ObjectUpdater.fetch(self))
+    }
+
+    /**
+     Fetch object from server asynchronously.
+
+     - parameter completion: The completion callback closure.
+     */
+    public func fetch(completion: (BooleanResult) -> Void) {
+        asynchronize({ self.fetch() }) { result in
+            completion(result)
+        }
     }
 }
