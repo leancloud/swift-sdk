@@ -212,7 +212,7 @@ class ObjectTestCase: BaseTestCase {
     func testKVO() {
         let object = TestObject()
 
-        object.addObserver( self, forKeyPath: "stringField", options: .New, context: nil)
+        object.addObserver(self, forKeyPath: "stringField", options: .New, context: nil)
         object.stringField = "yet another value"
         object.removeObserver(self, forKeyPath: "stringField")
 
