@@ -70,12 +70,16 @@ class QueryTestCase: BaseTestCase {
         }
     }
 
+    func objectQuery() -> Query {
+        return Query(className: TestObject.objectClassName())
+    }
+
     func testIncluded() {
         let object = sharedObject
 
         XCTAssertTrue(object.save().isSuccess)
 
-        let query = Query(className: TestObject.className())
+        let query = objectQuery()
         query.whereKey("objectId", .EqualTo(value: object.objectId!))
         query.whereKey("objectField", .Included)
 
@@ -91,7 +95,7 @@ class QueryTestCase: BaseTestCase {
 
     func testSelected() {
         let object = sharedObject
-        let query  = Query(className: TestObject.className())
+        let query  = objectQuery()
 
         query.whereKey("objectId", .EqualTo(value: object.objectId!))
         query.whereKey("stringField", .Selected)
@@ -109,7 +113,7 @@ class QueryTestCase: BaseTestCase {
 
     func testExisted() {
         let object = sharedObject
-        let query  = Query(className: TestObject.className())
+        let query  = objectQuery()
 
         query.whereKey("objectId", .EqualTo(value: object.objectId!))
         query.whereKey("stringField", .Existed)
@@ -119,7 +123,7 @@ class QueryTestCase: BaseTestCase {
     }
 
     func testNotExisted() {
-        let query = Query(className: TestObject.className())
+        let query = objectQuery()
         query.whereKey("objectId", .NotExisted)
 
         let (isSuccess, objects) = execute(query)
@@ -128,7 +132,7 @@ class QueryTestCase: BaseTestCase {
 
     func testEqualTo() {
         let object = sharedObject
-        let query  = Query(className: TestObject.className())
+        let query  = objectQuery()
 
         query.whereKey("objectId", .EqualTo(value: object.objectId!))
         query.whereKey("dateField", .EqualTo(value: LCDate(NSDate(timeIntervalSince1970: 1024))))
@@ -144,7 +148,7 @@ class QueryTestCase: BaseTestCase {
 
     func testNotEqualTo() {
         let object = sharedObject
-        let query  = Query(className: TestObject.className())
+        let query  = objectQuery()
 
         query.whereKey("objectId", .EqualTo(value: object.objectId!))
         query.whereKey("numberField", .NotEqualTo(value: LCNumber(42)))
@@ -155,7 +159,7 @@ class QueryTestCase: BaseTestCase {
 
     func testLessThan() {
         let object = sharedObject
-        let query  = Query(className: TestObject.className())
+        let query  = objectQuery()
 
         query.whereKey("objectId", .EqualTo(value: object.objectId!))
         query.whereKey("numberField", .LessThan(value: LCNumber(42)))
@@ -172,7 +176,7 @@ class QueryTestCase: BaseTestCase {
 
     func testLessThanOrEqualTo() {
         let object = sharedObject
-        let query  = Query(className: TestObject.className())
+        let query  = objectQuery()
 
         query.whereKey("objectId", .EqualTo(value: object.objectId!))
         query.whereKey("numberField", .LessThanOrEqualTo(value: LCNumber(42)))
@@ -183,7 +187,7 @@ class QueryTestCase: BaseTestCase {
 
     func testGreaterThan() {
         let object = sharedObject
-        let query  = Query(className: TestObject.className())
+        let query  = objectQuery()
 
         query.whereKey("objectId", .EqualTo(value: object.objectId!))
         query.whereKey("numberField", .GreaterThan(value: LCNumber(41.9)))
@@ -194,7 +198,7 @@ class QueryTestCase: BaseTestCase {
 
     func testGreaterThanOrEqualTo() {
         let object = sharedObject
-        let query  = Query(className: TestObject.className())
+        let query  = objectQuery()
 
         query.whereKey("objectId", .EqualTo(value: object.objectId!))
         query.whereKey("dateField", .GreaterThanOrEqualTo(value: LCDate(NSDate(timeIntervalSince1970: 1023.9))))
@@ -205,7 +209,7 @@ class QueryTestCase: BaseTestCase {
 
     func testContainedIn() {
         let object = sharedObject
-        let query  = Query(className: TestObject.className())
+        let query  = objectQuery()
 
         query.whereKey("objectId", .EqualTo(value: object.objectId!))
 
@@ -222,7 +226,7 @@ class QueryTestCase: BaseTestCase {
 
     func testNotContainedIn() {
         let object = sharedObject
-        let query  = Query(className: TestObject.className())
+        let query  = objectQuery()
 
         query.whereKey("objectId", .EqualTo(value: object.objectId!))
 
@@ -238,7 +242,7 @@ class QueryTestCase: BaseTestCase {
 
     func testContainedAllIn() {
         let object = sharedObject
-        let query  = Query(className: TestObject.className())
+        let query  = objectQuery()
 
         query.whereKey("objectId", .EqualTo(value: object.objectId!))
 
@@ -254,7 +258,7 @@ class QueryTestCase: BaseTestCase {
 
     func testEqualToSize() {
         let object = sharedObject
-        let query  = Query(className: TestObject.className())
+        let query  = objectQuery()
 
         query.whereKey("objectId", .EqualTo(value: object.objectId!))
         query.whereKey("arrayField", .EqualToSize(size: 3))
@@ -264,7 +268,7 @@ class QueryTestCase: BaseTestCase {
     }
 
     func testNearbyPoint() {
-        let query = Query(className: TestObject.className())
+        let query = objectQuery()
 
         query.whereKey("geoPointField", .NearbyPoint(point: LCGeoPoint(latitude: 45, longitude: -45)))
         query.limit = 1
@@ -274,7 +278,7 @@ class QueryTestCase: BaseTestCase {
     }
 
     func testNearbyPointWithRange() {
-        let query = Query(className: TestObject.className())
+        let query = objectQuery()
 
         /* Tip: At the equator, one degree of longitude and latitude is approximately equal to about 111 kilometers, or 70 miles. */
 
@@ -289,7 +293,7 @@ class QueryTestCase: BaseTestCase {
     }
 
     func testNearbyPointWithRectangle() {
-        let query = Query(className: TestObject.className())
+        let query = objectQuery()
 
         let southwest = LCGeoPoint(latitude: 44, longitude: -46)
         let northeast = LCGeoPoint(latitude: 46, longitude: -44)
@@ -304,8 +308,8 @@ class QueryTestCase: BaseTestCase {
     func testMatchedQuery() {
         let object   = sharedObject
         let child    = sharedChild
-        let query    = Query(className: TestObject.className())
-        let subQuery = Query(className: TestObject.className())
+        let query    = objectQuery()
+        let subQuery = objectQuery()
 
         subQuery.whereKey("objectId", .EqualTo(value: child.objectId!))
         subQuery.whereKey("stringField", .EqualTo(value: LCString("child")))
@@ -319,8 +323,8 @@ class QueryTestCase: BaseTestCase {
 
     func testNotMatchedQuery() {
         let object   = sharedObject
-        let query    = Query(className: TestObject.className())
-        let subQuery = Query(className: TestObject.className())
+        let query    = objectQuery()
+        let subQuery = objectQuery()
 
         subQuery.whereKey("objectId", .EqualTo(value: sharedChild.objectId!))
 
@@ -333,8 +337,8 @@ class QueryTestCase: BaseTestCase {
 
     func testMatchedQueryAndKey() {
         let object   = sharedObject
-        let query    = Query(className: TestObject.className())
-        let subQuery = Query(className: TestObject.className())
+        let query    = objectQuery()
+        let subQuery = objectQuery()
 
         subQuery.whereKey("objectId", .EqualTo(value: object.objectId!))
         query.whereKey("objectId", .MatchedQueryAndKey(query: subQuery, key: "objectId"))
@@ -346,8 +350,8 @@ class QueryTestCase: BaseTestCase {
 
     func testNotMatchedQueryAndKey() {
         let object   = sharedObject
-        let query    = Query(className: TestObject.className())
-        let subQuery = Query(className: TestObject.className())
+        let query    = objectQuery()
+        let subQuery = objectQuery()
 
         subQuery.whereKey("objectId", .NotEqualTo(value: object.objectId!))
         query.whereKey("objectId", .NotMatchedQueryAndKey(query: subQuery, key: "objectId"))
@@ -362,7 +366,7 @@ class QueryTestCase: BaseTestCase {
 
     func testMatchedPattern() {
         let object = sharedObject
-        let query  = Query(className: TestObject.className())
+        let query  = objectQuery()
 
         query.whereKey("objectId", .EqualTo(value: object.objectId!))
         query.whereKey("stringField", .MatchedPattern(pattern: "^foo$", option: nil))
@@ -374,7 +378,7 @@ class QueryTestCase: BaseTestCase {
 
     func testMatchedSubstring() {
         let object = sharedObject
-        let query  = Query(className: TestObject.className())
+        let query  = objectQuery()
 
         query.whereKey("objectId", .EqualTo(value: object.objectId!))
         query.whereKey("stringField", .MatchedSubstring(string: "foo"))
@@ -386,7 +390,7 @@ class QueryTestCase: BaseTestCase {
 
     func testPrefixedBy() {
         let object = sharedObject
-        let query  = Query(className: TestObject.className())
+        let query  = objectQuery()
 
         query.whereKey("objectId", .EqualTo(value: object.objectId!))
         query.whereKey("stringField", .PrefixedBy(string: "f"))
@@ -398,7 +402,7 @@ class QueryTestCase: BaseTestCase {
 
     func testSuffixedBy() {
         let object = sharedObject
-        let query  = Query(className: TestObject.className())
+        let query  = objectQuery()
 
         query.whereKey("objectId", .EqualTo(value: object.objectId!))
         query.whereKey("stringField", .SuffixedBy(string: "o"))
@@ -411,7 +415,7 @@ class QueryTestCase: BaseTestCase {
     func testRelatedTo() {
         let object   = sharedObject
         let relation = sharedRelation
-        let query    = Query(className: TestObject.className())
+        let query    = objectQuery()
 
         query.whereKey("objectId", .EqualTo(value: relation.objectId!))
         query.whereKey("relationField", .RelatedTo(object: object))
@@ -424,7 +428,7 @@ class QueryTestCase: BaseTestCase {
     func testAscending() {
         let object = sharedObject
         let child  = sharedChild
-        let query  = Query(className: TestObject.className())
+        let query  = objectQuery()
 
         query.whereKey("objectId", .ContainedIn(array: [object.objectId!, child.objectId!]))
         query.whereKey("objectId", .Ascending)
@@ -442,7 +446,7 @@ class QueryTestCase: BaseTestCase {
     func testDescending() {
         let object = sharedObject
         let child  = sharedChild
-        let query  = Query(className: TestObject.className())
+        let query  = objectQuery()
 
         query.whereKey("objectId", .ContainedIn(array: [object.objectId!, child.objectId!]))
         query.whereKey("objectId", .Descending)
@@ -460,8 +464,8 @@ class QueryTestCase: BaseTestCase {
     func testLogicAnd() {
         let object = sharedObject
         let child  = sharedChild
-        let query1  = Query(className: TestObject.className())
-        let query2  = Query(className: TestObject.className())
+        let query1  = objectQuery()
+        let query2  = objectQuery()
 
         query1.whereKey("objectId", .EqualTo(value: object.objectId!))
         query2.whereKey("objectId", .EqualTo(value: child.objectId!))
@@ -474,8 +478,8 @@ class QueryTestCase: BaseTestCase {
     func testLogicOr() {
         let object = sharedObject
         let child  = sharedChild
-        let query1  = Query(className: TestObject.className())
-        let query2  = Query(className: TestObject.className())
+        let query1  = objectQuery()
+        let query2  = objectQuery()
 
         query1.whereKey("objectId", .EqualTo(value: object.objectId!))
         query2.whereKey("objectId", .EqualTo(value: child.objectId!))
@@ -488,7 +492,7 @@ class QueryTestCase: BaseTestCase {
     func testCount() {
         let object = sharedObject
         let child  = sharedChild
-        let query  = Query(className: TestObject.className())
+        let query  = objectQuery()
 
         query.whereKey("objectId", .ContainedIn(array: [object.objectId!, child.objectId!]))
 

@@ -240,4 +240,17 @@ class ObjectTestCase: BaseTestCase {
             object.increase("stringField", by: 1)
         })
     }
+
+    func testClassName() {
+        let className = "TestObject"
+        let object = LCObject(className: className)
+        let stringValue = LCString("foo")
+
+        object["stringField"] = stringValue
+        XCTAssertTrue(object.save().isSuccess)
+
+        let shadow = LCObject(className: className, objectId: object.objectId!.value)
+        XCTAssertTrue(shadow.fetch().isSuccess)
+        XCTAssertEqual(shadow["stringField"], stringValue)
+    }
 }

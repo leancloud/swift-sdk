@@ -21,6 +21,7 @@ public class LCObject: LCType, SequenceType {
 
     /// Object identifier.
     public private(set) dynamic var objectId: LCString?
+    public private(set) dynamic var className: LCString?
 
     public private(set) dynamic var createdAt: LCDate?
     public private(set) dynamic var updatedAt: LCDate?
@@ -35,6 +36,10 @@ public class LCObject: LCType, SequenceType {
 
     var hasObjectId: Bool {
         return objectId != nil
+    }
+
+    var actualClassName: String {
+        return className?.value ?? self.dynamicType.objectClassName()
     }
 
     var endpoint: String? {
@@ -64,7 +69,7 @@ public class LCObject: LCType, SequenceType {
 
         return [
             "__type": "Pointer",
-            "className": self.dynamicType.className(),
+            "className": actualClassName,
             "objectId": objectId.value
         ]
     }
@@ -77,6 +82,17 @@ public class LCObject: LCType, SequenceType {
     public convenience init(objectId: String) {
         self.init()
         propertyTable["objectId"] = LCString(objectId)
+    }
+
+    public convenience init(className: String) {
+        self.init()
+        propertyTable["className"] = LCString(className)
+    }
+
+    public convenience init(className: String, objectId: String) {
+        self.init()
+        propertyTable["className"] = LCString(className)
+        propertyTable["objectId"]  = LCString(objectId)
     }
 
     convenience init(dictionary: LCDictionary) {
@@ -115,13 +131,13 @@ public class LCObject: LCType, SequenceType {
     }
 
     /**
-     Set the name of current type.
+     Set class name of current type.
 
-     The default implementation returns the class name of current type.
+     The default implementation returns the class name without root module.
 
-     - returns: Name of current type.
+     - returns: The class name of current type.
      */
-    public class func className() -> String {
+    public class func objectClassName() -> String {
         let className = String(UTF8String: class_getName(self))!
 
         /* Strip root namespace to cope with application package name's change. */
@@ -147,7 +163,7 @@ public class LCObject: LCType, SequenceType {
      - returns: REST endpoint of current type.
      */
     class func classEndpoint() -> String {
-        return "classes/\(className())"
+        return "classes/\(objectClassName())"
     }
 
     /**

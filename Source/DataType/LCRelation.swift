@@ -66,10 +66,10 @@ public final class LCRelation: LCType, SequenceType {
     func validateClassName(objects: [Element]) {
         guard !objects.isEmpty else { return }
 
-        let className = self.className ?? objects.first!.dynamicType.className()
+        let className = self.className ?? objects.first!.actualClassName
 
         for object in objects {
-            guard object.dynamicType.className() == className else {
+            guard object.actualClassName == className else {
                 Exception.raise(.InvalidType, reason: "Invalid class name.")
                 return
             }

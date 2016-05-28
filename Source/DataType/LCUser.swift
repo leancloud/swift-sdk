@@ -58,7 +58,7 @@ public class LCUser: LCObject {
         return "users"
     }
 
-    public final override class func className() -> String {
+    public final override class func objectClassName() -> String {
         return "_User"
     }
 

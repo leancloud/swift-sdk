@@ -33,7 +33,7 @@ public final class LCRole: LCObject {
         return "roles"
     }
 
-    public override class func className() -> String {
+    public override class func objectClassName() -> String {
         return "_Role"
     }
 

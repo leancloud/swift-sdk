@@ -25,7 +25,7 @@ class ObjectProfiler {
      - parameter aClass: The class to be cached.
      */
     static func cache(objectClass objectClass: LCObject.Type) {
-        objectClassTable[objectClass.className()] = objectClass
+        objectClassTable[objectClass.objectClassName()] = objectClass
     }
 
     /**
@@ -449,7 +449,7 @@ class ObjectProfiler {
 
             return object(dictionary: dictionary, className: className)
         case .File:
-            return object(dictionary: dictionary, className: LCFile.className())
+            return object(dictionary: dictionary, className: LCFile.objectClassName())
         case .Relation:
             return LCRelation(dictionary: dictionary)
         case .GeoPoint:

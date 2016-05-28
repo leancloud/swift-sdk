@@ -67,7 +67,7 @@ class BatchRequest {
 
             children.forEach { (key, child) in
                 list.append([
-                    "className": child.dynamicType.className(),
+                    "className": child.actualClassName,
                     "cid": child.internalId,
                     "key": key
                 ])
