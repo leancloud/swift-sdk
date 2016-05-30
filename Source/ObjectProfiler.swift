@@ -504,7 +504,7 @@ class ObjectProfiler {
         case let dictionary as [String: AnyObject]:
             return object(dictionary: dictionary)
         case is NSNull:
-            return LCNull.null
+            return LCNull()
         case let object as LCType:
             return object
         default:

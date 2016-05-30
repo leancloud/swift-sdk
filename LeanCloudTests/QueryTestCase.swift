@@ -19,7 +19,7 @@ let sharedObject: TestObject = {
     object.dateField     = LCDate(NSDate(timeIntervalSince1970: 1024))
     object.geoPointField = LCGeoPoint(latitude: 45, longitude: -45)
     object.objectField   = sharedChild
-    object.nullField     = LCNull.null
+    object.nullField     = LCNull()
 
     object.insertRelation("relationField", object: sharedRelation)
 
@@ -136,7 +136,7 @@ class QueryTestCase: BaseTestCase {
 
         query.whereKey("objectId", .EqualTo(value: object.objectId!))
         query.whereKey("dateField", .EqualTo(value: LCDate(NSDate(timeIntervalSince1970: 1024))))
-        query.whereKey("nullField", .EqualTo(value: LCNull.null))
+        query.whereKey("nullField", .EqualTo(value: LCNull()))
 
         /* Tip: You can use EqualTo to compare an value against elements in an array field.
            If the given value is equal to any element in the array referenced by key, the comparation will be successful. */

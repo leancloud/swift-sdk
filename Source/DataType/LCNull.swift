@@ -11,14 +11,26 @@ import Foundation
 /**
  LeanCloud null type.
 
- A singleton object that represents null value.
+ A LeanCloud data type represents null value.
+
+ - note: This type is not a singleton type, because Swift do not support singleton well currently.
  */
 public class LCNull: LCType {
-    public static let null = LCNull()
-
     override var JSONValue: AnyObject? {
         return NSNull()
     }
 
-    private override init() {}
+    public override func copyWithZone(zone: NSZone) -> AnyObject {
+        return LCNull()
+    }
+
+    public override func isEqual(another: AnyObject?) -> Bool {
+        if another === self {
+            return true
+        } else if another is LCNull {
+            return true
+        } else {
+            return false
+        }
+    }
 }
