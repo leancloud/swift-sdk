@@ -13,7 +13,7 @@ import Foundation
 
  You can use it to set access control lists on an object.
  */
-public final class LCACL: LCType {
+public final class LCACL: LCType, NSCoding {
     typealias Access = [String: Bool]
     typealias AccessTable = [String: Access]
 
@@ -42,6 +42,14 @@ public final class LCACL: LCType {
         }
 
         self.value = value
+    }
+
+    public required init?(coder aDecoder: NSCoder) {
+        value = (aDecoder.decodeObjectForKey("value") as? AccessTable) ?? [:]
+    }
+
+    public func encodeWithCoder(aCoder: NSCoder) {
+        aCoder.encodeObject(value, forKey: "value")
     }
 
     /**
