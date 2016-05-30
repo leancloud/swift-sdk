@@ -329,6 +329,16 @@ public class LCObject: LCType, SequenceType {
     }
 
     /**
+     Append one or more elements into an array.
+
+     - parameter key:      The key of array into which you want to append the elements.
+     - parameter elements: The array of elements to append.
+     */
+    public func append(key: String, elements: [LCType]) {
+        addOperation(.Add, key, LCArray(elements))
+    }
+
+    /**
      Append an element into an array with unique option.
 
      - parameter key:     The key of array into which you want to append the element.
@@ -339,6 +349,19 @@ public class LCObject: LCType, SequenceType {
      */
     public func append(key: String, element: LCType, unique: Bool) {
         addOperation(unique ? .AddUnique : .Add, key, LCArray([element]))
+    }
+
+    /**
+     Append one or more elements into an array with unique option.
+
+     - seealso: `append(key: String, element: LCType, unique: Bool)`
+
+     - parameter key:      The key of array into which you want to append the element.
+     - parameter elements: The array of elements to append.
+     - parameter unique:  Whether append element by unique or not.
+     */
+    public func append(key: String, elements: [LCType], unique: Bool) {
+        addOperation(unique ? .AddUnique : .Add, key, LCArray(elements))
     }
 
     /**
