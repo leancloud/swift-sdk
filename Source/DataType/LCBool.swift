@@ -13,7 +13,7 @@ import Foundation
 
  It is a wrapper of Swift.Bool type, used to store a boolean value.
  */
-public final class LCBool: LCType, BooleanLiteralConvertible {
+public final class LCBool: LCType, NSCoding, BooleanLiteralConvertible {
     public private(set) var value: Bool = false
 
     override var JSONValue: AnyObject? {
@@ -31,6 +31,14 @@ public final class LCBool: LCType, BooleanLiteralConvertible {
 
     public convenience required init(booleanLiteral value: BooleanLiteralType) {
         self.init(Bool(value))
+    }
+
+    public required init?(coder aDecoder: NSCoder) {
+        value = aDecoder.decodeBoolForKey("value")
+    }
+
+    public func encodeWithCoder(aCoder: NSCoder) {
+        aCoder.encodeBool(value, forKey: "value")
     }
 
     class override func instance() -> LCType? {
