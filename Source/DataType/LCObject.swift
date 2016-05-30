@@ -468,7 +468,7 @@ public class LCObject: LCType, SequenceType {
 
      - returns: The result of deletion request.
      */
-    public static func delete<T: LCObject>(objects: [T]) -> BooleanResult {
+    public static func delete(objects: [LCObject]) -> BooleanResult {
         return BooleanResult(response: ObjectUpdater.delete(objects))
     }
 
@@ -477,7 +477,7 @@ public class LCObject: LCType, SequenceType {
 
      - parameter completion: The completion callback closure.
      */
-    public static func delete<T: LCObject>(objects: [T], completion: (BooleanResult) -> Void) {
+    public static func delete(objects: [LCObject], completion: (BooleanResult) -> Void) {
         asynchronize({ delete(objects) }) { result in
             completion(result)
         }
@@ -510,7 +510,7 @@ public class LCObject: LCType, SequenceType {
 
      - returns: The result of fetching request.
      */
-    public static func fetch<T: LCObject>(objects: [T]) -> BooleanResult {
+    public static func fetch(objects: [LCObject]) -> BooleanResult {
         return BooleanResult(response: ObjectUpdater.fetch(objects))
     }
 
@@ -519,7 +519,7 @@ public class LCObject: LCType, SequenceType {
 
      - parameter completion: The completion callback closure.
      */
-    public static func fetch<T: LCObject>(objects: [T], completion: (BooleanResult) -> Void) {
+    public static func fetch(objects: [LCObject], completion: (BooleanResult) -> Void) {
         asynchronize({ fetch(objects) }) { result in
             completion(result)
         }
