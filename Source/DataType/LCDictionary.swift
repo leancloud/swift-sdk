@@ -13,7 +13,7 @@ import Foundation
 
  It is a wrapper of Swift.Dictionary type, used to store a dictionary value.
  */
-public final class LCDictionary: LCType, SequenceType, DictionaryLiteralConvertible {
+public final class LCDictionary: LCType, NSCoding, SequenceType, DictionaryLiteralConvertible {
     public private(set) var value: [String: LCType] = [:]
 
     override var JSONValue: AnyObject? {
@@ -31,6 +31,14 @@ public final class LCDictionary: LCType, SequenceType, DictionaryLiteralConverti
 
     public convenience required init(dictionaryLiteral elements: (String, LCType)...) {
         self.init(Dictionary<String, LCType>(elements: elements))
+    }
+
+    public required init?(coder aDecoder: NSCoder) {
+        value = (aDecoder.decodeObjectForKey("value") as? [String: LCType]) ?? [:]
+    }
+
+    public func encodeWithCoder(aCoder: NSCoder) {
+        aCoder.encodeObject(value, forKey: "value")
     }
 
     class override func instance() -> LCType? {
