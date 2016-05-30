@@ -13,7 +13,7 @@ import Foundation
 
  It is a wrapper of Swift.Double type, used to store a number value.
  */
-public final class LCNumber: LCType, IntegerLiteralConvertible, FloatLiteralConvertible {
+public final class LCNumber: LCType, NSCoding, IntegerLiteralConvertible, FloatLiteralConvertible {
     public private(set) var value: Double = 0
 
     override var JSONValue: AnyObject? {
@@ -35,6 +35,14 @@ public final class LCNumber: LCType, IntegerLiteralConvertible, FloatLiteralConv
 
     public convenience required init(floatLiteral value: FloatLiteralType) {
         self.init(Double(value))
+    }
+
+    public required init?(coder aDecoder: NSCoder) {
+        value = aDecoder.decodeDoubleForKey("value")
+    }
+
+    public func encodeWithCoder(aCoder: NSCoder) {
+        aCoder.encodeDouble(value, forKey: "value")
     }
 
     class override func instance() -> LCType? {
