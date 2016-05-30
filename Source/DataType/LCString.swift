@@ -13,7 +13,7 @@ import Foundation
 
  It is a wrapper of Swift.String type, used to store a string value.
  */
-public final class LCString: LCType, StringLiteralConvertible {
+public final class LCString: LCType, NSCoding, StringLiteralConvertible {
     public private(set) var value: String = ""
 
     override var JSONValue: AnyObject? {
@@ -42,6 +42,14 @@ public final class LCString: LCType, StringLiteralConvertible {
 
     public convenience required init(stringLiteral value: StringLiteralType) {
         self.init(String(value))
+    }
+
+    public required init?(coder aDecoder: NSCoder) {
+        value = (aDecoder.decodeObjectForKey("value") as? String) ?? ""
+    }
+
+    public func encodeWithCoder(aCoder: NSCoder) {
+        aCoder.encodeObject(value, forKey: "value")
     }
 
     class override func instance() -> LCType? {
