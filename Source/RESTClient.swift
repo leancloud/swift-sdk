@@ -117,6 +117,50 @@ class RESTClient {
     }
 
     /**
+     Get endpoint of object.
+
+     - parameter object: The object from which you want to get the endpoint.
+
+     - returns: The endpoint of object.
+     */
+    static func endpoint(object: LCObject) -> String {
+        return endpoint(object.actualClassName)
+    }
+
+    /**
+     Get eigen endpoint of object.
+
+     - parameter object: The object from which you want to get the eigen endpoint.
+
+     - returns: The eigen endpoint of object.
+     */
+    static func eigenEndpoint(object: LCObject) -> String? {
+        guard let objectId = object.objectId else {
+            return nil
+        }
+
+        return "\(endpoint(object))/\(objectId.value)"
+    }
+
+    /**
+     Get endpoint for class name.
+
+     - parameter className: The class name.
+
+     - returns: The endpoint for class name.
+     */
+    static func endpoint(className: String) -> String {
+        switch className {
+        case LCUser.objectClassName():
+            return "users"
+        case LCRole.objectClassName():
+            return "roles"
+        default:
+            return "classes/\(className)"
+        }
+    }
+
+    /**
      Get absolute REST API URL string for endpoint.
 
      - parameter endpoint: The REST API endpoint.

@@ -39,15 +39,7 @@ public class LCObject: LCType, SequenceType {
     }
 
     var actualClassName: String {
-        return className?.value ?? self.dynamicType.objectClassName()
-    }
-
-    var endpoint: String? {
-        guard let objectId = objectId else {
-            return nil
-        }
-
-        return "\(self.dynamicType.classEndpoint())/\(objectId.value)"
+        return (className?.value) ?? self.dynamicType.objectClassName()
     }
 
     /// The temp in-memory object identifier.
@@ -153,17 +145,6 @@ public class LCObject: LCType, SequenceType {
      */
     public static func register() {
         ObjectProfiler.registerClass(self)
-    }
-
-    /**
-     Set the REST endpoint of current type.
-
-     The default implementation returns the "classes/{className}".
-
-     - returns: REST endpoint of current type.
-     */
-    class func classEndpoint() -> String {
-        return "classes/\(objectClassName())"
     }
 
     /**

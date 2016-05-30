@@ -402,8 +402,8 @@ class ObjectProfiler {
 
      - returns: The class.
      */
-    static func objectClass(className: String) -> LCObject.Type {
-        return ObjectProfiler.objectClassTable[className]!
+    static func objectClass(className: String) -> LCObject.Type? {
+        return ObjectProfiler.objectClassTable[className]
     }
 
     /**
@@ -414,7 +414,11 @@ class ObjectProfiler {
      - returns: An LCObject object for class name.
      */
     static func object(className className: String) -> LCObject {
-        return objectClass(className).instance() as! LCObject
+        if let objectClass = objectClass(className) {
+            return objectClass.init()
+        } else {
+            return LCObject(className: className)
+        }
     }
 
     /**

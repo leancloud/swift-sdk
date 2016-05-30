@@ -191,13 +191,11 @@ class ObjectUpdater {
      - returns: The response of request.
      */
     static func delete(object: LCObject) -> Response {
-        var response = Response()
-
-        if let endpoint = object.endpoint {
-            response = RESTClient.request(.DELETE, endpoint, parameters: nil)
+        guard let endpoint = RESTClient.eigenEndpoint(object) else {
+            return Response(Error(code: .NotFound, reason: "Object not found."))
         }
 
-        return response
+        return RESTClient.request(.DELETE, endpoint, parameters: nil)
     }
 
     /**
@@ -313,11 +311,11 @@ class ObjectUpdater {
      - returns: The response of request.
      */
     static func fetch(object: LCObject) -> Response {
-        guard object.hasObjectId else {
-            return Response(Error(code: .NotFound, reason: "Object ID not found."))
+        guard let endpoint = RESTClient.eigenEndpoint(object) else {
+            return Response(Error(code: .NotFound, reason: "Object not found."))
         }
 
-        let response = RESTClient.request(.GET, object.endpoint!, parameters: nil)
+        let response = RESTClient.request(.GET, endpoint, parameters: nil)
 
         guard response.isSuccess else {
             return response

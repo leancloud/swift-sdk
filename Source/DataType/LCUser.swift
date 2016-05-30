@@ -54,10 +54,6 @@ public class LCUser: LCObject {
     /// Current authenticated user.
     public static var current: LCUser? = nil
 
-    final override class func classEndpoint() -> String {
-        return "users"
-    }
-
     public final override class func objectClassName() -> String {
         return "_User"
     }
@@ -125,7 +121,8 @@ public class LCUser: LCObject {
      */
     public static func logIn<User: LCUser>(sessionToken sessionToken: String) -> ObjectResult<User> {
         let parameters = ["session_token": sessionToken]
-        let response   = RESTClient.request(.GET, "\(classEndpoint())/me", parameters: parameters)
+        let endpoint   = RESTClient.endpoint(objectClassName())
+        let response   = RESTClient.request(.GET, "\(endpoint)/me", parameters: parameters)
         let result     = response.objectResult() as ObjectResult<User>
 
         if case let .Success(user) = result {

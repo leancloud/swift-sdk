@@ -29,10 +29,6 @@ public final class LCRole: LCObject {
     /// Relation of roles.
     public dynamic var roles: LCRelation?
 
-    override class func classEndpoint() -> String {
-        return "roles"
-    }
-
     public override class func objectClassName() -> String {
         return "_Role"
     }

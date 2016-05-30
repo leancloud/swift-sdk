@@ -127,7 +127,7 @@ final public class Query {
     }
 
     var endpoint: String {
-        return ObjectProfiler.objectClass(className).classEndpoint()
+        return RESTClient.endpoint(className)
     }
 
     /**

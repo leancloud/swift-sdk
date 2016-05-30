@@ -28,14 +28,17 @@ class BatchRequest {
     }
 
     var path: String {
-        let path = "/\(RESTClient.APIVersion)/\(object.dynamicType.classEndpoint())"
+        var path: String
+        let APIVersion = RESTClient.APIVersion
 
         switch actualMethod {
         case .GET, .PUT, .DELETE:
-            return path + "/\(object.objectId!.value)"
+            path = RESTClient.eigenEndpoint(object)!
         case .POST:
-            return path
+            path = RESTClient.endpoint(object)
         }
+
+        return "/\(APIVersion)/\(path)"
     }
 
     var body: AnyObject {
