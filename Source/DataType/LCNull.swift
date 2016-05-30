@@ -15,9 +15,21 @@ import Foundation
 
  - note: This type is not a singleton type, because Swift do not support singleton well currently.
  */
-public class LCNull: LCType {
+public class LCNull: LCType, NSCoding {
     override var JSONValue: AnyObject? {
         return NSNull()
+    }
+
+    public override init() {
+        super.init()
+    }
+
+    public required init?(coder aDecoder: NSCoder) {
+        /* Nothing to decode. */
+    }
+
+    public func encodeWithCoder(aCoder: NSCoder) {
+        /* Nothing to encode. */
     }
 
     public override func copyWithZone(zone: NSZone) -> AnyObject {
