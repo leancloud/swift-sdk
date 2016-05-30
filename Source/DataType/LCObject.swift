@@ -15,7 +15,7 @@ import Foundation
  It can be extended into subclass while adding some other properties to form a new type.
  Each object is correspond to a record in data storage.
  */
-public class LCObject: LCType, SequenceType {
+public class LCObject: LCType, NSCoding, SequenceType {
     /// Access control lists.
     public dynamic var ACL: LCACL?
 
@@ -90,6 +90,14 @@ public class LCObject: LCType, SequenceType {
     convenience init(dictionary: LCDictionary) {
         self.init()
         self.propertyTable = dictionary
+    }
+
+    public required init?(coder aDecoder: NSCoder) {
+        propertyTable = (aDecoder.decodeObjectForKey("propertyTable") as? LCDictionary) ?? [:]
+    }
+
+    public func encodeWithCoder(aCoder: NSCoder) {
+        aCoder.encodeObject(propertyTable, forKey: "propertyTable")
     }
 
     class override func instance() -> LCType? {

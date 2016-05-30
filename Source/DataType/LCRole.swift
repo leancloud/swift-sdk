@@ -33,10 +33,6 @@ public final class LCRole: LCObject {
         return "_Role"
     }
 
-    public required init() {
-        super.init()
-    }
-
     /**
      Create an role with name.
 
