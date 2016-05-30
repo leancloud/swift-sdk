@@ -263,6 +263,30 @@ public class LCObject: LCType, NSCoding, SequenceType {
     }
 
     /**
+     Transform value for key.
+
+     - parameter key:   The key for which the value should be transformed.
+     - parameter value: The value to be transformed.
+
+     - returns: The transformed value for key.
+     */
+    func transformedValue(key: String, _ value: LCType?) -> LCType? {
+        guard let value = value?.JSONValue else {
+            return nil
+        }
+
+        switch key {
+        case "ACL":
+            return LCACL(JSONValue: value)
+        case "createdAt",
+             "updatedAt":
+            return LCDate(JSONValue: value)
+        default:
+            return nil
+        }
+    }
+
+    /**
      Update a property.
 
      - parameter key:   The property key to be updated.
@@ -270,7 +294,7 @@ public class LCObject: LCType, NSCoding, SequenceType {
      */
     func update(key: String, _ value: LCType?) {
         self.willChangeValueForKey(key)
-        propertyTable[key] = value
+        propertyTable[key] = transformedValue(key, value)
         self.didChangeValueForKey(key)
     }
 
