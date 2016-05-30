@@ -13,7 +13,7 @@ import Foundation
 
  It is a wrapper of Swift.Array type, used to store a list of objects.
  */
-public final class LCArray: LCType, SequenceType, ArrayLiteralConvertible {
+public final class LCArray: LCType, NSCoding, SequenceType, ArrayLiteralConvertible {
     public typealias Element = LCType
 
     public private(set) var value: [Element] = []
@@ -35,6 +35,14 @@ public final class LCArray: LCType, SequenceType, ArrayLiteralConvertible {
         self.init(elements)
     }
 
+    public required init?(coder aDecoder: NSCoder) {
+        value = (aDecoder.decodeObjectForKey("value") as? [Element]) ?? []
+    }
+
+    public func encodeWithCoder(aCoder: NSCoder) {
+        aCoder.encodeObject(value, forKey: "value")
+    }
+
     class override func instance() -> LCType? {
         return self.init([])
     }
@@ -51,6 +59,10 @@ public final class LCArray: LCType, SequenceType, ArrayLiteralConvertible {
         } else {
             return false
         }
+    }
+
+    public subscript(index: Int) -> LCType? {
+        get { return value[index] }
     }
 
     public func generate() -> IndexingGenerator<[Element]> {
