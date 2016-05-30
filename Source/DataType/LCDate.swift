@@ -13,7 +13,7 @@ import Foundation
 
  This type used to represent a point in UTC time.
  */
-public final class LCDate: LCType {
+public final class LCDate: LCType, NSCoding {
     public private(set) var value: NSDate = NSDate()
 
     static let dateFormatter: NSDateFormatter = {
@@ -100,6 +100,14 @@ public final class LCDate: LCType {
         }
 
         value = someValue
+    }
+
+    public required init?(coder aDecoder: NSCoder) {
+        value = (aDecoder.decodeObjectForKey("value") as? NSDate) ?? NSDate()
+    }
+
+    public func encodeWithCoder(aCoder: NSCoder) {
+        aCoder.encodeObject(value, forKey: "value")
     }
 
     class override func instance() -> LCType? {
