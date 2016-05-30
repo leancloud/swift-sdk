@@ -452,8 +452,6 @@ class ObjectProfiler {
             let className = dictionary["className"] as! String
 
             return object(dictionary: dictionary, className: className)
-        case .File:
-            return object(dictionary: dictionary, className: LCFile.objectClassName())
         case .Relation:
             return LCRelation(dictionary: dictionary)
         case .GeoPoint:
