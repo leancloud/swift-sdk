@@ -358,7 +358,7 @@ public class LCObject: LCType, SequenceType {
 
      - parameter key:      The key of array into which you want to append the element.
      - parameter elements: The array of elements to append.
-     - parameter unique:  Whether append element by unique or not.
+     - parameter unique:   Whether append element by unique or not.
      */
     public func append(key: String, elements: [LCType], unique: Bool) {
         addOperation(unique ? .AddUnique : .Add, key, LCArray(elements))
@@ -372,6 +372,16 @@ public class LCObject: LCType, SequenceType {
      */
     public func remove(key: String, element: LCType) {
         addOperation(.Remove, key, LCArray([element]))
+    }
+
+    /**
+     Remove one or more elements from an array.
+
+     - parameter key:      The key of array from which you want to remove the element.
+     - parameter elements: The array of elements to remove.
+     */
+    public func remove(key: String, elements: [LCType]) {
+        addOperation(.Remove, key, LCArray(elements))
     }
 
     /**
