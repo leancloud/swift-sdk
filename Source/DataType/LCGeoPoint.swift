@@ -13,7 +13,7 @@ import Foundation
 
  This type can be used to represent a 2D location with latitude and longitude.
  */
-public final class LCGeoPoint: LCType {
+public final class LCGeoPoint: LCType, NSCoding {
     public private(set) var latitude: Double = 0
     public private(set) var longitude: Double = 0
 
@@ -65,6 +65,16 @@ public final class LCGeoPoint: LCType {
 
         self.latitude  = latitude
         self.longitude = longitude
+    }
+
+    public required init?(coder aDecoder: NSCoder) {
+        latitude  = aDecoder.decodeDoubleForKey("latitude")
+        longitude = aDecoder.decodeDoubleForKey("longitude")
+    }
+
+    public func encodeWithCoder(aCoder: NSCoder) {
+        aCoder.encodeDouble(latitude, forKey: "latitude")
+        aCoder.encodeDouble(longitude, forKey: "longitude")
     }
 
     class override func instance() -> LCType? {
