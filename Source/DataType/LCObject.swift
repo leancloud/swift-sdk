@@ -26,9 +26,6 @@ public class LCObject: LCType, NSCoding, SequenceType {
     public private(set) dynamic var createdAt: LCDate?
     public private(set) dynamic var updatedAt: LCDate?
 
-    /// The dispatch queue for network request task.
-    static let backgroundQueue = dispatch_queue_create("LeanCloud.Object", DISPATCH_QUEUE_CONCURRENT)
-
     /**
      The table of all properties.
      */
@@ -129,6 +126,9 @@ public class LCObject: LCType, NSCoding, SequenceType {
     override func forEachChild(body: (child: LCType) -> Void) {
         propertyTable.forEachChild(body)
     }
+
+    /// The dispatch queue for network request task.
+    static let backgroundQueue = dispatch_queue_create("LeanCloud.Object", DISPATCH_QUEUE_CONCURRENT)
 
     /**
      Set class name of current type.
