@@ -13,7 +13,7 @@ import Foundation
 
  This type can be used to make one-to-many relation between objects.
  */
-public final class LCRelation: LCType, SequenceType {
+public final class LCRelation: LCType, NSCoding, SequenceType {
     public typealias Element = LCObject
 
     var className: String?
@@ -45,6 +45,14 @@ public final class LCRelation: LCType, SequenceType {
         }
 
         className = dictionary["className"] as? String
+    }
+
+    public required init?(coder aDecoder: NSCoder) {
+        value = (aDecoder.decodeObjectForKey("value") as? [Element]) ?? []
+    }
+
+    public func encodeWithCoder(aCoder: NSCoder) {
+        aCoder.encodeObject(value, forKey: "value")
     }
 
     class override func instance() -> LCType? {
