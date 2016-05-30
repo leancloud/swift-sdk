@@ -13,7 +13,7 @@ import Foundation
 
  This type can be used to represent a byte buffers.
  */
-public final class LCData: LCType {
+public final class LCData: LCType, NSCoding {
     public private(set) var value: NSData = NSData()
 
     var base64EncodedString: String {
@@ -66,6 +66,14 @@ public final class LCData: LCType {
         }
 
         value = data
+    }
+
+    public required init?(coder aDecoder: NSCoder) {
+        value = (aDecoder.decodeObjectForKey("value") as? NSData) ?? NSData()
+    }
+
+    public func encodeWithCoder(aCoder: NSCoder) {
+        aCoder.encodeObject(value, forKey: "value")
     }
 
     class override func instance() -> LCType? {
