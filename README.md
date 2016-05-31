@@ -1,2 +1,2 @@
-LeanCloud Swift SDK
-===================
+# swift-sdk
+LeanCloud-Swift-SDK
