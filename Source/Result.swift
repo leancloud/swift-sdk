@@ -174,6 +174,53 @@ public enum CountResult: ResultType {
     }
 }
 
+public enum CQLResult: ResultType {
+    case Success(value: CQLValue)
+    case Failure(error: Error)
+
+    public var error: Error? {
+        switch self {
+        case .Success:
+            return nil
+        case let .Failure(error):
+            return error
+        }
+    }
+
+    public var isSuccess: Bool {
+        switch self {
+        case .Success: return true
+        case .Failure: return false
+        }
+    }
+
+    public var objects: [LCObject] {
+        switch self {
+        case let .Success(value):
+            return value.objects
+        case .Failure:
+            return []
+        }
+    }
+
+    public var count: Int {
+        switch self {
+        case let .Success(value):
+            return value.count
+        case .Failure:
+            return 0
+        }
+    }
+
+    init(response: Response) {
+        if let error = response.error {
+            self = .Failure(error: error)
+        } else {
+            self = .Success(value: CQLValue(response: response))
+        }
+    }
+}
+
 extension Response {
     /**
      Get object result of response.

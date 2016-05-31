@@ -425,11 +425,11 @@ class ObjectProfiler {
      Convert a dictionary to an object with specified class name.
 
      - parameter dictionary: The source dictionary to be converted.
-     - parameter className:  The class name.
+     - parameter className:  The object class name.
 
-     - returns: An LCType object.
+     - returns: An LCObject object.
      */
-    private static func object(dictionary dictionary: [String: AnyObject], className: String) -> LCType {
+    static func object(dictionary dictionary: [String: AnyObject], className: String) -> LCObject {
         let result = object(className: className)
         let keyValues = dictionary.mapValue { object(JSONValue: $0) }
 
