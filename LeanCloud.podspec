@@ -6,7 +6,7 @@ Pod::Spec.new do |s|
   s.homepage     = 'https://leancloud.cn/'
   s.authors      = 'LeanCloud'
   s.source       = { :git => 'https://github.com/leancloud/swift-sdk.git', :tag => s.version }
-  s.source_files = 'Source/*.swift'
+  s.source_files = 'Source/**/*.swift'
 
   s.ios.deployment_target     = '8.0'
   s.osx.deployment_target     = '10.9'
