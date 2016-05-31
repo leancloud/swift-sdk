@@ -8,12 +8,6 @@
 
 import Foundation
 
-func synchronized<T>(object: AnyObject, @noescape closure: () throws -> T) rethrows -> T {
-    objc_sync_enter(object)
-    defer { objc_sync_exit(object) }
-    return try closure()
-}
-
 class Utility {
     static func uuid() -> String {
         return NSUUID().UUIDString.stringByReplacingOccurrencesOfString("-", withString: "").lowercaseString
