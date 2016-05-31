@@ -8,22 +8,6 @@
 
 import Foundation
 
-infix operator +~ {
-    associativity left
-}
-
-func + (left: LCType, right: LCType?) -> LCType? {
-    return left.add(right)
-}
-
-func +~ (left: LCType, right: LCType?) -> LCType? {
-    return left.add(right, unique: true)
-}
-
-func - (left: LCType, right: LCType?) -> LCType? {
-    return left.subtract(right)
-}
-
 /**
  LeanCloud abstract data type.
  
