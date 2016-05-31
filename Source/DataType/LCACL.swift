@@ -36,7 +36,7 @@ public final class LCACL: LCType, NSCoding {
         super.init()
     }
 
-    init?(JSONValue: AnyObject) {
+    init?(JSONValue: AnyObject?) {
         guard let value = JSONValue as? AccessTable else {
             return nil
         }

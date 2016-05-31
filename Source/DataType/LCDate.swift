@@ -79,7 +79,7 @@ public final class LCDate: LCType, NSCoding {
         value = date
     }
 
-    init?(JSONValue: AnyObject) {
+    init?(JSONValue: AnyObject?) {
         var value: NSDate?
 
         switch JSONValue {
