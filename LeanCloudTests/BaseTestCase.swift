@@ -20,7 +20,6 @@ class TestObject: LCObject {
     dynamic var geoPointField: LCGeoPoint?
     dynamic var dataField: LCData?
     dynamic var dateField: LCDate?
-    dynamic var fileField: LCFile?
     dynamic var nullField: LCNull?
 
     /* The non-LCType and non-dynamic property cannot be handled. */
