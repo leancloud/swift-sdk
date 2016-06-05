@@ -70,6 +70,57 @@ class Runtime {
     }
 
     /**
+     Create toposort for classes.
+
+     Superclass will be placed before subclass.
+
+     - parameter classes: An array of classes.
+
+     - returns: The toposort of classes.
+     */
+    static func toposort(classes classes: [AnyClass]) -> [AnyClass] {
+        var result: [AnyClass] = []
+        var visitStatusTable: [UInt: Int] = [:]
+
+        toposortStart(classes: classes, &result, &visitStatusTable)
+
+        return result
+    }
+
+    private static func toposortStart(classes classes: [AnyClass], inout _ result: [AnyClass], inout _ visitStatusTable: [UInt: Int]) {
+        classes.forEach { aClass in
+            toposortVisit(aClass: aClass, classes, &result, &visitStatusTable)
+        }
+    }
+
+    private static func toposortVisit(aClass aClass: AnyClass, _ classes: [AnyClass], inout _ result: [AnyClass], inout _ visitStatusTable: [UInt: Int]) {
+        let key = ObjectIdentifier(aClass).uintValue
+
+        switch visitStatusTable[key] ?? 0 {
+        case 0: /* Unvisited */
+            visitStatusTable[key] = 1
+
+            var eachSubclass: AnyClass! = aClass
+
+            while let eachSuperclass = class_getSuperclass(eachSubclass) {
+                toposortVisit(aClass: eachSuperclass, classes, &result, &visitStatusTable)
+                eachSubclass = eachSuperclass
+            }
+
+            visitStatusTable[key] = 2
+
+            if classes.contains({ $0 === aClass }) {
+                result.append(aClass)
+            }
+        case 1: /* Visiting */
+            Exception.raise(.Inconsistency, reason: "Circular reference.")
+            break
+        default: /* Visited */
+            break
+        }
+    }
+
+    /**
      Get all properties of a class.
 
      - parameter aClass: Target class.

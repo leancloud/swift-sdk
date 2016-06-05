@@ -58,15 +58,22 @@ class ObjectProfiler {
     }
 
     /**
-     Register LCObject and its subclasses.
+     Register object classes.
 
-     This method will scan the loaded classes list at runtime to find out LCObject subclasses.
+     This method will scan the loaded classes list at runtime to find out object classes.
+
+     - note: When subclass and superclass have the same class name,
+             subclass will be registered for the class name.
      */
     static func registerClasses() {
         var classes = [LCObject.self]
         let subclasses = Runtime.subclasses(LCObject.self) as! [LCObject.Type]
 
         classes.appendContentsOf(subclasses)
+
+        /* Sort classes to make sure subclass will be registered after superclass. */
+        classes = Runtime.toposort(classes: classes) as! [LCObject.Type]
+
         classes.forEach { registerClass($0) }
     }
 
