@@ -172,6 +172,15 @@ public enum CountResult: ResultType {
             self = .Success(count: response.count)
         }
     }
+
+    public var intValue: Int {
+        switch self {
+        case let .Success(count):
+            return count
+        case .Failure:
+            return 0
+        }
+    }
 }
 
 public enum CQLResult: ResultType {

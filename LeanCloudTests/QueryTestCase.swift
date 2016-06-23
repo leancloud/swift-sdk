@@ -502,14 +502,8 @@ class QueryTestCase: BaseTestCase {
 
         query.whereKey("objectId", .ContainedIn(array: [object.objectId!, child.objectId!]))
 
-        let result = query.count()
-
-        switch result {
-        case let .Success(count):
-            XCTAssertEqual(count, 2)
-        default:
-            XCTFail()
-        }
+        let count = query.count().intValue
+        XCTAssertEqual(count, 2)
     }
 
     func testSkip() {
