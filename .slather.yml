@@ -1,0 +1,4 @@
+coverage_service: coveralls
+xcodeproj: LeanCloud.xcodeproj
+scheme: LeanCloud
+source_directory: Source
