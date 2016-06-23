@@ -331,6 +331,20 @@ public class LCObject: LCType, NSCoding, SequenceType {
     }
 
     /**
+     Set object for key.
+
+     - parameter key:    The key for which to set the object.
+     - parameter object: The new object.
+     */
+    public func set(key: String, object: AnyObject?) {
+        if let object = object {
+            set(key, value: ObjectProfiler.object(JSONValue: object))
+        } else {
+            set(key, value: nil)
+        }
+    }
+
+    /**
      Unset value for key.
 
      - parameter key: The key for which to unset.
