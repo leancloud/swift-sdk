@@ -1,4 +1,6 @@
-before_install: rvm use 2.2
-install: bundle install --without=documentation --path ../travis_bundle_dir
-script: xcodebuild test -project LeanCloud.xcodeproj -scheme LeanCloud -sdk iphonesimulator ONLY_ACTIVE_ARCH=NO
+language: objective-c
+osx_image: xcode7.3
+before_install: rvm use 2.0
+install: gem install slather
+script: xcodebuild test -project LeanCloud.xcodeproj -scheme LeanCloud -sdk iphonesimulator
 after_success: slather
