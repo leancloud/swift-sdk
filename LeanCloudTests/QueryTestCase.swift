@@ -512,4 +512,15 @@ class QueryTestCase: BaseTestCase {
         }
     }
 
+    func testSkip() {
+        let object = sharedObject
+        let query  = objectQuery()
+
+        query.whereKey("objectId", .EqualTo(value: object.objectId!))
+        query.skip = 1
+
+        let objects = query.find().objects ?? []
+        XCTAssertTrue(objects.isEmpty)
+    }
+
 }
