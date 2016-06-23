@@ -29,15 +29,6 @@ class ObjectProfiler {
     }
 
     /**
-     Get cached properties for class.
-
-     - parameter aClass: The class of properties.
-     */
-    static func cachedProperties(aClass: AnyClass) -> [objc_property_t]? {
-        return propertyListTable[ObjectIdentifier(aClass).uintValue]
-    }
-
-    /**
      Cache a property list.
 
      - parameter properties: The property list to be cached.
@@ -104,36 +95,6 @@ class ObjectProfiler {
      */
     static func synthesizableProperties(aClass: AnyClass) -> [objc_property_t] {
         return Runtime.nonComputedProperties(aClass).filter { isLCType(property: $0) }
-    }
-
-    /**
-     Find all synthesizable properties of an object.
-
-     - note: All synthesizable properties declared by superclass are included.
-
-     - parameter object: The object where the synthesizable properties will be found.
-
-     - returns: An array of synthesizable properties.
-     */
-    static func synthesizableProperties(object: LCObject) -> [objc_property_t] {
-        var propertyTable: [String: objc_property_t] = [:]
-        var objectClass: AnyClass! = object_getClass(object)
-
-        while objectClass != nil && objectClass != LCType.self {
-            guard let properties = cachedProperties(objectClass) else {
-                Exception.raise(.NotFound, reason: "\(class_getName(objectClass)) not registerd.")
-                break
-            }
-            properties.forEach { property in
-                let propertyName = Runtime.propertyName(property)
-                if propertyTable[propertyName] == nil {
-                    propertyTable[propertyName] = property
-                }
-            }
-            objectClass = class_getSuperclass(objectClass)
-        }
-
-        return Array(propertyTable.values)
     }
 
     /**
