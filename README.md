@@ -1,5 +1,7 @@
 # LeanCloud Swift SDK
 
+[![Coverage Status](https://coveralls.io/repos/github/leancloud/swift-sdk/badge.svg?branch=master)](https://coveralls.io/github/leancloud/swift-sdk?branch=master)
+
 ## Features
   * [x] Data Storage
   * [x] Object Query
