@@ -74,6 +74,12 @@ class QueryTestCase: BaseTestCase {
         return Query(className: TestObject.objectClassName())
     }
 
+    func testInvalidClassName() {
+        XCTAssertThrowsException {
+            Query(className: "Foo") && Query(className: "Bar")
+        }
+    }
+
     func testIncluded() {
         let object = sharedObject
 
