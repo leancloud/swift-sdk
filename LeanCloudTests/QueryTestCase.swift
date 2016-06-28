@@ -525,6 +525,35 @@ class QueryTestCase: BaseTestCase {
         XCTAssertEqual(result.object, object)
     }
 
+    func testCopyQuery() {
+        let query = objectQuery()
+        query.limit = 42
+        let queryCopy = query.copy() as! Query
+
+        XCTAssertEqual(queryCopy.limit, 42)
+        XCTAssertNotEqual(queryCopy, query)
+
+        queryCopy.limit = 43
+        XCTAssertEqual(query.limit, 42)
+    }
+
+    func testArchiveQuery() {
+        let query = objectQuery()
+        let matchedQuery = objectQuery()
+
+        query.whereKey("stringField", .MatchedQuery(query: matchedQuery))
+
+        let queryCopy = query.copy() as! Query
+        let queryArchivement = NSKeyedUnarchiver.unarchiveObjectWithData(NSKeyedArchiver.archivedDataWithRootObject(query)) as! Query
+
+        matchedQuery.limit = 42
+
+        let keyPath = "where.stringField.$inQuery.limit"
+
+        XCTAssertEqual((queryCopy.JSONValue as NSDictionary).valueForKeyPath(keyPath) as? Int, 42)
+        XCTAssertNil((queryArchivement.JSONValue as NSDictionary).valueForKeyPath(keyPath))
+    }
+
     func testSkip() {
         let object = sharedObject
         let query  = objectQuery()
