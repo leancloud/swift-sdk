@@ -50,6 +50,7 @@ class ACLTestCase: BaseTestCase {
         XCTAssertEqual(acl.value[roleAccessKey]!, [readKey: true, writeKey: true])
         acl.setAccess(.Write, allowed: false, forRoleName: roleName)
         XCTAssertEqual(acl.value[roleAccessKey]!, [readKey: true])
+        XCTAssertTrue(acl.getAccess(.Read, forRoleName: roleName))
     }
 
     func testPublicACL() {

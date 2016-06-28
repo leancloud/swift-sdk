@@ -506,6 +506,25 @@ class QueryTestCase: BaseTestCase {
         XCTAssertEqual(count, 2)
     }
 
+    func testGetFirst() {
+        let object = sharedObject
+        let query  = objectQuery()
+
+        query.whereKey("objectId", .EqualTo(value: object.objectId!))
+
+        let result = query.getFirst()
+        XCTAssertNil(query.limit)
+        XCTAssertEqual(result.object, object)
+    }
+
+    func testGetObject() {
+        let object = sharedObject
+        let query  = objectQuery()
+
+        let result = query.get(object.objectId!.value)
+        XCTAssertEqual(result.object, object)
+    }
+
     func testSkip() {
         let object = sharedObject
         let query  = objectQuery()

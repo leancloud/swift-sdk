@@ -11,7 +11,7 @@ import Foundation
 /**
  Query defines a query for objects.
  */
-final public class Query {
+final public class Query: NSObject, NSCopying, NSCoding {
     /// Query class name.
     public private(set) var className: String
 
@@ -72,14 +72,14 @@ final public class Query {
 
     /// Parameters for query request.
     private var parameters: [String: AnyObject] {
-        var parameter = JSONValue
+        var parameters = JSONValue
 
         /* Encode where field to string. */
-        if let object = parameter["where"] {
-            parameter["where"] = Utility.JSONString(object)
+        if let object = parameters["where"] {
+            parameters["where"] = Utility.JSONString(object)
         }
 
-        return parameter
+        return parameters
     }
 
     /// The dispatch queue for network request task.
@@ -137,6 +137,44 @@ final public class Query {
      */
     public init(className: String) {
         self.className = className
+    }
+
+    public func copyWithZone(zone: NSZone) -> AnyObject {
+        let query = Query(className: className)
+
+        query.includedKeys  = includedKeys
+        query.selectedKeys  = selectedKeys
+        query.equalityTable = equalityTable
+        query.constraintDictionary = constraintDictionary
+        query.limit = limit
+        query.skip  = skip
+
+        return query
+    }
+
+    public required init?(coder aDecoder: NSCoder) {
+        className = aDecoder.decodeObjectForKey("className") as! String
+        includedKeys  = aDecoder.decodeObjectForKey("includedKeys") as! Set<String>
+        selectedKeys  = aDecoder.decodeObjectForKey("selectedKeys") as! Set<String>
+        equalityTable = aDecoder.decodeObjectForKey("equalityTable") as! [String: LCType]
+        constraintDictionary = aDecoder.decodeObjectForKey("constraintDictionary") as! [String: AnyObject]
+        limit = aDecoder.decodeObjectForKey("limit") as? Int
+        skip  = aDecoder.decodeObjectForKey("skip") as? Int
+    }
+
+    public func encodeWithCoder(aCoder: NSCoder) {
+        aCoder.encodeObject(className, forKey: "className")
+        aCoder.encodeObject(includedKeys, forKey: "includedKeys")
+        aCoder.encodeObject(selectedKeys, forKey: "selectedKeys")
+        aCoder.encodeObject(equalityTable, forKey: "equalityTable")
+        aCoder.encodeObject(constraintDictionary, forKey: "constraintDictionary")
+
+        if let limit = limit {
+            aCoder.encodeInteger(limit, forKey: "limit")
+        }
+        if let skip = skip {
+            aCoder.encodeInteger(skip, forKey: "skip")
+        }
     }
 
     /**
@@ -351,6 +389,70 @@ final public class Query {
      */
     public func find<T: LCObject>(completion: (QueryResult<T>) -> Void) {
         Query.asynchronize({ self.find() }) { result in
+            completion(result)
+        }
+    }
+
+    /**
+     Get first object of query synchronously.
+
+     - note: All query conditions other than `limit` will take effect for current request.
+
+     - returns: The object result of query.
+     */
+    func getFirst<T: LCObject>() -> ObjectResult<T> {
+        let query = copy() as! Query
+
+        query.limit = 1
+
+        let result: QueryResult<T> = query.find()
+
+        switch result {
+        case let .Success(objects):
+            guard let object = objects.first else {
+                return .Failure(error: Error(code: .NotFound, reason: "Object not found."))
+            }
+
+            return .Success(object: object)
+        case let .Failure(error):
+            return .Failure(error: error)
+        }
+    }
+
+    /**
+     Get first object of query asynchronously.
+
+     - parameter completion: The completion callback closure.
+     */
+    func getFirst<T: LCObject>(completion: (ObjectResult<T>) -> Void) {
+        Query.asynchronize({ self.getFirst() }) { result in
+            completion(result)
+        }
+    }
+
+    /**
+     Get object by object ID synchronously.
+
+     - parameter objectId: The object ID.
+
+     - returns: The object result of query.
+     */
+    func get<T: LCObject>(objectId: String) -> ObjectResult<T> {
+        let query = copy() as! Query
+
+        query.whereKey("objectId", .EqualTo(value: LCString(objectId)))
+
+        return query.getFirst()
+    }
+
+    /**
+     Get object by object ID asynchronously.
+
+     - parameter objectId:   The object ID.
+     - parameter completion: The completion callback closure.
+     */
+    func get<T: LCObject>(objectId: String, completion: (ObjectResult<T>) -> Void) {
+        Query.asynchronize({ self.get(objectId) }) { result in
             completion(result)
         }
     }
