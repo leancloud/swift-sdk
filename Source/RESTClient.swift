@@ -163,6 +163,7 @@ class RESTClient {
      Get absolute REST API URL string for endpoint.
 
      - parameter endpoint: The REST API endpoint.
+
      - returns: An absolute REST API URL string.
      */
     static func absoluteURLString(endpoint: String) -> String {
@@ -172,13 +173,18 @@ class RESTClient {
     /**
      Merge headers with common headers.
 
+     Field in `headers` will overrides the field in common header with the same name.
+
      - parameter headers: The headers to be merged.
+
      - returns: The merged headers.
      */
     static func mergeCommonHeaders(headers: [String: String]?) -> [String: String] {
-        var headers = headers ?? [:]
-        commonHeaders.forEach { (key, value) in headers[key] = value }
-        return headers
+        var result = commonHeaders
+
+        headers?.forEach { (key, value) in result[key] = value }
+
+        return result
     }
 
     /**
