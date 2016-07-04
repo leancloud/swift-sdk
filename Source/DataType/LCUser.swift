@@ -282,4 +282,37 @@ public class LCUser: LCObject {
         let response = RESTClient.request(.PUT, "resetPasswordBySmsCode/\(shortCode)", parameters: parameters)
         return BooleanResult(response: response)
     }
+
+    /**
+     Update password for user.
+
+     - parameter oldPassword: The old password.
+     - parameter newPassword: The new password.
+
+     - returns: The result of update request.
+     */
+    public func updatePassword(oldPassword oldPassword: String, newPassword: String) -> BooleanResult {
+        guard let endpoint = RESTClient.eigenEndpoint(self) else {
+            return .Failure(error: Error(code: .NotFound, reason: "User not found."))
+        }
+        guard let sessionToken = sessionToken else {
+            return .Failure(error: Error(code: .NotFound, reason: "Session token not found."))
+        }
+
+        let parameters = [
+            "old_password": oldPassword,
+            "new_password": newPassword
+        ]
+        let headers  = [RESTClient.HeaderFieldName.Session: sessionToken.value]
+        let response = RESTClient.request(.PUT, endpoint + "/updatePassword", parameters: parameters, headers: headers)
+
+        if let error = response.error {
+            return .Failure(error: error)
+        } else {
+            if let dictionary = response.value as? [String: AnyObject] {
+                ObjectProfiler.updateObject(self, dictionary)
+            }
+            return .Success
+        }
+    }
 }
