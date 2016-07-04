@@ -166,17 +166,6 @@ class ObjectProfiler {
     }
 
     /**
-     Update value of an object property.
-
-     - parameter object:       The object which you want to update.
-     - parameter propertyName: The property name which you want to update.
-     - parameter value:        The new property value.
-     */
-    static func updateProperty(object: LCObject, _ propertyName: String, _ value: LCType?) {
-        object.propertyTable[propertyName] = value
-    }
-
-    /**
      Get deepest descendant newborn orphan objects of an object recursively.
 
      - parameter object:  The root object.
@@ -352,18 +341,6 @@ class ObjectProfiler {
     }
 
     /**
-     Map key values dictionary to object.
-
-     - parameter keyValues: A dictionary of keys and values.
-     - parameter object:    The target object.
-     */
-    static func mapKeyValues(keyValues: [String: LCType], _ object: LCObject) {
-        keyValues.forEach { (key, value) in
-            updateProperty(object, key, value)
-        }
-    }
-
-    /**
      Get object class by name.
 
      - parameter className: The name of object class.
@@ -401,7 +378,9 @@ class ObjectProfiler {
         let result = object(className: className)
         let keyValues = dictionary.mapValue { object(JSONValue: $0) }
 
-        mapKeyValues(keyValues, result)
+        keyValues.forEach { (key, value) in
+            result.update(key, value)
+        }
 
         return result
     }
