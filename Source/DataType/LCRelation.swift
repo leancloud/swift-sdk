@@ -28,11 +28,6 @@ public final class LCRelation: LCType, NSCoding, SequenceType {
         super.init()
     }
 
-    convenience init(className: String?) {
-        self.init()
-        self.className = className
-    }
-
     init?(dictionary: [String: AnyObject]) {
         guard let type = dictionary["__type"] as? String else {
             return nil
