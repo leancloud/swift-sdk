@@ -400,7 +400,7 @@ final public class Query: NSObject, NSCopying, NSCoding {
 
      - returns: The object result of query.
      */
-    func getFirst<T: LCObject>() -> ObjectResult<T> {
+    public func getFirst<T: LCObject>() -> ObjectResult<T> {
         let query = copy() as! Query
 
         query.limit = 1
@@ -424,7 +424,7 @@ final public class Query: NSObject, NSCopying, NSCoding {
 
      - parameter completion: The completion callback closure.
      */
-    func getFirst<T: LCObject>(completion: (ObjectResult<T>) -> Void) {
+    public func getFirst<T: LCObject>(completion: (ObjectResult<T>) -> Void) {
         Query.asynchronize({ self.getFirst() }) { result in
             completion(result)
         }
@@ -437,7 +437,7 @@ final public class Query: NSObject, NSCopying, NSCoding {
 
      - returns: The object result of query.
      */
-    func get<T: LCObject>(objectId: String) -> ObjectResult<T> {
+    public func get<T: LCObject>(objectId: String) -> ObjectResult<T> {
         let query = copy() as! Query
 
         query.whereKey("objectId", .EqualTo(value: LCString(objectId)))
@@ -451,7 +451,7 @@ final public class Query: NSObject, NSCopying, NSCoding {
      - parameter objectId:   The object ID.
      - parameter completion: The completion callback closure.
      */
-    func get<T: LCObject>(objectId: String, completion: (ObjectResult<T>) -> Void) {
+    public func get<T: LCObject>(objectId: String, completion: (ObjectResult<T>) -> Void) {
         Query.asynchronize({ self.get(objectId) }) { result in
             completion(result)
         }
