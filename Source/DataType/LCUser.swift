@@ -123,7 +123,7 @@ public class LCUser: LCObject {
         let parameters = ["session_token": sessionToken]
         let endpoint   = RESTClient.endpoint(objectClassName())
         let response   = RESTClient.request(.GET, "\(endpoint)/me", parameters: parameters)
-        let result     = response.objectResult() as ObjectResult<User>
+        let result     = objectResult(response) as ObjectResult<User>
 
         if case let .Success(user) = result {
             LCUser.current = user
@@ -141,13 +141,38 @@ public class LCUser: LCObject {
      */
     static func logIn<User: LCUser>(parameters parameters: [String: AnyObject]) -> ObjectResult<User> {
         let response = RESTClient.request(.POST, "login", parameters: parameters)
-        let result   = response.objectResult() as ObjectResult<User>
+        let result   = objectResult(response) as ObjectResult<User>
 
         if case let .Success(user) = result {
             LCUser.current = user
         }
 
         return result
+    }
+
+    /**
+     Convert response to user object result.
+
+     - parameter response: The response of login request.
+
+     - returns: The user object result of reponse.
+     */
+    static func objectResult<User: LCUser>(response: Response) -> ObjectResult<User> {
+        if let error = response.error {
+            return .Failure(error: error)
+        }
+
+        guard var dictionary = response.value as? [String: AnyObject] else {
+            return .Failure(error: Error(code: .MalformedData, reason: "Malformed user response data."))
+        }
+
+        /* Patch response data to fulfill object format. */
+        dictionary["__type"]    = RESTClient.DataType.Object.rawValue
+        dictionary["className"] = LCUser.objectClassName()
+
+        let user = ObjectProfiler.object(JSONValue: dictionary) as! User
+
+        return .Success(object: user)
     }
 
     /**

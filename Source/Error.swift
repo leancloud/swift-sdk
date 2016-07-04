@@ -18,6 +18,7 @@ public struct Error: ErrorType {
     enum InternalErrorCode: Int {
         case NotFound      = 9973
         case InvalidType   = 9974
+        case MalformedData = 9975
     }
 
     enum ServerErrorCode: Int {
