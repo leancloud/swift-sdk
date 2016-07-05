@@ -332,6 +332,11 @@ class ObjectProfiler {
     }
 
     /**
+     Check whether value is a boolean.
+
+     - parameter JSONValue: The value to check.
+
+     - returns: true if value is a boolean, false otherwise.
      */
     private static func isBoolean(JSONValue: AnyObject) -> Bool {
         switch String(JSONValue.dynamicType) {
