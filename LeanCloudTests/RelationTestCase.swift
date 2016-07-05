@@ -22,46 +22,45 @@ class RelationTestCase: BaseTestCase {
     }
 
     func testQuery() {
-        let object   = sharedObject
-        let relation = sharedRelation
-
+        let object = sharedObject
+        let friend = sharedFriend
         let query  = object.relationForKey("relationField").query
         let result = query.find()
 
         XCTAssertTrue(result.isSuccess)
-        XCTAssertTrue(result.objects!.contains(relation))
+        XCTAssertTrue(result.objects!.contains(friend))
     }
 
     func testClassNameRedirection() {
-        let object   = LCObject()
-        let relation = TestObject()
+        let object = LCObject()
+        let friend = TestObject()
 
-        object.insertRelation("relationField", object: relation)
+        object.insertRelation("relationField", object: friend)
         XCTAssertTrue(object.save().isSuccess)
 
         let shadow = LCObject(objectId: object.objectId!.value)
         let query = shadow.relationForKey("relationField").query
 
         XCTAssertEqual(query.className, object.actualClassName)
-        XCTAssertNotEqual(query.className, relation.actualClassName)
+        XCTAssertNotEqual(query.className, friend.actualClassName)
 
         let result = query.find()
 
         XCTAssertTrue(result.isSuccess)
-        XCTAssertTrue(result.objects!.contains(relation))
+        XCTAssertTrue(result.objects!.contains(friend))
     }
 
     func testInsertAndRemove() {
-        let object   = LCObject()
-        let child    = TestObject()
-        let relation = object.relationForKey("relationField")
-        let query    = relation.query
+        let object = LCObject()
+        let child  = TestObject()
+        let friend = object.relationForKey("relationField")
+        let query  = friend.query
 
-        relation.insert(child)
+        friend.insert(child)
         XCTAssertTrue(object.save().isSuccess)
         XCTAssertTrue(query.find().objects!.contains(child))
 
-        relation.remove(child)
+        friend.remove(child)
         XCTAssertTrue(object.save().isSuccess)
         XCTAssertFalse(query.find().objects!.contains(child))
     }

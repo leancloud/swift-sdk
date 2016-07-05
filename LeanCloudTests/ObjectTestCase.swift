@@ -93,13 +93,13 @@ class ObjectTestCase: BaseTestCase {
     }
 
     func testRelationProperty() {
-        let object   = TestObject()
-        let relation = TestObject()
+        let object = TestObject()
+        let friend = TestObject()
 
-        object.insertRelation("relationField", object: relation)
+        object.insertRelation("relationField", object: friend)
 
         XCTAssertTrue(object.save().isSuccess)
-        XCTAssertNotNil(relation.objectId)
+        XCTAssertNotNil(friend.objectId)
         XCTAssertNotNil(object.objectId)
 
         let shadow = TestObject(objectId: object.objectId!.value)

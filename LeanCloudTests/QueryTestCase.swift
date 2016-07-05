@@ -21,7 +21,7 @@ let sharedObject: TestObject = {
     object.objectField   = sharedChild
     object.nullField     = LCNull()
 
-    object.insertRelation("relationField", object: sharedRelation)
+    object.insertRelation("relationField", object: sharedFriend)
 
     XCTAssertTrue(object.save().isSuccess)
 
@@ -34,8 +34,9 @@ let sharedElement: TestObject = {
     return object
 }()
 
-let sharedRelation: TestObject = {
+let sharedFriend: TestObject = {
     let object = TestObject()
+    object.stringField = "friend"
     XCTAssertTrue(object.save().isSuccess)
     return object
 }()
@@ -419,16 +420,16 @@ class QueryTestCase: BaseTestCase {
     }
 
     func testRelatedTo() {
-        let object   = sharedObject
-        let relation = sharedRelation
-        let query    = objectQuery()
+        let object = sharedObject
+        let friend = sharedFriend
+        let query  = objectQuery()
 
-        query.whereKey("objectId", .EqualTo(value: relation.objectId!))
+        query.whereKey("objectId", .EqualTo(value: friend.objectId!))
         query.whereKey("relationField", .RelatedTo(object: object))
 
         let (isSuccess, objects) = execute(query)
         XCTAssertTrue(isSuccess && !objects.isEmpty)
-        XCTAssertEqual(objects.first, relation)
+        XCTAssertEqual(objects.first, friend)
     }
 
     func testAscending() {
@@ -468,8 +469,8 @@ class QueryTestCase: BaseTestCase {
     }
 
     func testLogicAnd() {
-        let object = sharedObject
-        let child  = sharedChild
+        let object  = sharedObject
+        let child   = sharedChild
         let query1  = objectQuery()
         let query2  = objectQuery()
 
@@ -482,8 +483,8 @@ class QueryTestCase: BaseTestCase {
     }
 
     func testLogicOr() {
-        let object = sharedObject
-        let child  = sharedChild
+        let object  = sharedObject
+        let child   = sharedChild
         let query1  = objectQuery()
         let query2  = objectQuery()
 
