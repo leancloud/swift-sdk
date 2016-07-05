@@ -448,6 +448,10 @@ class ObjectProfiler {
             return LCArray(array.map { object(JSONValue: $0) })
         case let dictionary as [String: AnyObject]:
             return object(dictionary: dictionary)
+        case let data as NSData:
+            return LCData(data)
+        case let date as NSDate:
+            return LCDate(date)
         case is NSNull:
             return LCNull()
         case let object as LCType:
