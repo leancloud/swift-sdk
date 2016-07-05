@@ -42,6 +42,9 @@ final public class Query: NSObject, NSCopying, NSCoding {
     /// Note that it may contains LCType or Query value.
     private var constraintDictionary: [String: AnyObject] = [:]
 
+    /// Extra parameters for query request.
+    var extraParameters: [String: AnyObject]?
+
     /// JSON representation of query.
     var JSONValue: [String: AnyObject] {
         var dictionary: [String: AnyObject] = [:]
@@ -65,6 +68,12 @@ final public class Query: NSObject, NSCopying, NSCoding {
         }
         if let skip = skip {
             dictionary["skip"] = skip
+        }
+
+        if let extraParameters = extraParameters {
+            extraParameters.forEach { (key, value) in
+                dictionary[key] = value
+            }
         }
 
         return dictionary
@@ -146,6 +155,7 @@ final public class Query: NSObject, NSCopying, NSCoding {
         query.selectedKeys  = selectedKeys
         query.equalityTable = equalityTable
         query.constraintDictionary = constraintDictionary
+        query.extraParameters = extraParameters
         query.limit = limit
         query.skip  = skip
 
@@ -158,6 +168,7 @@ final public class Query: NSObject, NSCopying, NSCoding {
         selectedKeys  = aDecoder.decodeObjectForKey("selectedKeys") as! Set<String>
         equalityTable = aDecoder.decodeObjectForKey("equalityTable") as! [String: LCType]
         constraintDictionary = aDecoder.decodeObjectForKey("constraintDictionary") as! [String: AnyObject]
+        extraParameters = aDecoder.decodeObjectForKey("extraParameters") as? [String: AnyObject]
         limit = aDecoder.decodeObjectForKey("limit") as? Int
         skip  = aDecoder.decodeObjectForKey("skip") as? Int
     }
@@ -168,6 +179,7 @@ final public class Query: NSObject, NSCopying, NSCoding {
         aCoder.encodeObject(selectedKeys, forKey: "selectedKeys")
         aCoder.encodeObject(equalityTable, forKey: "equalityTable")
         aCoder.encodeObject(constraintDictionary, forKey: "constraintDictionary")
+        aCoder.encodeObject(extraParameters, forKey: "extraParameters")
 
         if let limit = limit {
             aCoder.encodeInteger(limit, forKey: "limit")

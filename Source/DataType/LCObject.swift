@@ -430,6 +430,17 @@ public class LCObject: LCType, NSCoding, SequenceType {
     }
 
     /**
+     Get relation object for key.
+
+     - parameter key: The key where relationship based on.
+
+     - returns: The relation for key.
+     */
+    public func relationForKey(key: String) -> LCRelation {
+        return LCRelation(key: key, parent: self)
+    }
+
+    /**
      Insert an object into a relation.
 
      - parameter key:    The key of relation into which you want to insert the object.
