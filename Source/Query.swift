@@ -11,7 +11,7 @@ import Foundation
 /**
  Query defines a query for objects.
  */
-final public class Query: NSObject, NSCopying, NSCoding {
+final public class LCQuery: NSObject, NSCopying, NSCoding {
     /// Query class name.
     public private(set) var className: String
 
@@ -119,10 +119,10 @@ final public class Query: NSObject, NSCopying, NSCoding {
         case NearbyPointWithRange(point: LCGeoPoint, from: LCGeoPoint.Distance?, to: LCGeoPoint.Distance?)
         case NearbyPointWithRectangle(southwest: LCGeoPoint, northeast: LCGeoPoint)
 
-        case MatchedQuery(query: Query)
-        case NotMatchedQuery(query: Query)
-        case MatchedQueryAndKey(query: Query, key: String)
-        case NotMatchedQueryAndKey(query: Query, key: String)
+        case MatchedQuery(query: LCQuery)
+        case NotMatchedQuery(query: LCQuery)
+        case MatchedQueryAndKey(query: LCQuery, key: String)
+        case NotMatchedQueryAndKey(query: LCQuery, key: String)
 
         case MatchedPattern(pattern: String, option: String?)
         case MatchedSubstring(string: String)
@@ -149,7 +149,7 @@ final public class Query: NSObject, NSCopying, NSCoding {
     }
 
     public func copyWithZone(zone: NSZone) -> AnyObject {
-        let query = Query(className: className)
+        let query = LCQuery(className: className)
 
         query.includedKeys  = includedKeys
         query.selectedKeys  = selectedKeys
@@ -283,7 +283,7 @@ final public class Query: NSObject, NSCopying, NSCoding {
 
      - parameter query: The query to be validated.
      */
-    func validateClassName(query: Query) {
+    func validateClassName(query: LCQuery) {
         guard query.className == className else {
             Exception.raise(.Inconsistency, reason: "Different class names.")
             return
@@ -299,10 +299,10 @@ final public class Query: NSObject, NSCopying, NSCoding {
 
      - returns: The logic AND of two queries.
      */
-    func logicAnd(query: Query) -> Query {
+    func logicAnd(query: LCQuery) -> LCQuery {
         validateClassName(query)
 
-        let result = Query(className: className)
+        let result = LCQuery(className: className)
 
         result.constraintDictionary["$and"] = [self.constraintDictionary, query.constraintDictionary]
 
@@ -318,10 +318,10 @@ final public class Query: NSObject, NSCopying, NSCoding {
 
      - returns: The logic OR of two queries.
      */
-    func logicOr(query: Query) -> Query {
+    func logicOr(query: LCQuery) -> LCQuery {
         validateClassName(query)
 
-        let result = Query(className: className)
+        let result = LCQuery(className: className)
 
         result.constraintDictionary["$or"] = [self.constraintDictionary, query.constraintDictionary]
 
@@ -400,7 +400,7 @@ final public class Query: NSObject, NSCopying, NSCoding {
      - parameter completion: The completion callback closure.
      */
     public func find<T: LCObject>(completion: (QueryResult<T>) -> Void) {
-        Query.asynchronize({ self.find() }) { result in
+        LCQuery.asynchronize({ self.find() }) { result in
             completion(result)
         }
     }
@@ -413,7 +413,7 @@ final public class Query: NSObject, NSCopying, NSCoding {
      - returns: The object result of query.
      */
     public func getFirst<T: LCObject>() -> ObjectResult<T> {
-        let query = copy() as! Query
+        let query = copy() as! LCQuery
 
         query.limit = 1
 
@@ -437,7 +437,7 @@ final public class Query: NSObject, NSCopying, NSCoding {
      - parameter completion: The completion callback closure.
      */
     public func getFirst<T: LCObject>(completion: (ObjectResult<T>) -> Void) {
-        Query.asynchronize({ self.getFirst() }) { result in
+        LCQuery.asynchronize({ self.getFirst() }) { result in
             completion(result)
         }
     }
@@ -450,7 +450,7 @@ final public class Query: NSObject, NSCopying, NSCoding {
      - returns: The object result of query.
      */
     public func get<T: LCObject>(objectId: String) -> ObjectResult<T> {
-        let query = copy() as! Query
+        let query = copy() as! LCQuery
 
         query.whereKey("objectId", .EqualTo(value: LCString(objectId)))
 
@@ -464,7 +464,7 @@ final public class Query: NSObject, NSCopying, NSCoding {
      - parameter completion: The completion callback closure.
      */
     public func get<T: LCObject>(objectId: String, completion: (ObjectResult<T>) -> Void) {
-        Query.asynchronize({ self.get(objectId) }) { result in
+        LCQuery.asynchronize({ self.get(objectId) }) { result in
             completion(result)
         }
     }
@@ -495,7 +495,7 @@ final public class Query: NSObject, NSCopying, NSCoding {
 
  - returns: The logic AND of two queries.
  */
-func && (left: Query, right: Query) -> Query {
+func && (left: LCQuery, right: LCQuery) -> LCQuery {
     return left.logicAnd(right)
 }
 
@@ -507,6 +507,6 @@ func && (left: Query, right: Query) -> Query {
 
  - returns: The logic OR of two queries.
  */
-func || (left: Query, right: Query) -> Query {
+func || (left: LCQuery, right: LCQuery) -> LCQuery {
     return left.logicOr(right)
 }
