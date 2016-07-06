@@ -8,7 +8,7 @@
 
 import Foundation
 
-public final class Engine {
+public final class LCEngine {
     typealias Parameters = [String: AnyObject]
 
     /// The dispatch queue for network request task.

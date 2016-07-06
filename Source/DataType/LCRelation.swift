@@ -140,8 +140,8 @@ public final class LCRelation: LCType, NSCoding, SequenceType {
     /**
      Get query of current relation.
      */
-    var query: Query {
-        var query: Query!
+    var query: LCQuery {
+        var query: LCQuery!
 
         let key = self.key!
         let parent = self.parent!
@@ -149,9 +149,9 @@ public final class LCRelation: LCType, NSCoding, SequenceType {
         /* If class name already known, use it.
            Otherwise, use class name redirection. */
         if let className = className {
-            query = Query(className: className)
+            query = LCQuery(className: className)
         } else {
-            query = Query(className: parent.actualClassName)
+            query = LCQuery(className: parent.actualClassName)
             query.extraParameters = [
                 "redirectClassNameForKey": key
             ]
