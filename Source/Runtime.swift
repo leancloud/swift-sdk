@@ -156,11 +156,11 @@ class Runtime {
     }
 
     /**
-     Get property type string.
+     Get property type encoding.
 
      - parameter property: Inspected property.
      */
-    static func propertyType(property: objc_property_t) -> String {
+    static func typeEncoding(property: objc_property_t) -> String {
         return String(UTF8String: property_copyAttributeValue(property, "T"))!
     }
 

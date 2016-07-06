@@ -20,6 +20,27 @@ class ObjectProfiler {
     static var propertyListTable: [UInt: [objc_property_t]] = [:]
 
     /**
+     Register an object class.
+
+     - parameter aClass: The object class to be registered.
+     */
+    static func registerClass(aClass: LCObject.Type) {
+        synthesizeProperty(aClass)
+        cache(objectClass: aClass)
+    }
+
+    /**
+     Synthesize all non-computed properties for object class.
+
+     - parameter aClass: The object class need to be synthesized.
+     */
+    static func synthesizeProperty(aClass: LCObject.Type) {
+        let properties = synthesizableProperties(aClass)
+        properties.forEach { synthesizeProperty($0, aClass) }
+        cache(properties: properties, aClass)
+    }
+
+    /**
      Cache an object class.
 
      - parameter aClass: The class to be cached.
@@ -36,16 +57,6 @@ class ObjectProfiler {
      */
     static func cache(properties properties: [objc_property_t], _ aClass: AnyClass) {
         propertyListTable[ObjectIdentifier(aClass).uintValue] = properties
-    }
-
-    /**
-     Register an object class.
-
-     - parameter aClass: The object class to be registered.
-     */
-    static func registerClass(aClass: LCObject.Type) {
-        synthesizeProperty(aClass)
-        cache(objectClass: aClass)
     }
 
     /**
@@ -69,18 +80,7 @@ class ObjectProfiler {
     }
 
     /**
-     Synthesize all non-computed properties for class.
-
-     - parameter aClass: The class need to be synthesized.
-     */
-    static func synthesizeProperty(aClass: AnyClass) {
-        let properties = synthesizableProperties(aClass)
-        properties.forEach { synthesizeProperty($0, aClass) }
-        cache(properties: properties, aClass)
-    }
-
-    /**
-     Find all synthesizable properties of a class.
+     Find all synthesizable properties of object class.
 
      A synthesizable property must satisfy following conditions:
 
@@ -89,23 +89,23 @@ class ObjectProfiler {
 
      - note: Any synthesizable properties declared by superclass are not included.
 
-     - parameter aClass: The class where the synthesizable properties will be found.
+     - parameter aClass: The object class.
 
      - returns: An array of synthesizable properties.
      */
-    static func synthesizableProperties(aClass: AnyClass) -> [objc_property_t] {
-        return Runtime.nonComputedProperties(aClass).filter { isLCType(property: $0) }
+    static func synthesizableProperties(aClass: LCObject.Type) -> [objc_property_t] {
+        return Runtime.nonComputedProperties(aClass).filter { hasLCType($0) }
     }
 
     /**
-     Check whether a property type is LeanCloud data type.
+     Check whether a property has LeanCloud data type.
 
      - parameter property: Target property.
 
-     - returns: true if property type is LeanCloud data type, false otherwise.
+     - returns: true if property type has LeanCloud data type, false otherwise.
      */
-    static func isLCType(property property: objc_property_t) -> Bool {
-        return getLCType(property: property) != nil
+    static func hasLCType(property: objc_property_t) -> Bool {
+        return getLCType(property) != nil
     }
 
     /**
@@ -115,14 +115,14 @@ class ObjectProfiler {
 
      - returns: Concrete LCType subclass, or nil if property type is not LCType.
      */
-    static func getLCType(property property: objc_property_t) -> LCType.Type? {
-        let propertyType = Runtime.propertyType(property)
+    static func getLCType(property: objc_property_t) -> LCType.Type? {
+        let typeEncoding = Runtime.typeEncoding(property)
 
-        guard propertyType.hasPrefix("@\"") else {
+        guard typeEncoding.hasPrefix("@\"") else {
             return nil
         }
 
-        let name = propertyType[propertyType.startIndex.advancedBy(2)..<propertyType.endIndex.advancedBy(-1)];
+        let name = typeEncoding[typeEncoding.startIndex.advancedBy(2)..<typeEncoding.endIndex.advancedBy(-1)];
 
         if let subclass = objc_getClass(name) as? AnyClass {
             if Runtime.isSubclass(subclass, superclass: LCType.self) {
@@ -145,7 +145,7 @@ class ObjectProfiler {
         let property = class_getProperty(object_getClass(object), propertyName)
 
         if property != nil {
-            return getLCType(property: property)
+            return getLCType(property)
         } else {
             return nil
         }
