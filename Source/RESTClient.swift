@@ -255,4 +255,14 @@ class RESTClient {
 
         return result
     }
+
+    /**
+     Asynchronize task into request dispatch queue.
+
+     - parameter task:       The task to be asynchronized.
+     - parameter completion: The completion closure to be called on main thread after task finished.
+     */
+    static func asynchronize<Result>(task: () -> Result, completion: (Result) -> Void) {
+        Utility.asynchronize(task, dispatchQueue, completion)
+    }
 }
