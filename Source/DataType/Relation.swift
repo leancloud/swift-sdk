@@ -140,7 +140,7 @@ public final class LCRelation: LCType, NSCoding, SequenceType {
     /**
      Get query of current relation.
      */
-    var query: LCQuery {
+    public var query: LCQuery {
         var query: LCQuery!
 
         let key = self.key!
