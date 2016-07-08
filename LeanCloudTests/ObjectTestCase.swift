@@ -161,7 +161,7 @@ class ObjectTestCase: BaseTestCase {
 
         let result = object.fetch()
         XCTAssertTrue(result.isFailure)
-        XCTAssertEqual(Error.InternalErrorCode(rawValue: result.error!.code), .NotFound)
+        XCTAssertEqual(LCError.InternalErrorCode(rawValue: result.error!.code), .NotFound)
     }
 
     func testFetchNotFound() {
@@ -169,7 +169,7 @@ class ObjectTestCase: BaseTestCase {
 
         let result = object.fetch()
         XCTAssertTrue(result.isFailure)
-        XCTAssertEqual(Error.ServerErrorCode(rawValue: result.error!.code), .ObjectNotFound)
+        XCTAssertEqual(LCError.ServerErrorCode(rawValue: result.error!.code), .ObjectNotFound)
     }
 
     func testFetchObjects() {
@@ -178,8 +178,8 @@ class ObjectTestCase: BaseTestCase {
         let notFound = TestObject(objectId: "000")
         let newborn  = TestObject()
 
-        XCTAssertEqual(Error.InternalErrorCode(rawValue: LCObject.fetch([object, newborn]).error!.code), .NotFound)
-        XCTAssertEqual(Error.ServerErrorCode(rawValue: LCObject.fetch([object, notFound]).error!.code), .ObjectNotFound)
+        XCTAssertEqual(LCError.InternalErrorCode(rawValue: LCObject.fetch([object, newborn]).error!.code), .NotFound)
+        XCTAssertEqual(LCError.ServerErrorCode(rawValue: LCObject.fetch([object, notFound]).error!.code), .ObjectNotFound)
         XCTAssertTrue(LCObject.fetch([object, child]).isSuccess)
     }
 

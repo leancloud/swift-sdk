@@ -9,15 +9,15 @@
 import Foundation
 import Alamofire
 
-public class Response {
+public class LCResponse {
     /// Internal error.
     /// It will override alamofire's response error.
-    private var internalError: Error?
+    private var internalError: LCError?
     private var alamofireResponse: Alamofire.Response<AnyObject, NSError>?
 
     init() {}
 
-    init(_ error: Error) {
+    init(_ error: LCError) {
         internalError = error
     }
 
@@ -29,8 +29,8 @@ public class Response {
         return alamofireResponse?.result.value
     }
 
-    var error: Error? {
-        var result: Error?
+    var error: LCError? {
+        var result: LCError?
 
         /* There are 3 kinds of errors:
            1. Internal error.
@@ -41,7 +41,7 @@ public class Response {
             result = error
         } else if let response = alamofireResponse {
             if let error = response.result.error {
-                result = Error(error: error)
+                result = LCError(error: error)
             } else {
                 result = ObjectProfiler.error(JSONValue: value)
             }
@@ -62,7 +62,7 @@ public class Response {
     }
 }
 
-extension Response {
+extension LCResponse {
     var count: Int {
         return (self["count"] as? Int) ?? 0
     }

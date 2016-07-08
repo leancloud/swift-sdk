@@ -8,7 +8,7 @@
 
 import Foundation
 
-public final class Engine {
+public final class LCEngine {
     typealias Parameters = [String: AnyObject]
 
     /// The dispatch queue for network request task.
@@ -31,7 +31,7 @@ public final class Engine {
 
      - returns: The result of function call.
      */
-    public static func call<Value: LCType>(function: String) -> OptionalResult<Value> {
+    public static func call<Value: LCType>(function: String) -> LCOptionalResult<Value> {
         return call(function, parameters: nil)
     }
 
@@ -40,7 +40,7 @@ public final class Engine {
 
      - parameter completion: The completion callback closure.
      */
-    public static func call<Value: LCType>(function: String, completion: (OptionalResult<Value>) -> Void) {
+    public static func call<Value: LCType>(function: String, completion: (LCOptionalResult<Value>) -> Void) {
         asynchronize({ call(function) }) { result in
             completion(result)
         }
@@ -54,7 +54,7 @@ public final class Engine {
 
      - returns: The result of function all.
      */
-    public static func call<Value: LCType>(function: String, parameters: [String: AnyObject]) -> OptionalResult<Value> {
+    public static func call<Value: LCType>(function: String, parameters: [String: AnyObject]) -> LCOptionalResult<Value> {
         return call(function, parameters: ObjectProfiler.JSONValue(parameters) as? Parameters)
     }
 
@@ -66,7 +66,7 @@ public final class Engine {
 
      - parameter completion: The completion callback closure.
      */
-    public static func call<Value: LCType>(function: String, parameters: [String: AnyObject], completion: (OptionalResult<Value>) -> Void) {
+    public static func call<Value: LCType>(function: String, parameters: [String: AnyObject], completion: (LCOptionalResult<Value>) -> Void) {
         asynchronize({ call(function, parameters: parameters) }) { result in
             completion(result)
         }
@@ -82,7 +82,7 @@ public final class Engine {
 
      - returns: The result of function all.
      */
-    public static func call<Value: LCType>(function: String, parameters: LCDictionary) -> OptionalResult<Value> {
+    public static func call<Value: LCType>(function: String, parameters: LCDictionary) -> LCOptionalResult<Value> {
         return call(function, parameters: ObjectProfiler.JSONValue(parameters) as? Parameters)
     }
 
@@ -96,7 +96,7 @@ public final class Engine {
 
      - parameter completion: The completion callback closure.
      */
-    public static func call<Value: LCType>(function: String, parameters: LCDictionary, completion: (OptionalResult<Value>) -> Void) {
+    public static func call<Value: LCType>(function: String, parameters: LCDictionary, completion: (LCOptionalResult<Value>) -> Void) {
         asynchronize({ call(function, parameters: parameters) }) { result in
             completion(result)
         }
@@ -112,7 +112,7 @@ public final class Engine {
 
      - returns: The result of function all.
      */
-    public static func call<Value: LCType>(function: String, parameters: LCObject) -> OptionalResult<Value> {
+    public static func call<Value: LCType>(function: String, parameters: LCObject) -> LCOptionalResult<Value> {
         return call(function, parameters: ObjectProfiler.JSONValue(parameters) as? Parameters)
     }
 
@@ -126,7 +126,7 @@ public final class Engine {
 
      - parameter completion: The completion callback closure.
      */
-    public static func call<Value: LCType>(function: String, parameters: LCObject, completion: (OptionalResult<Value>) -> Void) {
+    public static func call<Value: LCType>(function: String, parameters: LCObject, completion: (LCOptionalResult<Value>) -> Void) {
         asynchronize({ call(function, parameters: parameters) }) { result in
             completion(result)
         }
@@ -140,7 +140,7 @@ public final class Engine {
 
      - returns: The result of function call.
      */
-    static func call<Value: LCType>(function: String, parameters: Parameters?) -> OptionalResult<Value> {
+    static func call<Value: LCType>(function: String, parameters: Parameters?) -> LCOptionalResult<Value> {
         let response = RESTClient.request(.POST, "call/\(function)", parameters: parameters)
 
         return response.optionalResult("result")

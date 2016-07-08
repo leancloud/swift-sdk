@@ -11,10 +11,10 @@ import Foundation
 /**
  A type represents the result value of CQL execution.
  */
-public class CQLValue {
-    let response: Response
+public class LCCQLValue {
+    let response: LCResponse
 
-    init(response: Response) {
+    init(response: LCResponse) {
         self.response = response
     }
 
@@ -51,7 +51,7 @@ public class CQLValue {
 
  CQLClient allow you to use CQL (Cloud Query Language) to make CRUD for object.
  */
-public class CQLClient {
+public class LCCQLClient {
     static let endpoint = "cloudQuery"
 
     /// The dispatch queue for asynchronous CQL execution task.
@@ -93,11 +93,11 @@ public class CQLClient {
 
      - returns: The result of CQL statement.
      */
-    public static func execute(CQL: String, parameters: [AnyObject] = []) -> CQLResult {
+    public static func execute(CQL: String, parameters: [AnyObject] = []) -> LCCQLResult {
         let parameters = self.parameters(CQL, parameters: parameters)
         let response   = RESTClient.request(.GET, endpoint, parameters: parameters)
 
-        return CQLResult(response: response)
+        return LCCQLResult(response: response)
     }
 
     /**
@@ -107,7 +107,7 @@ public class CQLClient {
      - parameter parameters: The parameters for placeholders in CQL statement.
      - parameter completion: The completion callback closure.
      */
-    public static func execute(CQL: String, parameters: [AnyObject] = [], completion: (result: CQLResult) -> Void) {
+    public static func execute(CQL: String, parameters: [AnyObject] = [], completion: (result: LCCQLResult) -> Void) {
         asynchronize({ execute(CQL, parameters: parameters) }) { result in
             completion(result: result)
         }

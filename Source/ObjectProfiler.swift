@@ -487,7 +487,7 @@ class ObjectProfiler {
             return dictionary.mapValue { JSONValue($0) }
         case let object as LCType:
             return object.JSONValue!
-        case let query as Query:
+        case let query as LCQuery:
             return query.JSONValue
         default:
             return object
@@ -501,8 +501,8 @@ class ObjectProfiler {
 
      - returns: An error object, or nil if error not found.
      */
-    static func error(JSONValue JSONValue: AnyObject?) -> Error? {
-        var result: Error?
+    static func error(JSONValue JSONValue: AnyObject?) -> LCError? {
+        var result: LCError?
 
         switch JSONValue {
         case let array as [AnyObject]:
@@ -517,7 +517,7 @@ class ObjectProfiler {
             let error = dictionary["error"] as? String
 
             if code != nil || error != nil {
-                result = Error(dictionary: dictionary)
+                result = LCError(dictionary: dictionary)
             } else {
                 for (_, value) in dictionary {
                     if let error = self.error(JSONValue: value) {

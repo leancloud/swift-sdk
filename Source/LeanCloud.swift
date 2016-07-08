@@ -30,6 +30,6 @@ public func initialize(applicationID applicationID: String, applicationKey: Stri
 
  - parameter serviceRegion: The service region.
  */
-public func setServiceRegion(serviceRegion: ServiceRegion) {
+public func setServiceRegion(serviceRegion: LCServiceRegion) {
     Configuration.sharedInstance.serviceRegion = serviceRegion
 }

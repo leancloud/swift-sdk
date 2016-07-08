@@ -40,7 +40,7 @@ class ObjectUpdater {
      - parameter objects:  A set of object to update.
      - parameter response: The response of batch request.
      */
-    static func updateObjects(objects: Set<LCObject>, _ response: Response) {
+    static func updateObjects(objects: Set<LCObject>, _ response: LCResponse) {
         let value = response.value
 
         guard let dictionary = value as? BatchResponse else {
@@ -64,7 +64,7 @@ class ObjectUpdater {
      - parameter requests: A list of batch requests.
      - returns: The response of request.
      */
-    private static func sendBatchRequests(requests: [BatchRequest], _ objects: Set<LCObject>) -> Response {
+    private static func sendBatchRequests(requests: [BatchRequest], _ objects: Set<LCObject>) -> LCResponse {
         let parameters = [
             "requests": requests.map { request in request.JSONValue() }
         ]
@@ -102,7 +102,7 @@ class ObjectUpdater {
 
      - returns: The response of request.
      */
-    private static func saveIndependentObjects(objects: Set<LCObject>) -> Response {
+    private static func saveIndependentObjects(objects: Set<LCObject>) -> LCResponse {
         var family: Set<LCObject> = []
 
         objects.forEach { object in
@@ -131,8 +131,8 @@ class ObjectUpdater {
      - parameter object: The ancestor object.
      - returns: The response of request.
      */
-    private static func saveNewbornOrphans(object: LCObject) -> Response {
-        var response = Response()
+    private static func saveNewbornOrphans(object: LCObject) -> LCResponse {
+        var response = LCResponse()
 
         repeat {
             let objects = ObjectProfiler.deepestNewbornOrphans(object)
@@ -167,7 +167,7 @@ class ObjectUpdater {
 
      - returns: The response of request.
      */
-    static func save(object: LCObject) -> Response {
+    static func save(object: LCObject) -> LCResponse {
         object.validateBeforeSaving()
 
         var response = saveNewbornOrphans(object)
@@ -190,9 +190,9 @@ class ObjectUpdater {
 
      - returns: The response of request.
      */
-    static func delete(object: LCObject) -> Response {
+    static func delete(object: LCObject) -> LCResponse {
         guard let endpoint = RESTClient.eigenEndpoint(object) else {
-            return Response(Error(code: .NotFound, reason: "Object not found."))
+            return LCResponse(LCError(code: .NotFound, reason: "Object not found."))
         }
 
         return RESTClient.request(.DELETE, endpoint, parameters: nil)
@@ -205,8 +205,8 @@ class ObjectUpdater {
 
      - returns: The response of deletion request.
      */
-    static func delete<T: LCObject>(objects: [T]) -> Response {
-        var response = Response()
+    static func delete<T: LCObject>(objects: [T]) -> LCResponse {
+        var response = LCResponse()
 
         /* If no objects, do nothing. */
         guard !objects.isEmpty else { return response }
@@ -228,11 +228,11 @@ class ObjectUpdater {
 
      - returns: The error response, or nil if error not found.
      */
-    static func handleFetchedResult(result: AnyObject?, _ objects: [LCObject]) -> Response? {
+    static func handleFetchedResult(result: AnyObject?, _ objects: [LCObject]) -> LCResponse? {
         let dictionary = (result as? [String: AnyObject]) ?? [:]
 
         guard let objectId = dictionary["objectId"] as? String else {
-            return Response(Error(code: .ObjectNotFound, reason: "Object not found."))
+            return LCResponse(LCError(code: .ObjectNotFound, reason: "Object not found."))
         }
 
         let matched = objects.filter { object in
@@ -255,12 +255,12 @@ class ObjectUpdater {
 
      - returns: The handled response.
      */
-    static func handleFetchedResponse(response: Response, _ objects: [LCObject]) -> Response {
+    static func handleFetchedResponse(response: LCResponse, _ objects: [LCObject]) -> LCResponse {
         guard response.isSuccess else {
             return response
         }
         guard let results = response.value as? [AnyObject] else {
-            return Response(Error(code: .ObjectNotFound, reason: "Object not found."))
+            return LCResponse(LCError(code: .ObjectNotFound, reason: "Object not found."))
         }
 
         var response = response
@@ -281,8 +281,8 @@ class ObjectUpdater {
 
      - returns: The response of fetching request.
      */
-    static func fetch(objects: [LCObject]) -> Response {
-        var response = Response()
+    static func fetch(objects: [LCObject]) -> LCResponse {
+        var response = LCResponse()
 
         /* If no object, do nothing. */
         guard !objects.isEmpty else { return response }
@@ -290,7 +290,7 @@ class ObjectUpdater {
         /* If any object has no object ID, return not found error. */
         for object in objects {
             guard object.hasObjectId else {
-                return Response(Error(code: .NotFound, reason: "Object ID not found."))
+                return LCResponse(LCError(code: .NotFound, reason: "Object ID not found."))
             }
         }
 
@@ -310,9 +310,9 @@ class ObjectUpdater {
 
      - returns: The response of request.
      */
-    static func fetch(object: LCObject) -> Response {
+    static func fetch(object: LCObject) -> LCResponse {
         guard let endpoint = RESTClient.eigenEndpoint(object) else {
-            return Response(Error(code: .NotFound, reason: "Object not found."))
+            return LCResponse(LCError(code: .NotFound, reason: "Object not found."))
         }
 
         let response = RESTClient.request(.GET, endpoint, parameters: nil)
@@ -324,7 +324,7 @@ class ObjectUpdater {
         let dictionary = (response.value as? [String: AnyObject]) ?? [:]
 
         guard dictionary["objectId"] != nil else {
-            return Response(Error(code: .ObjectNotFound, reason: "Object not found."))
+            return LCResponse(LCError(code: .ObjectNotFound, reason: "Object not found."))
         }
 
         ObjectProfiler.updateObject(object, dictionary)

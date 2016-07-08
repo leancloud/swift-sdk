@@ -203,8 +203,8 @@ class RESTClient {
         _ endpoint: String,
         parameters: [String: AnyObject]? = nil,
         headers: [String: String]? = nil,
-        completionHandler: (Response) -> Void)
-        -> Request
+        completionHandler: (LCResponse) -> Void)
+        -> LCRequest
     {
         let method    = method.alamofireMethod
         let URLString = absoluteURLString(endpoint)
@@ -219,10 +219,10 @@ class RESTClient {
         let request = requestManager.request(method, URLString, parameters: parameters, encoding: encoding, headers: headers)
 
         request.responseJSON(queue: dispatchQueue) { response in
-            completionHandler(Response(response))
+            completionHandler(LCResponse(response))
         }
 
-        return Request(request)
+        return LCRequest(request)
     }
 
     /**
@@ -240,9 +240,9 @@ class RESTClient {
         _ endpoint: String,
         headers: [String: String]? = nil,
         parameters: [String: AnyObject]? = nil)
-        -> Response
+        -> LCResponse
     {
-        var result: Response!
+        var result: LCResponse!
 
         let semaphore = dispatch_semaphore_create(0)
 

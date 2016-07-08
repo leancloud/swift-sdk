@@ -60,8 +60,8 @@ class QueryTestCase: BaseTestCase {
         super.tearDown()
     }
 
-    func execute<T: LCObject>(query: Query) -> (isSuccess: Bool, objects: [T]) {
-        let result: QueryResult<T> = query.find()
+    func execute<T: LCObject>(query: LCQuery) -> (isSuccess: Bool, objects: [T]) {
+        let result: LCQueryResult<T> = query.find()
 
         switch result {
         case let .Success(objects):
@@ -71,13 +71,13 @@ class QueryTestCase: BaseTestCase {
         }
     }
 
-    func objectQuery() -> Query {
-        return Query(className: TestObject.objectClassName())
+    func objectQuery() -> LCQuery {
+        return LCQuery(className: TestObject.objectClassName())
     }
 
     func testInvalidClassName() {
         XCTAssertThrowsException {
-            Query(className: "Foo") && Query(className: "Bar")
+            LCQuery(className: "Foo") && LCQuery(className: "Bar")
         }
     }
 
@@ -529,7 +529,7 @@ class QueryTestCase: BaseTestCase {
     func testCopyQuery() {
         let query = objectQuery()
         query.limit = 42
-        let queryCopy = query.copy() as! Query
+        let queryCopy = query.copy() as! LCQuery
 
         XCTAssertEqual(queryCopy.limit, 42)
         XCTAssertNotEqual(queryCopy, query)
@@ -544,8 +544,8 @@ class QueryTestCase: BaseTestCase {
 
         query.whereKey("stringField", .MatchedQuery(query: matchedQuery))
 
-        let queryCopy = query.copy() as! Query
-        let queryArchivement = NSKeyedUnarchiver.unarchiveObjectWithData(NSKeyedArchiver.archivedDataWithRootObject(query)) as! Query
+        let queryCopy = query.copy() as! LCQuery
+        let queryArchivement = NSKeyedUnarchiver.unarchiveObjectWithData(NSKeyedArchiver.archivedDataWithRootObject(query)) as! LCQuery
 
         matchedQuery.limit = 42
 

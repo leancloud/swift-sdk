@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct Error: ErrorType {
+public struct LCError: ErrorType {
     public typealias UserInfo = [NSObject: AnyObject]
 
     public let code: Int
@@ -32,11 +32,11 @@ public struct Error: ErrorType {
     }
 
     init(code: InternalErrorCode, reason: String? = nil, userInfo: UserInfo? = nil) {
-        self = Error(code: code.rawValue, reason: reason, userInfo: userInfo)
+        self = LCError(code: code.rawValue, reason: reason, userInfo: userInfo)
     }
 
     init(code: ServerErrorCode, reason: String? = nil, userInfo: UserInfo? = nil) {
-        self = Error(code: code.rawValue, reason: reason, userInfo: userInfo)
+        self = LCError(code: code.rawValue, reason: reason, userInfo: userInfo)
     }
 
     init(dictionary: [String: AnyObject]) {

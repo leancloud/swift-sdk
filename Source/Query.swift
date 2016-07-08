@@ -11,7 +11,7 @@ import Foundation
 /**
  Query defines a query for objects.
  */
-final public class Query: NSObject, NSCopying, NSCoding {
+final public class LCQuery: NSObject, NSCopying, NSCoding {
     /// Query class name.
     public private(set) var className: String
 
@@ -119,10 +119,10 @@ final public class Query: NSObject, NSCopying, NSCoding {
         case NearbyPointWithRange(point: LCGeoPoint, from: LCGeoPoint.Distance?, to: LCGeoPoint.Distance?)
         case NearbyPointWithRectangle(southwest: LCGeoPoint, northeast: LCGeoPoint)
 
-        case MatchedQuery(query: Query)
-        case NotMatchedQuery(query: Query)
-        case MatchedQueryAndKey(query: Query, key: String)
-        case NotMatchedQueryAndKey(query: Query, key: String)
+        case MatchedQuery(query: LCQuery)
+        case NotMatchedQuery(query: LCQuery)
+        case MatchedQueryAndKey(query: LCQuery, key: String)
+        case NotMatchedQueryAndKey(query: LCQuery, key: String)
 
         case MatchedPattern(pattern: String, option: String?)
         case MatchedSubstring(string: String)
@@ -149,7 +149,7 @@ final public class Query: NSObject, NSCopying, NSCoding {
     }
 
     public func copyWithZone(zone: NSZone) -> AnyObject {
-        let query = Query(className: className)
+        let query = LCQuery(className: className)
 
         query.includedKeys  = includedKeys
         query.selectedKeys  = selectedKeys
@@ -283,7 +283,7 @@ final public class Query: NSObject, NSCopying, NSCoding {
 
      - parameter query: The query to be validated.
      */
-    func validateClassName(query: Query) {
+    func validateClassName(query: LCQuery) {
         guard query.className == className else {
             Exception.raise(.Inconsistency, reason: "Different class names.")
             return
@@ -299,10 +299,10 @@ final public class Query: NSObject, NSCopying, NSCoding {
 
      - returns: The logic AND of two queries.
      */
-    func logicAnd(query: Query) -> Query {
+    func logicAnd(query: LCQuery) -> LCQuery {
         validateClassName(query)
 
-        let result = Query(className: className)
+        let result = LCQuery(className: className)
 
         result.constraintDictionary["$and"] = [self.constraintDictionary, query.constraintDictionary]
 
@@ -318,10 +318,10 @@ final public class Query: NSObject, NSCopying, NSCoding {
 
      - returns: The logic OR of two queries.
      */
-    func logicOr(query: Query) -> Query {
+    func logicOr(query: LCQuery) -> LCQuery {
         validateClassName(query)
 
-        let result = Query(className: className)
+        let result = LCQuery(className: className)
 
         result.constraintDictionary["$or"] = [self.constraintDictionary, query.constraintDictionary]
 
@@ -381,7 +381,7 @@ final public class Query: NSObject, NSCopying, NSCoding {
 
      - returns: The result of the query request.
      */
-    public func find<T: LCObject>() -> QueryResult<T> {
+    public func find<T: LCObject>() -> LCQueryResult<T> {
         let response = RESTClient.request(.GET, endpoint, parameters: parameters)
 
         if let error = response.error {
@@ -399,8 +399,8 @@ final public class Query: NSObject, NSCopying, NSCoding {
 
      - parameter completion: The completion callback closure.
      */
-    public func find<T: LCObject>(completion: (QueryResult<T>) -> Void) {
-        Query.asynchronize({ self.find() }) { result in
+    public func find<T: LCObject>(completion: (LCQueryResult<T>) -> Void) {
+        LCQuery.asynchronize({ self.find() }) { result in
             completion(result)
         }
     }
@@ -412,17 +412,17 @@ final public class Query: NSObject, NSCopying, NSCoding {
 
      - returns: The object result of query.
      */
-    public func getFirst<T: LCObject>() -> ObjectResult<T> {
-        let query = copy() as! Query
+    public func getFirst<T: LCObject>() -> LCObjectResult<T> {
+        let query = copy() as! LCQuery
 
         query.limit = 1
 
-        let result: QueryResult<T> = query.find()
+        let result: LCQueryResult<T> = query.find()
 
         switch result {
         case let .Success(objects):
             guard let object = objects.first else {
-                return .Failure(error: Error(code: .NotFound, reason: "Object not found."))
+                return .Failure(error: LCError(code: .NotFound, reason: "Object not found."))
             }
 
             return .Success(object: object)
@@ -436,8 +436,8 @@ final public class Query: NSObject, NSCopying, NSCoding {
 
      - parameter completion: The completion callback closure.
      */
-    public func getFirst<T: LCObject>(completion: (ObjectResult<T>) -> Void) {
-        Query.asynchronize({ self.getFirst() }) { result in
+    public func getFirst<T: LCObject>(completion: (LCObjectResult<T>) -> Void) {
+        LCQuery.asynchronize({ self.getFirst() }) { result in
             completion(result)
         }
     }
@@ -449,8 +449,8 @@ final public class Query: NSObject, NSCopying, NSCoding {
 
      - returns: The object result of query.
      */
-    public func get<T: LCObject>(objectId: String) -> ObjectResult<T> {
-        let query = copy() as! Query
+    public func get<T: LCObject>(objectId: String) -> LCObjectResult<T> {
+        let query = copy() as! LCQuery
 
         query.whereKey("objectId", .EqualTo(value: LCString(objectId)))
 
@@ -463,8 +463,8 @@ final public class Query: NSObject, NSCopying, NSCoding {
      - parameter objectId:   The object ID.
      - parameter completion: The completion callback closure.
      */
-    public func get<T: LCObject>(objectId: String, completion: (ObjectResult<T>) -> Void) {
-        Query.asynchronize({ self.get(objectId) }) { result in
+    public func get<T: LCObject>(objectId: String, completion: (LCObjectResult<T>) -> Void) {
+        LCQuery.asynchronize({ self.get(objectId) }) { result in
             completion(result)
         }
     }
@@ -474,14 +474,14 @@ final public class Query: NSObject, NSCopying, NSCoding {
 
      - returns: The result of the count request.
      */
-    public func count() -> CountResult {
+    public func count() -> LCCountResult {
         var parameters = self.parameters
 
         parameters["count"] = 1
         parameters["limit"] = 0
 
         let response = RESTClient.request(.GET, endpoint, parameters: parameters)
-        let result = CountResult(response: response)
+        let result = LCCountResult(response: response)
 
         return result
     }
@@ -495,7 +495,7 @@ final public class Query: NSObject, NSCopying, NSCoding {
 
  - returns: The logic AND of two queries.
  */
-func && (left: Query, right: Query) -> Query {
+func && (left: LCQuery, right: LCQuery) -> LCQuery {
     return left.logicAnd(right)
 }
 
@@ -507,6 +507,6 @@ func && (left: Query, right: Query) -> Query {
 
  - returns: The logic OR of two queries.
  */
-func || (left: Query, right: Query) -> Query {
+func || (left: LCQuery, right: LCQuery) -> LCQuery {
     return left.logicOr(right)
 }

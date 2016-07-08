@@ -502,8 +502,8 @@ public class LCObject: LCType, NSCoding, SequenceType {
 
      - returns: The result of saving request.
      */
-    public func save() -> BooleanResult {
-        return BooleanResult(response: ObjectUpdater.save(self))
+    public func save() -> LCBooleanResult {
+        return LCBooleanResult(response: ObjectUpdater.save(self))
     }
 
     /**
@@ -511,7 +511,7 @@ public class LCObject: LCType, NSCoding, SequenceType {
 
      - parameter completion: The completion callback closure.
      */
-    public func save(completion: (BooleanResult) -> Void) {
+    public func save(completion: (LCBooleanResult) -> Void) {
         asynchronize({ self.save() }) { result in
             completion(result)
         }
@@ -524,8 +524,8 @@ public class LCObject: LCType, NSCoding, SequenceType {
 
      - returns: The result of deletion request.
      */
-    public static func delete(objects: [LCObject]) -> BooleanResult {
-        return BooleanResult(response: ObjectUpdater.delete(objects))
+    public static func delete(objects: [LCObject]) -> LCBooleanResult {
+        return LCBooleanResult(response: ObjectUpdater.delete(objects))
     }
 
     /**
@@ -533,7 +533,7 @@ public class LCObject: LCType, NSCoding, SequenceType {
 
      - parameter completion: The completion callback closure.
      */
-    public static func delete(objects: [LCObject], completion: (BooleanResult) -> Void) {
+    public static func delete(objects: [LCObject], completion: (LCBooleanResult) -> Void) {
         asynchronize({ delete(objects) }) { result in
             completion(result)
         }
@@ -544,8 +544,8 @@ public class LCObject: LCType, NSCoding, SequenceType {
 
      - returns: The result of deletion request.
      */
-    public func delete() -> BooleanResult {
-        return BooleanResult(response: ObjectUpdater.delete(self))
+    public func delete() -> LCBooleanResult {
+        return LCBooleanResult(response: ObjectUpdater.delete(self))
     }
 
     /**
@@ -553,7 +553,7 @@ public class LCObject: LCType, NSCoding, SequenceType {
 
      - parameter completion: The completion callback closure.
      */
-    public func delete(completion: (BooleanResult) -> Void) {
+    public func delete(completion: (LCBooleanResult) -> Void) {
         asynchronize({ self.delete() }) { result in
             completion(result)
         }
@@ -566,8 +566,8 @@ public class LCObject: LCType, NSCoding, SequenceType {
 
      - returns: The result of fetching request.
      */
-    public static func fetch(objects: [LCObject]) -> BooleanResult {
-        return BooleanResult(response: ObjectUpdater.fetch(objects))
+    public static func fetch(objects: [LCObject]) -> LCBooleanResult {
+        return LCBooleanResult(response: ObjectUpdater.fetch(objects))
     }
 
     /**
@@ -575,7 +575,7 @@ public class LCObject: LCType, NSCoding, SequenceType {
 
      - parameter completion: The completion callback closure.
      */
-    public static func fetch(objects: [LCObject], completion: (BooleanResult) -> Void) {
+    public static func fetch(objects: [LCObject], completion: (LCBooleanResult) -> Void) {
         asynchronize({ fetch(objects) }) { result in
             completion(result)
         }
@@ -586,8 +586,8 @@ public class LCObject: LCType, NSCoding, SequenceType {
 
      - returns: The result of fetching request.
      */
-    public func fetch() -> BooleanResult {
-        return BooleanResult(response: ObjectUpdater.fetch(self))
+    public func fetch() -> LCBooleanResult {
+        return LCBooleanResult(response: ObjectUpdater.fetch(self))
     }
 
     /**
@@ -595,7 +595,7 @@ public class LCObject: LCType, NSCoding, SequenceType {
 
      - parameter completion: The completion callback closure.
      */
-    public func fetch(completion: (BooleanResult) -> Void) {
+    public func fetch(completion: (LCBooleanResult) -> Void) {
         asynchronize({ self.fetch() }) { result in
             completion(result)
         }
