@@ -6,7 +6,7 @@
 //  Copyright © 2016 LeanCloud. All rights reserved.
 //
 
-#import <UIKit/UIKit.h>
+#import <Foundation/Foundation.h>
 
 //! Project version number for LeanCloud.
 FOUNDATION_EXPORT double LeanCloudVersionNumber;
