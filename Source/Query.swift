@@ -299,7 +299,7 @@ final public class LCQuery: NSObject, NSCopying, NSCoding {
 
      - returns: The logic AND of two queries.
      */
-    func logicAnd(query: LCQuery) -> LCQuery {
+    public func and(query: LCQuery) -> LCQuery {
         validateClassName(query)
 
         let result = LCQuery(className: className)
@@ -318,7 +318,7 @@ final public class LCQuery: NSObject, NSCopying, NSCoding {
 
      - returns: The logic OR of two queries.
      */
-    func logicOr(query: LCQuery) -> LCQuery {
+    public func or(query: LCQuery) -> LCQuery {
         validateClassName(query)
 
         let result = LCQuery(className: className)
@@ -485,28 +485,4 @@ final public class LCQuery: NSObject, NSCopying, NSCoding {
 
         return result
     }
-}
-
-/**
- Perform logic AND of two queries.
-
- - parameter left:  The left operand.
- - parameter right: Tne right operand.
-
- - returns: The logic AND of two queries.
- */
-func && (left: LCQuery, right: LCQuery) -> LCQuery {
-    return left.logicAnd(right)
-}
-
-/**
- Perform logic OR of two queries.
-
- - parameter left:  The left operand.
- - parameter right: Tne right operand.
-
- - returns: The logic OR of two queries.
- */
-func || (left: LCQuery, right: LCQuery) -> LCQuery {
-    return left.logicOr(right)
 }

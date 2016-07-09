@@ -77,7 +77,7 @@ class QueryTestCase: BaseTestCase {
 
     func testInvalidClassName() {
         XCTAssertThrowsException {
-            LCQuery(className: "Foo") && LCQuery(className: "Bar")
+            LCQuery(className: "Foo").and(LCQuery(className: "Bar"))
         }
     }
 
@@ -477,7 +477,7 @@ class QueryTestCase: BaseTestCase {
         query1.whereKey("objectId", .EqualTo(value: object.objectId!))
         query2.whereKey("objectId", .EqualTo(value: child.objectId!))
 
-        let query = query1 && query2
+        let query = query1.and(query2)
         let (isSuccess, objects) = execute(query)
         XCTAssertTrue(isSuccess && objects.isEmpty)
     }
@@ -491,7 +491,7 @@ class QueryTestCase: BaseTestCase {
         query1.whereKey("objectId", .EqualTo(value: object.objectId!))
         query2.whereKey("objectId", .EqualTo(value: child.objectId!))
 
-        let query = query1 || query2
+        let query = query1.or(query2)
         let (isSuccess, objects) = execute(query)
         XCTAssertTrue(isSuccess && objects.count == 2)
     }
