@@ -213,6 +213,43 @@ public class LCUser: LCObject {
     }
 
     /**
+     Sign up or log in with mobile phone number and short code.
+
+     This method will sign up a user automatically if user for mobile phone number not found.
+
+     - parameter mobilePhoneNumber: The mobile phone number.
+     - parameter shortCode:         The verification short code.
+     */
+    public static func signUpOrLogIn<User: LCUser>(mobilePhoneNumber mobilePhoneNumber: String, shortCode: String) -> LCObjectResult<User> {
+        let parameters = [
+            "mobilePhoneNumber": mobilePhoneNumber,
+            "smsCode": shortCode
+        ]
+
+        let response = RESTClient.request(.POST, "usersByMobilePhone", parameters: parameters)
+        let result   = objectResult(response) as LCObjectResult<User>
+
+        if case let .Success(user) = result {
+            LCUser.current = user
+        }
+
+        return result
+    }
+
+    /**
+     Sign up or log in with mobile phone number and short code asynchronously.
+
+     - parameter mobilePhoneNumber: The mobile phone number.
+     - parameter shortCode:         The verification short code.
+     - parameter completion:        The completion callback closure.
+     */
+    public static func signUpOrLogIn<User: LCUser>(mobilePhoneNumber mobilePhoneNumber: String, shortCode: String, completion: (LCObjectResult<User>) -> Void) {
+        RESTClient.asynchronize({ self.signUpOrLogIn(mobilePhoneNumber: mobilePhoneNumber, shortCode: shortCode) }) { result in
+            completion(result)
+        }
+    }
+
+    /**
      Convert response to user object result.
 
      - parameter response: The response of login request.
