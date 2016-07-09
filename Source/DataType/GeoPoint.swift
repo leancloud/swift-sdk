@@ -26,6 +26,11 @@ public final class LCGeoPoint: LCType, NSCoding {
     public struct Distance {
         let value: Double
         let unit: Unit
+
+        public init(value: Double, unit: Unit) {
+            self.value = value
+            self.unit  = unit
+        }
     }
 
     override var JSONValue: AnyObject? {
