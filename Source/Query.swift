@@ -485,4 +485,15 @@ final public class LCQuery: NSObject, NSCopying, NSCoding {
 
         return result
     }
+
+    /**
+     Count objects asynchronously.
+
+     - parameter completion: The completion callback closure.
+     */
+    public func count(completion: (LCCountResult) -> Void) {
+        LCQuery.asynchronize({ self.count() }) { result in
+            completion(result)
+        }
+    }
 }
