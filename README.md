@@ -10,6 +10,7 @@
 
 ## Wanted Features
   * [ ] File Storage
+  * [ ] Short Message
   * [ ] Push Notification
   * [ ] Search Query
   * [ ] Analytics
