@@ -30,6 +30,7 @@
 		835F530A1CCF1620008EE3AC /* Error.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F53091CCF1620008EE3AC /* Error.swift */; };
 		836459C31CDE377800AD98A5 /* Role.swift in Sources */ = {isa = PBXBuildFile; fileRef = 836459C21CDE377800AD98A5 /* Role.swift */; };
 		83724CCA1C7B54A700E59BED /* LeanCloud.h in Headers */ = {isa = PBXBuildFile; fileRef = 83724CC91C7B54A700E59BED /* LeanCloud.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		8374CCB11D3146F500844316 /* SMS.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8374CCB01D3146F500844316 /* SMS.swift */; };
 		837753541CA3D9D300C2053D /* Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 837753531CA3D9D300C2053D /* Extension.swift */; };
 		837753561CA3DB8B00C2053D /* Relation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 837753551CA3DB8B00C2053D /* Relation.swift */; };
 		837753581CA4CB0300C2053D /* Utility.swift in Sources */ = {isa = PBXBuildFile; fileRef = 837753571CA4CB0300C2053D /* Utility.swift */; };
@@ -140,6 +141,7 @@
 		835F53091CCF1620008EE3AC /* Error.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Error.swift; sourceTree = "<group>"; };
 		836459C21CDE377800AD98A5 /* Role.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Role.swift; sourceTree = "<group>"; };
 		83724CC91C7B54A700E59BED /* LeanCloud.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LeanCloud.h; sourceTree = "<group>"; };
+		8374CCB01D3146F500844316 /* SMS.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SMS.swift; sourceTree = "<group>"; };
 		837753531CA3D9D300C2053D /* Extension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Extension.swift; sourceTree = "<group>"; };
 		837753551CA3DB8B00C2053D /* Relation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Relation.swift; sourceTree = "<group>"; };
 		837753571CA4CB0300C2053D /* Utility.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Utility.swift; sourceTree = "<group>"; };
@@ -263,6 +265,7 @@
 				83FAF09D1CC5D85B00A84063 /* Query.swift */,
 				8316B5381CFC73920076BCA7 /* CQLClient.swift */,
 				838B32F31CE1F1AC00CAEBF8 /* Engine.swift */,
+				8374CCB01D3146F500844316 /* SMS.swift */,
 			);
 			path = Source;
 			sourceTree = "<group>";
@@ -496,6 +499,7 @@
 				836459C31CDE377800AD98A5 /* Role.swift in Sources */,
 				83451E491CAD0E2300A378D7 /* ObjectUpdater.swift in Sources */,
 				837753541CA3D9D300C2053D /* Extension.swift in Sources */,
+				8374CCB11D3146F500844316 /* SMS.swift in Sources */,
 				83451E201CABB63600A378D7 /* Request.swift in Sources */,
 				83ACD26E1C819D8000F7E2DE /* Array.swift in Sources */,
 				835F53011CCF0CF5008EE3AC /* Result.swift in Sources */,
