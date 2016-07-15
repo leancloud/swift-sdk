@@ -7,10 +7,10 @@
   * [x] Data Storage
   * [x] Object Query
   * [x] Cloud Engine
+  * [x] Short Message
 
 ## Wanted Features
   * [ ] File Storage
-  * [ ] Short Message
   * [ ] Push Notification
   * [ ] Search Query
   * [ ] Analytics
