@@ -23,10 +23,15 @@ public final class LCRelation: LCType, NSCoding, SequenceType {
     weak var parent: LCObject?
 
     /// The class name of children.
-    var className: String?
+    var objectClassName: String?
 
     /// An array of children added locally.
     var value: [Element] = []
+
+    /// Effective object class name.
+    var effectiveObjectClassName: String? {
+        return objectClassName ?? value.first?.actualClassName
+    }
 
     override var JSONValue: AnyObject? {
         return value.map { (element) in element.JSONValue! }
@@ -54,19 +59,19 @@ public final class LCRelation: LCType, NSCoding, SequenceType {
             return nil
         }
 
-        className = dictionary["className"] as? String
+        objectClassName = dictionary["className"] as? String
     }
 
     public required init?(coder aDecoder: NSCoder) {
-        value     = aDecoder.decodeObjectForKey("value") as! [Element]
-        className = aDecoder.decodeObjectForKey("className") as? String
+        value           = aDecoder.decodeObjectForKey("value") as! [Element]
+        objectClassName = aDecoder.decodeObjectForKey("objectClassName") as? String
     }
 
     public func encodeWithCoder(aCoder: NSCoder) {
         aCoder.encodeObject(value, forKey: "value")
 
-        if let className = className {
-            aCoder.encodeObject(className, forKey: "className")
+        if let objectClassName = objectClassName {
+            aCoder.encodeObject(objectClassName, forKey: "objectClassName")
         }
     }
 
@@ -89,7 +94,7 @@ public final class LCRelation: LCType, NSCoding, SequenceType {
     func validateClassName(objects: [Element]) {
         guard !objects.isEmpty else { return }
 
-        let className = self.className ?? objects.first!.actualClassName
+        let className = effectiveObjectClassName ?? objects.first!.actualClassName
 
         for object in objects {
             guard object.actualClassName == className else {
@@ -148,8 +153,8 @@ public final class LCRelation: LCType, NSCoding, SequenceType {
 
         /* If class name already known, use it.
            Otherwise, use class name redirection. */
-        if let className = className {
-            query = LCQuery(className: className)
+        if let objectClassName = objectClassName {
+            query = LCQuery(className: objectClassName)
         } else {
             query = LCQuery(className: parent.actualClassName)
             query.extraParameters = [

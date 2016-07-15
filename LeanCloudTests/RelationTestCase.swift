@@ -41,8 +41,8 @@ class RelationTestCase: BaseTestCase {
         let shadow = LCObject(objectId: object.objectId!.value)
         let query = shadow.relationForKey("relationField").query
 
-        XCTAssertEqual(query.className, object.actualClassName)
-        XCTAssertNotEqual(query.className, friend.actualClassName)
+        XCTAssertEqual(query.objectClassName, object.actualClassName)
+        XCTAssertNotEqual(query.objectClassName, friend.actualClassName)
 
         let result = query.find()
 

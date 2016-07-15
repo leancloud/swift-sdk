@@ -12,8 +12,8 @@ import Foundation
  Query defines a query for objects.
  */
 final public class LCQuery: NSObject, NSCopying, NSCoding {
-    /// Query class name.
-    public private(set) var className: String
+    /// Object class name.
+    public let objectClassName: String
 
     /// The limit on the number of objects to return.
     public var limit: Int?
@@ -49,7 +49,7 @@ final public class LCQuery: NSObject, NSCopying, NSCoding {
     var JSONValue: [String: AnyObject] {
         var dictionary: [String: AnyObject] = [:]
 
-        dictionary["className"] = className
+        dictionary["className"] = objectClassName
 
         if !constraintDictionary.isEmpty {
             dictionary["where"] = ObjectProfiler.JSONValue(constraintDictionary)
@@ -136,20 +136,20 @@ final public class LCQuery: NSObject, NSCopying, NSCoding {
     }
 
     var endpoint: String {
-        return RESTClient.endpoint(className)
+        return RESTClient.endpoint(objectClassName)
     }
 
     /**
      Construct query with class name.
 
-     - parameter className: The class name to query.
+     - parameter objectClassName: The class name to query.
      */
     public init(className: String) {
-        self.className = className
+        self.objectClassName = className
     }
 
     public func copyWithZone(zone: NSZone) -> AnyObject {
-        let query = LCQuery(className: className)
+        let query = LCQuery(className: objectClassName)
 
         query.includedKeys  = includedKeys
         query.selectedKeys  = selectedKeys
@@ -163,10 +163,10 @@ final public class LCQuery: NSObject, NSCopying, NSCoding {
     }
 
     public required init?(coder aDecoder: NSCoder) {
-        className = aDecoder.decodeObjectForKey("className") as! String
-        includedKeys  = aDecoder.decodeObjectForKey("includedKeys") as! Set<String>
-        selectedKeys  = aDecoder.decodeObjectForKey("selectedKeys") as! Set<String>
-        equalityTable = aDecoder.decodeObjectForKey("equalityTable") as! [String: LCType]
+        objectClassName = aDecoder.decodeObjectForKey("objectClassName") as! String
+        includedKeys    = aDecoder.decodeObjectForKey("includedKeys") as! Set<String>
+        selectedKeys    = aDecoder.decodeObjectForKey("selectedKeys") as! Set<String>
+        equalityTable   = aDecoder.decodeObjectForKey("equalityTable") as! [String: LCType]
         constraintDictionary = aDecoder.decodeObjectForKey("constraintDictionary") as! [String: AnyObject]
         extraParameters = aDecoder.decodeObjectForKey("extraParameters") as? [String: AnyObject]
         limit = aDecoder.decodeObjectForKey("limit") as? Int
@@ -174,13 +174,15 @@ final public class LCQuery: NSObject, NSCopying, NSCoding {
     }
 
     public func encodeWithCoder(aCoder: NSCoder) {
-        aCoder.encodeObject(className, forKey: "className")
+        aCoder.encodeObject(objectClassName, forKey: "objectClassName")
         aCoder.encodeObject(includedKeys, forKey: "includedKeys")
         aCoder.encodeObject(selectedKeys, forKey: "selectedKeys")
         aCoder.encodeObject(equalityTable, forKey: "equalityTable")
         aCoder.encodeObject(constraintDictionary, forKey: "constraintDictionary")
-        aCoder.encodeObject(extraParameters, forKey: "extraParameters")
 
+        if let extraParameters = extraParameters {
+            aCoder.encodeObject(extraParameters, forKey: "extraParameters")
+        }
         if let limit = limit {
             aCoder.encodeInteger(limit, forKey: "limit")
         }
@@ -284,7 +286,7 @@ final public class LCQuery: NSObject, NSCopying, NSCoding {
      - parameter query: The query to be validated.
      */
     func validateClassName(query: LCQuery) {
-        guard query.className == className else {
+        guard query.objectClassName == objectClassName else {
             Exception.raise(.Inconsistency, reason: "Different class names.")
             return
         }
@@ -302,7 +304,7 @@ final public class LCQuery: NSObject, NSCopying, NSCoding {
     public func and(query: LCQuery) -> LCQuery {
         validateClassName(query)
 
-        let result = LCQuery(className: className)
+        let result = LCQuery(className: objectClassName)
 
         result.constraintDictionary["$and"] = [self.constraintDictionary, query.constraintDictionary]
 
@@ -321,7 +323,7 @@ final public class LCQuery: NSObject, NSCopying, NSCoding {
     public func or(query: LCQuery) -> LCQuery {
         validateClassName(query)
 
-        let result = LCQuery(className: className)
+        let result = LCQuery(className: objectClassName)
 
         result.constraintDictionary["$or"] = [self.constraintDictionary, query.constraintDictionary]
 
@@ -356,7 +358,7 @@ final public class LCQuery: NSObject, NSCopying, NSCoding {
      */
     func processResults<T: LCObject>(results: [AnyObject], className: String?) -> [T] {
         return results.map { dictionary in
-            let object = ObjectProfiler.object(className: className ?? self.className) as! T
+            let object = ObjectProfiler.object(className: className ?? self.objectClassName) as! T
 
             if let dictionary = dictionary as? [String: AnyObject] {
                 ObjectProfiler.updateObject(object, dictionary)

@@ -21,7 +21,6 @@ public class LCObject: LCType, NSCoding, SequenceType {
 
     /// Object identifier.
     public private(set) dynamic var objectId: LCString?
-    public private(set) dynamic var className: LCString?
 
     public private(set) dynamic var createdAt: LCDate?
     public private(set) dynamic var updatedAt: LCDate?
@@ -36,6 +35,7 @@ public class LCObject: LCType, NSCoding, SequenceType {
     }
 
     var actualClassName: String {
+        let className = self["className"] as? LCString
         return (className?.value) ?? self.dynamicType.objectClassName()
     }
 
