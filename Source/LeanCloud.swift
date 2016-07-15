@@ -8,7 +8,7 @@
 
 import Foundation
 
-public let Version = "0.0.1.beta"
+public let Version = "1.0.0-beta"
 
 /**
  Initialize LeanCloud SDK.

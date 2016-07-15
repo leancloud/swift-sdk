@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name         = 'LeanCloud'
-  s.version      = '0.0.1.alpha.1'
+  s.version      = '1.0.0-beta'
   s.license      = { :type => 'Apache License, Version 2.0', :file => 'LICENSE' }
   s.summary      = 'LeanCloud Swift SDK'
   s.homepage     = 'https://leancloud.cn/'
