@@ -16,10 +16,6 @@ import Foundation
 public final class LCNumber: LCType, NSCoding, IntegerLiteralConvertible, FloatLiteralConvertible {
     public private(set) var value: Double = 0
 
-    override var JSONValue: AnyObject? {
-        return value
-    }
-
     public override init() {
         super.init()
     }
@@ -39,6 +35,10 @@ public final class LCNumber: LCType, NSCoding, IntegerLiteralConvertible, FloatL
 
     public required init?(coder aDecoder: NSCoder) {
         value = aDecoder.decodeDoubleForKey("value")
+    }
+
+    override var JSONValue: AnyObject? {
+        return value
     }
 
     public func encodeWithCoder(aCoder: NSCoder) {

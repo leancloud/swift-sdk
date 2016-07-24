@@ -33,10 +33,6 @@ public final class LCRelation: LCType, NSCoding, SequenceType {
         return objectClassName ?? value.first?.actualClassName
     }
 
-    override var JSONValue: AnyObject? {
-        return value.map { (element) in element.JSONValue! }
-    }
-
     internal override init() {
         super.init()
     }
@@ -65,6 +61,10 @@ public final class LCRelation: LCType, NSCoding, SequenceType {
     public required init?(coder aDecoder: NSCoder) {
         value           = aDecoder.decodeObjectForKey("value") as! [Element]
         objectClassName = aDecoder.decodeObjectForKey("objectClassName") as? String
+    }
+
+    override var JSONValue: AnyObject? {
+        return value.map { (element) in element.JSONValue! }
     }
 
     public func encodeWithCoder(aCoder: NSCoder) {

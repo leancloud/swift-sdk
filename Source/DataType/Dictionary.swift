@@ -16,10 +16,6 @@ import Foundation
 public final class LCDictionary: LCType, NSCoding, SequenceType, DictionaryLiteralConvertible {
     public private(set) var value: [String: LCType] = [:]
 
-    override var JSONValue: AnyObject? {
-        return value.mapValue { value in value.JSONValue! }
-    }
-
     public override init() {
         super.init()
     }
@@ -35,6 +31,10 @@ public final class LCDictionary: LCType, NSCoding, SequenceType, DictionaryLiter
 
     public required init?(coder aDecoder: NSCoder) {
         value = (aDecoder.decodeObjectForKey("value") as? [String: LCType]) ?? [:]
+    }
+
+    override var JSONValue: AnyObject? {
+        return value.mapValue { value in value.JSONValue! }
     }
 
     public func encodeWithCoder(aCoder: NSCoder) {

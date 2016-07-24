@@ -18,10 +18,6 @@ public final class LCArray: LCType, NSCoding, SequenceType, ArrayLiteralConverti
 
     public private(set) var value: [Element] = []
 
-    override var JSONValue: AnyObject? {
-        return value.map { element in element.JSONValue! }
-    }
-
     public override init() {
         super.init()
     }
@@ -37,6 +33,10 @@ public final class LCArray: LCType, NSCoding, SequenceType, ArrayLiteralConverti
 
     public required init?(coder aDecoder: NSCoder) {
         value = (aDecoder.decodeObjectForKey("value") as? [Element]) ?? []
+    }
+
+    override var JSONValue: AnyObject? {
+        return value.map { element in element.JSONValue! }
     }
 
     public func encodeWithCoder(aCoder: NSCoder) {

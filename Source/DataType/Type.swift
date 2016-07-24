@@ -14,11 +14,6 @@ import Foundation
  It is superclass of all LeanCloud data type.
  */
 public class LCType: NSObject, NSCopying {
-    var JSONValue: AnyObject? {
-        Exception.raise(.InvalidType, reason: "No JSON representation.")
-        return nil
-    }
-
     /// Make class abstract.
     internal override init() {
         super.init()
@@ -26,6 +21,11 @@ public class LCType: NSObject, NSCopying {
 
     class func instance() -> LCType? {
         Exception.raise(.InvalidType, reason: "Cannot be instantiated.")
+        return nil
+    }
+
+    var JSONValue: AnyObject? {
+        Exception.raise(.InvalidType, reason: "No JSON representation.")
         return nil
     }
 

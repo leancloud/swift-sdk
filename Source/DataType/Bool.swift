@@ -16,10 +16,6 @@ import Foundation
 public final class LCBool: LCType, NSCoding, BooleanLiteralConvertible {
     public private(set) var value: Bool = false
 
-    override var JSONValue: AnyObject? {
-        return value
-    }
-
     public override init() {
         super.init()
     }
@@ -35,6 +31,10 @@ public final class LCBool: LCType, NSCoding, BooleanLiteralConvertible {
 
     public required init?(coder aDecoder: NSCoder) {
         value = aDecoder.decodeBoolForKey("value")
+    }
+
+    override var JSONValue: AnyObject? {
+        return value
     }
 
     public func encodeWithCoder(aCoder: NSCoder) {

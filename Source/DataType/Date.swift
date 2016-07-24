@@ -35,13 +35,6 @@ public final class LCDate: LCType, NSCoding {
         return LCDate.stringFromDate(value)
     }
 
-    override var JSONValue: AnyObject? {
-        return [
-            "__type": "Date",
-            "iso": ISOString
-        ]
-    }
-
     public override init() {
         super.init()
     }
@@ -104,6 +97,13 @@ public final class LCDate: LCType, NSCoding {
 
     public required init?(coder aDecoder: NSCoder) {
         value = (aDecoder.decodeObjectForKey("value") as? NSDate) ?? NSDate()
+    }
+
+    override var JSONValue: AnyObject? {
+        return [
+            "__type": "Date",
+            "iso": ISOString
+        ]
     }
 
     public func encodeWithCoder(aCoder: NSCoder) {

@@ -33,14 +33,6 @@ public final class LCGeoPoint: LCType, NSCoding {
         }
     }
 
-    override var JSONValue: AnyObject? {
-        return [
-            "__type": "GeoPoint",
-            "latitude": latitude,
-            "longitude": longitude
-        ]
-    }
-
     public override init() {
         super.init()
     }
@@ -75,6 +67,14 @@ public final class LCGeoPoint: LCType, NSCoding {
     public required init?(coder aDecoder: NSCoder) {
         latitude  = aDecoder.decodeDoubleForKey("latitude")
         longitude = aDecoder.decodeDoubleForKey("longitude")
+    }
+
+    override var JSONValue: AnyObject? {
+        return [
+            "__type": "GeoPoint",
+            "latitude": latitude,
+            "longitude": longitude
+        ]
     }
 
     public func encodeWithCoder(aCoder: NSCoder) {

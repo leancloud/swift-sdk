@@ -16,10 +16,6 @@ import Foundation
 public final class LCString: LCType, NSCoding, StringLiteralConvertible {
     public private(set) var value: String = ""
 
-    override var JSONValue: AnyObject? {
-        return value
-    }
-
     public typealias UnicodeScalarLiteralType = Character
     public typealias ExtendedGraphemeClusterLiteralType = StringLiteralType
 
@@ -46,6 +42,10 @@ public final class LCString: LCType, NSCoding, StringLiteralConvertible {
 
     public required init?(coder aDecoder: NSCoder) {
         value = (aDecoder.decodeObjectForKey("value") as? String) ?? ""
+    }
+
+    override var JSONValue: AnyObject? {
+        return value
     }
 
     public func encodeWithCoder(aCoder: NSCoder) {

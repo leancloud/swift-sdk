@@ -24,13 +24,6 @@ public final class LCData: LCType, NSCoding {
         return NSData(base64EncodedString: string, options: NSDataBase64DecodingOptions(rawValue: 0))
     }
 
-    override var JSONValue: AnyObject? {
-        return [
-            "__type": "Bytes",
-            "base64": base64EncodedString
-        ]
-    }
-
     public override init() {
         super.init()
     }
@@ -70,6 +63,13 @@ public final class LCData: LCType, NSCoding {
 
     public required init?(coder aDecoder: NSCoder) {
         value = (aDecoder.decodeObjectForKey("value") as? NSData) ?? NSData()
+    }
+
+    override var JSONValue: AnyObject? {
+        return [
+            "__type": "Bytes",
+            "base64": base64EncodedString
+        ]
     }
 
     public func encodeWithCoder(aCoder: NSCoder) {

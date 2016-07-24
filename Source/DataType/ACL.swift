@@ -28,10 +28,6 @@ public final class LCACL: LCType, NSCoding {
     /// The key for `write` permission.
     static let writePermissionKey = "write"
 
-    override var JSONValue: AnyObject? {
-        return value
-    }
-
     public override init() {
         super.init()
     }
@@ -46,6 +42,10 @@ public final class LCACL: LCType, NSCoding {
 
     public required init?(coder aDecoder: NSCoder) {
         value = (aDecoder.decodeObjectForKey("value") as? AccessTable) ?? [:]
+    }
+
+    override var JSONValue: AnyObject? {
+        return value
     }
 
     public func encodeWithCoder(aCoder: NSCoder) {

@@ -51,18 +51,6 @@ public class LCObject: LCType, NSCoding, SequenceType {
         return hasObjectId ? (!operationHub.isEmpty) : true
     }
 
-    override var JSONValue: AnyObject? {
-        guard let objectId = objectId else {
-            return nil
-        }
-
-        return [
-            "__type": "Pointer",
-            "className": actualClassName,
-            "objectId": objectId.value
-        ]
-    }
-
     public override required init() {
         super.init()
         operationHub = OperationHub(self)
@@ -91,6 +79,18 @@ public class LCObject: LCType, NSCoding, SequenceType {
 
     public required init?(coder aDecoder: NSCoder) {
         propertyTable = (aDecoder.decodeObjectForKey("propertyTable") as? LCDictionary) ?? [:]
+    }
+
+    override var JSONValue: AnyObject? {
+        guard let objectId = objectId else {
+            return nil
+        }
+
+        return [
+            "__type": "Pointer",
+            "className": actualClassName,
+            "objectId": objectId.value
+        ]
     }
 
     public func encodeWithCoder(aCoder: NSCoder) {
