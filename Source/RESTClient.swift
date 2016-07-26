@@ -81,7 +81,7 @@ class RESTClient {
     }()
 
     /// User agent of SDK.
-    static let userAgent = "LeanCloud Swift-\(Version) SDK"
+    static let userAgent = "LeanCloud-Swift-SDK/\(Version)"
 
     /// Signature of each request.
     static var signature: String {
