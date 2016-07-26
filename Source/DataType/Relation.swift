@@ -162,7 +162,7 @@ public final class LCRelation: LCType, NSCoding, SequenceType {
             ]
         }
 
-        query.whereKey(key, .RelatedTo(object: parent))
+        query.whereKey(key, .RelatedTo(parent))
 
         return query
     }

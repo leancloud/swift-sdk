@@ -103,33 +103,33 @@ final public class LCQuery: NSObject, NSCopying, NSCoding {
         case Existed
         case NotExisted
 
-        case EqualTo(value: LCType)
-        case NotEqualTo(value: LCType)
-        case LessThan(value: LCType)
-        case LessThanOrEqualTo(value: LCType)
-        case GreaterThan(value: LCType)
-        case GreaterThanOrEqualTo(value: LCType)
+        case EqualTo(LCType)
+        case NotEqualTo(LCType)
+        case LessThan(LCType)
+        case LessThanOrEqualTo(LCType)
+        case GreaterThan(LCType)
+        case GreaterThanOrEqualTo(LCType)
 
-        case ContainedIn(array: LCArray)
-        case NotContainedIn(array: LCArray)
-        case ContainedAllIn(array: LCArray)
-        case EqualToSize(size: LCNumber)
+        case ContainedIn(LCArray)
+        case NotContainedIn(LCArray)
+        case ContainedAllIn(LCArray)
+        case EqualToSize(Int)
 
-        case NearbyPoint(point: LCGeoPoint)
-        case NearbyPointWithRange(point: LCGeoPoint, from: LCGeoPoint.Distance?, to: LCGeoPoint.Distance?)
+        case NearbyPoint(LCGeoPoint)
+        case NearbyPointWithRange(origin: LCGeoPoint, from: LCGeoPoint.Distance?, to: LCGeoPoint.Distance?)
         case NearbyPointWithRectangle(southwest: LCGeoPoint, northeast: LCGeoPoint)
 
-        case MatchedQuery(query: LCQuery)
-        case NotMatchedQuery(query: LCQuery)
+        case MatchedQuery(LCQuery)
+        case NotMatchedQuery(LCQuery)
         case MatchedQueryAndKey(query: LCQuery, key: String)
         case NotMatchedQueryAndKey(query: LCQuery, key: String)
 
-        case MatchedPattern(pattern: String, option: String?)
-        case MatchedSubstring(string: String)
-        case PrefixedBy(string: String)
-        case SuffixedBy(string: String)
+        case MatchedPattern(String, option: String?)
+        case MatchedSubstring(String)
+        case PrefixedBy(String)
+        case SuffixedBy(String)
 
-        case RelatedTo(object: LCObject)
+        case RelatedTo(LCObject)
 
         case Ascending
         case Descending
@@ -454,7 +454,7 @@ final public class LCQuery: NSObject, NSCopying, NSCoding {
     public func get<T: LCObject>(objectId: String) -> LCObjectResult<T> {
         let query = copy() as! LCQuery
 
-        query.whereKey("objectId", .EqualTo(value: LCString(objectId)))
+        query.whereKey("objectId", .EqualTo(LCString(objectId)))
 
         return query.getFirst()
     }
