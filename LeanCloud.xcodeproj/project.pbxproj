@@ -40,7 +40,6 @@
 		839A8B961CDDACD400840831 /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = 839A8B951CDDACD400840831 /* User.swift */; };
 		83A566DC1CA1414700E2EB12 /* BatchRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83A566DB1CA1414700E2EB12 /* BatchRequest.swift */; };
 		83ACD25C1C8197BE00F7E2DE /* Object.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83ACD25B1C8197BE00F7E2DE /* Object.swift */; };
-		83ACD25E1C81981F00F7E2DE /* Type.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83ACD25D1C81981F00F7E2DE /* Type.swift */; };
 		83ACD2681C819D3B00F7E2DE /* Number.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83ACD2671C819D3B00F7E2DE /* Number.swift */; };
 		83ACD26A1C819D5A00F7E2DE /* Bool.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83ACD2691C819D5A00F7E2DE /* Bool.swift */; };
 		83ACD26C1C819D6900F7E2DE /* String.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83ACD26B1C819D6900F7E2DE /* String.swift */; };
@@ -48,6 +47,7 @@
 		83ACD2701C819DA400F7E2DE /* Dictionary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83ACD26F1C819DA400F7E2DE /* Dictionary.swift */; };
 		83BC11CD1CDD768500D7E7A6 /* ACL.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83BC11CC1CDD768500D7E7A6 /* ACL.swift */; };
 		83BC11D61CDD76E900D7E7A6 /* ACLTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83BC11D51CDD76E900D7E7A6 /* ACLTestCase.swift */; };
+		83C575631D59C4B6003BEBF4 /* Type.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83C575621D59C4B6003BEBF4 /* Type.swift */; };
 		83D0DE6F1CC7B3FF00FC204E /* QueryTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83D0DE6E1CC7B3FF00FC204E /* QueryTestCase.swift */; };
 		83D592311CD8871E007177C5 /* Exception.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83D592301CD8871E007177C5 /* Exception.swift */; };
 		83D5923C1CD887CE007177C5 /* XCTestCase+Exception.m in Sources */ = {isa = PBXBuildFile; fileRef = 83D5923B1CD887CE007177C5 /* XCTestCase+Exception.m */; };
@@ -151,7 +151,6 @@
 		839A8B951CDDACD400840831 /* User.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
 		83A566DB1CA1414700E2EB12 /* BatchRequest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BatchRequest.swift; sourceTree = "<group>"; };
 		83ACD25B1C8197BE00F7E2DE /* Object.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Object.swift; sourceTree = "<group>"; };
-		83ACD25D1C81981F00F7E2DE /* Type.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Type.swift; sourceTree = "<group>"; };
 		83ACD2671C819D3B00F7E2DE /* Number.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Number.swift; sourceTree = "<group>"; };
 		83ACD2691C819D5A00F7E2DE /* Bool.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Bool.swift; sourceTree = "<group>"; };
 		83ACD26B1C819D6900F7E2DE /* String.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = String.swift; sourceTree = "<group>"; };
@@ -159,6 +158,7 @@
 		83ACD26F1C819DA400F7E2DE /* Dictionary.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Dictionary.swift; sourceTree = "<group>"; };
 		83BC11CC1CDD768500D7E7A6 /* ACL.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ACL.swift; sourceTree = "<group>"; };
 		83BC11D51CDD76E900D7E7A6 /* ACLTestCase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ACLTestCase.swift; sourceTree = "<group>"; };
+		83C575621D59C4B6003BEBF4 /* Type.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Type.swift; sourceTree = "<group>"; };
 		83D0DE6E1CC7B3FF00FC204E /* QueryTestCase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QueryTestCase.swift; sourceTree = "<group>"; };
 		83D592301CD8871E007177C5 /* Exception.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Exception.swift; sourceTree = "<group>"; };
 		83D5923A1CD887CE007177C5 /* XCTestCase+Exception.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "XCTestCase+Exception.h"; sourceTree = "<group>"; };
@@ -248,6 +248,7 @@
 				83ACD25A1C8197BE00F7E2DE /* DataType */,
 				83724CC91C7B54A700E59BED /* LeanCloud.h */,
 				830B0F621C7C127700D9FC41 /* LeanCloud.swift */,
+				83C575621D59C4B6003BEBF4 /* Type.swift */,
 				837753571CA4CB0300C2053D /* Utility.swift */,
 				837753531CA3D9D300C2053D /* Extension.swift */,
 				830B0F641C7C20CE00D9FC41 /* Configuration.swift */,
@@ -287,7 +288,6 @@
 		83ACD25A1C8197BE00F7E2DE /* DataType */ = {
 			isa = PBXGroup;
 			children = (
-				83ACD25D1C81981F00F7E2DE /* Type.swift */,
 				835F52EA1CCBC0D7008EE3AC /* Null.swift */,
 				83ACD2671C819D3B00F7E2DE /* Number.swift */,
 				83ACD2691C819D5A00F7E2DE /* Bool.swift */,
@@ -487,7 +487,6 @@
 				830B0F6C1C7C60DA00D9FC41 /* Runtime.swift in Sources */,
 				8343EF281CA91E5B0023D0CA /* Response.swift in Sources */,
 				83451EA81CAEBA8900A378D7 /* Data.swift in Sources */,
-				83ACD25E1C81981F00F7E2DE /* Type.swift in Sources */,
 				830B0F651C7C20CE00D9FC41 /* Configuration.swift in Sources */,
 				83451E431CAC23E900A378D7 /* MD5.swift in Sources */,
 				834E59C21C7ED06A009762AC /* Operation.swift in Sources */,
@@ -507,6 +506,7 @@
 				839A8B961CDDACD400840831 /* User.swift in Sources */,
 				8316B5391CFC73920076BCA7 /* CQLClient.swift in Sources */,
 				83D592311CD8871E007177C5 /* Exception.swift in Sources */,
+				83C575631D59C4B6003BEBF4 /* Type.swift in Sources */,
 				835F530A1CCF1620008EE3AC /* Error.swift in Sources */,
 				83FAF09E1CC5D85B00A84063 /* Query.swift in Sources */,
 				838B32F41CE1F1AC00CAEBF8 /* Engine.swift in Sources */,

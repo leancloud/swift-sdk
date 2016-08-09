@@ -13,7 +13,7 @@ import Foundation
 
  This type can be used to represent a byte buffers.
  */
-public final class LCData: LCType, NSCoding {
+public final class LCData: NSObject, LCType, LCTypeExtension {
     public private(set) var value: NSData = NSData()
 
     var base64EncodedString: String {
@@ -65,22 +65,11 @@ public final class LCData: LCType, NSCoding {
         value = (aDecoder.decodeObjectForKey("value") as? NSData) ?? NSData()
     }
 
-    override var JSONValue: AnyObject? {
-        return [
-            "__type": "Bytes",
-            "base64": base64EncodedString
-        ]
-    }
-
     public func encodeWithCoder(aCoder: NSCoder) {
         aCoder.encodeObject(value, forKey: "value")
     }
 
-    class override func instance() -> LCType? {
-        return self.init()
-    }
-
-    public override func copyWithZone(zone: NSZone) -> AnyObject {
+    public func copyWithZone(zone: NSZone) -> AnyObject {
         return LCData(value.copy() as! NSData)
     }
 
@@ -92,5 +81,36 @@ public final class LCData: LCType, NSCoding {
         } else {
             return false
         }
+    }
+
+    public var JSONValue: AnyObject {
+        return [
+            "__type": "Bytes",
+            "base64": base64EncodedString
+        ]
+    }
+
+    var LCONValue: AnyObject? {
+        return JSONValue
+    }
+
+    static func instance() -> LCType {
+        return self.init()
+    }
+
+    func forEachChild(body: (child: LCType) -> Void) {
+        /* Nothing to do. */
+    }
+
+    func add(other: LCType) throws -> LCType {
+        throw LCError(code: .InvalidType, reason: "Object cannot be added.")
+    }
+
+    func concatenate(other: LCType, unique: Bool) throws -> LCType {
+        throw LCError(code: .InvalidType, reason: "Object cannot be concatenated.")
+    }
+
+    func differ(other: LCType) throws -> LCType {
+        throw LCError(code: .InvalidType, reason: "Object cannot be differed.")
     }
 }

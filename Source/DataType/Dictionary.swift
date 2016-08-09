@@ -11,9 +11,9 @@ import Foundation
 /**
  LeanCloud dictionary type.
 
- It is a wrapper of Swift.Dictionary type, used to store a dictionary value.
+ It is a wrapper of `Swift.Dictionary` type, used to store a dictionary value.
  */
-public final class LCDictionary: LCType, NSCoding, SequenceType, DictionaryLiteralConvertible {
+public final class LCDictionary: NSObject, LCType, LCTypeExtension, SequenceType, DictionaryLiteralConvertible {
     public private(set) var value: [String: LCType] = [:]
 
     public override init() {
@@ -33,30 +33,29 @@ public final class LCDictionary: LCType, NSCoding, SequenceType, DictionaryLiter
         value = (aDecoder.decodeObjectForKey("value") as? [String: LCType]) ?? [:]
     }
 
-    override var JSONValue: AnyObject? {
-        return value.mapValue { value in value.JSONValue! }
-    }
-
     public func encodeWithCoder(aCoder: NSCoder) {
         aCoder.encodeObject(value, forKey: "value")
     }
 
-    class override func instance() -> LCType? {
-        return self.init([:])
-    }
-
-    public override func copyWithZone(zone: NSZone) -> AnyObject {
+    public func copyWithZone(zone: NSZone) -> AnyObject {
         return LCDictionary(value)
     }
 
-    public override func isEqual(another: AnyObject?) -> Bool {
-        if another === self {
+    public override func isEqual(object: AnyObject?) -> Bool {
+        if object === self {
             return true
-        } else if let another = another as? LCDictionary {
-            return another.value == value
+        } else if let object = object as? LCDictionary {
+            let lhs: AnyObject = value
+            let rhs: AnyObject = object.value
+
+            return lhs.isEqual(rhs)
         } else {
             return false
         }
+    }
+
+    public func generate() -> DictionaryGenerator<String, LCType> {
+        return value.generate()
     }
 
     public subscript(key: String) -> LCType? {
@@ -64,13 +63,31 @@ public final class LCDictionary: LCType, NSCoding, SequenceType, DictionaryLiter
         set { value[key] = newValue }
     }
 
-    public func generate() -> DictionaryGenerator<String, LCType> {
-        return value.generate()
+    public var JSONValue: AnyObject {
+        return value.mapValue { value in value.JSONValue }
     }
 
-    // MARK: Iteration
+    var LCONValue: AnyObject? {
+        return value.mapValue { value in (value as! LCTypeExtension).LCONValue! }
+    }
 
-    override func forEachChild(body: (child: LCType) -> Void) {
-        forEach { (_, value) in body(child: value) }
+    static func instance() -> LCType {
+        return self.init([:])
+    }
+
+    func forEachChild(body: (child: LCType) -> Void) {
+        forEach { body(child: $1) }
+    }
+
+    func add(other: LCType) throws -> LCType {
+        throw LCError(code: .InvalidType, reason: "Object cannot be added.")
+    }
+
+    func concatenate(other: LCType, unique: Bool) throws -> LCType {
+        throw LCError(code: .InvalidType, reason: "Object cannot be concatenated.")
+    }
+
+    func differ(other: LCType) throws -> LCType {
+        throw LCError(code: .InvalidType, reason: "Object cannot be differed.")
     }
 }

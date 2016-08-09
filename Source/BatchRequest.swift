@@ -59,9 +59,9 @@ class BatchRequest {
                     }
                 }
 
-                body[key] = operation.JSONValue()
+                body[key] = operation.LCONValue
             default:
-                body[key] = operation.JSONValue()
+                body[key] = operation.LCONValue
             }
         }
 

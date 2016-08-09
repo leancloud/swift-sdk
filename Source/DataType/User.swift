@@ -269,7 +269,7 @@ public class LCUser: LCObject {
         dictionary["__type"]    = RESTClient.DataType.Object.rawValue
         dictionary["className"] = LCUser.objectClassName()
 
-        let user = ObjectProfiler.object(JSONValue: dictionary) as! User
+        let user = try! ObjectProfiler.object(JSONValue: dictionary) as! User
 
         return .Success(object: user)
     }

@@ -31,7 +31,7 @@ public final class LCEngine {
 
      - returns: The result of function call.
      */
-    public static func call<Value: LCType>(function: String) -> LCOptionalResult<Value> {
+    public static func call(function: String) -> LCOptionalResult {
         return call(function, parameters: nil)
     }
 
@@ -40,7 +40,7 @@ public final class LCEngine {
 
      - parameter completion: The completion callback closure.
      */
-    public static func call<Value: LCType>(function: String, completion: (LCOptionalResult<Value>) -> Void) {
+    public static func call(function: String, completion: (LCOptionalResult) -> Void) {
         asynchronize({ call(function) }) { result in
             completion(result)
         }
@@ -54,8 +54,8 @@ public final class LCEngine {
 
      - returns: The result of function all.
      */
-    public static func call<Value: LCType>(function: String, parameters: [String: AnyObject]) -> LCOptionalResult<Value> {
-        return call(function, parameters: ObjectProfiler.JSONValue(parameters) as? Parameters)
+    public static func call(function: String, parameters: [String: AnyObject]) -> LCOptionalResult {
+        return call(function, parameters: ObjectProfiler.LCONValue(parameters) as? Parameters)
     }
 
     /**
@@ -66,7 +66,7 @@ public final class LCEngine {
 
      - parameter completion: The completion callback closure.
      */
-    public static func call<Value: LCType>(function: String, parameters: [String: AnyObject], completion: (LCOptionalResult<Value>) -> Void) {
+    public static func call(function: String, parameters: [String: AnyObject], completion: (LCOptionalResult) -> Void) {
         asynchronize({ call(function, parameters: parameters) }) { result in
             completion(result)
         }
@@ -82,8 +82,8 @@ public final class LCEngine {
 
      - returns: The result of function all.
      */
-    public static func call<Value: LCType>(function: String, parameters: LCDictionary) -> LCOptionalResult<Value> {
-        return call(function, parameters: ObjectProfiler.JSONValue(parameters) as? Parameters)
+    public static func call(function: String, parameters: LCDictionary) -> LCOptionalResult {
+        return call(function, parameters: ObjectProfiler.LCONValue(parameters) as? Parameters)
     }
 
     /**
@@ -96,7 +96,7 @@ public final class LCEngine {
 
      - parameter completion: The completion callback closure.
      */
-    public static func call<Value: LCType>(function: String, parameters: LCDictionary, completion: (LCOptionalResult<Value>) -> Void) {
+    public static func call(function: String, parameters: LCDictionary, completion: (LCOptionalResult) -> Void) {
         asynchronize({ call(function, parameters: parameters) }) { result in
             completion(result)
         }
@@ -112,8 +112,8 @@ public final class LCEngine {
 
      - returns: The result of function all.
      */
-    public static func call<Value: LCType>(function: String, parameters: LCObject) -> LCOptionalResult<Value> {
-        return call(function, parameters: ObjectProfiler.JSONValue(parameters) as? Parameters)
+    public static func call(function: String, parameters: LCObject) -> LCOptionalResult {
+        return call(function, parameters: ObjectProfiler.LCONValue(parameters) as? Parameters)
     }
 
     /**
@@ -126,7 +126,7 @@ public final class LCEngine {
 
      - parameter completion: The completion callback closure.
      */
-    public static func call<Value: LCType>(function: String, parameters: LCObject, completion: (LCOptionalResult<Value>) -> Void) {
+    public static func call(function: String, parameters: LCObject, completion: (LCOptionalResult) -> Void) {
         asynchronize({ call(function, parameters: parameters) }) { result in
             completion(result)
         }
@@ -140,7 +140,7 @@ public final class LCEngine {
 
      - returns: The result of function call.
      */
-    static func call<Value: LCType>(function: String, parameters: Parameters?) -> LCOptionalResult<Value> {
+    static func call(function: String, parameters: Parameters?) -> LCOptionalResult {
         let response = RESTClient.request(.POST, "call/\(function)", parameters: parameters)
 
         return response.optionalResult("result")

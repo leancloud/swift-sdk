@@ -79,7 +79,7 @@ public class LCCQLClient {
         var result = ["cql": CQL]
 
         if !parameters.isEmpty {
-            result["pvalues"] = Utility.JSONString(ObjectProfiler.JSONValue(parameters))
+            result["pvalues"] = Utility.JSONString(ObjectProfiler.LCONValue(parameters))
         }
 
         return result

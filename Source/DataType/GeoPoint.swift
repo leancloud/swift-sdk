@@ -13,7 +13,7 @@ import Foundation
 
  This type can be used to represent a 2D location with latitude and longitude.
  */
-public final class LCGeoPoint: LCType, NSCoding {
+public final class LCGeoPoint: NSObject, LCType, LCTypeExtension {
     public private(set) var latitude: Double = 0
     public private(set) var longitude: Double = 0
 
@@ -69,24 +69,12 @@ public final class LCGeoPoint: LCType, NSCoding {
         longitude = aDecoder.decodeDoubleForKey("longitude")
     }
 
-    override var JSONValue: AnyObject? {
-        return [
-            "__type": "GeoPoint",
-            "latitude": latitude,
-            "longitude": longitude
-        ]
-    }
-
     public func encodeWithCoder(aCoder: NSCoder) {
         aCoder.encodeDouble(latitude, forKey: "latitude")
         aCoder.encodeDouble(longitude, forKey: "longitude")
     }
 
-    class override func instance() -> LCType? {
-        return self.init()
-    }
-
-    public override func copyWithZone(zone: NSZone) -> AnyObject {
+    public func copyWithZone(zone: NSZone) -> AnyObject {
         return LCGeoPoint(latitude: latitude, longitude: longitude)
     }
 
@@ -98,5 +86,37 @@ public final class LCGeoPoint: LCType, NSCoding {
         } else {
             return false
         }
+    }
+
+    public var JSONValue: AnyObject {
+        return [
+            "__type"    : "GeoPoint",
+            "latitude"  : latitude,
+            "longitude" : longitude
+        ]
+    }
+
+    var LCONValue: AnyObject? {
+        return JSONValue
+    }
+
+    static func instance() -> LCType {
+        return self.init()
+    }
+
+    func forEachChild(body: (child: LCType) -> Void) {
+        /* Nothing to do. */
+    }
+
+    func add(other: LCType) throws -> LCType {
+        throw LCError(code: .InvalidType, reason: "Object cannot be added.")
+    }
+
+    func concatenate(other: LCType, unique: Bool) throws -> LCType {
+        throw LCError(code: .InvalidType, reason: "Object cannot be concatenated.")
+    }
+
+    func differ(other: LCType) throws -> LCType {
+        throw LCError(code: .InvalidType, reason: "Object cannot be differed.")
     }
 }

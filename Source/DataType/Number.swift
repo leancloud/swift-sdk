@@ -11,9 +11,9 @@ import Foundation
 /**
  LeanCloud number type.
 
- It is a wrapper of Swift.Double type, used to store a number value.
+ It is a wrapper of `Swift.Double` type, used to store a number value.
  */
-public final class LCNumber: LCType, NSCoding, IntegerLiteralConvertible, FloatLiteralConvertible {
+public final class LCNumber: NSObject, LCType, LCTypeExtension, FloatLiteralConvertible, IntegerLiteralConvertible {
     public private(set) var value: Double = 0
 
     public override init() {
@@ -25,11 +25,11 @@ public final class LCNumber: LCType, NSCoding, IntegerLiteralConvertible, FloatL
         self.value = value
     }
 
-    public convenience required init(integerLiteral value: IntegerLiteralType) {
-        self.init(Double(value))
+    public convenience required init(floatLiteral value: FloatLiteralType) {
+        self.init(value)
     }
 
-    public convenience required init(floatLiteral value: FloatLiteralType) {
+    public convenience required init(integerLiteral value: IntegerLiteralType) {
         self.init(Double(value))
     }
 
@@ -37,55 +37,57 @@ public final class LCNumber: LCType, NSCoding, IntegerLiteralConvertible, FloatL
         value = aDecoder.decodeDoubleForKey("value")
     }
 
-    override var JSONValue: AnyObject? {
-        return value
-    }
-
     public func encodeWithCoder(aCoder: NSCoder) {
         aCoder.encodeDouble(value, forKey: "value")
     }
 
-    class override func instance() -> LCType? {
-        return self.init()
-    }
-
-    public override func copyWithZone(zone: NSZone) -> AnyObject {
+    public func copyWithZone(zone: NSZone) -> AnyObject {
         return LCNumber(value)
     }
 
-    public override func isEqual(another: AnyObject?) -> Bool {
-        if another === self {
+    public override func isEqual(object: AnyObject?) -> Bool {
+        if object === self {
             return true
-        } else if let another = another as? LCNumber {
-            return another.value == value
+        } else if let object = object as? LCNumber {
+            return object.value == value
         } else {
             return false
         }
     }
 
-    override class func operationReducerType() -> OperationReducer.Type {
-        return OperationReducer.Number.self
+    public var JSONValue: AnyObject {
+        return value
     }
 
-    /**
-     Increase value by specified amount.
-
-     - parameter amount: The amount to increase.
-     */
-    func increase(amount: LCNumber) {
-        value += amount.value
+    var LCONValue: AnyObject? {
+        return value
     }
 
-    // MARK: Arithmetic
+    static func instance() -> LCType {
+        return LCNumber()
+    }
 
-    override func add(another: LCType?) -> LCType? {
-        guard let another = another as? LCNumber else {
-            Exception.raise(.InvalidType, reason: "Number expected.")
-            return nil
-        }
+    func forEachChild(body: (child: LCType) -> Void) {
+        /* Nothing to do. */
+    }
 
-        let sum = value + another.value
+    func add(other: LCType) throws -> LCType {
+        let result = LCNumber(value)
 
-        return LCNumber(sum)
+        result.addInPlace((other as! LCNumber).value)
+
+        return result
+    }
+
+    func addInPlace(amount: Double) {
+        value += amount
+    }
+
+    func concatenate(other: LCType, unique: Bool) throws -> LCType {
+        throw LCError(code: .InvalidType, reason: "Object cannot be concatenated.")
+    }
+
+    func differ(other: LCType) throws -> LCType {
+        throw LCError(code: .InvalidType, reason: "Object cannot be differed.")
     }
 }

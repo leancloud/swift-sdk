@@ -11,9 +11,9 @@ import Foundation
 /**
  LeanCloud string type.
 
- It is a wrapper of Swift.String type, used to store a string value.
+ It is a wrapper of `Swift.String` type, used to store a string value.
  */
-public final class LCString: LCType, NSCoding, StringLiteralConvertible {
+public final class LCString: NSObject, LCType, LCTypeExtension, StringLiteralConvertible {
     public private(set) var value: String = ""
 
     public typealias UnicodeScalarLiteralType = Character
@@ -37,36 +37,56 @@ public final class LCString: LCType, NSCoding, StringLiteralConvertible {
     }
 
     public convenience required init(stringLiteral value: StringLiteralType) {
-        self.init(String(value))
+        self.init(value)
     }
 
     public required init?(coder aDecoder: NSCoder) {
         value = (aDecoder.decodeObjectForKey("value") as? String) ?? ""
     }
 
-    override var JSONValue: AnyObject? {
-        return value
-    }
-
     public func encodeWithCoder(aCoder: NSCoder) {
         aCoder.encodeObject(value, forKey: "value")
     }
 
-    class override func instance() -> LCType? {
-        return self.init()
-    }
-
-    public override func copyWithZone(zone: NSZone) -> AnyObject {
+    public func copyWithZone(zone: NSZone) -> AnyObject {
         return LCString(value)
     }
 
-    public override func isEqual(another: AnyObject?) -> Bool {
-        if another === self {
+    public override func isEqual(object: AnyObject?) -> Bool {
+        if object === self {
             return true
-        } else if let another = another as? LCString {
-            return another.value == value
+        } else if let object = object as? LCString {
+            return object.value == value
         } else {
             return false
         }
+    }
+
+    public var JSONValue: AnyObject {
+        return value
+    }
+
+    var LCONValue: AnyObject? {
+        return value
+    }
+
+    class func instance() -> LCType {
+        return self.init()
+    }
+
+    func forEachChild(body: (child: LCType) -> Void) {
+        /* Nothing to do. */
+    }
+
+    func add(other: LCType) throws -> LCType {
+        throw LCError(code: .InvalidType, reason: "Object cannot be added.")
+    }
+
+    func concatenate(other: LCType, unique: Bool) throws -> LCType {
+        throw LCError(code: .InvalidType, reason: "Object cannot be concatenated.")
+    }
+
+    func differ(other: LCType) throws -> LCType {
+        throw LCError(code: .InvalidType, reason: "Object cannot be differed.")
     }
 }

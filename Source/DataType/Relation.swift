@@ -13,7 +13,7 @@ import Foundation
 
  This type can be used to make one-to-many relationship between objects.
  */
-public final class LCRelation: LCType, NSCoding, SequenceType {
+public final class LCRelation: NSObject, LCType, LCTypeExtension, SequenceType {
     public typealias Element = LCObject
 
     /// The key where relationship based on.
@@ -59,12 +59,8 @@ public final class LCRelation: LCType, NSCoding, SequenceType {
     }
 
     public required init?(coder aDecoder: NSCoder) {
-        value           = aDecoder.decodeObjectForKey("value") as! [Element]
+        value = (aDecoder.decodeObjectForKey("value") as? [Element]) ?? []
         objectClassName = aDecoder.decodeObjectForKey("objectClassName") as? String
-    }
-
-    override var JSONValue: AnyObject? {
-        return value.map { (element) in element.JSONValue! }
     }
 
     public func encodeWithCoder(aCoder: NSCoder) {
@@ -75,20 +71,48 @@ public final class LCRelation: LCType, NSCoding, SequenceType {
         }
     }
 
-    class override func instance() -> LCType? {
-        return self.init()
+    public func copyWithZone(zone: NSZone) -> AnyObject {
+        return self
     }
 
     public func generate() -> IndexingGenerator<[Element]> {
         return value.generate()
     }
 
-    override class func operationReducerType() -> OperationReducer.Type {
-        return OperationReducer.Relation.self
+    public var JSONValue: AnyObject {
+        var result = [
+            "__type": "Relation"
+        ]
+
+        if let className = effectiveObjectClassName {
+            result["className"] = className
+        }
+
+        return result
     }
 
-    override func forEachChild(body: (child: LCType) -> Void) {
+    var LCONValue: AnyObject? {
+        return value.map { (element) in element.LCONValue! }
+    }
+
+    static func instance() -> LCType {
+        return self.init()
+    }
+
+    func forEachChild(body: (child: LCType) -> Void) {
         value.forEach { body(child: $0) }
+    }
+
+    func add(other: LCType) throws -> LCType {
+        throw LCError(code: .InvalidType, reason: "Object cannot be added.")
+    }
+
+    func concatenate(other: LCType, unique: Bool) throws -> LCType {
+        throw LCError(code: .InvalidType, reason: "Object cannot be concatenated.")
+    }
+
+    func differ(other: LCType) throws -> LCType {
+        throw LCError(code: .InvalidType, reason: "Object cannot be differed.")
     }
 
     func validateClassName(objects: [Element]) {

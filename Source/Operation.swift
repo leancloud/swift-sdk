@@ -35,39 +35,59 @@ class Operation {
     required init(name: Name, key: String, value: LCType?) {
         self.name  = name
         self.key   = key
-        self.value = value?.copy() as? LCType
+        self.value = value?.copyWithZone(nil) as? LCType
     }
 
     /**
-     Get the JSON representation of operation.
-
-     - returns: The JSON representation of operation.
+     The LCON representation of operation.
      */
-    func JSONValue() -> AnyObject {
+    var LCONValue: AnyObject {
+        let LCONValue = (value as? LCTypeExtension)?.LCONValue
+
         switch name {
         case .Set:
-            return value!.JSONValue!
+            return LCONValue!
         case .Delete:
             return ["__op": name.rawValue]
         case .Increment:
-            return ["__op": name.rawValue,  "amount": value!.JSONValue!]
-        case .Add, .AddUnique, .AddRelation, .Remove, .RemoveRelation:
-            return ["__op": name.rawValue, "objects": value!.JSONValue!]
+            return ["__op": name.rawValue, "amount": LCONValue!]
+        case .Add,
+             .AddUnique,
+             .AddRelation,
+             .Remove,
+             .RemoveRelation:
+            return ["__op": name.rawValue, "objects": LCONValue!]
+        }
+    }
+
+    static func reducerType(type: LCType.Type) -> OperationReducer.Type {
+        switch type {
+        case _ where type === LCArray.self:
+            return OperationReducer.Array.self
+
+        case _ where type === LCNumber.self:
+            return OperationReducer.Number.self
+
+        case _ where type === LCRelation.self:
+            return OperationReducer.Relation.self
+
+        default:
+            return OperationReducer.Key.self
         }
     }
 
     var reducerType: OperationReducer.Type? {
         switch name {
         case .Set:
-            return value?.dynamicType.operationReducerType()
+            return Operation.reducerType(value!.dynamicType)
         case .Delete:
             return nil
-        case .Increment:
-            return OperationReducer.Number.self
         case .Add,
              .AddUnique,
              .Remove:
-            return OperationReducer.List.self
+            return OperationReducer.Array.self
+        case .Increment:
+            return OperationReducer.Number.self
         case .AddRelation,
              .RemoveRelation:
             return OperationReducer.Relation.self
@@ -141,7 +161,7 @@ class OperationHub {
         let propertyType = ObjectProfiler.getLCType(object: object, propertyName: propertyName)
 
         if let propertyType = propertyType {
-            return propertyType.operationReducerType()
+            return Operation.reducerType(propertyType)
         } else {
             return operation.reducerType
         }
@@ -330,19 +350,19 @@ class OperationReducer {
         }
 
         func reduce(operation: Operation, previousOperation: Operation) -> Operation? {
-            let left  = previousOperation
-            let right = operation
+            let lhs = previousOperation
+            let rhs = operation
 
-            switch (left.name, right.name) {
-            case (.Set,       .Set):       return right
-            case (.Delete,    .Set):       return right
-            case (.Increment, .Set):       return right
-            case (.Set,       .Delete):    return right
-            case (.Delete,    .Delete):    return right
-            case (.Increment, .Delete):    return right
-            case (.Set,       .Increment): return Operation(name: .Set,       key: operation.key, value: left.value! + right.value!)
-            case (.Delete,    .Increment): return Operation(name: .Set,       key: operation.key, value: right.value)
-            case (.Increment, .Increment): return Operation(name: .Increment, key: operation.key, value: left.value! + right.value!)
+            switch (lhs.name, rhs.name) {
+            case (.Set,       .Set):       return rhs
+            case (.Delete,    .Set):       return rhs
+            case (.Increment, .Set):       return rhs
+            case (.Set,       .Delete):    return rhs
+            case (.Delete,    .Delete):    return rhs
+            case (.Increment, .Delete):    return rhs
+            case (.Set,       .Increment): return Operation(name: .Set,       key: operation.key, value: try! (lhs.value as! LCTypeExtension).add(rhs.value!))
+            case (.Delete,    .Increment): return Operation(name: .Set,       key: operation.key, value: rhs.value)
+            case (.Increment, .Increment): return Operation(name: .Increment, key: operation.key, value: try! (lhs.value as! LCTypeExtension).add(rhs.value!))
             default:                       return nil
             }
         }
@@ -353,7 +373,7 @@ class OperationReducer {
     }
 
     /**
-     List oriented operation.
+     Array oriented operation.
 
      It only accepts following operations:
 
@@ -363,7 +383,7 @@ class OperationReducer {
      - ADDUNIQUE
      - REMOVE
      */
-    class List: OperationReducer {
+    class Array: OperationReducer {
         var operationTable: [Operation.Name:Operation] = [:]
 
         override class func validOperationNames() -> [Operation.Name] {
@@ -381,7 +401,8 @@ class OperationReducer {
                 reset()
                 setOperation(operation)
             case .Add:
-                removeObjects(operation, [.AddUnique, .Remove])
+                removeObjects(operation, .Remove)
+                removeObjects(operation, .AddUnique)
 
                 if hasOperation(.Set) || hasOperation(.Delete) {
                     addObjects(operation, .Set)
@@ -389,16 +410,20 @@ class OperationReducer {
                     addObjects(operation, .Add)
                 }
             case .AddUnique:
-                removeObjects(operation, [.Add, .Remove])
+                removeObjects(operation, .Add)
+                removeObjects(operation, .Remove)
 
                 if hasOperation(.Set) || hasOperation(.Delete) {
-                    unionObjects(operation, .Set)
+                    addObjects(operation, .Set, unique: true)
                 } else {
-                    unionObjects(operation, .AddUnique)
+                    addObjects(operation, .AddUnique, unique: true)
                 }
             case .Remove:
-                removeObjects(operation, [.Set, .Add, .AddUnique])
-                unionObjects(operation, .Remove)
+                removeObjects(operation, .Set)
+                removeObjects(operation, .Add)
+                removeObjects(operation, .AddUnique)
+
+                addObjects(operation, .Remove, unique: true)
             default:
                 break
             }
@@ -407,7 +432,7 @@ class OperationReducer {
         override func operations() -> [Operation] {
             var operationTable = self.operationTable
             removeEmptyOperation(&operationTable, [.Add, .AddUnique, .Remove])
-            return Array(operationTable.values)
+            return Swift.Array(operationTable.values)
         }
 
         /**
@@ -453,23 +478,22 @@ class OperationReducer {
         }
 
         /**
-         Remove objects in an operation from operations specified by a set of operation names.
+         Remove objects from operation specified by operation name.
 
-         - parameter operation:      The operation that contains objects to be removed.
-         - parameter operationNames: A set of operation names that specify operations from which the objects will be removed.
+         - parameter operation:     The operation that contains objects to be removed.
+         - parameter operationName: The operation name that specifies operation from which the objects will be removed.
          */
-        func removeObjects(operation: Operation, _ operationNames: Set<Operation.Name>) {
-            var operations: [Operation] = []
-            let subtrahend = operation.value as! LCArray
-
-            operationTable.forEach { (operationName, operation) in
-                guard operationNames.contains(operationName) else { return }
-                guard let minuend = operation.value as? LCArray else { return }
-
-                operations.append(Operation(name: operation.name, key: operation.key, value: minuend - subtrahend))
+        func removeObjects(operation: Operation, _ operationName: Operation.Name) {
+            guard let rhs = operation.value as? LCArray else {
+                return
+            }
+            guard let lhs = operationTable[operationName]?.value as? LCArray else {
+                return
             }
 
-            operations.forEach { setOperation($0) }
+            let operation = Operation(name: operation.name, key: operation.key, value: try! lhs.differ(rhs))
+
+            setOperation(operation)
         }
 
         /**
@@ -478,29 +502,13 @@ class OperationReducer {
          - parameter operation:     The operation that contains objects to be removed.
          - parameter operationName: The operation name that specifies operation from which the objects will be removed.
          */
-        func addObjects(operation: Operation, _ operationName: Operation.Name) {
-            var value = operation.value
-
-            if let baseValue = operationTable[operationName]?.value as? LCArray {
-                value = baseValue + value
+        func addObjects(operation: Operation, _ operationName: Operation.Name, unique: Bool = false) {
+            guard var value = operation.value else {
+                return
             }
 
-            let operation = Operation(name: operationName, key: operation.key, value: value)
-
-            setOperation(operation)
-        }
-
-        /**
-         Union objects in an operation into operation specified by operation name.
-
-         - parameter operation:     The operation that contains objects to be unioned.
-         - parameter operationName: The operation name that specifies operation into which the objects will be unioned.
-         */
-        func unionObjects(operation: Operation, _ operationName: Operation.Name) {
-            var value = operation.value
-
             if let baseValue = operationTable[operationName]?.value as? LCArray {
-                value = baseValue +~ value
+                value = try! baseValue.concatenate(value, unique: unique)
             }
 
             let operation = Operation(name: operationName, key: operation.key, value: value)
@@ -533,7 +541,7 @@ class OperationReducer {
      - ADDRELATION
      - REMOVERELATION
      */
-    class Relation: List {
+    class Relation: Array {
         override class func validOperationNames() -> [Operation.Name] {
             return [.AddRelation, .RemoveRelation]
         }
@@ -543,11 +551,11 @@ class OperationReducer {
 
             switch operation.name {
             case .AddRelation:
-                removeObjects(operation, [.RemoveRelation])
+                removeObjects(operation, .RemoveRelation)
                 addObjects(operation, .AddRelation)
             case .RemoveRelation:
-                removeObjects(operation, [.AddRelation])
-                unionObjects(operation, .RemoveRelation)
+                removeObjects(operation, .AddRelation)
+                addObjects(operation, .RemoveRelation, unique: true)
             default:
                 break
             }

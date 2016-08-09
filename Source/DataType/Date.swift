@@ -13,7 +13,7 @@ import Foundation
 
  This type used to represent a point in UTC time.
  */
-public final class LCDate: LCType, NSCoding {
+public final class LCDate: NSObject, LCType, LCTypeExtension {
     public private(set) var value: NSDate = NSDate()
 
     static let dateFormatter: NSDateFormatter = {
@@ -99,22 +99,11 @@ public final class LCDate: LCType, NSCoding {
         value = (aDecoder.decodeObjectForKey("value") as? NSDate) ?? NSDate()
     }
 
-    override var JSONValue: AnyObject? {
-        return [
-            "__type": "Date",
-            "iso": ISOString
-        ]
-    }
-
     public func encodeWithCoder(aCoder: NSCoder) {
         aCoder.encodeObject(value, forKey: "value")
     }
 
-    class override func instance() -> LCType? {
-        return self.init()
-    }
-
-    public override func copyWithZone(zone: NSZone) -> AnyObject {
+    public func copyWithZone(zone: NSZone) -> AnyObject {
         return LCDate(value.copy() as! NSDate)
     }
 
@@ -126,5 +115,36 @@ public final class LCDate: LCType, NSCoding {
         } else {
             return false
         }
+    }
+
+    public var JSONValue: AnyObject {
+        return [
+            "__type": "Date",
+            "iso": ISOString
+        ]
+    }
+
+    var LCONValue: AnyObject? {
+        return JSONValue
+    }
+
+    static func instance() -> LCType {
+        return self.init()
+    }
+
+    func forEachChild(body: (child: LCType) -> Void) {
+        /* Nothing to do. */
+    }
+
+    func add(other: LCType) throws -> LCType {
+        throw LCError(code: .InvalidType, reason: "Object cannot be added.")
+    }
+
+    func concatenate(other: LCType, unique: Bool) throws -> LCType {
+        throw LCError(code: .InvalidType, reason: "Object cannot be concatenated.")
+    }
+
+    func differ(other: LCType) throws -> LCType {
+        throw LCError(code: .InvalidType, reason: "Object cannot be differed.")
     }
 }

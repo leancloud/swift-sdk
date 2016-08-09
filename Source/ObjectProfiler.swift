@@ -125,7 +125,7 @@ class ObjectProfiler {
         let name = typeEncoding[typeEncoding.startIndex.advancedBy(2)..<typeEncoding.endIndex.advancedBy(-1)];
 
         if let subclass = objc_getClass(name) as? AnyClass {
-            if Runtime.isSubclass(subclass, superclass: LCType.self) {
+            if class_conformsToProtocol(subclass, LCType.self) {
                 return subclass as? LCType.Type
             }
         }
@@ -196,7 +196,7 @@ class ObjectProfiler {
                 hasNewbornOrphan = true
             }
         default:
-            object.forEachChild { child in
+            (object as! LCTypeExtension).forEachChild { child in
                 if deepestNewbornOrphans(child, parent: object, output: &output) {
                     hasNewbornOrphan = true
                 }
@@ -241,14 +241,13 @@ class ObjectProfiler {
     }
 
     private static func toposortVisit(value: LCType, _ objects: Set<LCObject>, inout _ result: [LCObject], inout _ visitStatusTable: [UInt: Int]) {
-        guard value is LCObject else {
-            value.forEachChild { child in
+        guard let object = value as? LCObject else {
+            (value as! LCTypeExtension).forEachChild { child in
                 toposortVisit(child, objects, &result, &visitStatusTable)
             }
             return
         }
 
-        let object = value as! LCObject
         let key = ObjectIdentifier(object).uintValue
 
         switch visitStatusTable[key] ?? 0 {
@@ -286,7 +285,7 @@ class ObjectProfiler {
     }
 
     private static func familyVisit(value: LCType, inout result: Set<LCObject>) {
-        value.forEachChild { child in
+        (value as! LCTypeExtension).forEachChild { child in
             familyVisit(child, result: &result)
         }
 
@@ -319,7 +318,7 @@ class ObjectProfiler {
         switch visitStatusTable[key] ?? 0 {
         case 0: /* Unvisited */
             visitStatusTable[key] = 1
-            object.forEachChild { (child) in
+            (object as! LCTypeExtension).forEachChild { (child) in
                 validateCircularReference(child, visitStatusTable: &visitStatusTable)
             }
             visitStatusTable[key] = 2
@@ -381,7 +380,7 @@ class ObjectProfiler {
      */
     static func object(dictionary dictionary: [String: AnyObject], className: String) -> LCObject {
         let result = object(className: className)
-        let keyValues = dictionary.mapValue { object(JSONValue: $0) }
+        let keyValues = dictionary.mapValue { try! object(JSONValue: $0) }
 
         keyValues.forEach { (key, value) in
             result.update(key, value)
@@ -432,7 +431,7 @@ class ObjectProfiler {
         }
 
         if result == nil {
-            result = LCDictionary(dictionary.mapValue { object(JSONValue: $0) })
+            result = LCDictionary(dictionary.mapValue { try! object(JSONValue: $0) })
         }
 
         return result
@@ -445,12 +444,12 @@ class ObjectProfiler {
 
      - returns: An LCType object of the corresponding JSON value.
      */
-    static func object(JSONValue JSONValue: AnyObject) -> LCType {
+    static func object(JSONValue JSONValue: AnyObject) throws -> LCType {
         switch JSONValue {
         case let string as String:
             return LCString(string)
         case let array as [AnyObject]:
-            return LCArray(array.map { object(JSONValue: $0) })
+            return LCArray(array.map { try! object(JSONValue: $0) })
         case let dictionary as [String: AnyObject]:
             return object(dictionary: dictionary)
         case let data as NSData:
@@ -467,9 +466,9 @@ class ObjectProfiler {
             } else if let number = JSONValue as? Double {
                 return LCNumber(number)
             }
-            Exception.raise(.InvalidType, reason: "Unrecognized object.")
-            return LCType()
         }
+
+        throw LCError(code: .InvalidType, reason: "Unrecognized object.")
     }
 
     /**
@@ -479,16 +478,16 @@ class ObjectProfiler {
 
      - returns: The JSON value of object.
      */
-    static func JSONValue(object: AnyObject) -> AnyObject {
+    static func LCONValue(object: AnyObject) -> AnyObject {
         switch object {
         case let array as [AnyObject]:
-            return array.map { JSONValue($0) }
+            return array.map { LCONValue($0) }
         case let dictionary as [String: AnyObject]:
-            return dictionary.mapValue { JSONValue($0) }
+            return dictionary.mapValue { LCONValue($0) }
         case let object as LCType:
-            return object.JSONValue!
+            return (object as! LCTypeExtension).LCONValue!
         case let query as LCQuery:
-            return query.JSONValue
+            return query.LCONValue
         default:
             return object
         }
@@ -541,7 +540,7 @@ class ObjectProfiler {
      */
     static func updateObject(object: LCObject, _ dictionary: [String: AnyObject]) {
         dictionary.forEach { (key, value) in
-            object.update(key, self.object(JSONValue: value))
+            object.update(key, try! self.object(JSONValue: value))
         }
     }
 
@@ -564,17 +563,18 @@ class ObjectProfiler {
     /**
      Getter implementation of LeanCloud data type property.
      */
-    static let propertyGetter: @convention(c) (LCObject!, Selector) -> LCType? = {
-        (object: LCObject!, cmd: Selector) -> LCType? in
+    static let propertyGetter: @convention(c) (LCObject!, Selector) -> AnyObject? = {
+        (object: LCObject!, cmd: Selector) -> AnyObject? in
         return object.get(NSStringFromSelector(cmd))
     }
 
     /**
      Setter implementation of LeanCloud data type property.
      */
-    static let propertySetter: @convention(c) (LCObject!, Selector, LCType?) -> Void = {
-        (object: LCObject!, cmd: Selector, value: LCType?) -> Void in
+    static let propertySetter: @convention(c) (LCObject!, Selector, AnyObject?) -> Void = {
+        (object: LCObject!, cmd: Selector, value: AnyObject?) -> Void in
         let key = ObjectProfiler.propertyName(cmd)
+        let value = value as? LCType
 
         if ObjectProfiler.getLCType(object: object, propertyName: key) == nil {
             object.set(key.firstLowercaseString, value: value)

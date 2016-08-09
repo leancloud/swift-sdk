@@ -23,7 +23,11 @@ class EngineTestCase: BaseTestCase {
 
     func testOptionalResult() {
         XCTAssertTrue(LCEngine.call("echoSuccess").isSuccess)
-        XCTAssertEqual(LCEngine.call("echoSuccess", parameters: ["foo": "bar"]).object, LCDictionary(["foo": LCString("bar")]))
+
+        XCTAssertEqual(
+            LCEngine.call("echoSuccess", parameters: ["foo": "bar"]).object as? LCDictionary,
+            LCDictionary(["foo": LCString("bar")])
+        )
     }
 
 }

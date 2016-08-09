@@ -45,14 +45,14 @@ final public class LCQuery: NSObject, NSCopying, NSCoding {
     /// Extra parameters for query request.
     var extraParameters: [String: AnyObject]?
 
-    /// JSON representation of query.
-    var JSONValue: [String: AnyObject] {
+    /// LCON representation of query.
+    var LCONValue: [String: AnyObject] {
         var dictionary: [String: AnyObject] = [:]
 
         dictionary["className"] = objectClassName
 
         if !constraintDictionary.isEmpty {
-            dictionary["where"] = ObjectProfiler.JSONValue(constraintDictionary)
+            dictionary["where"] = ObjectProfiler.LCONValue(constraintDictionary)
         }
         if !includedKeys.isEmpty {
             dictionary["include"] = includedKeys.joinWithSeparator(",")
@@ -81,7 +81,7 @@ final public class LCQuery: NSObject, NSCopying, NSCoding {
 
     /// Parameters for query request.
     private var parameters: [String: AnyObject] {
-        var parameters = JSONValue
+        var parameters = LCONValue
 
         /* Encode where field to string. */
         if let object = parameters["where"] {

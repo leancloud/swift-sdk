@@ -551,8 +551,8 @@ class QueryTestCase: BaseTestCase {
 
         let keyPath = "where.stringField.$inQuery.limit"
 
-        XCTAssertEqual((queryCopy.JSONValue as NSDictionary).valueForKeyPath(keyPath) as? Int, 42)
-        XCTAssertNil((queryArchivement.JSONValue as NSDictionary).valueForKeyPath(keyPath))
+        XCTAssertEqual((queryCopy.LCONValue as NSDictionary).valueForKeyPath(keyPath) as? Int, 42)
+        XCTAssertNil((queryArchivement.LCONValue as NSDictionary).valueForKeyPath(keyPath))
     }
 
     func testSkip() {

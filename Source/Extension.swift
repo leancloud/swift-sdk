@@ -12,31 +12,19 @@ infix operator +~ {
     associativity left
 }
 
-func +(left: LCType, right: LCType?) -> LCType? {
-    return left.add(right)
-}
+func +(lhs: [LCType], rhs: [LCType]) -> [LCType] {
+    var result = lhs
 
-func +~(left: LCType, right: LCType?) -> LCType? {
-    return left.add(right, unique: true)
-}
-
-func -(left: LCType, right: LCType?) -> LCType? {
-    return left.subtract(right)
-}
-
-func +<T: LCType>(left: [T], right: [T]) -> [T] {
-    var result = left
-
-    result.appendContentsOf(right)
+    result.appendContentsOf(rhs)
 
     return result
 }
 
-func +~<T: LCType>(left: [T], right: [T]) -> [T] {
-    var result = left
+func +~(lhs: [LCType], rhs: [LCType]) -> [LCType] {
+    var result = lhs
 
-    right.forEach { element in
-        if !result.contains(element) {
+    rhs.forEach { element in
+        if !(result.contains { $0.isEqual(element) }) {
             result.append(element)
         }
     }
@@ -44,10 +32,22 @@ func +~<T: LCType>(left: [T], right: [T]) -> [T] {
     return result
 }
 
-func -<T: LCType>(left: [T], right: [T]) -> [T] {
-    return left.filter { element in
-        !right.contains(element)
+func -(lhs: [LCType], rhs: [LCType]) -> [LCType] {
+    return lhs.filter { element in
+        !rhs.contains { $0.isEqual(element) }
     }
+}
+
+func +<T: LCType>(lhs: [T], rhs: [T]) -> [T] {
+    return ((lhs as [LCType]) + (rhs as [LCType])) as! [T]
+}
+
+func +~<T: LCType>(lhs: [T], rhs: [T]) -> [T] {
+    return ((lhs as [LCType]) +~ (rhs as [LCType])) as! [T]
+}
+
+func -<T: LCType>(lhs: [T], rhs: [T]) -> [T] {
+    return ((lhs as [LCType]) - (rhs as [LCType])) as! [T]
 }
 
 extension Dictionary {
@@ -119,20 +119,5 @@ extension CollectionType {
         }
 
         return result
-    }
-}
-
-extension NSThread {
-    func lc_executeBlock(block: () -> Void) {
-        block()
-    }
-
-    func lc_performBlock(block: () -> Void) {
-        if NSThread.currentThread() !== self {
-            let block = unsafeBitCast(block as @convention(block) () -> Void, AnyObject.self)
-            self.performSelector(#selector(lc_executeBlock(_:)), onThread: self, withObject: block, waitUntilDone: true)
-        } else {
-            block()
-        }
     }
 }

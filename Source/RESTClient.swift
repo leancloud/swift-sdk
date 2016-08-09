@@ -217,6 +217,7 @@ class RESTClient {
         }
 
         let request = requestManager.request(method, URLString, parameters: parameters, encoding: encoding, headers: headers)
+        debugPrint(request)
 
         request.responseJSON(queue: dispatchQueue) { response in
             completionHandler(LCResponse(response))

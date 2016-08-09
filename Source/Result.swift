@@ -85,8 +85,8 @@ public enum LCObjectResult<T: LCType>: LCResultType {
 /**
  Result type for optional request.
  */
-public enum LCOptionalResult<T: LCType>: LCResultType {
-    case Success(object: T?)
+public enum LCOptionalResult: LCResultType {
+    case Success(object: LCType?)
     case Failure(error: LCError)
 
     public var error: LCError? {
@@ -105,7 +105,7 @@ public enum LCOptionalResult<T: LCType>: LCResultType {
         }
     }
 
-    public var object: T? {
+    public var object: LCType? {
         switch self {
         case let .Success(object):
             return object
@@ -245,7 +245,7 @@ extension LCResponse {
             return .Failure(error: LCError(code: .NotFound, reason: "Response data not found."))
         }
 
-        let any = ObjectProfiler.object(JSONValue: value)
+        let any = try! ObjectProfiler.object(JSONValue: value)
 
         guard let object = any as? T else {
             return .Failure(error: LCError(code: .InvalidType, reason: "Invalid response data type.", userInfo: ["response": value, "object": any]))
@@ -259,7 +259,7 @@ extension LCResponse {
 
      - returns: `.Success` if response has no error, `.Failure` otherwise.
      */
-    func optionalResult<T: LCType>(keyPath: String? = nil) -> LCOptionalResult<T> {
+    func optionalResult(keyPath: String? = nil) -> LCOptionalResult {
         if let error = error {
             return .Failure(error: error)
         }
@@ -278,7 +278,7 @@ extension LCResponse {
             return .Success(object: nil)
         }
 
-        let object = ObjectProfiler.object(JSONValue: someValue) as? T
+        let object = try! ObjectProfiler.object(JSONValue: someValue)
 
         return .Success(object: object)
     }

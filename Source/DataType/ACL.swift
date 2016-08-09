@@ -13,7 +13,7 @@ import Foundation
 
  You can use it to set access control lists on an object.
  */
-public final class LCACL: LCType, NSCoding {
+public final class LCACL: NSObject, LCType, LCTypeExtension {
     typealias Access = [String: Bool]
     typealias AccessTable = [String: Access]
 
@@ -44,12 +44,44 @@ public final class LCACL: LCType, NSCoding {
         value = (aDecoder.decodeObjectForKey("value") as? AccessTable) ?? [:]
     }
 
-    override var JSONValue: AnyObject? {
+    public func encodeWithCoder(aCoder: NSCoder) {
+        aCoder.encodeObject(value, forKey: "value")
+    }
+
+    public func copyWithZone(zone: NSZone) -> AnyObject {
+        let copy = LCACL()
+
+        copy.value = value
+
+        return copy
+    }
+
+    public var JSONValue: AnyObject {
         return value
     }
 
-    public func encodeWithCoder(aCoder: NSCoder) {
-        aCoder.encodeObject(value, forKey: "value")
+    var LCONValue: AnyObject? {
+        return JSONValue
+    }
+
+    static func instance() -> LCType {
+        return self.init()
+    }
+
+    func forEachChild(body: (child: LCType) -> Void) {
+        /* Nothing to do. */
+    }
+
+    func add(other: LCType) throws -> LCType {
+        throw LCError(code: .InvalidType, reason: "Object cannot be added.")
+    }
+
+    func concatenate(other: LCType, unique: Bool) throws -> LCType {
+        throw LCError(code: .InvalidType, reason: "Object cannot be concatenated.")
+    }
+
+    func differ(other: LCType) throws -> LCType {
+        throw LCError(code: .InvalidType, reason: "Object cannot be differed.")
     }
 
     /**

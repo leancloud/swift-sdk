@@ -15,7 +15,7 @@ import Foundation
  It can be extended into subclass while adding some other properties to form a new type.
  Each object is correspond to a record in data storage.
  */
-public class LCObject: LCType, NSCoding, SequenceType {
+public class LCObject: NSObject, LCType, LCTypeExtension, SequenceType {
     /// Access control lists.
     public dynamic var ACL: LCACL?
 
@@ -43,7 +43,7 @@ public class LCObject: LCType, NSCoding, SequenceType {
     var internalId = Utility.uuid()
 
     /// Operation hub.
-    /// Used to manage object operations.
+    /// Used to manage update operations.
     var operationHub: OperationHub!
 
     /// Whether object has data to upload or not.
@@ -81,24 +81,12 @@ public class LCObject: LCType, NSCoding, SequenceType {
         propertyTable = (aDecoder.decodeObjectForKey("propertyTable") as? LCDictionary) ?? [:]
     }
 
-    override var JSONValue: AnyObject? {
-        guard let objectId = objectId else {
-            return nil
-        }
-
-        return [
-            "__type": "Pointer",
-            "className": actualClassName,
-            "objectId": objectId.value
-        ]
-    }
-
     public func encodeWithCoder(aCoder: NSCoder) {
         aCoder.encodeObject(propertyTable, forKey: "propertyTable")
     }
 
-    class override func instance() -> LCType? {
-        return self.init()
+    public func copyWithZone(zone: NSZone) -> AnyObject {
+        return self
     }
 
     public override func isEqual(another: AnyObject?) -> Bool {
@@ -123,8 +111,45 @@ public class LCObject: LCType, NSCoding, SequenceType {
         return propertyTable.generate()
     }
 
-    override func forEachChild(body: (child: LCType) -> Void) {
+    public var JSONValue: AnyObject {
+        var result = propertyTable.JSONValue as! [String: AnyObject]
+
+        result["__type"]    = "Object"
+        result["className"] = actualClassName
+
+        return result
+    }
+
+    var LCONValue: AnyObject? {
+        guard let objectId = objectId else {
+            return nil
+        }
+
+        return [
+            "__type"    : "Pointer",
+            "className" : actualClassName,
+            "objectId"  : objectId.value
+        ]
+    }
+
+    static func instance() -> LCType {
+        return self.init()
+    }
+
+    func forEachChild(body: (child: LCType) -> Void) {
         propertyTable.forEachChild(body)
+    }
+
+    func add(other: LCType) throws -> LCType {
+        throw LCError(code: .InvalidType, reason: "Object cannot be added.")
+    }
+
+    func concatenate(other: LCType, unique: Bool) throws -> LCType {
+        throw LCError(code: .InvalidType, reason: "Object cannot be concatenated.")
+    }
+
+    func differ(other: LCType) throws -> LCType {
+        throw LCError(code: .InvalidType, reason: "Object cannot be differed.")
     }
 
     /// The dispatch queue for network request task.
@@ -188,12 +213,13 @@ public class LCObject: LCType, NSCoding, SequenceType {
      - returns: The property value.
      */
     func loadProperty<Value: LCType>(key: String) -> Value {
-        if let value = getProperty(key) as? Value {
+        if let value: Value = getProperty(key) {
             return value
         }
 
-        let value = Value.instance() as! Value
+        let value = (Value.self as AnyClass).instance() as! Value
         propertyTable[key] = value
+
         return value
     }
 
@@ -215,27 +241,28 @@ public class LCObject: LCType, NSCoding, SequenceType {
         case .Delete:
             propertyTable[key] = nil
         case .Increment:
-            let number: LCNumber = loadProperty(key)
+            let amount   = (value as! LCNumber).value
+            let property = loadProperty(key) as LCNumber
 
-            number.increase(value as! LCNumber)
+            property.addInPlace(amount)
         case .Add:
-            let array: LCArray = loadProperty(key)
             let elements = (value as! LCArray).value
+            let property = loadProperty(key) as LCArray
 
-            array.appendElements(elements)
+            property.concatenateInPlace(elements, unique: false)
         case .AddUnique:
-            let array: LCArray = loadProperty(key)
             let elements = (value as! LCArray).value
+            let property = loadProperty(key) as LCArray
 
-            array.appendElements(elements, unique: true)
+            property.concatenateInPlace(elements, unique: true)
         case .Remove:
-            let array: LCArray? = getProperty(key)
             let elements = (value as! LCArray).value
+            let property = getProperty(key) as LCArray?
 
-            array?.removeElements(elements)
+            property?.differInPlace(elements)
         case .AddRelation:
-            let relation: LCRelation = loadProperty(key)
             let elements = (value as! LCArray).value as! [LCRelation.Element]
+            let relation = loadProperty(key) as LCRelation
 
             relation.appendElements(elements)
         case .RemoveRelation:
@@ -312,8 +339,8 @@ public class LCObject: LCType, NSCoding, SequenceType {
 
      - returns: The value for key.
      */
-    public func get<Value: LCType>(key: String) -> Value? {
-        return propertyTable[key] as? Value
+    public func get(key: String) -> LCType? {
+        return propertyTable[key]
     }
 
     /**
@@ -338,7 +365,7 @@ public class LCObject: LCType, NSCoding, SequenceType {
      */
     public func set(key: String, object: AnyObject?) {
         if let object = object {
-            set(key, value: ObjectProfiler.object(JSONValue: object))
+            set(key, value: try! ObjectProfiler.object(JSONValue: object))
         } else {
             set(key, value: nil)
         }
