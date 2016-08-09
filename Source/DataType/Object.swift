@@ -348,12 +348,32 @@ public class LCObject: NSObject, LCType, LCTypeExtension, SequenceType {
     }
 
     /**
+     Validate the column name of object.
+
+     - parameter key: The key you want to validate.
+
+     - throws: A MalformedData error if key is invalid.
+     */
+    func validateKey(key: String) throws {
+        let options: NSStringCompareOptions = [
+            .RegularExpressionSearch,
+            .CaseInsensitiveSearch
+        ]
+
+        guard key.rangeOfString("^[a-z0-9][a-z0-9_]*$", options: options) != nil else {
+            throw LCError(code: .MalformedData, reason: "Key is not well-formatted.", userInfo: ["key": key])
+        }
+    }
+
+    /**
      Set value for key.
 
      - parameter key:   The key for which to set the value.
      - parameter value: The new value.
      */
     public func set(key: String, value: LCType?) {
+        try! validateKey(key)
+
         if let value = value {
             addOperation(.Set, key, value)
         } else {
