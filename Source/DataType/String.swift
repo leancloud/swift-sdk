@@ -66,6 +66,10 @@ public final class LCString: NSObject, LCType, LCTypeExtension, StringLiteralCon
         return value
     }
 
+    public var JSONString: String {
+        return ObjectProfiler.getJSONString(self)
+    }
+
     var LCONValue: AnyObject? {
         return value
     }

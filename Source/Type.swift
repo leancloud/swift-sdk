@@ -18,6 +18,11 @@ import Foundation
      The JSON representation.
      */
     var JSONValue: AnyObject { get }
+
+    /**
+     The pretty description.
+     */
+    var JSONString: String { get }
 }
 
 protocol LCTypeExtension {

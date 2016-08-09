@@ -60,6 +60,10 @@ public final class LCACL: NSObject, LCType, LCTypeExtension {
         return value
     }
 
+    public var JSONString: String {
+        return ObjectProfiler.getJSONString(self)
+    }
+
     var LCONValue: AnyObject? {
         return JSONValue
     }

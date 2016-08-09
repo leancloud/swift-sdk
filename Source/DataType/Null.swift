@@ -40,6 +40,10 @@ public class LCNull: NSObject, LCType, LCTypeExtension {
         return NSNull()
     }
 
+    public var JSONString: String {
+        return ObjectProfiler.getJSONString(self)
+    }
+
     var LCONValue: AnyObject? {
         return NSNull()
     }

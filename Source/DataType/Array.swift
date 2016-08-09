@@ -31,6 +31,13 @@ public final class LCArray: NSObject, LCType, LCTypeExtension, SequenceType, Arr
         self.init(elements)
     }
 
+    public convenience init(unsafeObject: [AnyObject]) {
+        self.init()
+        value = unsafeObject.map { element in
+            try! ObjectProfiler.object(JSONValue: element)
+        }
+    }
+
     public required init?(coder aDecoder: NSCoder) {
         value = (aDecoder.decodeObjectForKey("value") as? [Element]) ?? []
     }
@@ -56,10 +63,6 @@ public final class LCArray: NSObject, LCType, LCTypeExtension, SequenceType, Arr
         }
     }
 
-    func forEachChild(body: (child: LCType) -> Void) {
-        forEach { element in body(child: element) }
-    }
-
     public func generate() -> IndexingGenerator<[Element]> {
         return value.generate()
     }
@@ -72,12 +75,20 @@ public final class LCArray: NSObject, LCType, LCTypeExtension, SequenceType, Arr
         return value.map { element in element.JSONValue }
     }
 
+    public var JSONString: String {
+        return ObjectProfiler.getJSONString(self)
+    }
+
     var LCONValue: AnyObject? {
         return value.map { element in (element as! LCTypeExtension).LCONValue! }
     }
 
     static func instance() -> LCType {
         return self.init([])
+    }
+
+    func forEachChild(body: (child: LCType) -> Void) {
+        forEach { element in body(child: element) }
     }
 
     func add(other: LCType) throws -> LCType {

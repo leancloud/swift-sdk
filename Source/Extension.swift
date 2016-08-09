@@ -50,6 +50,10 @@ func -<T: LCType>(lhs: [T], rhs: [T]) -> [T] {
     return ((lhs as [LCType]) - (rhs as [LCType])) as! [T]
 }
 
+func *(lhs: String, rhs: Int) -> String {
+    return "".stringByPaddingToLength(rhs * lhs.characters.count, withString: lhs, startingAtIndex: 0)
+}
+
 extension Dictionary {
     init(elements: [Element]) {
         self.init()
@@ -98,6 +102,10 @@ extension String {
         var result = self
         result.replaceRange(startIndex...startIndex, with: String(self[startIndex]).lowercaseString)
         return result
+    }
+
+    var doubleQuoteEscapedString: String {
+        return stringByReplacingOccurrencesOfString("\"", withString: "\\\"")
     }
 }
 

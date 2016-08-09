@@ -59,6 +59,10 @@ public final class LCNumber: NSObject, LCType, LCTypeExtension, FloatLiteralConv
         return value
     }
 
+    public var JSONString: String {
+        return ObjectProfiler.getJSONString(self)
+    }
+
     var LCONValue: AnyObject? {
         return value
     }

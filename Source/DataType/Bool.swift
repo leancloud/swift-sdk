@@ -55,6 +55,10 @@ public final class LCBool: NSObject, LCType, LCTypeExtension, BooleanLiteralConv
         return value
     }
 
+    public var JSONString: String {
+        return ObjectProfiler.getJSONString(self)
+    }
+
     var LCONValue: AnyObject? {
         return value
     }

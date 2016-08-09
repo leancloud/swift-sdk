@@ -29,6 +29,13 @@ public final class LCDictionary: NSObject, LCType, LCTypeExtension, SequenceType
         self.init(Dictionary<String, LCType>(elements: elements))
     }
 
+    public convenience init(unsafeObject: [String: AnyObject]) {
+        self.init()
+        value = unsafeObject.mapValue { value in
+            try! ObjectProfiler.object(JSONValue: value)
+        }
+    }
+
     public required init?(coder aDecoder: NSCoder) {
         value = (aDecoder.decodeObjectForKey("value") as? [String: LCType]) ?? [:]
     }
@@ -65,6 +72,10 @@ public final class LCDictionary: NSObject, LCType, LCTypeExtension, SequenceType
 
     public var JSONValue: AnyObject {
         return value.mapValue { value in value.JSONValue }
+    }
+
+    public var JSONString: String {
+        return ObjectProfiler.getJSONString(self)
     }
 
     var LCONValue: AnyObject? {

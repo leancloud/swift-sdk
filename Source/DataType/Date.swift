@@ -124,6 +124,10 @@ public final class LCDate: NSObject, LCType, LCTypeExtension {
         ]
     }
 
+    public var JSONString: String {
+        return ObjectProfiler.getJSONString(self)
+    }
+
     var LCONValue: AnyObject? {
         return JSONValue
     }

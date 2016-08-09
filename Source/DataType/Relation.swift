@@ -91,6 +91,10 @@ public final class LCRelation: NSObject, LCType, LCTypeExtension, SequenceType {
         return result
     }
 
+    public var JSONString: String {
+        return ObjectProfiler.getJSONString(self)
+    }
+
     var LCONValue: AnyObject? {
         return value.map { (element) in element.LCONValue! }
     }

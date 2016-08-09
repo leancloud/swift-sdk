@@ -560,6 +560,78 @@ class ObjectProfiler {
         return propertyName
     }
 
+    static func getJSONString(object: LCType) -> String {
+        return getJSONString(object, depth: 0)
+    }
+
+    static func getJSONString(object: LCType, depth: Int, indent: Int = 4) -> String {
+        switch object {
+        case is LCNull:
+            return "null"
+        case let number as LCNumber:
+            return "\(number.value)"
+        case let bool as LCBool:
+            return "\(bool.value)"
+        case let string as LCString:
+            let value = string.value
+
+            if depth > 0 {
+                return "\"\(value.doubleQuoteEscapedString)\""
+            } else {
+                return value
+            }
+        case let array as LCArray:
+            let value = array.value
+
+            if value.isEmpty {
+                return "[]"
+            } else {
+                let lastIndent = " " * (indent * depth)
+                let bodyIndent = " " * (indent * (depth + 1))
+                let body = value
+                    .map { element in getJSONString(element, depth: depth + 1) }
+                    .joinWithSeparator(",\n" + bodyIndent)
+
+                return "[\n\(bodyIndent)\(body)\n\(lastIndent)]"
+            }
+        case let dictionary as LCDictionary:
+            let value = dictionary.value
+
+            if value.isEmpty {
+                return "{}"
+            } else {
+                let lastIndent = " " * (indent * depth)
+                let bodyIndent = " " * (indent * (depth + 1))
+                let body = value
+                    .map  { (key, value)  in (key, getJSONString(value, depth: depth + 1)) }
+                    .sort { (left, right) in left.0 < right.0 }
+                    .map  { (key, value)  in "\"\(key.doubleQuoteEscapedString)\" : \(value)" }
+                    .joinWithSeparator(",\n" + bodyIndent)
+
+                return "{\n\(bodyIndent)\(body)\n\(lastIndent)}"
+            }
+        case let object as LCObject:
+            let dictionary = object.propertyTable.copy() as! LCDictionary
+
+            dictionary["__type"]    = LCString("Object")
+            dictionary["className"] = LCString(object.actualClassName)
+
+            return getJSONString(dictionary, depth: depth)
+        case _ where object is LCRelation ||
+                     object is LCGeoPoint ||
+                     object is LCData     ||
+                     object is LCDate     ||
+                     object is LCACL:
+
+            let JSONValue  = object.JSONValue
+            let dictionary = LCDictionary(unsafeObject: JSONValue as! [String : AnyObject])
+
+            return getJSONString(dictionary, depth: depth)
+        default:
+            return object.description
+        }
+    }
+
     /**
      Getter implementation of LeanCloud data type property.
      */

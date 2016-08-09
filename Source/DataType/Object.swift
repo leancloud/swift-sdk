@@ -120,6 +120,10 @@ public class LCObject: NSObject, LCType, LCTypeExtension, SequenceType {
         return result
     }
 
+    public var JSONString: String {
+        return ObjectProfiler.getJSONString(self)
+    }
+
     var LCONValue: AnyObject? {
         guard let objectId = objectId else {
             return nil
