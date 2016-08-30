@@ -92,7 +92,7 @@ public final class LCDate: NSObject, LCType, LCTypeExtension {
             return nil
         }
 
-        value = someValue
+        self.value = someValue
     }
 
     public required init?(coder aDecoder: NSCoder) {
