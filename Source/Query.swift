@@ -103,16 +103,16 @@ final public class LCQuery: NSObject, NSCopying, NSCoding {
         case Existed
         case NotExisted
 
-        case EqualTo(LCType)
-        case NotEqualTo(LCType)
-        case LessThan(LCType)
-        case LessThanOrEqualTo(LCType)
-        case GreaterThan(LCType)
-        case GreaterThanOrEqualTo(LCType)
+        case EqualTo(LCTypeConvertible)
+        case NotEqualTo(LCTypeConvertible)
+        case LessThan(LCTypeConvertible)
+        case LessThanOrEqualTo(LCTypeConvertible)
+        case GreaterThan(LCTypeConvertible)
+        case GreaterThanOrEqualTo(LCTypeConvertible)
 
-        case ContainedIn(LCArray)
-        case NotContainedIn(LCArray)
-        case ContainedAllIn(LCArray)
+        case ContainedIn(LCArrayConvertible)
+        case NotContainedIn(LCArrayConvertible)
+        case ContainedAllIn(LCArrayConvertible)
         case EqualToSize(Int)
 
         case NearbyPoint(LCGeoPoint)
@@ -212,26 +212,26 @@ final public class LCQuery: NSObject, NSCopying, NSCoding {
 
         /* Equality matching. */
         case let .EqualTo(value):
-            equalityTable[key] = value
+            equalityTable[key] = value.lcType
             constraintDictionary["$and"] = equalityPairs
         case let .NotEqualTo(value):
-            dictionary = ["$ne": value]
+            dictionary = ["$ne": value.lcType]
         case let .LessThan(value):
-            dictionary = ["$lt": value]
+            dictionary = ["$lt": value.lcType]
         case let .LessThanOrEqualTo(value):
-            dictionary = ["$lte": value]
+            dictionary = ["$lte": value.lcType]
         case let .GreaterThan(value):
-            dictionary = ["$gt": value]
+            dictionary = ["$gt": value.lcType]
         case let .GreaterThanOrEqualTo(value):
-            dictionary = ["$gte": value]
+            dictionary = ["$gte": value.lcType]
 
         /* Array matching. */
         case let .ContainedIn(array):
-            dictionary = ["$in": array]
+            dictionary = ["$in": array.lcArray]
         case let .NotContainedIn(array):
-            dictionary = ["$nin": array]
+            dictionary = ["$nin": array.lcArray]
         case let .ContainedAllIn(array):
-            dictionary = ["$all": array]
+            dictionary = ["$all": array.lcArray]
         case let .EqualToSize(size):
             dictionary = ["$size": size]
 
@@ -451,10 +451,10 @@ final public class LCQuery: NSObject, NSCopying, NSCoding {
 
      - returns: The object result of query.
      */
-    public func get<T: LCObject>(objectId: String) -> LCObjectResult<T> {
+    public func get<T: LCObject>(objectId: LCStringConvertible) -> LCObjectResult<T> {
         let query = copy() as! LCQuery
 
-        query.whereKey("objectId", .EqualTo(LCString(objectId)))
+        query.whereKey("objectId", .EqualTo(objectId.lcString))
 
         return query.getFirst()
     }
@@ -465,7 +465,7 @@ final public class LCQuery: NSObject, NSCopying, NSCoding {
      - parameter objectId:   The object ID.
      - parameter completion: The completion callback closure.
      */
-    public func get<T: LCObject>(objectId: String, completion: (LCObjectResult<T>) -> Void) {
+    public func get<T: LCObject>(objectId: LCStringConvertible, completion: (LCObjectResult<T>) -> Void) {
         LCQuery.asynchronize({ self.get(objectId) }) { result in
             completion(result)
         }

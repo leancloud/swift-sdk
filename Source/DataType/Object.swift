@@ -56,25 +56,25 @@ public class LCObject: NSObject, LCType, LCTypeExtension, SequenceType {
         operationHub = OperationHub(self)
     }
 
-    public convenience init(objectId: String) {
+    public convenience init(objectId: LCStringConvertible) {
         self.init()
-        propertyTable["objectId"] = LCString(objectId)
+        propertyTable["objectId"] = objectId.lcString
     }
 
-    public convenience init(className: String) {
+    public convenience init(className: LCStringConvertible) {
         self.init()
-        propertyTable["className"] = LCString(className)
+        propertyTable["className"] = className.lcString
     }
 
-    public convenience init(className: String, objectId: String) {
+    public convenience init(className: LCStringConvertible, objectId: LCStringConvertible) {
         self.init()
-        propertyTable["className"] = LCString(className)
-        propertyTable["objectId"]  = LCString(objectId)
+        propertyTable["className"] = className.lcString
+        propertyTable["objectId"]  = objectId.lcString
     }
 
-    convenience init(dictionary: LCDictionary) {
+    convenience init(dictionary: LCDictionaryConvertible) {
         self.init()
-        self.propertyTable = dictionary
+        self.propertyTable = dictionary.lcDictionary
     }
 
     public required init?(coder aDecoder: NSCoder) {
@@ -371,7 +371,7 @@ public class LCObject: NSObject, LCType, LCTypeExtension, SequenceType {
      - parameter key:   The key for which to set the value.
      - parameter value: The new value.
      */
-    public func set(key: String, value: LCType?) {
+    func set(key: String, value: LCType?) {
         try! validateKey(key)
 
         if let value = value {
@@ -382,16 +382,27 @@ public class LCObject: NSObject, LCType, LCTypeExtension, SequenceType {
     }
 
     /**
+     Set value for key.
+
+     - parameter key:   The key for which to set the value.
+     - parameter value: The new value.
+     */
+    public func set(key: String, value: LCTypeConvertible?) {
+        set(key, value: value?.lcType)
+    }
+
+    /**
      Set object for key.
 
      - parameter key:    The key for which to set the object.
      - parameter object: The new object.
      */
+    @available(*, deprecated, message="Use 'set(_:value:)' method instead.")
     public func set(key: String, object: AnyObject?) {
         if let object = object {
             set(key, value: try! ObjectProfiler.object(JSONValue: object))
         } else {
-            set(key, value: nil)
+            unset(key)
         }
     }
 
@@ -410,8 +421,8 @@ public class LCObject: NSObject, LCType, LCTypeExtension, SequenceType {
      - parameter key:    The key of number which you want to increase.
      - parameter amount: The amount to increase.
      */
-    public func increase(key: String, by: LCNumber) {
-        addOperation(.Increment, key, by)
+    public func increase(key: String, by: LCNumberConvertible) {
+        addOperation(.Increment, key, by.lcNumber)
     }
 
     /**
@@ -420,8 +431,8 @@ public class LCObject: NSObject, LCType, LCTypeExtension, SequenceType {
      - parameter key:     The key of array into which you want to append the element.
      - parameter element: The element to append.
      */
-    public func append(key: String, element: LCType) {
-        addOperation(.Add, key, LCArray([element]))
+    public func append(key: String, element: LCTypeConvertible) {
+        addOperation(.Add, key, LCArray([element.lcType]))
     }
 
     /**
@@ -430,8 +441,8 @@ public class LCObject: NSObject, LCType, LCTypeExtension, SequenceType {
      - parameter key:      The key of array into which you want to append the elements.
      - parameter elements: The array of elements to append.
      */
-    public func append(key: String, elements: [LCType]) {
-        addOperation(.Add, key, LCArray(elements))
+    public func append(key: String, elements: LCArrayConvertible) {
+        addOperation(.Add, key, elements.lcArray)
     }
 
     /**
@@ -443,8 +454,8 @@ public class LCObject: NSObject, LCType, LCTypeExtension, SequenceType {
                           If true, element will not be appended if it had already existed in array;
                           otherwise, element will always be appended.
      */
-    public func append(key: String, element: LCType, unique: Bool) {
-        addOperation(unique ? .AddUnique : .Add, key, LCArray([element]))
+    public func append(key: String, element: LCTypeConvertible, unique: Bool) {
+        addOperation(unique ? .AddUnique : .Add, key, LCArray([element.lcType]))
     }
 
     /**
@@ -456,8 +467,8 @@ public class LCObject: NSObject, LCType, LCTypeExtension, SequenceType {
      - parameter elements: The array of elements to append.
      - parameter unique:   Whether append element by unique or not.
      */
-    public func append(key: String, elements: [LCType], unique: Bool) {
-        addOperation(unique ? .AddUnique : .Add, key, LCArray(elements))
+    public func append(key: String, elements: LCArrayConvertible, unique: Bool) {
+        addOperation(unique ? .AddUnique : .Add, key, elements.lcArray)
     }
 
     /**
@@ -466,8 +477,8 @@ public class LCObject: NSObject, LCType, LCTypeExtension, SequenceType {
      - parameter key:     The key of array from which you want to remove the element.
      - parameter element: The element to remove.
      */
-    public func remove(key: String, element: LCType) {
-        addOperation(.Remove, key, LCArray([element]))
+    public func remove(key: String, element: LCTypeConvertible) {
+        addOperation(.Remove, key, LCArray([element.lcType]))
     }
 
     /**
@@ -476,8 +487,8 @@ public class LCObject: NSObject, LCType, LCTypeExtension, SequenceType {
      - parameter key:      The key of array from which you want to remove the element.
      - parameter elements: The array of elements to remove.
      */
-    public func remove(key: String, elements: [LCType]) {
-        addOperation(.Remove, key, LCArray(elements))
+    public func remove(key: String, elements: LCArrayConvertible) {
+        addOperation(.Remove, key, elements.lcArray)
     }
 
     /**
