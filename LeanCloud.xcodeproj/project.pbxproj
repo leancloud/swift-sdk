@@ -29,6 +29,7 @@
 		835F53011CCF0CF5008EE3AC /* Result.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F53001CCF0CF5008EE3AC /* Result.swift */; };
 		835F530A1CCF1620008EE3AC /* Error.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F53091CCF1620008EE3AC /* Error.swift */; };
 		836459C31CDE377800AD98A5 /* Role.swift in Sources */ = {isa = PBXBuildFile; fileRef = 836459C21CDE377800AD98A5 /* Role.swift */; };
+		8365CFA81D79849D006B856E /* TypeTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8365CFA71D79849D006B856E /* TypeTestCase.swift */; };
 		83724CCA1C7B54A700E59BED /* LeanCloud.h in Headers */ = {isa = PBXBuildFile; fileRef = 83724CC91C7B54A700E59BED /* LeanCloud.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		8374CCB11D3146F500844316 /* SMS.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8374CCB01D3146F500844316 /* SMS.swift */; };
 		837753541CA3D9D300C2053D /* Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 837753531CA3D9D300C2053D /* Extension.swift */; };
@@ -140,6 +141,7 @@
 		835F53001CCF0CF5008EE3AC /* Result.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Result.swift; sourceTree = "<group>"; };
 		835F53091CCF1620008EE3AC /* Error.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Error.swift; sourceTree = "<group>"; };
 		836459C21CDE377800AD98A5 /* Role.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Role.swift; sourceTree = "<group>"; };
+		8365CFA71D79849D006B856E /* TypeTestCase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TypeTestCase.swift; sourceTree = "<group>"; };
 		83724CC91C7B54A700E59BED /* LeanCloud.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LeanCloud.h; sourceTree = "<group>"; };
 		8374CCB01D3146F500844316 /* SMS.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SMS.swift; sourceTree = "<group>"; };
 		837753531CA3D9D300C2053D /* Extension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Extension.swift; sourceTree = "<group>"; };
@@ -221,6 +223,7 @@
 			children = (
 				83D592391CD887CE007177C5 /* Exception */,
 				83D5923D1CD88846007177C5 /* BridgingHeader.h */,
+				8365CFA71D79849D006B856E /* TypeTestCase.swift */,
 				8342FCCA1C7B13A700C3CF15 /* BaseTestCase.swift */,
 				8334561B1CE589E500D42725 /* EngineTestCase.swift */,
 				83BC11D51CDD76E900D7E7A6 /* ACLTestCase.swift */,
@@ -531,6 +534,7 @@
 				83D0DE6F1CC7B3FF00FC204E /* QueryTestCase.swift in Sources */,
 				83BC11D61CDD76E900D7E7A6 /* ACLTestCase.swift in Sources */,
 				8334561C1CE589E500D42725 /* EngineTestCase.swift in Sources */,
+				8365CFA81D79849D006B856E /* TypeTestCase.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
