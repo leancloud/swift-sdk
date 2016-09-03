@@ -13,7 +13,8 @@ import Foundation
 
  It is a wrapper of `Swift.Array` type, used to store a list of objects.
  */
-public final class LCArray: NSObject, LCType, LCTypeExtension, SequenceType, ArrayLiteralConvertible {
+public final class LCArray: NSObject, LCType, LCTypeExtension, CollectionType, ArrayLiteralConvertible {
+    public typealias Index = Int
     public typealias Element = LCType
 
     public private(set) var value: [Element] = []
@@ -67,7 +68,15 @@ public final class LCArray: NSObject, LCType, LCTypeExtension, SequenceType, Arr
         return value.generate()
     }
 
-    public subscript(index: Int) -> LCType? {
+    public var startIndex: Int {
+        return 0
+    }
+
+    public var endIndex: Int {
+        return value.count
+    }
+
+    public subscript(index: Int) -> LCType {
         get { return value[index] }
     }
 

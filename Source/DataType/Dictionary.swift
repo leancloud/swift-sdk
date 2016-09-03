@@ -13,23 +13,27 @@ import Foundation
 
  It is a wrapper of `Swift.Dictionary` type, used to store a dictionary value.
  */
-public final class LCDictionary: NSObject, LCType, LCTypeExtension, SequenceType, DictionaryLiteralConvertible {
-    public private(set) var value: [String: LCType] = [:]
+public final class LCDictionary: NSObject, LCType, LCTypeExtension, CollectionType, DictionaryLiteralConvertible {
+    public typealias Key   = String
+    public typealias Value = LCType
+    public typealias Index = DictionaryIndex<Key, Value>
+
+    public private(set) var value: [Key: Value] = [:]
 
     public override init() {
         super.init()
     }
 
-    public convenience init(_ value: [String: LCType]) {
+    public convenience init(_ value: [Key: Value]) {
         self.init()
         self.value = value
     }
 
-    public convenience required init(dictionaryLiteral elements: (String, LCType)...) {
-        self.init(Dictionary<String, LCType>(elements: elements))
+    public convenience required init(dictionaryLiteral elements: (Key, Value)...) {
+        self.init(Dictionary<Key, Value>(elements: elements))
     }
 
-    public convenience init(unsafeObject: [String: AnyObject]) {
+    public convenience init(unsafeObject: [Key: AnyObject]) {
         self.init()
         value = unsafeObject.mapValue { value in
             try! ObjectProfiler.object(JSONValue: value)
@@ -61,11 +65,23 @@ public final class LCDictionary: NSObject, LCType, LCTypeExtension, SequenceType
         }
     }
 
-    public func generate() -> DictionaryGenerator<String, LCType> {
+    public func generate() -> DictionaryGenerator<Key, Value> {
         return value.generate()
     }
 
-    public subscript(key: String) -> LCType? {
+    public var startIndex: DictionaryIndex<Key, Value> {
+        return value.startIndex
+    }
+
+    public var endIndex: DictionaryIndex<Key, Value> {
+        return value.endIndex
+    }
+
+    public subscript (position: DictionaryIndex<Key, Value>) -> (Key, Value) {
+        return value[position]
+    }
+
+    public subscript(key: Key) -> Value? {
         get { return value[key] }
         set { value[key] = newValue }
     }
