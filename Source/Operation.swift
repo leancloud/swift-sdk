@@ -33,6 +33,8 @@ class Operation {
     let value: LCType?
 
     required init(name: Name, key: String, value: LCType?) {
+        try! Operation.validateKey(key)
+
         self.name  = name
         self.key   = key
         self.value = value?.copyWithZone(nil) as? LCType
@@ -57,6 +59,24 @@ class Operation {
              .Remove,
              .RemoveRelation:
             return ["__op": name.rawValue, "objects": LCONValue!]
+        }
+    }
+
+    /**
+     Validate the column name of object.
+
+     - parameter key: The key you want to validate.
+
+     - throws: A MalformedData error if key is invalid.
+     */
+    static func validateKey(key: String) throws {
+        let options: NSStringCompareOptions = [
+            .RegularExpressionSearch,
+            .CaseInsensitiveSearch
+        ]
+
+        guard key.rangeOfString("^[a-z0-9][a-z0-9_]*$", options: options) != nil else {
+            throw LCError(code: .MalformedData, reason: "Malformed key.", userInfo: ["key": key])
         }
     }
 
