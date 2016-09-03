@@ -132,7 +132,7 @@ class OperationHub {
         let operationReducer = operationReducerTable[key]
 
         if let operationReducer = operationReducer {
-            operationReducer.reduce(operation)
+            try! operationReducer.reduce(operation)
         } else if let operationReducerType = operationReducerType(operation) {
             let operationReducer = operationReducerType.init()
 
@@ -140,10 +140,10 @@ class OperationHub {
 
             if let unreducedOperation = unreducedOperationTable[key] {
                 unreducedOperationTable.removeValueForKey(key)
-                operationReducer.reduce(unreducedOperation)
+                try! operationReducer.reduce(unreducedOperation)
             }
 
-            operationReducer.reduce(operation)
+            try! operationReducer.reduce(operation)
         } else {
             unreducedOperationTable[key] = operation
         }
@@ -269,12 +269,11 @@ class OperationReducer {
 
      - parameter operation: The operation to validate.
      */
-    func validate(operation: Operation) {
+    func validate(operation: Operation) throws {
         let operationNames = self.dynamicType.validOperationNames()
 
         guard operationNames.contains(operation.name) else {
-            Exception.raise(.InvalidType, reason: "Invalid operation type.")
-            return
+            throw LCError(code: .InvalidType, reason: "Invalid operation type.", userInfo: nil)
         }
     }
 
@@ -283,8 +282,8 @@ class OperationReducer {
 
      - parameter operation: The operation to be reduced.
      */
-    func reduce(operation: Operation) {
-        Exception.raise(.InvalidType, reason: "Operation cannot be reduced.")
+    func reduce(operation: Operation) throws {
+        throw LCError(code: .InvalidType, reason: "Operation cannot be reduced.", userInfo: nil)
     }
 
     /**
@@ -312,7 +311,7 @@ class OperationReducer {
         }
 
         override func reduce(operation: Operation) {
-            super.validate(operation)
+            try! super.validate(operation)
 
             /* SET or DELETE will always override the previous. */
             self.operation = operation
@@ -340,7 +339,7 @@ class OperationReducer {
         }
 
         override func reduce(operation: Operation) {
-            super.validate(operation)
+            try! super.validate(operation)
 
             if let previousOperation = self.operation {
                 self.operation = reduce(operation, previousOperation: previousOperation)
@@ -391,7 +390,7 @@ class OperationReducer {
         }
 
         override func reduce(operation: Operation) {
-            super.validate(operation)
+            try! super.validate(operation)
 
             switch operation.name {
             case .Set:
@@ -547,7 +546,7 @@ class OperationReducer {
         }
 
         override func reduce(operation: Operation) {
-            super.validate(operation)
+            try! super.validate(operation)
 
             switch operation.name {
             case .AddRelation:

@@ -237,13 +237,13 @@ class ObjectProfiler {
     }
 
     private static func toposortStart(objects: Set<LCObject>, inout _ result: [LCObject], inout _ visitStatusTable: [UInt: Int]) {
-        objects.forEach { toposortVisit($0, objects, &result, &visitStatusTable) }
+        objects.forEach { try! toposortVisit($0, objects, &result, &visitStatusTable) }
     }
 
-    private static func toposortVisit(value: LCType, _ objects: Set<LCObject>, inout _ result: [LCObject], inout _ visitStatusTable: [UInt: Int]) {
+    private static func toposortVisit(value: LCType, _ objects: Set<LCObject>, inout _ result: [LCObject], inout _ visitStatusTable: [UInt: Int]) throws {
         guard let object = value as? LCObject else {
             (value as! LCTypeExtension).forEachChild { child in
-                toposortVisit(child, objects, &result, &visitStatusTable)
+                try! toposortVisit(child, objects, &result, &visitStatusTable)
             }
             return
         }
@@ -254,7 +254,7 @@ class ObjectProfiler {
         case 0: /* Unvisited */
             visitStatusTable[key] = 1
             object.forEachChild { child in
-                toposortVisit(child, objects, &result, &visitStatusTable)
+                try! toposortVisit(child, objects, &result, &visitStatusTable)
             }
             visitStatusTable[key] = 2
 
@@ -262,8 +262,7 @@ class ObjectProfiler {
                 result.append(object)
             }
         case 1: /* Visiting */
-            Exception.raise(.Inconsistency, reason: "Circular reference.")
-            break
+            throw LCError(code: .Inconsistency, reason: "Circular reference.", userInfo: nil)
         default: /* Visited */
             break
         }
@@ -303,7 +302,7 @@ class ObjectProfiler {
      */
     static func validateCircularReference(object: LCObject) {
         var visitStatusTable: [UInt: Int] = [:]
-        validateCircularReference(object, visitStatusTable: &visitStatusTable)
+        try! validateCircularReference(object, visitStatusTable: &visitStatusTable)
     }
 
     /**
@@ -312,19 +311,18 @@ class ObjectProfiler {
      - parameter object: The object to validate.
      - parameter visitStatusTable: The object visit status table.
      */
-    private static func validateCircularReference(object: LCType, inout visitStatusTable: [UInt: Int]) {
+    private static func validateCircularReference(object: LCType, inout visitStatusTable: [UInt: Int]) throws {
         let key = ObjectIdentifier(object).uintValue
 
         switch visitStatusTable[key] ?? 0 {
         case 0: /* Unvisited */
             visitStatusTable[key] = 1
             (object as! LCTypeExtension).forEachChild { (child) in
-                validateCircularReference(child, visitStatusTable: &visitStatusTable)
+                try! validateCircularReference(child, visitStatusTable: &visitStatusTable)
             }
             visitStatusTable[key] = 2
         case 1: /* Visiting */
-            Exception.raise(.Inconsistency, reason: "Circular reference.")
-            break
+            throw LCError(code: .Inconsistency, reason: "Circular reference.", userInfo: nil)
         default: /* Visited */
             break
         }

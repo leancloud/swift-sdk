@@ -87,10 +87,10 @@ class ObjectUpdater {
 
      - parameter objects: A set of objects to validate.
      */
-    private static func validateObjectId(objects: Set<LCObject>) {
-        objects.forEach { object in
+    private static func validateObjectId(objects: Set<LCObject>) throws {
+        try objects.forEach { object in
             if object.objectId == nil {
-                Exception.raise(.NotFound, reason: "Object ID not found.")
+                throw LCError(code: .NotFound, reason: "Object ID not found.", userInfo: nil)
             }
         }
     }
@@ -114,7 +114,7 @@ class ObjectUpdater {
 
         /* Validate object ID here to avoid infinite loop when save newborn orphans. */
         if response.isSuccess {
-            validateObjectId(family)
+            try! validateObjectId(family)
         }
 
         return response

@@ -285,10 +285,9 @@ final public class LCQuery: NSObject, NSCopying, NSCoding {
 
      - parameter query: The query to be validated.
      */
-    func validateClassName(query: LCQuery) {
+    func validateClassName(query: LCQuery) throws {
         guard query.objectClassName == objectClassName else {
-            Exception.raise(.Inconsistency, reason: "Different class names.")
-            return
+            throw LCError(code: .Inconsistency, reason: "Different class names.", userInfo: nil)
         }
     }
 
@@ -302,7 +301,7 @@ final public class LCQuery: NSObject, NSCopying, NSCoding {
      - returns: The logic AND of two queries.
      */
     public func and(query: LCQuery) -> LCQuery {
-        validateClassName(query)
+        try! validateClassName(query)
 
         let result = LCQuery(className: objectClassName)
 
@@ -321,7 +320,7 @@ final public class LCQuery: NSObject, NSCopying, NSCoding {
      - returns: The logic OR of two queries.
      */
     public func or(query: LCQuery) -> LCQuery {
-        validateClassName(query)
+        try! validateClassName(query)
 
         let result = LCQuery(className: objectClassName)
 

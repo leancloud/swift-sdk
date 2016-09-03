@@ -232,15 +232,6 @@ class ObjectTestCase: BaseTestCase {
         }
     }
 
-    func testInvalidType() {
-        let object = TestObject()
-
-        XCTAssertThrowsException({
-            object.set("stringField", value: "123")
-            object.increase("stringField", by: 1)
-        })
-    }
-
     func testClassName() {
         let className = "TestObject"
         let object = LCObject(className: className)

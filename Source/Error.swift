@@ -19,6 +19,7 @@ public struct LCError: ErrorType {
         case NotFound      = 9973
         case InvalidType   = 9974
         case MalformedData = 9975
+        case Inconsistency = 9976
     }
 
     enum ServerErrorCode: Int {

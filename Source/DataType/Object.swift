@@ -193,13 +193,13 @@ public class LCObject: NSObject, LCType, LCTypeExtension, SequenceType {
 
      - returns: The property value.
      */
-    func getProperty<Value: LCType>(key: String) -> Value? {
+    func getProperty<Value: LCType>(key: String) throws -> Value? {
         let value = propertyTable[key]
 
         if let value = value {
             guard value is Value else {
-                Exception.raise(.InvalidType, reason: String(format: "No such a property with name \"%@\" and type \"%s\".", key, class_getName(Value.self)))
-                return nil
+                let reason = String(format: "No such a property with name \"%@\" and type \"%s\".", key, class_getName(Value.self))
+                throw LCError(code: .InvalidType, reason: reason, userInfo: nil)
             }
         }
 
@@ -216,8 +216,8 @@ public class LCObject: NSObject, LCType, LCTypeExtension, SequenceType {
 
      - returns: The property value.
      */
-    func loadProperty<Value: LCType>(key: String) -> Value {
-        if let value: Value = getProperty(key) {
+    func loadProperty<Value: LCType>(key: String) throws -> Value {
+        if let value: Value = try getProperty(key) {
             return value
         }
 
@@ -246,31 +246,31 @@ public class LCObject: NSObject, LCType, LCTypeExtension, SequenceType {
             propertyTable[key] = nil
         case .Increment:
             let amount   = (value as! LCNumber).value
-            let property = loadProperty(key) as LCNumber
+            let property = try! loadProperty(key) as LCNumber
 
             property.addInPlace(amount)
         case .Add:
             let elements = (value as! LCArray).value
-            let property = loadProperty(key) as LCArray
+            let property = try! loadProperty(key) as LCArray
 
             property.concatenateInPlace(elements, unique: false)
         case .AddUnique:
             let elements = (value as! LCArray).value
-            let property = loadProperty(key) as LCArray
+            let property = try! loadProperty(key) as LCArray
 
             property.concatenateInPlace(elements, unique: true)
         case .Remove:
             let elements = (value as! LCArray).value
-            let property = getProperty(key) as LCArray?
+            let property = try! getProperty(key) as LCArray?
 
             property?.differInPlace(elements)
         case .AddRelation:
             let elements = (value as! LCArray).value as! [LCRelation.Element]
-            let relation = loadProperty(key) as LCRelation
+            let relation = try! loadProperty(key) as LCRelation
 
             relation.appendElements(elements)
         case .RemoveRelation:
-            let relation: LCRelation? = getProperty(key)
+            let relation: LCRelation? = try! getProperty(key)
             let elements = (value as! LCArray).value as! [LCRelation.Element]
 
             relation?.removeElements(elements)

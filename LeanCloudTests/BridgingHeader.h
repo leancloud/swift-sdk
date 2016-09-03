@@ -6,4 +6,3 @@
 //  Copyright © 2016 LeanCloud. All rights reserved.
 //
 
-#import "XCTestCase+Exception.h"

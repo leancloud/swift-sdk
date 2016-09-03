@@ -75,12 +75,6 @@ class QueryTestCase: BaseTestCase {
         return LCQuery(className: TestObject.objectClassName())
     }
 
-    func testInvalidClassName() {
-        XCTAssertThrowsException {
-            LCQuery(className: "Foo").and(LCQuery(className: "Bar"))
-        }
-    }
-
     func testIncluded() {
         let object = sharedObject
 

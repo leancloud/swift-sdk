@@ -119,15 +119,14 @@ public final class LCRelation: NSObject, LCType, LCTypeExtension, SequenceType {
         throw LCError(code: .InvalidType, reason: "Object cannot be differed.")
     }
 
-    func validateClassName(objects: [Element]) {
+    func validateClassName(objects: [Element]) throws {
         guard !objects.isEmpty else { return }
 
         let className = effectiveObjectClassName ?? objects.first!.actualClassName
 
         for object in objects {
             guard object.actualClassName == className else {
-                Exception.raise(.InvalidType, reason: "Invalid class name.")
-                return
+                throw LCError(code: .InvalidType, reason: "Invalid class name.", userInfo: nil)
             }
         }
     }
@@ -138,7 +137,7 @@ public final class LCRelation: NSObject, LCType, LCTypeExtension, SequenceType {
      - parameter elements: The elements to be appended.
      */
     func appendElements(elements: [Element]) {
-        validateClassName(elements)
+        try! validateClassName(elements)
 
         value = value + elements
     }
