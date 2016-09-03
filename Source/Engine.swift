@@ -9,8 +9,6 @@
 import Foundation
 
 public final class LCEngine {
-    typealias Parameters = [String: AnyObject]
-
     /// The dispatch queue for network request task.
     static let backgroundQueue = dispatch_queue_create("LeanCloud.Engine", DISPATCH_QUEUE_CONCURRENT)
 
@@ -25,28 +23,6 @@ public final class LCEngine {
     }
 
     /**
-     Call LeanEngine function.
-
-     - parameter function: The function name to be called.
-
-     - returns: The result of function call.
-     */
-    public static func call(function: String) -> LCOptionalResult {
-        return call(function, parameters: nil)
-    }
-
-    /**
-     Call LeanEngine function.
-
-     - parameter completion: The completion callback closure.
-     */
-    public static func call(function: String, completion: (LCOptionalResult) -> Void) {
-        asynchronize({ call(function) }) { result in
-            completion(result)
-        }
-    }
-
-    /**
      Call LeanEngine function with parameters.
 
      - parameter function:   The function name.
@@ -54,8 +30,11 @@ public final class LCEngine {
 
      - returns: The result of function all.
      */
-    public static func call(function: String, parameters: [String: AnyObject]) -> LCOptionalResult {
-        return call(function, parameters: ObjectProfiler.LCONValue(parameters) as? Parameters)
+    public static func call(function: String, parameters: LCDictionaryConvertible? = nil) -> LCOptionalResult {
+        let parameters = parameters?.lcDictionary.LCONValue as? [String: AnyObject]
+        let response   = RESTClient.request(.POST, "call/\(function)", parameters: parameters)
+
+        return response.optionalResult("result")
     }
 
     /**
@@ -66,37 +45,7 @@ public final class LCEngine {
 
      - parameter completion: The completion callback closure.
      */
-    public static func call(function: String, parameters: [String: AnyObject], completion: (LCOptionalResult) -> Void) {
-        asynchronize({ call(function, parameters: parameters) }) { result in
-            completion(result)
-        }
-    }
-
-    /**
-     Call LeanEngine function with parameters.
-
-     The parameters will be serialized to JSON representation.
-
-     - parameter function:   The function name.
-     - parameter parameters: The parameters to be passed to remote function.
-
-     - returns: The result of function all.
-     */
-    public static func call(function: String, parameters: LCDictionary) -> LCOptionalResult {
-        return call(function, parameters: ObjectProfiler.LCONValue(parameters) as? Parameters)
-    }
-
-    /**
-     Call LeanEngine function with parameters asynchronously.
-
-     The parameters will be serialized to JSON representation.
-
-     - parameter function:   The function name.
-     - parameter parameters: The parameters to be passed to remote function.
-
-     - parameter completion: The completion callback closure.
-     */
-    public static func call(function: String, parameters: LCDictionary, completion: (LCOptionalResult) -> Void) {
+    public static func call(function: String, parameters: LCDictionaryConvertible? = nil, completion: (LCOptionalResult) -> Void) {
         asynchronize({ call(function, parameters: parameters) }) { result in
             completion(result)
         }
@@ -113,7 +62,7 @@ public final class LCEngine {
      - returns: The result of function all.
      */
     public static func call(function: String, parameters: LCObject) -> LCOptionalResult {
-        return call(function, parameters: ObjectProfiler.LCONValue(parameters) as? Parameters)
+        return call(function, parameters: parameters.propertyTable)
     }
 
     /**
@@ -130,19 +79,5 @@ public final class LCEngine {
         asynchronize({ call(function, parameters: parameters) }) { result in
             completion(result)
         }
-    }
-
-    /**
-     Call LeanEngine function with parameters.
-
-     - parameter function:   The function name.
-     - parameter parameters: The JSON parameters to be passed to remote function.
-
-     - returns: The result of function call.
-     */
-    static func call(function: String, parameters: Parameters?) -> LCOptionalResult {
-        let response = RESTClient.request(.POST, "call/\(function)", parameters: parameters)
-
-        return response.optionalResult("result")
     }
 }
