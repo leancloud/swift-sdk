@@ -75,11 +75,13 @@ public class LCCQLClient {
 
      - returns: The parameters for CQL execution.
      */
-    static func parameters(CQL: String, parameters: [AnyObject]) -> [String: AnyObject] {
+    static func parameters(CQL: String, parameters: LCArrayConvertible?) -> [String: AnyObject] {
         var result = ["cql": CQL]
 
-        if !parameters.isEmpty {
-            result["pvalues"] = Utility.JSONString(ObjectProfiler.LCONValue(parameters))
+        if let parameters = parameters?.lcArray {
+            if !parameters.isEmpty {
+                result["pvalues"] = Utility.JSONString(parameters.LCONValue!)
+            }
         }
 
         return result
@@ -93,7 +95,7 @@ public class LCCQLClient {
 
      - returns: The result of CQL statement.
      */
-    public static func execute(CQL: String, parameters: [AnyObject] = []) -> LCCQLResult {
+    public static func execute(CQL: String, parameters: LCArrayConvertible? = nil) -> LCCQLResult {
         let parameters = self.parameters(CQL, parameters: parameters)
         let response   = RESTClient.request(.GET, endpoint, parameters: parameters)
 
@@ -107,7 +109,7 @@ public class LCCQLClient {
      - parameter parameters: The parameters for placeholders in CQL statement.
      - parameter completion: The completion callback closure.
      */
-    public static func execute(CQL: String, parameters: [AnyObject] = [], completion: (result: LCCQLResult) -> Void) {
+    public static func execute(CQL: String, parameters: LCArrayConvertible? = nil, completion: (result: LCCQLResult) -> Void) {
         asynchronize({ execute(CQL, parameters: parameters) }) { result in
             completion(result: result)
         }
