@@ -22,12 +22,12 @@ public final class LCSMS {
 
      - returns: The result of short message request.
      */
-    static func requestShortMessage(mobilePhoneNumber mobilePhoneNumber: String, parameters: [String: AnyObject]?) -> LCBooleanResult {
-        var parameters = parameters ?? [:]
+    static func requestShortMessage(mobilePhoneNumber mobilePhoneNumber: String, parameters: LCDictionaryConvertible?) -> LCBooleanResult {
+        let parameters = parameters?.lcDictionary ?? LCDictionary()
 
-        parameters["mobilePhoneNumber"] = mobilePhoneNumber
+        parameters["mobilePhoneNumber"] = LCString(mobilePhoneNumber)
 
-        let response = RESTClient.request(.POST, "requestSmsCode", parameters: parameters)
+        let response = RESTClient.request(.POST, "requestSmsCode", parameters: parameters.LCONValue as? [String: AnyObject])
 
         return LCBooleanResult(response: response)
     }
@@ -41,10 +41,10 @@ public final class LCSMS {
 
      - returns: The result of short message request.
      */
-    public static func requestShortMessage(mobilePhoneNumber mobilePhoneNumber: String, templateName: String, variables: [String: AnyObject]?) -> LCBooleanResult {
-        var parameters = variables ?? [:]
+    public static func requestShortMessage(mobilePhoneNumber mobilePhoneNumber: String, templateName: String, variables: LCDictionaryConvertible? = nil) -> LCBooleanResult {
+        let parameters = variables?.lcDictionary ?? LCDictionary()
 
-        parameters["template"] = templateName
+        parameters["template"] = LCString(templateName)
 
         return requestShortMessage(mobilePhoneNumber: mobilePhoneNumber, parameters: parameters)
     }
@@ -57,7 +57,7 @@ public final class LCSMS {
      - parameter variables:         The variables used to substitute placeholders in template.
      - parameter completion:        The completion callback closure.
      */
-    public static func requestShortMessage(mobilePhoneNumber mobilePhoneNumber: String, templateName: String, variables: [String: AnyObject]?, completion: (LCBooleanResult) -> Void) {
+    public static func requestShortMessage(mobilePhoneNumber mobilePhoneNumber: String, templateName: String, variables: LCDictionaryConvertible? = nil, completion: (LCBooleanResult) -> Void) {
         RESTClient.asynchronize({ self.requestShortMessage(mobilePhoneNumber: mobilePhoneNumber, templateName: templateName, variables: variables) }) { result in
             completion(result)
         }
