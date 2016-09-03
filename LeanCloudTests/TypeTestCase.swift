@@ -30,25 +30,25 @@ class TypeTestCase: BaseTestCase {
         XCTAssertEqual(convert(NSNull()) as? LCNull, LCNull())
 
         // Integer
-        XCTAssertEqual(convert(Int(42))     as? LCNumber, LCNumber(42))
-        XCTAssertEqual(convert(UInt(42))    as? LCNumber, LCNumber(42))
-        XCTAssertEqual(convert(Int8(42))    as? LCNumber, LCNumber(42))
-        XCTAssertEqual(convert(UInt8(42))   as? LCNumber, LCNumber(42))
-        XCTAssertEqual(convert(Int16(42))   as? LCNumber, LCNumber(42))
-        XCTAssertEqual(convert(UInt16(42))  as? LCNumber, LCNumber(42))
-        XCTAssertEqual(convert(Int32(42))   as? LCNumber, LCNumber(42))
-        XCTAssertEqual(convert(UInt32(42))  as? LCNumber, LCNumber(42))
-        XCTAssertEqual(convert(Int64(42))   as? LCNumber, LCNumber(42))
-        XCTAssertEqual(convert(UInt64(42))  as? LCNumber, LCNumber(42))
+        XCTAssertEqual(convert(Int(42))     as? LCNumber, 42)
+        XCTAssertEqual(convert(UInt(42))    as? LCNumber, 42)
+        XCTAssertEqual(convert(Int8(42))    as? LCNumber, 42)
+        XCTAssertEqual(convert(UInt8(42))   as? LCNumber, 42)
+        XCTAssertEqual(convert(Int16(42))   as? LCNumber, 42)
+        XCTAssertEqual(convert(UInt16(42))  as? LCNumber, 42)
+        XCTAssertEqual(convert(Int32(42))   as? LCNumber, 42)
+        XCTAssertEqual(convert(UInt32(42))  as? LCNumber, 42)
+        XCTAssertEqual(convert(Int64(42))   as? LCNumber, 42)
+        XCTAssertEqual(convert(UInt64(42))  as? LCNumber, 42)
 
         // Float
-        XCTAssertEqual(convert(Float(42))   as? LCNumber, LCNumber(42))
-        XCTAssertEqual(convert(Float80(42)) as? LCNumber, LCNumber(42))
-        XCTAssertEqual(convert(Double(42))  as? LCNumber, LCNumber(42))
+        XCTAssertEqual(convert(Float(42))   as? LCNumber, 42)
+        XCTAssertEqual(convert(Float80(42)) as? LCNumber, 42)
+        XCTAssertEqual(convert(Double(42))  as? LCNumber, 42)
 
         // String
-        XCTAssertEqual(convert("foo")                   as? LCString, LCString("foo"))
-        XCTAssertEqual(convert(NSString(string: "foo")) as? LCString, LCString("foo"))
+        XCTAssertEqual(convert("foo")                   as? LCString, "foo")
+        XCTAssertEqual(convert(NSString(string: "foo")) as? LCString, "foo")
 
         // Array
         let array = [42, true, NSNull(), [:], [], NSData(), NSDate()]

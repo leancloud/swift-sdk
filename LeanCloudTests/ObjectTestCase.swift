@@ -43,7 +43,7 @@ class ObjectTestCase: BaseTestCase {
         XCTAssertTrue(object.save().isSuccess)
         XCTAssertNotNil(object.objectId)
 
-        let shadow = TestObject(objectId: object.objectId!.value)
+        let shadow = TestObject(objectId: object.objectId!)
 
         XCTAssertTrue(shadow.fetch().isSuccess)
 
@@ -65,7 +65,7 @@ class ObjectTestCase: BaseTestCase {
         XCTAssertNotNil(element.objectId)
         XCTAssertNotNil(object.objectId)
 
-        let shadow = TestObject(objectId: object.objectId!.value)
+        let shadow = TestObject(objectId: object.objectId!)
 
         XCTAssertTrue(shadow.fetch().isSuccess)
         XCTAssertEqual(shadow.arrayField, LCArray([element]))
@@ -86,7 +86,7 @@ class ObjectTestCase: BaseTestCase {
         XCTAssertNotNil(element.objectId)
         XCTAssertNotNil(object.objectId)
 
-        let shadow = TestObject(objectId: object.objectId!.value)
+        let shadow = TestObject(objectId: object.objectId!)
 
         XCTAssertTrue(shadow.fetch().isSuccess)
         XCTAssertEqual(shadow.dictionaryField, dictionary)
@@ -102,7 +102,7 @@ class ObjectTestCase: BaseTestCase {
         XCTAssertNotNil(friend.objectId)
         XCTAssertNotNil(object.objectId)
 
-        let shadow = TestObject(objectId: object.objectId!.value)
+        let shadow = TestObject(objectId: object.objectId!)
 
         XCTAssertTrue(shadow.fetch().isSuccess)
         XCTAssertNotNil(shadow.relationField)
@@ -149,7 +149,7 @@ class ObjectTestCase: BaseTestCase {
 
     func testFetch() {
         let object = sharedObject
-        let shadow = TestObject(objectId: object.objectId!.value)
+        let shadow = TestObject(objectId: object.objectId!)
 
         let result = shadow.fetch()
         XCTAssertTrue(result.isSuccess)
@@ -197,8 +197,8 @@ class ObjectTestCase: BaseTestCase {
         XCTAssertTrue(object1.save().isSuccess)
         XCTAssertTrue(object2.save().isSuccess)
 
-        let shadow1 = TestObject(objectId: object1.objectId!.value)
-        let shadow2 = TestObject(objectId: object1.objectId!.value)
+        let shadow1 = TestObject(objectId: object1.objectId!)
+        let shadow2 = TestObject(objectId: object1.objectId!)
 
         shadow1.stringField = "bar"
         shadow2.stringField = "bar"
@@ -236,7 +236,7 @@ class ObjectTestCase: BaseTestCase {
         let object = TestObject()
 
         XCTAssertThrowsException({
-            object.set("stringField", value: "123" as LCString)
+            object.set("stringField", value: "123")
             object.increase("stringField", by: 1)
         })
     }
@@ -249,7 +249,7 @@ class ObjectTestCase: BaseTestCase {
         object["stringField"] = stringValue
         XCTAssertTrue(object.save().isSuccess)
 
-        let shadow = LCObject(className: className, objectId: object.objectId!.value)
+        let shadow = LCObject(className: className, objectId: object.objectId!)
         XCTAssertTrue(shadow.fetch().isSuccess)
         XCTAssertEqual(shadow["stringField"] as? LCString, stringValue)
     }

@@ -142,8 +142,8 @@ class QueryTestCase: BaseTestCase {
         let query  = objectQuery()
 
         query.whereKey("objectId", .EqualTo(object.objectId!))
-        query.whereKey("dateField", .EqualTo(LCDate(NSDate(timeIntervalSince1970: 1024))))
-        query.whereKey("nullField", .EqualTo(LCNull()))
+        query.whereKey("dateField", .EqualTo(NSDate(timeIntervalSince1970: 1024)))
+        query.whereKey("nullField", .EqualTo(NSNull()))
 
         /* Tip: You can use EqualTo to compare an value against elements in an array field.
            If the given value is equal to any element in the array referenced by key, the comparation will be successful. */
@@ -158,7 +158,7 @@ class QueryTestCase: BaseTestCase {
         let query  = objectQuery()
 
         query.whereKey("objectId", .EqualTo(object.objectId!))
-        query.whereKey("numberField", .NotEqualTo(LCNumber(42)))
+        query.whereKey("numberField", .NotEqualTo(42))
 
         let (isSuccess, objects) = execute(query)
         XCTAssertTrue(isSuccess && objects.isEmpty)
@@ -169,13 +169,13 @@ class QueryTestCase: BaseTestCase {
         let query  = objectQuery()
 
         query.whereKey("objectId", .EqualTo(object.objectId!))
-        query.whereKey("numberField", .LessThan(LCNumber(42)))
+        query.whereKey("numberField", .LessThan(42))
 
         let (isSuccess1, objects1) = execute(query)
         XCTAssertTrue(isSuccess1 && objects1.isEmpty)
 
-        query.whereKey("numberField", .LessThan(LCNumber(43)))
-        query.whereKey("dateField", .LessThan(LCDate(NSDate(timeIntervalSince1970: 1025))))
+        query.whereKey("numberField", .LessThan(43))
+        query.whereKey("dateField", .LessThan(NSDate(timeIntervalSince1970: 1025)))
 
         let (isSuccess2, objects2) = execute(query)
         XCTAssertTrue(isSuccess2 && !objects2.isEmpty)
@@ -186,7 +186,7 @@ class QueryTestCase: BaseTestCase {
         let query  = objectQuery()
 
         query.whereKey("objectId", .EqualTo(object.objectId!))
-        query.whereKey("numberField", .LessThanOrEqualTo(LCNumber(42)))
+        query.whereKey("numberField", .LessThanOrEqualTo(42))
 
         let (isSuccess, objects) = execute(query)
         XCTAssertTrue(isSuccess && !objects.isEmpty)
@@ -197,7 +197,7 @@ class QueryTestCase: BaseTestCase {
         let query  = objectQuery()
 
         query.whereKey("objectId", .EqualTo(object.objectId!))
-        query.whereKey("numberField", .GreaterThan(LCNumber(41.9)))
+        query.whereKey("numberField", .GreaterThan(41.9))
 
         let (isSuccess, objects) = execute(query)
         XCTAssertTrue(isSuccess && !objects.isEmpty)
@@ -208,7 +208,7 @@ class QueryTestCase: BaseTestCase {
         let query  = objectQuery()
 
         query.whereKey("objectId", .EqualTo(object.objectId!))
-        query.whereKey("dateField", .GreaterThanOrEqualTo(LCDate(NSDate(timeIntervalSince1970: 1023.9))))
+        query.whereKey("dateField", .GreaterThanOrEqualTo(NSDate(timeIntervalSince1970: 1023.9)))
 
         let (isSuccess, objects) = execute(query)
         XCTAssertTrue(isSuccess && !objects.isEmpty)
@@ -222,10 +222,10 @@ class QueryTestCase: BaseTestCase {
 
         /* Tip: You can use ContainedIn to compare an array of values against a non-array field.
            If any value in given array is equal to the value referenced by key, the comparation will be successful. */
-        query.whereKey("dateField", .ContainedIn([LCDate(NSDate(timeIntervalSince1970: 1024))]))
+        query.whereKey("dateField", .ContainedIn([NSDate(timeIntervalSince1970: 1024)]))
 
         /* Tip: Also, you can apply the constraint to array field. */
-        query.whereKey("arrayField", .ContainedIn([LCNumber(42), LCString("bar")]))
+        query.whereKey("arrayField", .ContainedIn([42, "bar"]))
 
         let (isSuccess, objects) = execute(query)
         XCTAssertTrue(isSuccess && !objects.isEmpty)
@@ -238,10 +238,10 @@ class QueryTestCase: BaseTestCase {
         query.whereKey("objectId", .EqualTo(object.objectId!))
 
         /* Tip: Like ContainedIn, you can apply NotContainedIn to non-array field. */
-        query.whereKey("numberField", .NotContainedIn([LCNumber(42)]))
+        query.whereKey("numberField", .NotContainedIn([42]))
 
         /* Tip: Also, you can apply the constraint to array field. */
-        query.whereKey("arrayField", .NotContainedIn([LCNumber(42), LCString("bar")]))
+        query.whereKey("arrayField", .NotContainedIn([42, "bar"]))
 
         let (isSuccess, objects) = execute(query)
         XCTAssertTrue(isSuccess && objects.isEmpty)
@@ -254,10 +254,10 @@ class QueryTestCase: BaseTestCase {
         query.whereKey("objectId", .EqualTo(object.objectId!))
 
         /* Tip: Like ContainedIn, you can apply ContainedAllIn to non-array field. */
-        query.whereKey("numberField", .ContainedAllIn([LCNumber(42)]))
+        query.whereKey("numberField", .ContainedAllIn([42]))
 
         /* Tip: Also, you can apply the constraint to array field. */
-        query.whereKey("arrayField", .ContainedAllIn([LCNumber(42), LCString("bar"), sharedElement]))
+        query.whereKey("arrayField", .ContainedAllIn([42, "bar", sharedElement]))
 
         let (isSuccess, objects) = execute(query)
         XCTAssertTrue(isSuccess && !objects.isEmpty)
@@ -319,7 +319,7 @@ class QueryTestCase: BaseTestCase {
         let subQuery = objectQuery()
 
         subQuery.whereKey("objectId", .EqualTo(child.objectId!))
-        subQuery.whereKey("stringField", .EqualTo(LCString("child")))
+        subQuery.whereKey("stringField", .EqualTo("child"))
 
         query.whereKey("objectId", .EqualTo(object.objectId!))
         query.whereKey("objectField", .MatchedQuery(subQuery))
