@@ -349,7 +349,14 @@ extension Array: LCArrayConvertible {
     }
 
     public var lcArray: LCArray {
-        return try! ObjectProfiler.object(JSONValue: self as! AnyObject) as! LCArray
+        let value = try! map { element -> LCType in
+            guard let element = element as? LCTypeConvertible else {
+                throw LCError(code: .InvalidType, reason: "Element is not LCType-convertible.", userInfo: nil)
+            }
+            return element.lcType
+        }
+
+        return LCArray(value)
     }
 }
 
@@ -359,7 +366,7 @@ extension NSArray: LCArrayConvertible {
     }
 
     public var lcArray: LCArray {
-        return try! ObjectProfiler.object(JSONValue: self as! AnyObject) as! LCArray
+        return (self as Array).lcArray
     }
 }
 
@@ -369,7 +376,18 @@ extension Dictionary: LCDictionaryConvertible {
     }
 
     public var lcDictionary: LCDictionary {
-        return try! ObjectProfiler.object(JSONValue: self as! AnyObject) as! LCDictionary
+        let elements = try! map { (key, value) -> (String, LCType) in
+            guard let key = key as? String else {
+                throw LCError(code: .InvalidType, reason: "Key is not a string.", userInfo: nil)
+            }
+            guard let value = value as? LCTypeConvertible else {
+                throw LCError(code: .InvalidType, reason: "Value is not LCType-convertible.", userInfo: nil)
+            }
+            return (key, value.lcType)
+        }
+        let value = [String: LCType](elements: elements)
+
+        return LCDictionary(value)
     }
 }
 
@@ -379,7 +397,7 @@ extension NSDictionary: LCDictionaryConvertible {
     }
 
     public var lcDictionary: LCDictionary {
-        return try! ObjectProfiler.object(JSONValue: self as! AnyObject) as! LCDictionary
+        return (self as Dictionary).lcDictionary
     }
 }
 
