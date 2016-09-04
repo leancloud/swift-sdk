@@ -13,7 +13,7 @@ import Foundation
 
  It is a wrapper of `Swift.Double` type, used to store a number value.
  */
-public final class LCNumber: NSObject, LCType, LCTypeExtension, FloatLiteralConvertible, IntegerLiteralConvertible {
+public final class LCNumber: NSObject, LCValue, LCValueExtension, FloatLiteralConvertible, IntegerLiteralConvertible {
     public private(set) var value: Double = 0
 
     public override init() {
@@ -67,15 +67,15 @@ public final class LCNumber: NSObject, LCType, LCTypeExtension, FloatLiteralConv
         return value
     }
 
-    static func instance() -> LCType {
+    static func instance() -> LCValue {
         return LCNumber()
     }
 
-    func forEachChild(body: (child: LCType) -> Void) {
+    func forEachChild(body: (child: LCValue) -> Void) {
         /* Nothing to do. */
     }
 
-    func add(other: LCType) throws -> LCType {
+    func add(other: LCValue) throws -> LCValue {
         let result = LCNumber(value)
 
         result.addInPlace((other as! LCNumber).value)
@@ -87,11 +87,11 @@ public final class LCNumber: NSObject, LCType, LCTypeExtension, FloatLiteralConv
         value += amount
     }
 
-    func concatenate(other: LCType, unique: Bool) throws -> LCType {
+    func concatenate(other: LCValue, unique: Bool) throws -> LCValue {
         throw LCError(code: .InvalidType, reason: "Object cannot be concatenated.")
     }
 
-    func differ(other: LCType) throws -> LCType {
+    func differ(other: LCValue) throws -> LCValue {
         throw LCError(code: .InvalidType, reason: "Object cannot be differed.")
     }
 }

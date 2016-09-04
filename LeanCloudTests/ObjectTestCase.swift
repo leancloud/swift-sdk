@@ -119,15 +119,15 @@ class ObjectTestCase: BaseTestCase {
         XCTAssertNotNil(object.objectId)
     }
 
-    func testNonLCTypeProperty() {
+    func testNonLCValueProperty() {
         let object1 = TestObject()
-        let object2 = TestObject(dictionary: ["nonLCTypeField": LCString("foo")])
+        let object2 = TestObject(dictionary: ["nonLCValueField": LCString("foo")])
 
-        object1.nonLCTypeField = "foo"
+        object1.nonLCValueField = "foo"
 
-        XCTAssertNil(object1["nonLCTypeField"])
-        XCTAssertNil(object2.nonLCTypeField)
-        XCTAssertNotNil(object2["nonLCTypeField"])
+        XCTAssertNil(object1["nonLCValueField"])
+        XCTAssertNil(object2.nonLCValueField)
+        XCTAssertNotNil(object2["nonLCValueField"])
     }
 
     func testNonDynamicProperty() {

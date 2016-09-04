@@ -13,7 +13,7 @@ import Foundation
 
  It is a wrapper of `Swift.String` type, used to store a string value.
  */
-public final class LCString: NSObject, LCType, LCTypeExtension, StringLiteralConvertible {
+public final class LCString: NSObject, LCValue, LCValueExtension, StringLiteralConvertible {
     public private(set) var value: String = ""
 
     public typealias UnicodeScalarLiteralType = Character
@@ -74,23 +74,23 @@ public final class LCString: NSObject, LCType, LCTypeExtension, StringLiteralCon
         return value
     }
 
-    class func instance() -> LCType {
+    class func instance() -> LCValue {
         return self.init()
     }
 
-    func forEachChild(body: (child: LCType) -> Void) {
+    func forEachChild(body: (child: LCValue) -> Void) {
         /* Nothing to do. */
     }
 
-    func add(other: LCType) throws -> LCType {
+    func add(other: LCValue) throws -> LCValue {
         throw LCError(code: .InvalidType, reason: "Object cannot be added.")
     }
 
-    func concatenate(other: LCType, unique: Bool) throws -> LCType {
+    func concatenate(other: LCValue, unique: Bool) throws -> LCValue {
         throw LCError(code: .InvalidType, reason: "Object cannot be concatenated.")
     }
 
-    func differ(other: LCType) throws -> LCType {
+    func differ(other: LCValue) throws -> LCValue {
         throw LCError(code: .InvalidType, reason: "Object cannot be differed.")
     }
 }

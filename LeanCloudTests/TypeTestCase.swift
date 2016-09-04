@@ -21,8 +21,8 @@ class TypeTestCase: BaseTestCase {
         super.tearDown()
     }
 
-    func convert(object: LCTypeConvertible) -> LCType {
-        return object.lcType
+    func convert(object: LCValueConvertible) -> LCValue {
+        return object.lcValue
     }
 
     func testNullConvertible() {

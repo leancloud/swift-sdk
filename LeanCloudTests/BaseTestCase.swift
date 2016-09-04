@@ -22,8 +22,8 @@ class TestObject: LCObject {
     dynamic var dateField: LCDate?
     dynamic var nullField: LCNull?
 
-    /* The non-LCType and non-dynamic property cannot be handled. */
-    dynamic var nonLCTypeField: String?
+    /* The non-LCValue and non-dynamic property cannot be handled. */
+    dynamic var nonLCValueField: String?
             var nonDynamicField: LCString?
 }
 

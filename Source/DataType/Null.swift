@@ -15,7 +15,7 @@ import Foundation
 
  - note: This type is not a singleton type, because Swift does not support singleton well currently.
  */
-public class LCNull: NSObject, LCType, LCTypeExtension {
+public class LCNull: NSObject, LCValue, LCValueExtension {
     public override init() {
         super.init()
     }
@@ -48,23 +48,23 @@ public class LCNull: NSObject, LCType, LCTypeExtension {
         return NSNull()
     }
 
-    static func instance() throws -> LCType {
+    static func instance() throws -> LCValue {
         return LCNull()
     }
 
-    func forEachChild(body: (child: LCType) -> Void) {
+    func forEachChild(body: (child: LCValue) -> Void) {
         /* Nothing to do. */
     }
 
-    func add(other: LCType) throws -> LCType {
+    func add(other: LCValue) throws -> LCValue {
         throw LCError(code: .InvalidType, reason: "Object cannot be added.")
     }
 
-    func concatenate(other: LCType, unique: Bool) throws -> LCType {
+    func concatenate(other: LCValue, unique: Bool) throws -> LCValue {
         throw LCError(code: .InvalidType, reason: "Object cannot be concatenated.")
     }
 
-    func differ(other: LCType) throws -> LCType {
+    func differ(other: LCValue) throws -> LCValue {
         throw LCError(code: .InvalidType, reason: "Object cannot be differed.")
     }
 }

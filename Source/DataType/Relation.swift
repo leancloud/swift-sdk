@@ -13,7 +13,7 @@ import Foundation
 
  This type can be used to make one-to-many relationship between objects.
  */
-public final class LCRelation: NSObject, LCType, LCTypeExtension, SequenceType {
+public final class LCRelation: NSObject, LCValue, LCValueExtension, SequenceType {
     public typealias Element = LCObject
 
     /// The key where relationship based on.
@@ -99,23 +99,23 @@ public final class LCRelation: NSObject, LCType, LCTypeExtension, SequenceType {
         return value.map { (element) in element.LCONValue! }
     }
 
-    static func instance() -> LCType {
+    static func instance() -> LCValue {
         return self.init()
     }
 
-    func forEachChild(body: (child: LCType) -> Void) {
+    func forEachChild(body: (child: LCValue) -> Void) {
         value.forEach { body(child: $0) }
     }
 
-    func add(other: LCType) throws -> LCType {
+    func add(other: LCValue) throws -> LCValue {
         throw LCError(code: .InvalidType, reason: "Object cannot be added.")
     }
 
-    func concatenate(other: LCType, unique: Bool) throws -> LCType {
+    func concatenate(other: LCValue, unique: Bool) throws -> LCValue {
         throw LCError(code: .InvalidType, reason: "Object cannot be concatenated.")
     }
 
-    func differ(other: LCType) throws -> LCType {
+    func differ(other: LCValue) throws -> LCValue {
         throw LCError(code: .InvalidType, reason: "Object cannot be differed.")
     }
 

@@ -30,21 +30,21 @@ class Operation {
 
     let name: Name
     let key: String
-    let value: LCType?
+    let value: LCValue?
 
-    required init(name: Name, key: String, value: LCType?) {
+    required init(name: Name, key: String, value: LCValue?) {
         try! Operation.validateKey(key)
 
         self.name  = name
         self.key   = key
-        self.value = value?.copyWithZone(nil) as? LCType
+        self.value = value?.copyWithZone(nil) as? LCValue
     }
 
     /**
      The LCON representation of operation.
      */
     var LCONValue: AnyObject {
-        let LCONValue = (value as? LCTypeExtension)?.LCONValue
+        let LCONValue = (value as? LCValueExtension)?.LCONValue
 
         switch name {
         case .Set:
@@ -80,7 +80,7 @@ class Operation {
         }
     }
 
-    static func reducerType(type: LCType.Type) -> OperationReducer.Type {
+    static func reducerType(type: LCValue.Type) -> OperationReducer.Type {
         switch type {
         case _ where type === LCArray.self:
             return OperationReducer.Array.self
@@ -178,7 +178,7 @@ class OperationHub {
      */
     func operationReducerType(operation: Operation) -> OperationReducer.Type? {
         let propertyName = operation.key
-        let propertyType = ObjectProfiler.getLCType(object: object, propertyName: propertyName)
+        let propertyType = ObjectProfiler.getLCValue(object: object, propertyName: propertyName)
 
         if let propertyType = propertyType {
             return Operation.reducerType(propertyType)
@@ -379,9 +379,9 @@ class OperationReducer {
             case (.Set,       .Delete):    return rhs
             case (.Delete,    .Delete):    return rhs
             case (.Increment, .Delete):    return rhs
-            case (.Set,       .Increment): return Operation(name: .Set,       key: operation.key, value: try! (lhs.value as! LCTypeExtension).add(rhs.value!))
+            case (.Set,       .Increment): return Operation(name: .Set,       key: operation.key, value: try! (lhs.value as! LCValueExtension).add(rhs.value!))
             case (.Delete,    .Increment): return Operation(name: .Set,       key: operation.key, value: rhs.value)
-            case (.Increment, .Increment): return Operation(name: .Increment, key: operation.key, value: try! (lhs.value as! LCTypeExtension).add(rhs.value!))
+            case (.Increment, .Increment): return Operation(name: .Increment, key: operation.key, value: try! (lhs.value as! LCValueExtension).add(rhs.value!))
             default:                       return nil
             }
         }

@@ -13,7 +13,7 @@ import Foundation
 
  This type can be used to represent a 2D location with latitude and longitude.
  */
-public final class LCGeoPoint: NSObject, LCType, LCTypeExtension {
+public final class LCGeoPoint: NSObject, LCValue, LCValueExtension {
     public private(set) var latitude: Double = 0
     public private(set) var longitude: Double = 0
 
@@ -104,23 +104,23 @@ public final class LCGeoPoint: NSObject, LCType, LCTypeExtension {
         return JSONValue
     }
 
-    static func instance() -> LCType {
+    static func instance() -> LCValue {
         return self.init()
     }
 
-    func forEachChild(body: (child: LCType) -> Void) {
+    func forEachChild(body: (child: LCValue) -> Void) {
         /* Nothing to do. */
     }
 
-    func add(other: LCType) throws -> LCType {
+    func add(other: LCValue) throws -> LCValue {
         throw LCError(code: .InvalidType, reason: "Object cannot be added.")
     }
 
-    func concatenate(other: LCType, unique: Bool) throws -> LCType {
+    func concatenate(other: LCValue, unique: Bool) throws -> LCValue {
         throw LCError(code: .InvalidType, reason: "Object cannot be concatenated.")
     }
 
-    func differ(other: LCType) throws -> LCType {
+    func differ(other: LCValue) throws -> LCValue {
         throw LCError(code: .InvalidType, reason: "Object cannot be differed.")
     }
 }

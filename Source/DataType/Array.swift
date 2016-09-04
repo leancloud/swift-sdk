@@ -13,9 +13,9 @@ import Foundation
 
  It is a wrapper of `Swift.Array` type, used to store a list of objects.
  */
-public final class LCArray: NSObject, LCType, LCTypeExtension, CollectionType, ArrayLiteralConvertible {
+public final class LCArray: NSObject, LCValue, LCValueExtension, CollectionType, ArrayLiteralConvertible {
     public typealias Index = Int
-    public typealias Element = LCType
+    public typealias Element = LCValue
 
     public private(set) var value: [Element] = []
 
@@ -76,7 +76,7 @@ public final class LCArray: NSObject, LCType, LCTypeExtension, CollectionType, A
         return value.count
     }
 
-    public subscript(index: Int) -> LCType {
+    public subscript(index: Int) -> LCValue {
         get { return value[index] }
     }
 
@@ -89,22 +89,22 @@ public final class LCArray: NSObject, LCType, LCTypeExtension, CollectionType, A
     }
 
     var LCONValue: AnyObject? {
-        return value.map { element in (element as! LCTypeExtension).LCONValue! }
+        return value.map { element in (element as! LCValueExtension).LCONValue! }
     }
 
-    static func instance() -> LCType {
+    static func instance() -> LCValue {
         return self.init([])
     }
 
-    func forEachChild(body: (child: LCType) -> Void) {
+    func forEachChild(body: (child: LCValue) -> Void) {
         forEach { element in body(child: element) }
     }
 
-    func add(other: LCType) throws -> LCType {
+    func add(other: LCValue) throws -> LCValue {
         throw LCError(code: .InvalidType, reason: "Object cannot be added.")
     }
 
-    func concatenate(other: LCType, unique: Bool) throws -> LCType {
+    func concatenate(other: LCValue, unique: Bool) throws -> LCValue {
         let result   = LCArray(value)
         let elements = (other as! LCArray).value
 
@@ -117,7 +117,7 @@ public final class LCArray: NSObject, LCType, LCTypeExtension, CollectionType, A
         value = unique ? (value +~ elements) : (value + elements)
     }
 
-    func differ(other: LCType) throws -> LCType {
+    func differ(other: LCValue) throws -> LCValue {
         let result   = LCArray(value)
         let elements = (other as! LCArray).value
 

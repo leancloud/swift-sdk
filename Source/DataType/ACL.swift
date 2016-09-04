@@ -13,7 +13,7 @@ import Foundation
 
  You can use it to set access control lists on an object.
  */
-public final class LCACL: NSObject, LCType, LCTypeExtension {
+public final class LCACL: NSObject, LCValue, LCValueExtension {
     typealias Access = [String: Bool]
     typealias AccessTable = [String: Access]
 
@@ -68,23 +68,23 @@ public final class LCACL: NSObject, LCType, LCTypeExtension {
         return JSONValue
     }
 
-    static func instance() -> LCType {
+    static func instance() -> LCValue {
         return self.init()
     }
 
-    func forEachChild(body: (child: LCType) -> Void) {
+    func forEachChild(body: (child: LCValue) -> Void) {
         /* Nothing to do. */
     }
 
-    func add(other: LCType) throws -> LCType {
+    func add(other: LCValue) throws -> LCValue {
         throw LCError(code: .InvalidType, reason: "Object cannot be added.")
     }
 
-    func concatenate(other: LCType, unique: Bool) throws -> LCType {
+    func concatenate(other: LCValue, unique: Bool) throws -> LCValue {
         throw LCError(code: .InvalidType, reason: "Object cannot be concatenated.")
     }
 
-    func differ(other: LCType) throws -> LCType {
+    func differ(other: LCValue) throws -> LCValue {
         throw LCError(code: .InvalidType, reason: "Object cannot be differed.")
     }
 

@@ -15,7 +15,7 @@ import Foundation
  It can be extended into subclass while adding some other properties to form a new type.
  Each object is correspond to a record in data storage.
  */
-public class LCObject: NSObject, LCType, LCTypeExtension, SequenceType {
+public class LCObject: NSObject, LCValue, LCValueExtension, SequenceType {
     /// Access control lists.
     public dynamic var ACL: LCACL?
 
@@ -107,7 +107,7 @@ public class LCObject: NSObject, LCType, LCTypeExtension, SequenceType {
         return value
     }
 
-    public func generate() -> DictionaryGenerator<String, LCType> {
+    public func generate() -> DictionaryGenerator<String, LCValue> {
         return propertyTable.generate()
     }
 
@@ -136,23 +136,23 @@ public class LCObject: NSObject, LCType, LCTypeExtension, SequenceType {
         ]
     }
 
-    static func instance() -> LCType {
+    static func instance() -> LCValue {
         return self.init()
     }
 
-    func forEachChild(body: (child: LCType) -> Void) {
+    func forEachChild(body: (child: LCValue) -> Void) {
         propertyTable.forEachChild(body)
     }
 
-    func add(other: LCType) throws -> LCType {
+    func add(other: LCValue) throws -> LCValue {
         throw LCError(code: .InvalidType, reason: "Object cannot be added.")
     }
 
-    func concatenate(other: LCType, unique: Bool) throws -> LCType {
+    func concatenate(other: LCValue, unique: Bool) throws -> LCValue {
         throw LCError(code: .InvalidType, reason: "Object cannot be concatenated.")
     }
 
-    func differ(other: LCType) throws -> LCType {
+    func differ(other: LCValue) throws -> LCValue {
         throw LCError(code: .InvalidType, reason: "Object cannot be differed.")
     }
 
@@ -193,7 +193,7 @@ public class LCObject: NSObject, LCType, LCTypeExtension, SequenceType {
 
      - returns: The property value.
      */
-    func getProperty<Value: LCType>(key: String) throws -> Value? {
+    func getProperty<Value: LCValue>(key: String) throws -> Value? {
         let value = propertyTable[key]
 
         if let value = value {
@@ -216,7 +216,7 @@ public class LCObject: NSObject, LCType, LCTypeExtension, SequenceType {
 
      - returns: The property value.
      */
-    func loadProperty<Value: LCType>(key: String) throws -> Value {
+    func loadProperty<Value: LCValue>(key: String) throws -> Value {
         if let value: Value = try getProperty(key) {
             return value
         }
@@ -286,7 +286,7 @@ public class LCObject: NSObject, LCType, LCTypeExtension, SequenceType {
      - parameter key:   The operation key.
      - parameter value: The operation value.
      */
-    func addOperation(name: Operation.Name, _ key: String, _ value: LCType? = nil) {
+    func addOperation(name: Operation.Name, _ key: String, _ value: LCValue? = nil) {
         let operation = Operation(name: name, key: key, value: value)
 
         updateProperty(operation)
@@ -301,7 +301,7 @@ public class LCObject: NSObject, LCType, LCTypeExtension, SequenceType {
 
      - returns: The transformed value for key.
      */
-    func transformValue(key: String, _ value: LCType?) -> LCType? {
+    func transformValue(key: String, _ value: LCValue?) -> LCValue? {
         guard let value = value else {
             return nil
         }
@@ -322,7 +322,7 @@ public class LCObject: NSObject, LCType, LCTypeExtension, SequenceType {
      - parameter key:   The property key to be updated.
      - parameter value: The property value.
      */
-    func update(key: String, _ value: LCType?) {
+    func update(key: String, _ value: LCValue?) {
         self.willChangeValueForKey(key)
         propertyTable[key] = transformValue(key, value)
         self.didChangeValueForKey(key)
@@ -331,7 +331,7 @@ public class LCObject: NSObject, LCType, LCTypeExtension, SequenceType {
     /**
      Get and set value via subscript syntax.
      */
-    public subscript(key: String) -> LCType? {
+    public subscript(key: String) -> LCValue? {
         get { return get(key) }
         set { set(key, value: newValue) }
     }
@@ -343,7 +343,7 @@ public class LCObject: NSObject, LCType, LCTypeExtension, SequenceType {
 
      - returns: The value for key.
      */
-    public func get(key: String) -> LCType? {
+    public func get(key: String) -> LCValue? {
         return propertyTable[key]
     }
 
@@ -353,7 +353,7 @@ public class LCObject: NSObject, LCType, LCTypeExtension, SequenceType {
      - parameter key:   The key for which to set the value.
      - parameter value: The new value.
      */
-    func set(key: String, value: LCType?) {
+    func set(key: String, value: LCValue?) {
         if let value = value {
             addOperation(.Set, key, value)
         } else {
@@ -367,8 +367,8 @@ public class LCObject: NSObject, LCType, LCTypeExtension, SequenceType {
      - parameter key:   The key for which to set the value.
      - parameter value: The new value.
      */
-    public func set(key: String, value: LCTypeConvertible?) {
-        set(key, value: value?.lcType)
+    public func set(key: String, value: LCValueConvertible?) {
+        set(key, value: value?.lcValue)
     }
 
     /**
@@ -411,8 +411,8 @@ public class LCObject: NSObject, LCType, LCTypeExtension, SequenceType {
      - parameter key:     The key of array into which you want to append the element.
      - parameter element: The element to append.
      */
-    public func append(key: String, element: LCTypeConvertible) {
-        addOperation(.Add, key, LCArray([element.lcType]))
+    public func append(key: String, element: LCValueConvertible) {
+        addOperation(.Add, key, LCArray([element.lcValue]))
     }
 
     /**
@@ -434,14 +434,14 @@ public class LCObject: NSObject, LCType, LCTypeExtension, SequenceType {
                           If true, element will not be appended if it had already existed in array;
                           otherwise, element will always be appended.
      */
-    public func append(key: String, element: LCTypeConvertible, unique: Bool) {
-        addOperation(unique ? .AddUnique : .Add, key, LCArray([element.lcType]))
+    public func append(key: String, element: LCValueConvertible, unique: Bool) {
+        addOperation(unique ? .AddUnique : .Add, key, LCArray([element.lcValue]))
     }
 
     /**
      Append one or more elements into an array with unique option.
 
-     - seealso: `append(key: String, element: LCType, unique: Bool)`
+     - seealso: `append(key: String, element: LCValue, unique: Bool)`
 
      - parameter key:      The key of array into which you want to append the element.
      - parameter elements: The array of elements to append.
@@ -457,8 +457,8 @@ public class LCObject: NSObject, LCType, LCTypeExtension, SequenceType {
      - parameter key:     The key of array from which you want to remove the element.
      - parameter element: The element to remove.
      */
-    public func remove(key: String, element: LCTypeConvertible) {
-        addOperation(.Remove, key, LCArray([element.lcType]))
+    public func remove(key: String, element: LCValueConvertible) {
+        addOperation(.Remove, key, LCArray([element.lcValue]))
     }
 
     /**

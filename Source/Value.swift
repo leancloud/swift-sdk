@@ -1,5 +1,5 @@
 //
-//  LCType.swift
+//  LCValue.swift
 //  LeanCloud
 //
 //  Created by Tang Tianyong on 2/27/16.
@@ -13,7 +13,7 @@ import Foundation
 
  All LeanCloud data types must confirm this protocol.
  */
-@objc public protocol LCType: NSObjectProtocol, NSCoding, NSCopying {
+@objc public protocol LCValue: NSObjectProtocol, NSCoding, NSCopying {
     /**
      The JSON representation.
      */
@@ -26,11 +26,11 @@ import Foundation
 }
 
 /**
- Extension of LCType.
+ Extension of LCValue.
 
- By convention, all types that confirm `LCType` must also confirm `LCTypeExtension`.
+ By convention, all types that confirm `LCValue` must also confirm `LCValueExtension`.
  */
-protocol LCTypeExtension {
+protocol LCValueExtension {
     /**
      The LCON (LeanCloud Object Notation) representation.
 
@@ -48,7 +48,7 @@ protocol LCTypeExtension {
 
      - returns: An instance of current type.
      */
-    static func instance() throws -> LCType
+    static func instance() throws -> LCValue
 
     // MARK: Enumeration
 
@@ -57,7 +57,7 @@ protocol LCTypeExtension {
 
      - parameter body: The iterator closure.
      */
-    func forEachChild(body: (child: LCType) -> Void)
+    func forEachChild(body: (child: LCValue) -> Void)
 
     // MARK: Arithmetic
 
@@ -68,7 +68,7 @@ protocol LCTypeExtension {
 
      - returns: The sum of addition.
      */
-    func add(other: LCType) throws -> LCType
+    func add(other: LCValue) throws -> LCValue
 
     /**
      Concatenate an object with unique option.
@@ -81,7 +81,7 @@ protocol LCTypeExtension {
 
      - returns: The concatenation result.
      */
-    func concatenate(other: LCType, unique: Bool) throws -> LCType
+    func concatenate(other: LCValue, unique: Bool) throws -> LCValue
 
     /**
      Calculate difference with other.
@@ -90,77 +90,77 @@ protocol LCTypeExtension {
 
      - returns: The difference result.
      */
-    func differ(other: LCType) throws -> LCType
+    func differ(other: LCValue) throws -> LCValue
 }
 
 /**
- Convertible protocol for `LCType`.
+ Convertible protocol for `LCValue`.
  */
-public protocol LCTypeConvertible {
+public protocol LCValueConvertible {
     /**
-     Get the `LCType` value for current object.
+     Get the `LCValue` value for current object.
      */
-    var lcType: LCType { get }
+    var lcValue: LCValue { get }
 }
 
 /**
  Convertible protocol for `LCNull`.
  */
-public protocol LCNullConvertible: LCTypeConvertible {
+public protocol LCNullConvertible: LCValueConvertible {
     var lcNull: LCNull { get }
 }
 
 /**
  Convertible protocol for `LCNumber`.
  */
-public protocol LCNumberConvertible: LCTypeConvertible {
+public protocol LCNumberConvertible: LCValueConvertible {
     var lcNumber: LCNumber { get }
 }
 
 /**
  Convertible protocol for `LCBool`.
  */
-public protocol LCBoolConvertible: LCTypeConvertible {
+public protocol LCBoolConvertible: LCValueConvertible {
     var lcBool: LCBool { get }
 }
 
 /**
  Convertible protocol for `LCString`.
  */
-public protocol LCStringConvertible: LCTypeConvertible {
+public protocol LCStringConvertible: LCValueConvertible {
     var lcString: LCString { get }
 }
 
 /**
  Convertible protocol for `LCArray`.
  */
-public protocol LCArrayConvertible: LCTypeConvertible {
+public protocol LCArrayConvertible: LCValueConvertible {
     var lcArray: LCArray { get }
 }
 
 /**
  Convertible protocol for `LCDictionary`.
  */
-public protocol LCDictionaryConvertible: LCTypeConvertible {
+public protocol LCDictionaryConvertible: LCValueConvertible {
     var lcDictionary: LCDictionary { get }
 }
 
 /**
  Convertible protocol for `LCData`.
  */
-public protocol LCDataConvertible: LCTypeConvertible {
+public protocol LCDataConvertible: LCValueConvertible {
     var lcData: LCData { get }
 }
 
 /**
  Convertible protocol for `LCDate`.
  */
-public protocol LCDateConvertible: LCTypeConvertible {
+public protocol LCDateConvertible: LCValueConvertible {
     var lcDate: LCDate { get }
 }
 
 extension NSNull: LCNullConvertible {
-    public var lcType: LCType {
+    public var lcValue: LCValue {
         return lcNull
     }
 
@@ -170,7 +170,7 @@ extension NSNull: LCNullConvertible {
 }
 
 extension Int: LCNumberConvertible {
-    public var lcType: LCType {
+    public var lcValue: LCValue {
         return lcNumber
     }
 
@@ -180,7 +180,7 @@ extension Int: LCNumberConvertible {
 }
 
 extension UInt: LCNumberConvertible {
-    public var lcType: LCType {
+    public var lcValue: LCValue {
         return lcNumber
     }
 
@@ -190,7 +190,7 @@ extension UInt: LCNumberConvertible {
 }
 
 extension Int8: LCNumberConvertible {
-    public var lcType: LCType {
+    public var lcValue: LCValue {
         return lcNumber
     }
 
@@ -200,7 +200,7 @@ extension Int8: LCNumberConvertible {
 }
 
 extension UInt8: LCNumberConvertible {
-    public var lcType: LCType {
+    public var lcValue: LCValue {
         return lcNumber
     }
 
@@ -210,7 +210,7 @@ extension UInt8: LCNumberConvertible {
 }
 
 extension Int16: LCNumberConvertible {
-    public var lcType: LCType {
+    public var lcValue: LCValue {
         return lcNumber
     }
 
@@ -220,7 +220,7 @@ extension Int16: LCNumberConvertible {
 }
 
 extension UInt16: LCNumberConvertible {
-    public var lcType: LCType {
+    public var lcValue: LCValue {
         return lcNumber
     }
 
@@ -230,7 +230,7 @@ extension UInt16: LCNumberConvertible {
 }
 
 extension Int32: LCNumberConvertible {
-    public var lcType: LCType {
+    public var lcValue: LCValue {
         return lcNumber
     }
 
@@ -240,7 +240,7 @@ extension Int32: LCNumberConvertible {
 }
 
 extension UInt32: LCNumberConvertible {
-    public var lcType: LCType {
+    public var lcValue: LCValue {
         return lcNumber
     }
 
@@ -250,7 +250,7 @@ extension UInt32: LCNumberConvertible {
 }
 
 extension Int64: LCNumberConvertible {
-    public var lcType: LCType {
+    public var lcValue: LCValue {
         return lcNumber
     }
 
@@ -260,7 +260,7 @@ extension Int64: LCNumberConvertible {
 }
 
 extension UInt64: LCNumberConvertible {
-    public var lcType: LCType {
+    public var lcValue: LCValue {
         return lcNumber
     }
 
@@ -270,7 +270,7 @@ extension UInt64: LCNumberConvertible {
 }
 
 extension Float: LCNumberConvertible {
-    public var lcType: LCType {
+    public var lcValue: LCValue {
         return lcNumber
     }
 
@@ -280,7 +280,7 @@ extension Float: LCNumberConvertible {
 }
 
 extension Float80: LCNumberConvertible {
-    public var lcType: LCType {
+    public var lcValue: LCValue {
         return lcNumber
     }
 
@@ -290,7 +290,7 @@ extension Float80: LCNumberConvertible {
 }
 
 extension Double: LCNumberConvertible {
-    public var lcType: LCType {
+    public var lcValue: LCValue {
         return lcNumber
     }
 
@@ -300,7 +300,7 @@ extension Double: LCNumberConvertible {
 }
 
 extension Bool: LCBoolConvertible {
-    public var lcType: LCType {
+    public var lcValue: LCValue {
         return lcBool
     }
 
@@ -310,7 +310,7 @@ extension Bool: LCBoolConvertible {
 }
 
 extension NSNumber: LCNumberConvertible, LCBoolConvertible {
-    public var lcType: LCType {
+    public var lcValue: LCValue {
         return try! ObjectProfiler.object(JSONValue: self)
     }
 
@@ -324,7 +324,7 @@ extension NSNumber: LCNumberConvertible, LCBoolConvertible {
 }
 
 extension String: LCStringConvertible {
-    public var lcType: LCType {
+    public var lcValue: LCValue {
         return lcString
     }
 
@@ -334,7 +334,7 @@ extension String: LCStringConvertible {
 }
 
 extension NSString: LCStringConvertible {
-    public var lcType: LCType {
+    public var lcValue: LCValue {
         return lcString
     }
 
@@ -344,16 +344,16 @@ extension NSString: LCStringConvertible {
 }
 
 extension Array: LCArrayConvertible {
-    public var lcType: LCType {
+    public var lcValue: LCValue {
         return lcArray
     }
 
     public var lcArray: LCArray {
-        let value = try! map { element -> LCType in
-            guard let element = element as? LCTypeConvertible else {
-                throw LCError(code: .InvalidType, reason: "Element is not LCType-convertible.", userInfo: nil)
+        let value = try! map { element -> LCValue in
+            guard let element = element as? LCValueConvertible else {
+                throw LCError(code: .InvalidType, reason: "Element is not LCValue-convertible.", userInfo: nil)
             }
-            return element.lcType
+            return element.lcValue
         }
 
         return LCArray(value)
@@ -361,7 +361,7 @@ extension Array: LCArrayConvertible {
 }
 
 extension NSArray: LCArrayConvertible {
-    public var lcType: LCType {
+    public var lcValue: LCValue {
         return lcArray
     }
 
@@ -371,28 +371,28 @@ extension NSArray: LCArrayConvertible {
 }
 
 extension Dictionary: LCDictionaryConvertible {
-    public var lcType: LCType {
+    public var lcValue: LCValue {
         return lcDictionary
     }
 
     public var lcDictionary: LCDictionary {
-        let elements = try! map { (key, value) -> (String, LCType) in
+        let elements = try! map { (key, value) -> (String, LCValue) in
             guard let key = key as? String else {
                 throw LCError(code: .InvalidType, reason: "Key is not a string.", userInfo: nil)
             }
-            guard let value = value as? LCTypeConvertible else {
-                throw LCError(code: .InvalidType, reason: "Value is not LCType-convertible.", userInfo: nil)
+            guard let value = value as? LCValueConvertible else {
+                throw LCError(code: .InvalidType, reason: "Value is not LCValue-convertible.", userInfo: nil)
             }
-            return (key, value.lcType)
+            return (key, value.lcValue)
         }
-        let value = [String: LCType](elements: elements)
+        let value = [String: LCValue](elements: elements)
 
         return LCDictionary(value)
     }
 }
 
 extension NSDictionary: LCDictionaryConvertible {
-    public var lcType: LCType {
+    public var lcValue: LCValue {
         return lcDictionary
     }
 
@@ -402,7 +402,7 @@ extension NSDictionary: LCDictionaryConvertible {
 }
 
 extension NSData: LCDataConvertible {
-    public var lcType: LCType {
+    public var lcValue: LCValue {
         return lcData
     }
 
@@ -412,7 +412,7 @@ extension NSData: LCDataConvertible {
 }
 
 extension NSDate: LCDateConvertible {
-    public var lcType: LCType {
+    public var lcValue: LCValue {
         return lcDate
     }
 
@@ -421,8 +421,8 @@ extension NSDate: LCDateConvertible {
     }
 }
 
-extension LCNull: LCTypeConvertible, LCNullConvertible {
-    public var lcType: LCType {
+extension LCNull: LCValueConvertible, LCNullConvertible {
+    public var lcValue: LCValue {
         return self
     }
 
@@ -431,8 +431,8 @@ extension LCNull: LCTypeConvertible, LCNullConvertible {
     }
 }
 
-extension LCNumber: LCTypeConvertible, LCNumberConvertible {
-    public var lcType: LCType {
+extension LCNumber: LCValueConvertible, LCNumberConvertible {
+    public var lcValue: LCValue {
         return self
     }
 
@@ -441,8 +441,8 @@ extension LCNumber: LCTypeConvertible, LCNumberConvertible {
     }
 }
 
-extension LCBool: LCTypeConvertible, LCBoolConvertible {
-    public var lcType: LCType {
+extension LCBool: LCValueConvertible, LCBoolConvertible {
+    public var lcValue: LCValue {
         return self
     }
 
@@ -451,8 +451,8 @@ extension LCBool: LCTypeConvertible, LCBoolConvertible {
     }
 }
 
-extension LCString: LCTypeConvertible, LCStringConvertible {
-    public var lcType: LCType {
+extension LCString: LCValueConvertible, LCStringConvertible {
+    public var lcValue: LCValue {
         return self
     }
 
@@ -461,8 +461,8 @@ extension LCString: LCTypeConvertible, LCStringConvertible {
     }
 }
 
-extension LCArray: LCTypeConvertible, LCArrayConvertible {
-    public var lcType: LCType {
+extension LCArray: LCValueConvertible, LCArrayConvertible {
+    public var lcValue: LCValue {
         return self
     }
 
@@ -471,8 +471,8 @@ extension LCArray: LCTypeConvertible, LCArrayConvertible {
     }
 }
 
-extension LCDictionary: LCTypeConvertible, LCDictionaryConvertible {
-    public var lcType: LCType {
+extension LCDictionary: LCValueConvertible, LCDictionaryConvertible {
+    public var lcValue: LCValue {
         return self
     }
 
@@ -481,26 +481,26 @@ extension LCDictionary: LCTypeConvertible, LCDictionaryConvertible {
     }
 }
 
-extension LCObject: LCTypeConvertible {
-    public var lcType: LCType {
+extension LCObject: LCValueConvertible {
+    public var lcValue: LCValue {
         return self
     }
 }
 
-extension LCRelation: LCTypeConvertible {
-    public var lcType: LCType {
+extension LCRelation: LCValueConvertible {
+    public var lcValue: LCValue {
         return self
     }
 }
 
-extension LCGeoPoint: LCTypeConvertible {
-    public var lcType: LCType {
+extension LCGeoPoint: LCValueConvertible {
+    public var lcValue: LCValue {
         return self
     }
 }
 
-extension LCData: LCTypeConvertible, LCDataConvertible {
-    public var lcType: LCType {
+extension LCData: LCValueConvertible, LCDataConvertible {
+    public var lcValue: LCValue {
         return self
     }
 
@@ -509,8 +509,8 @@ extension LCData: LCTypeConvertible, LCDataConvertible {
     }
 }
 
-extension LCDate: LCTypeConvertible, LCDateConvertible {
-    public var lcType: LCType {
+extension LCDate: LCValueConvertible, LCDateConvertible {
+    public var lcValue: LCValue {
         return self
     }
 

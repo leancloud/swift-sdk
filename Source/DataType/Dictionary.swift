@@ -13,9 +13,9 @@ import Foundation
 
  It is a wrapper of `Swift.Dictionary` type, used to store a dictionary value.
  */
-public final class LCDictionary: NSObject, LCType, LCTypeExtension, CollectionType, DictionaryLiteralConvertible {
+public final class LCDictionary: NSObject, LCValue, LCValueExtension, CollectionType, DictionaryLiteralConvertible {
     public typealias Key   = String
-    public typealias Value = LCType
+    public typealias Value = LCValue
     public typealias Index = DictionaryIndex<Key, Value>
 
     public private(set) var value: [Key: Value] = [:]
@@ -41,7 +41,7 @@ public final class LCDictionary: NSObject, LCType, LCTypeExtension, CollectionTy
     }
 
     public required init?(coder aDecoder: NSCoder) {
-        value = (aDecoder.decodeObjectForKey("value") as? [String: LCType]) ?? [:]
+        value = (aDecoder.decodeObjectForKey("value") as? [String: LCValue]) ?? [:]
     }
 
     public func encodeWithCoder(aCoder: NSCoder) {
@@ -95,26 +95,26 @@ public final class LCDictionary: NSObject, LCType, LCTypeExtension, CollectionTy
     }
 
     var LCONValue: AnyObject? {
-        return value.mapValue { value in (value as! LCTypeExtension).LCONValue! }
+        return value.mapValue { value in (value as! LCValueExtension).LCONValue! }
     }
 
-    static func instance() -> LCType {
+    static func instance() -> LCValue {
         return self.init([:])
     }
 
-    func forEachChild(body: (child: LCType) -> Void) {
+    func forEachChild(body: (child: LCValue) -> Void) {
         forEach { body(child: $1) }
     }
 
-    func add(other: LCType) throws -> LCType {
+    func add(other: LCValue) throws -> LCValue {
         throw LCError(code: .InvalidType, reason: "Object cannot be added.")
     }
 
-    func concatenate(other: LCType, unique: Bool) throws -> LCType {
+    func concatenate(other: LCValue, unique: Bool) throws -> LCValue {
         throw LCError(code: .InvalidType, reason: "Object cannot be concatenated.")
     }
 
-    func differ(other: LCType) throws -> LCType {
+    func differ(other: LCValue) throws -> LCValue {
         throw LCError(code: .InvalidType, reason: "Object cannot be differed.")
     }
 }

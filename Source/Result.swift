@@ -52,7 +52,7 @@ public enum LCBooleanResult: LCResultType {
 /**
  Result type for object request.
  */
-public enum LCObjectResult<T: LCType>: LCResultType {
+public enum LCObjectResult<T: LCValue>: LCResultType {
     case Success(object: T)
     case Failure(error: LCError)
 
@@ -86,7 +86,7 @@ public enum LCObjectResult<T: LCType>: LCResultType {
  Result type for optional request.
  */
 public enum LCOptionalResult: LCResultType {
-    case Success(object: LCType?)
+    case Success(object: LCValue?)
     case Failure(error: LCError)
 
     public var error: LCError? {
@@ -105,7 +105,7 @@ public enum LCOptionalResult: LCResultType {
         }
     }
 
-    public var object: LCType? {
+    public var object: LCValue? {
         switch self {
         case let .Success(object):
             return object
@@ -236,7 +236,7 @@ extension LCResponse {
 
      - returns: `.Success` if response has no error and response data has valid type, `.Failure` otherwise.
      */
-    func objectResult<T: LCType>() -> LCObjectResult<T> {
+    func objectResult<T: LCValue>() -> LCObjectResult<T> {
         if let error = error {
             return .Failure(error: error)
         }

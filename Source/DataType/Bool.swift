@@ -13,7 +13,7 @@ import Foundation
 
  It is a wrapper of `Swift.Bool` type, used to store a boolean value.
  */
-public final class LCBool: NSObject, LCType, LCTypeExtension, BooleanLiteralConvertible {
+public final class LCBool: NSObject, LCValue, LCValueExtension, BooleanLiteralConvertible {
     public private(set) var value: Bool = false
 
     public override init() {
@@ -63,23 +63,23 @@ public final class LCBool: NSObject, LCType, LCTypeExtension, BooleanLiteralConv
         return value
     }
 
-    static func instance() -> LCType {
+    static func instance() -> LCValue {
         return LCBool()
     }
 
-    func forEachChild(body: (child: LCType) -> Void) {
+    func forEachChild(body: (child: LCValue) -> Void) {
         /* Nothing to do. */
     }
 
-    func add(other: LCType) throws -> LCType {
+    func add(other: LCValue) throws -> LCValue {
         throw LCError(code: .InvalidType, reason: "Object cannot be added.")
     }
 
-    func concatenate(other: LCType, unique: Bool) throws -> LCType {
+    func concatenate(other: LCValue, unique: Bool) throws -> LCValue {
         throw LCError(code: .InvalidType, reason: "Object cannot be concatenated.")
     }
 
-    func differ(other: LCType) throws -> LCType {
+    func differ(other: LCValue) throws -> LCValue {
         throw LCError(code: .InvalidType, reason: "Object cannot be differed.")
     }
 }

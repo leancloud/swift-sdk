@@ -13,7 +13,7 @@ import Foundation
 
  This type can be used to represent a byte buffers.
  */
-public final class LCData: NSObject, LCType, LCTypeExtension {
+public final class LCData: NSObject, LCValue, LCValueExtension {
     public private(set) var value: NSData = NSData()
 
     var base64EncodedString: String {
@@ -98,23 +98,23 @@ public final class LCData: NSObject, LCType, LCTypeExtension {
         return JSONValue
     }
 
-    static func instance() -> LCType {
+    static func instance() -> LCValue {
         return self.init()
     }
 
-    func forEachChild(body: (child: LCType) -> Void) {
+    func forEachChild(body: (child: LCValue) -> Void) {
         /* Nothing to do. */
     }
 
-    func add(other: LCType) throws -> LCType {
+    func add(other: LCValue) throws -> LCValue {
         throw LCError(code: .InvalidType, reason: "Object cannot be added.")
     }
 
-    func concatenate(other: LCType, unique: Bool) throws -> LCType {
+    func concatenate(other: LCValue, unique: Bool) throws -> LCValue {
         throw LCError(code: .InvalidType, reason: "Object cannot be concatenated.")
     }
 
-    func differ(other: LCType) throws -> LCType {
+    func differ(other: LCValue) throws -> LCValue {
         throw LCError(code: .InvalidType, reason: "Object cannot be differed.")
     }
 }

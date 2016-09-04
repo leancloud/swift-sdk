@@ -94,7 +94,7 @@ class ObjectProfiler {
      - returns: An array of synthesizable properties.
      */
     static func synthesizableProperties(aClass: LCObject.Type) -> [objc_property_t] {
-        return Runtime.nonComputedProperties(aClass).filter { hasLCType($0) }
+        return Runtime.nonComputedProperties(aClass).filter { hasLCValue($0) }
     }
 
     /**
@@ -104,18 +104,18 @@ class ObjectProfiler {
 
      - returns: true if property type has LeanCloud data type, false otherwise.
      */
-    static func hasLCType(property: objc_property_t) -> Bool {
-        return getLCType(property) != nil
+    static func hasLCValue(property: objc_property_t) -> Bool {
+        return getLCValue(property) != nil
     }
 
     /**
-     Get concrete LCType subclass of property.
+     Get concrete LCValue subclass of property.
 
      - parameter property: The property to be inspected.
 
-     - returns: Concrete LCType subclass, or nil if property type is not LCType.
+     - returns: Concrete LCValue subclass, or nil if property type is not LCValue.
      */
-    static func getLCType(property: objc_property_t) -> LCType.Type? {
+    static func getLCValue(property: objc_property_t) -> LCValue.Type? {
         let typeEncoding = Runtime.typeEncoding(property)
 
         guard typeEncoding.hasPrefix("@\"") else {
@@ -125,8 +125,8 @@ class ObjectProfiler {
         let name = typeEncoding[typeEncoding.startIndex.advancedBy(2)..<typeEncoding.endIndex.advancedBy(-1)];
 
         if let subclass = objc_getClass(name) as? AnyClass {
-            if class_conformsToProtocol(subclass, LCType.self) {
-                return subclass as? LCType.Type
+            if class_conformsToProtocol(subclass, LCValue.self) {
+                return subclass as? LCValue.Type
             }
         }
 
@@ -134,18 +134,18 @@ class ObjectProfiler {
     }
 
     /**
-     Get concrete LCType subclass of an object property.
+     Get concrete LCValue subclass of an object property.
 
      - parameter object:       Target object.
      - parameter propertyName: The name of property to be inspected.
 
-     - returns: Concrete LCType subclass, or nil if property type is not LCType.
+     - returns: Concrete LCValue subclass, or nil if property type is not LCValue.
      */
-    static func getLCType(object object: LCObject, propertyName: String) -> LCType.Type? {
+    static func getLCValue(object object: LCObject, propertyName: String) -> LCValue.Type? {
         let property = class_getProperty(object_getClass(object), propertyName)
 
         if property != nil {
-            return getLCType(property)
+            return getLCValue(property)
         } else {
             return nil
         }
@@ -175,7 +175,7 @@ class ObjectProfiler {
 
      - returns: true if object has newborn orphan object, false otherwise.
      */
-    static func deepestNewbornOrphans(object: LCType, parent: LCType?, inout output: Set<LCObject>) -> Bool {
+    static func deepestNewbornOrphans(object: LCValue, parent: LCValue?, inout output: Set<LCObject>) -> Bool {
         var hasNewbornOrphan = false
 
         switch object {
@@ -196,7 +196,7 @@ class ObjectProfiler {
                 hasNewbornOrphan = true
             }
         default:
-            (object as! LCTypeExtension).forEachChild { child in
+            (object as! LCValueExtension).forEachChild { child in
                 if deepestNewbornOrphans(child, parent: object, output: &output) {
                     hasNewbornOrphan = true
                 }
@@ -240,9 +240,9 @@ class ObjectProfiler {
         objects.forEach { try! toposortVisit($0, objects, &result, &visitStatusTable) }
     }
 
-    private static func toposortVisit(value: LCType, _ objects: Set<LCObject>, inout _ result: [LCObject], inout _ visitStatusTable: [UInt: Int]) throws {
+    private static func toposortVisit(value: LCValue, _ objects: Set<LCObject>, inout _ result: [LCObject], inout _ visitStatusTable: [UInt: Int]) throws {
         guard let object = value as? LCObject else {
-            (value as! LCTypeExtension).forEachChild { child in
+            (value as! LCValueExtension).forEachChild { child in
                 try! toposortVisit(child, objects, &result, &visitStatusTable)
             }
             return
@@ -283,8 +283,8 @@ class ObjectProfiler {
         return result
     }
 
-    private static func familyVisit(value: LCType, inout result: Set<LCObject>) {
-        (value as! LCTypeExtension).forEachChild { child in
+    private static func familyVisit(value: LCValue, inout result: Set<LCObject>) {
+        (value as! LCValueExtension).forEachChild { child in
             familyVisit(child, result: &result)
         }
 
@@ -311,13 +311,13 @@ class ObjectProfiler {
      - parameter object: The object to validate.
      - parameter visitStatusTable: The object visit status table.
      */
-    private static func validateCircularReference(object: LCType, inout visitStatusTable: [UInt: Int]) throws {
+    private static func validateCircularReference(object: LCValue, inout visitStatusTable: [UInt: Int]) throws {
         let key = ObjectIdentifier(object).uintValue
 
         switch visitStatusTable[key] ?? 0 {
         case 0: /* Unvisited */
             visitStatusTable[key] = 1
-            (object as! LCTypeExtension).forEachChild { (child) in
+            (object as! LCValueExtension).forEachChild { (child) in
                 try! validateCircularReference(child, visitStatusTable: &visitStatusTable)
             }
             visitStatusTable[key] = 2
@@ -393,9 +393,9 @@ class ObjectProfiler {
      - parameter dictionary: The source dictionary to be converted.
      - parameter dataType:   The data type.
 
-     - returns: An LCType object, or nil if object can not be decoded.
+     - returns: An LCValue object, or nil if object can not be decoded.
      */
-    static func object(dictionary dictionary: [String: AnyObject], dataType: RESTClient.DataType) -> LCType? {
+    static func object(dictionary dictionary: [String: AnyObject], dataType: RESTClient.DataType) -> LCValue? {
         switch dataType {
         case .Object, .Pointer:
             let className = dictionary["className"] as! String
@@ -413,14 +413,14 @@ class ObjectProfiler {
     }
 
     /**
-     Convert a dictionary to an LCType object.
+     Convert a dictionary to an LCValue object.
 
      - parameter dictionary: The source dictionary to be converted.
 
-     - returns: An LCType object.
+     - returns: An LCValue object.
      */
-    private static func object(dictionary dictionary: [String: AnyObject]) -> LCType {
-        var result: LCType!
+    private static func object(dictionary dictionary: [String: AnyObject]) -> LCValue {
+        var result: LCValue!
 
         if let type = dictionary["__type"] as? String {
             if let dataType = RESTClient.DataType(rawValue: type) {
@@ -436,13 +436,13 @@ class ObjectProfiler {
     }
 
     /**
-     Convert JSON value to LCType object.
+     Convert JSON value to LCValue object.
 
      - parameter JSONValue: The JSON value.
 
-     - returns: An LCType object of the corresponding JSON value.
+     - returns: An LCValue object of the corresponding JSON value.
      */
-    static func object(JSONValue JSONValue: AnyObject) throws -> LCType {
+    static func object(JSONValue JSONValue: AnyObject) throws -> LCValue {
         switch JSONValue {
         case let string as String:
             return LCString(string)
@@ -456,7 +456,7 @@ class ObjectProfiler {
             return LCDate(date)
         case is NSNull:
             return LCNull()
-        case let object as LCType:
+        case let object as LCValue:
             return object
         default:
             if isBoolean(JSONValue) {
@@ -482,8 +482,8 @@ class ObjectProfiler {
             return array.map { LCONValue($0) }
         case let dictionary as [String: AnyObject]:
             return dictionary.mapValue { LCONValue($0) }
-        case let object as LCType:
-            return (object as! LCTypeExtension).LCONValue!
+        case let object as LCValue:
+            return (object as! LCValueExtension).LCONValue!
         case let query as LCQuery:
             return query.LCONValue
         default:
@@ -558,11 +558,11 @@ class ObjectProfiler {
         return propertyName
     }
 
-    static func getJSONString(object: LCType) -> String {
+    static func getJSONString(object: LCValue) -> String {
         return getJSONString(object, depth: 0)
     }
 
-    static func getJSONString(object: LCType, depth: Int, indent: Int = 4) -> String {
+    static func getJSONString(object: LCValue, depth: Int, indent: Int = 4) -> String {
         switch object {
         case is LCNull:
             return "null"
@@ -644,9 +644,9 @@ class ObjectProfiler {
     static let propertySetter: @convention(c) (LCObject!, Selector, AnyObject?) -> Void = {
         (object: LCObject!, cmd: Selector, value: AnyObject?) -> Void in
         let key = ObjectProfiler.propertyName(cmd)
-        let value = value as? LCType
+        let value = value as? LCValue
 
-        if ObjectProfiler.getLCType(object: object, propertyName: key) == nil {
+        if ObjectProfiler.getLCValue(object: object, propertyName: key) == nil {
             object.set(key.firstLowercaseString, value: value)
         } else {
             object.set(key, value: value)

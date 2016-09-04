@@ -12,7 +12,7 @@ infix operator +~ {
     associativity left
 }
 
-func +(lhs: [LCType], rhs: [LCType]) -> [LCType] {
+func +(lhs: [LCValue], rhs: [LCValue]) -> [LCValue] {
     var result = lhs
 
     result.appendContentsOf(rhs)
@@ -20,7 +20,7 @@ func +(lhs: [LCType], rhs: [LCType]) -> [LCType] {
     return result
 }
 
-func +~(lhs: [LCType], rhs: [LCType]) -> [LCType] {
+func +~(lhs: [LCValue], rhs: [LCValue]) -> [LCValue] {
     var result = lhs
 
     rhs.forEach { element in
@@ -32,22 +32,22 @@ func +~(lhs: [LCType], rhs: [LCType]) -> [LCType] {
     return result
 }
 
-func -(lhs: [LCType], rhs: [LCType]) -> [LCType] {
+func -(lhs: [LCValue], rhs: [LCValue]) -> [LCValue] {
     return lhs.filter { element in
         !rhs.contains { $0.isEqual(element) }
     }
 }
 
-func +<T: LCType>(lhs: [T], rhs: [T]) -> [T] {
-    return ((lhs as [LCType]) + (rhs as [LCType])) as! [T]
+func +<T: LCValue>(lhs: [T], rhs: [T]) -> [T] {
+    return ((lhs as [LCValue]) + (rhs as [LCValue])) as! [T]
 }
 
-func +~<T: LCType>(lhs: [T], rhs: [T]) -> [T] {
-    return ((lhs as [LCType]) +~ (rhs as [LCType])) as! [T]
+func +~<T: LCValue>(lhs: [T], rhs: [T]) -> [T] {
+    return ((lhs as [LCValue]) +~ (rhs as [LCValue])) as! [T]
 }
 
-func -<T: LCType>(lhs: [T], rhs: [T]) -> [T] {
-    return ((lhs as [LCType]) - (rhs as [LCType])) as! [T]
+func -<T: LCValue>(lhs: [T], rhs: [T]) -> [T] {
+    return ((lhs as [LCValue]) - (rhs as [LCValue])) as! [T]
 }
 
 func *(lhs: String, rhs: Int) -> String {

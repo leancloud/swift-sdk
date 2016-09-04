@@ -28,10 +28,10 @@ final public class LCQuery: NSObject, NSCopying, NSCoding {
     private var selectedKeys: Set<String> = []
 
     /// Equality table.
-    private var equalityTable: [String: LCType] = [:]
+    private var equalityTable: [String: LCValue] = [:]
 
     /// Equality key-value pairs.
-    private var equalityPairs: [[String: LCType]] {
+    private var equalityPairs: [[String: LCValue]] {
         return equalityTable.map { [$0: $1] }
     }
 
@@ -39,7 +39,7 @@ final public class LCQuery: NSObject, NSCopying, NSCoding {
     private var orderedKeys: String?
 
     /// Dictionary of constraints indexed by key.
-    /// Note that it may contains LCType or Query value.
+    /// Note that it may contains LCValue or Query value.
     private var constraintDictionary: [String: AnyObject] = [:]
 
     /// Extra parameters for query request.
@@ -103,12 +103,12 @@ final public class LCQuery: NSObject, NSCopying, NSCoding {
         case Existed
         case NotExisted
 
-        case EqualTo(LCTypeConvertible)
-        case NotEqualTo(LCTypeConvertible)
-        case LessThan(LCTypeConvertible)
-        case LessThanOrEqualTo(LCTypeConvertible)
-        case GreaterThan(LCTypeConvertible)
-        case GreaterThanOrEqualTo(LCTypeConvertible)
+        case EqualTo(LCValueConvertible)
+        case NotEqualTo(LCValueConvertible)
+        case LessThan(LCValueConvertible)
+        case LessThanOrEqualTo(LCValueConvertible)
+        case GreaterThan(LCValueConvertible)
+        case GreaterThanOrEqualTo(LCValueConvertible)
 
         case ContainedIn(LCArrayConvertible)
         case NotContainedIn(LCArrayConvertible)
@@ -166,7 +166,7 @@ final public class LCQuery: NSObject, NSCopying, NSCoding {
         objectClassName = aDecoder.decodeObjectForKey("objectClassName") as! String
         includedKeys    = aDecoder.decodeObjectForKey("includedKeys") as! Set<String>
         selectedKeys    = aDecoder.decodeObjectForKey("selectedKeys") as! Set<String>
-        equalityTable   = aDecoder.decodeObjectForKey("equalityTable") as! [String: LCType]
+        equalityTable   = aDecoder.decodeObjectForKey("equalityTable") as! [String: LCValue]
         constraintDictionary = aDecoder.decodeObjectForKey("constraintDictionary") as! [String: AnyObject]
         extraParameters = aDecoder.decodeObjectForKey("extraParameters") as? [String: AnyObject]
         limit = aDecoder.decodeObjectForKey("limit") as? Int
@@ -212,18 +212,18 @@ final public class LCQuery: NSObject, NSCopying, NSCoding {
 
         /* Equality matching. */
         case let .EqualTo(value):
-            equalityTable[key] = value.lcType
+            equalityTable[key] = value.lcValue
             constraintDictionary["$and"] = equalityPairs
         case let .NotEqualTo(value):
-            dictionary = ["$ne": value.lcType]
+            dictionary = ["$ne": value.lcValue]
         case let .LessThan(value):
-            dictionary = ["$lt": value.lcType]
+            dictionary = ["$lt": value.lcValue]
         case let .LessThanOrEqualTo(value):
-            dictionary = ["$lte": value.lcType]
+            dictionary = ["$lte": value.lcValue]
         case let .GreaterThan(value):
-            dictionary = ["$gt": value.lcType]
+            dictionary = ["$gt": value.lcValue]
         case let .GreaterThanOrEqualTo(value):
-            dictionary = ["$gte": value.lcType]
+            dictionary = ["$gte": value.lcValue]
 
         /* Array matching. */
         case let .ContainedIn(array):
