@@ -353,7 +353,27 @@ extension Array: LCArrayConvertible {
     }
 }
 
+extension NSArray: LCArrayConvertible {
+    public var lcType: LCType {
+        return lcArray
+    }
+
+    public var lcArray: LCArray {
+        return try! ObjectProfiler.object(JSONValue: self as! AnyObject) as! LCArray
+    }
+}
+
 extension Dictionary: LCDictionaryConvertible {
+    public var lcType: LCType {
+        return lcDictionary
+    }
+
+    public var lcDictionary: LCDictionary {
+        return try! ObjectProfiler.object(JSONValue: self as! AnyObject) as! LCDictionary
+    }
+}
+
+extension NSDictionary: LCDictionaryConvertible {
     public var lcType: LCType {
         return lcDictionary
     }
