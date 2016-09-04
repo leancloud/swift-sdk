@@ -25,44 +25,50 @@ class TypeTestCase: BaseTestCase {
         return object.lcType
     }
 
-    func testConvertible() {
-        // Null
+    func testNullConvertible() {
         XCTAssertEqual(convert(NSNull()) as? LCNull, LCNull())
+    }
 
-        // Integer
-        XCTAssertEqual(convert(Int(42))     as? LCNumber, 42)
-        XCTAssertEqual(convert(UInt(42))    as? LCNumber, 42)
-        XCTAssertEqual(convert(Int8(42))    as? LCNumber, 42)
-        XCTAssertEqual(convert(UInt8(42))   as? LCNumber, 42)
-        XCTAssertEqual(convert(Int16(42))   as? LCNumber, 42)
-        XCTAssertEqual(convert(UInt16(42))  as? LCNumber, 42)
-        XCTAssertEqual(convert(Int32(42))   as? LCNumber, 42)
-        XCTAssertEqual(convert(UInt32(42))  as? LCNumber, 42)
-        XCTAssertEqual(convert(Int64(42))   as? LCNumber, 42)
-        XCTAssertEqual(convert(UInt64(42))  as? LCNumber, 42)
+    func testIntegerConvertible() {
+        XCTAssertEqual(convert(Int(42))    as? LCNumber, 42)
+        XCTAssertEqual(convert(UInt(42))   as? LCNumber, 42)
+        XCTAssertEqual(convert(Int8(42))   as? LCNumber, 42)
+        XCTAssertEqual(convert(UInt8(42))  as? LCNumber, 42)
+        XCTAssertEqual(convert(Int16(42))  as? LCNumber, 42)
+        XCTAssertEqual(convert(UInt16(42)) as? LCNumber, 42)
+        XCTAssertEqual(convert(Int32(42))  as? LCNumber, 42)
+        XCTAssertEqual(convert(UInt32(42)) as? LCNumber, 42)
+        XCTAssertEqual(convert(Int64(42))  as? LCNumber, 42)
+        XCTAssertEqual(convert(UInt64(42)) as? LCNumber, 42)
+    }
 
-        // Float
+    func testFloatConvertible() {
         XCTAssertEqual(convert(Float(42))   as? LCNumber, 42)
         XCTAssertEqual(convert(Float80(42)) as? LCNumber, 42)
         XCTAssertEqual(convert(Double(42))  as? LCNumber, 42)
+    }
 
-        // String
-        XCTAssertEqual(convert("foo")                   as? LCString, "foo")
+    func testStringConvertible() {
+        XCTAssertEqual(convert("foo") as? LCString, "foo")
         XCTAssertEqual(convert(NSString(string: "foo")) as? LCString, "foo")
+    }
 
-        // Array
+    func testArrayConvertible() {
         let array = [42, true, NSNull(), [:], [], NSData(), NSDate()]
         XCTAssertEqual(convert(array) as? LCArray, LCArray(unsafeObject: array))
+    }
 
-        // Dictionary
+    func testDictionaryConvertible() {
         let dictionary = ["foo": "bar", "true": true, "dict": ["null": NSNull()]]
         XCTAssertEqual(convert(dictionary) as? LCDictionary, LCDictionary(unsafeObject: dictionary))
+    }
 
-        // Data
+    func testDataConvertible() {
         let data = NSData()
         XCTAssertEqual(convert(data) as? LCData, LCData(data))
+    }
 
-        // Date
+    func testDateConvertible() {
         let date = NSDate()
         XCTAssertEqual(convert(date) as? LCDate, LCDate(date))
     }
