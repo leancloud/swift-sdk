@@ -268,38 +268,38 @@ class QueryTestCase: BaseTestCase {
         XCTAssertTrue(isSuccess && !objects.isEmpty)
     }
 
-    func testNearbyPoint() {
+    func testLocatedNear() {
         let query = objectQuery()
 
-        query.whereKey("geoPointField", .NearbyPoint(LCGeoPoint(latitude: 45, longitude: -45)))
+        query.whereKey("geoPointField", .LocatedNear(LCGeoPoint(latitude: 45, longitude: -45), minimal: nil, maximal: nil))
         query.limit = 1
 
         let (isSuccess, objects) = execute(query)
         XCTAssertTrue(isSuccess && !objects.isEmpty)
     }
 
-    func testNearbyPointWithRange() {
+    func testLocatedNearWithRange() {
         let query = objectQuery()
 
         /* Tip: At the equator, one degree of longitude and latitude is approximately equal to about 111 kilometers, or 70 miles. */
 
-        let from = LCGeoPoint.Distance(value: 0, unit: .Kilometer)
-        let to   = LCGeoPoint.Distance(value: 150, unit: .Kilometer)
+        let minimal = LCGeoPoint.Distance(value: 0, unit: .Kilometer)
+        let maximal = LCGeoPoint.Distance(value: 150, unit: .Kilometer)
 
-        query.whereKey("geoPointField", .NearbyPointWithRange(origin: LCGeoPoint(latitude: 44, longitude: -45), from: from, to: to))
+        query.whereKey("geoPointField", .LocatedNear(LCGeoPoint(latitude: 44, longitude: -45), minimal: minimal, maximal: maximal))
         query.limit = 1
 
         let (isSuccess, objects) = execute(query)
         XCTAssertTrue(isSuccess && !objects.isEmpty)
     }
 
-    func testNearbyPointWithRectangle() {
+    func testLocatedWithin() {
         let query = objectQuery()
 
         let southwest = LCGeoPoint(latitude: 44, longitude: -46)
         let northeast = LCGeoPoint(latitude: 46, longitude: -44)
 
-        query.whereKey("geoPointField", .NearbyPointWithRectangle(southwest: southwest, northeast: northeast))
+        query.whereKey("geoPointField", .LocatedWithin(southwest: southwest, northeast: northeast))
         query.limit = 1
 
         let (isSuccess, objects) = execute(query)
@@ -370,7 +370,7 @@ class QueryTestCase: BaseTestCase {
         let query  = objectQuery()
 
         query.whereKey("objectId", .EqualTo(object.objectId!))
-        query.whereKey("stringField", .MatchedPattern("^foo$", option: nil))
+        query.whereKey("stringField", .MatchedRegularExpression("^foo$", option: nil))
 
         let (isSuccess, objects) = execute(query)
         XCTAssertTrue(isSuccess && !objects.isEmpty)

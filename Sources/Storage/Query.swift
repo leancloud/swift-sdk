@@ -115,16 +115,15 @@ final public class LCQuery: NSObject, NSCopying, NSCoding {
         case ContainedAllIn(LCArrayConvertible)
         case EqualToSize(Int)
 
-        case NearbyPoint(LCGeoPoint)
-        case NearbyPointWithRange(origin: LCGeoPoint, from: LCGeoPoint.Distance?, to: LCGeoPoint.Distance?)
-        case NearbyPointWithRectangle(southwest: LCGeoPoint, northeast: LCGeoPoint)
+        case LocatedNear(LCGeoPoint, minimal: LCGeoPoint.Distance?, maximal: LCGeoPoint.Distance?)
+        case LocatedWithin(southwest: LCGeoPoint, northeast: LCGeoPoint)
 
         case MatchedQuery(LCQuery)
         case NotMatchedQuery(LCQuery)
         case MatchedQueryAndKey(query: LCQuery, key: String)
         case NotMatchedQueryAndKey(query: LCQuery, key: String)
 
-        case MatchedPattern(String, option: String?)
+        case MatchedRegularExpression(String, option: String?)
         case MatchedSubstring(String)
         case PrefixedBy(String)
         case SuffixedBy(String)
@@ -236,14 +235,12 @@ final public class LCQuery: NSObject, NSCopying, NSCoding {
             dictionary = ["$size": size]
 
         /* Geography point matching. */
-        case let .NearbyPoint(point):
-            dictionary = ["$nearSphere": point]
-        case let .NearbyPointWithRange(point, min, max):
-            var value: [String: AnyObject] = ["$nearSphere": point]
-            if let min = min { value["$minDistanceIn\(min.unit.rawValue)"] = min.value }
-            if let max = max { value["$maxDistanceIn\(max.unit.rawValue)"] = max.value }
+        case let .LocatedNear(center, minimal, maximal):
+            var value: [String: AnyObject] = ["$nearSphere": center]
+            if let min = minimal { value["$minDistanceIn\(min.unit.rawValue)"] = min.value }
+            if let max = maximal { value["$maxDistanceIn\(max.unit.rawValue)"] = max.value }
             dictionary = value
-        case let .NearbyPointWithRectangle(southwest, northeast):
+        case let .LocatedWithin(southwest, northeast):
             dictionary = ["$within": ["$box": [southwest, northeast]]]
 
         /* Query matching. */
@@ -257,8 +254,8 @@ final public class LCQuery: NSObject, NSCopying, NSCoding {
             dictionary = ["$dontSelect": ["query": query, "key": key]]
 
         /* String matching. */
-        case let .MatchedPattern(pattern, option):
-            dictionary = ["$regex": pattern, "$options": option ?? ""]
+        case let .MatchedRegularExpression(regex, option):
+            dictionary = ["$regex": regex, "$options": option ?? ""]
         case let .MatchedSubstring(string):
             dictionary = ["$regex": "\(string.regularEscapedString)"]
         case let .PrefixedBy(string):
