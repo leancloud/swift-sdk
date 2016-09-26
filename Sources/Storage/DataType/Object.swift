@@ -89,11 +89,9 @@ public class LCObject: NSObject, LCValue, LCValueExtension, SequenceType {
         return self
     }
 
-    public override func isEqual(another: AnyObject?) -> Bool {
-        if another === self {
-            return true
-        } else if another?.objectId != nil && objectId != nil {
-            return another?.objectId == objectId
+    public override func isEqual(object: AnyObject?) -> Bool {
+        if let object = object as? LCObject {
+            return object === self || (hasObjectId && object.objectId == objectId)
         } else {
             return false
         }

@@ -75,6 +75,14 @@ public final class LCRelation: NSObject, LCValue, LCValueExtension, SequenceType
         return self
     }
 
+    public override func isEqual(object: AnyObject?) -> Bool {
+        if let object = object as? LCRelation {
+            return object === self || (parent != nil && key != nil && object.parent == parent && object.key == key)
+        } else {
+            return false
+        }
+    }
+
     public func generate() -> IndexingGenerator<[Element]> {
         return value.generate()
     }

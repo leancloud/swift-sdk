@@ -73,11 +73,9 @@ public final class LCData: NSObject, LCValue, LCValueExtension {
         return LCData(value.copy() as! NSData)
     }
 
-    public override func isEqual(another: AnyObject?) -> Bool {
-        if another === self {
-            return true
-        } else if let another = another as? LCData {
-            return another.value.isEqualToData(value)
+    public override func isEqual(object: AnyObject?) -> Bool {
+        if let object = object as? LCData {
+            return object === self || object.value == value
         } else {
             return false
         }

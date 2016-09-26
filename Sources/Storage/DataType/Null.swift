@@ -33,7 +33,7 @@ public class LCNull: NSObject, LCValue, LCValueExtension {
     }
 
     public override func isEqual(object: AnyObject?) -> Bool {
-        return object === self || object is LCNull
+        return object is LCNull
     }
 
     public var JSONValue: AnyObject {

@@ -54,6 +54,56 @@ func *(lhs: String, rhs: Int) -> String {
     return "".stringByPaddingToLength(rhs * lhs.characters.count, withString: lhs, startingAtIndex: 0)
 }
 
+func ==(lhs: [LCValue], rhs: [LCValue]) -> Bool {
+    let count = lhs.count
+
+    guard count == rhs.count else {
+        return false
+    }
+
+    for index in 0..<count {
+        guard lhs[index].isEqual(rhs[index]) else {
+            return false
+        }
+    }
+
+    return true
+}
+
+func ==<K: Equatable, V: Equatable>(lhs: [K: [K: V]], rhs: [K: [K: V]]) -> Bool {
+    guard lhs.count == rhs.count else {
+        return false
+    }
+
+    for (key, lval) in lhs {
+        guard let rval = rhs[key] else {
+            return false
+        }
+        guard lval == rval else {
+            return false
+        }
+    }
+
+    return true
+}
+
+func ==(lhs: [LCDictionary.Key: LCDictionary.Value], rhs: [LCDictionary.Key: LCDictionary.Value]) -> Bool {
+    guard lhs.count == rhs.count else {
+        return false
+    }
+
+    for (key, lval) in lhs {
+        guard let rval = rhs[key] else {
+            return false
+        }
+        guard lval.isEqual(rval) else {
+            return false
+        }
+    }
+
+    return true
+}
+
 extension Dictionary {
     init(elements: [Element]) {
         self.init()

@@ -46,10 +46,8 @@ public final class LCNumber: NSObject, LCValue, LCValueExtension, FloatLiteralCo
     }
 
     public override func isEqual(object: AnyObject?) -> Bool {
-        if object === self {
-            return true
-        } else if let object = object as? LCNumber {
-            return object.value == value
+        if let object = object as? LCNumber {
+            return object === self || object.value == value
         } else {
             return false
         }

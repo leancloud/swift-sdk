@@ -107,11 +107,9 @@ public final class LCDate: NSObject, LCValue, LCValueExtension {
         return LCDate(value.copy() as! NSDate)
     }
 
-    public override func isEqual(another: AnyObject?) -> Bool {
-        if another === self {
-            return true
-        } else if let another = another as? LCDate {
-            return another.value.isEqualToDate(value)
+    public override func isEqual(object: AnyObject?) -> Bool {
+        if let object = object as? LCDate {
+            return object === self || object.value == value
         } else {
             return false
         }

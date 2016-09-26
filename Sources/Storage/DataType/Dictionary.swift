@@ -53,13 +53,8 @@ public final class LCDictionary: NSObject, LCValue, LCValueExtension, Collection
     }
 
     public override func isEqual(object: AnyObject?) -> Bool {
-        if object === self {
-            return true
-        } else if let object = object as? LCDictionary {
-            let lhs: AnyObject = value
-            let rhs: AnyObject = object.value
-
-            return lhs.isEqual(rhs)
+        if let object = object as? LCDictionary {
+            return object === self || object.value == value
         } else {
             return false
         }

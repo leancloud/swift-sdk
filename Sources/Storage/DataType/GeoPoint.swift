@@ -78,11 +78,9 @@ public final class LCGeoPoint: NSObject, LCValue, LCValueExtension {
         return LCGeoPoint(latitude: latitude, longitude: longitude)
     }
 
-    public override func isEqual(another: AnyObject?) -> Bool {
-        if another === self {
-            return true
-        } else if let another = another as? LCGeoPoint {
-            return another.latitude == latitude && another.longitude == longitude
+    public override func isEqual(object: AnyObject?) -> Bool {
+        if let object = object as? LCGeoPoint {
+            return object === self || (object.latitude == latitude && object.longitude == longitude)
         } else {
             return false
         }

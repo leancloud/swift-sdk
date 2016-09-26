@@ -42,10 +42,8 @@ public final class LCBool: NSObject, LCValue, LCValueExtension, BooleanLiteralCo
     }
 
     public override func isEqual(object: AnyObject?) -> Bool {
-        if object === self {
-            return true
-        } else if let object = object as? LCBool {
-            return object.value == value
+        if let object = object as? LCBool {
+            return object === self || object.value == value
         } else {
             return false
         }

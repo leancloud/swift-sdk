@@ -56,6 +56,14 @@ public final class LCACL: NSObject, LCValue, LCValueExtension {
         return copy
     }
 
+    public override func isEqual(object: AnyObject?) -> Bool {
+        if let object = object as? LCACL {
+            return object === self || object.value == value
+        } else {
+            return false
+        }
+    }
+
     public var JSONValue: AnyObject {
         return value
     }

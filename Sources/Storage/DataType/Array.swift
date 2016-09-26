@@ -52,13 +52,8 @@ public final class LCArray: NSObject, LCValue, LCValueExtension, CollectionType,
     }
 
     public override func isEqual(object: AnyObject?) -> Bool {
-        if object === self {
-            return true
-        } else if let object = object as? LCArray {
-            let lhs: AnyObject = value
-            let rhs: AnyObject = object.value
-
-            return lhs.isEqual(rhs)
+        if let object = object as? LCArray {
+            return object === self || object.value == value
         } else {
             return false
         }

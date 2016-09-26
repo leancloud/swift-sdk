@@ -53,10 +53,8 @@ public final class LCString: NSObject, LCValue, LCValueExtension, StringLiteralC
     }
 
     public override func isEqual(object: AnyObject?) -> Bool {
-        if object === self {
-            return true
-        } else if let object = object as? LCString {
-            return object.value == value
+        if let object = object as? LCString {
+            return object === self || object.value == value
         } else {
             return false
         }
