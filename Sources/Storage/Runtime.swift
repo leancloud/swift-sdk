@@ -54,7 +54,7 @@ class Runtime {
             return result
         }
 
-        let classes = AutoreleasingUnsafeMutablePointer<AnyClass?>(malloc(sizeof(AnyClass) * Int(count)));
+        let classes = AutoreleasingUnsafeMutablePointer<AnyClass?>(malloc(sizeof(AnyClass) * Int(count)))
 
         for i in 0..<Int(objc_getClassList(classes, count)) {
             guard let someclass = classes[i] else {

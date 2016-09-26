@@ -122,7 +122,7 @@ class ObjectProfiler {
             return nil
         }
 
-        let name = typeEncoding[typeEncoding.startIndex.advancedBy(2)..<typeEncoding.endIndex.advancedBy(-1)];
+        let name = typeEncoding[typeEncoding.startIndex.advancedBy(2)..<typeEncoding.endIndex.advancedBy(-1)]
 
         if let subclass = objc_getClass(name) as? AnyClass {
             if class_conformsToProtocol(subclass, LCValue.self) {
