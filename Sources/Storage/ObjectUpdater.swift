@@ -49,7 +49,7 @@ class ObjectUpdater {
 
         dictionary.forEach { (key, value) in
             let filtered = objects.filter { object in
-                key == object.objectId || key == object.internalId
+                key == object.objectId?.value || key == object.internalId
             }
 
             filtered.forEach { object in
