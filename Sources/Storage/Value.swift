@@ -279,6 +279,8 @@ extension Float: LCNumberConvertible {
     }
 }
 
+#if arch(i386) || arch(x86_64)
+
 extension Float80: LCNumberConvertible {
     public var lcValue: LCValue {
         return lcNumber
@@ -288,6 +290,8 @@ extension Float80: LCNumberConvertible {
         return LCNumber(Double(self))
     }
 }
+
+#endif
 
 extension Double: LCNumberConvertible {
     public var lcValue: LCValue {
