@@ -161,7 +161,7 @@ class ObjectTestCase: BaseTestCase {
 
         let result = object.fetch()
         XCTAssertTrue(result.isFailure)
-        XCTAssertEqual(LCError.InternalErrorCode(rawValue: result.error!.code), .NotFound)
+        XCTAssertEqual(LCError.InternalErrorCode(rawValue: result.error!.code), .notFound)
     }
 
     func testFetchNotFound() {
@@ -169,7 +169,7 @@ class ObjectTestCase: BaseTestCase {
 
         let result = object.fetch()
         XCTAssertTrue(result.isFailure)
-        XCTAssertEqual(LCError.ServerErrorCode(rawValue: result.error!.code), .ObjectNotFound)
+        XCTAssertEqual(LCError.ServerErrorCode(rawValue: result.error!.code), .objectNotFound)
     }
 
     func testFetchObjects() {
@@ -178,8 +178,8 @@ class ObjectTestCase: BaseTestCase {
         let notFound = TestObject(objectId: "000")
         let newborn  = TestObject()
 
-        XCTAssertEqual(LCError.InternalErrorCode(rawValue: LCObject.fetch([object, newborn]).error!.code), .NotFound)
-        XCTAssertEqual(LCError.ServerErrorCode(rawValue: LCObject.fetch([object, notFound]).error!.code), .ObjectNotFound)
+        XCTAssertEqual(LCError.InternalErrorCode(rawValue: LCObject.fetch([object, newborn]).error!.code), .notFound)
+        XCTAssertEqual(LCError.ServerErrorCode(rawValue: LCObject.fetch([object, notFound]).error!.code), .objectNotFound)
         XCTAssertTrue(LCObject.fetch([object, child]).isSuccess)
     }
 
@@ -212,7 +212,7 @@ class ObjectTestCase: BaseTestCase {
     func testKVO() {
         let object = TestObject()
 
-        object.addObserver(self, forKeyPath: "stringField", options: .New, context: nil)
+        object.addObserver(self, forKeyPath: "stringField", options: .new, context: nil)
         object.stringField = "yet another value"
         object.removeObserver(self, forKeyPath: "stringField")
 
@@ -225,7 +225,7 @@ class ObjectTestCase: BaseTestCase {
         change: [NSKeyValueChangeKey : Any]?,
         context: UnsafeMutableRawPointer?)
     {
-        if let newValue = change?["new"] as? LCString {
+        if let newValue = change?[NSKeyValueChangeKey.newKey] as? LCString {
             if newValue == LCString("yet another value") {
                 observed = true
             }

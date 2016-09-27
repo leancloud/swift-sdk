@@ -55,12 +55,12 @@ class TypeTestCase: BaseTestCase {
 
     func testArrayConvertible() {
         let array = [42, true, NSNull(), [:], [], Data(), Date()] as [Any]
-        XCTAssertEqual(convert(array) as? LCArray, LCArray(unsafeObject: array))
+        XCTAssertEqual(convert(array) as? LCArray, LCArray(unsafeObject: array as [AnyObject]))
     }
 
     func testDictionaryConvertible() {
         let dictionary = ["foo": "bar", "true": true, "dict": ["null": NSNull()]] as [String : Any]
-        XCTAssertEqual(convert(dictionary) as? LCDictionary, LCDictionary(unsafeObject: dictionary))
+        XCTAssertEqual(convert(dictionary) as? LCDictionary, LCDictionary(unsafeObject: dictionary as [LCDictionary.Key : AnyObject]))
     }
 
     func testDataConvertible() {

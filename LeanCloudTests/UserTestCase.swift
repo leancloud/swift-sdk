@@ -44,8 +44,10 @@ class UserTestCase: BaseTestCase {
         let result = current.updatePassword(oldPassword: password, newPassword: newPassword)
 
         XCTAssertTrue(result.isSuccess)
-        XCTAssertNotEqual(current.sessionToken, sessionToken)
+        XCTAssertNotEqual(current.sessionToken!.value, sessionToken)
         XCTAssertNotEqual(current.updatedAt, updatedAt)
+
+        LCUser.logOut()
     }
 
 }
