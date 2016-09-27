@@ -46,13 +46,13 @@ final public class LCQuery: NSObject, NSCopying, NSCoding {
     var extraParameters: [String: AnyObject]?
 
     /// LCON representation of query.
-    var LCONValue: [String: AnyObject] {
+    var lconValue: [String: AnyObject] {
         var dictionary: [String: AnyObject] = [:]
 
         dictionary["className"] = objectClassName as AnyObject?
 
         if !constraintDictionary.isEmpty {
-            dictionary["where"] = ObjectProfiler.LCONValue(constraintDictionary as AnyObject)
+            dictionary["where"] = ObjectProfiler.lconValue(constraintDictionary as AnyObject)
         }
         if !includedKeys.isEmpty {
             dictionary["include"] = includedKeys.joined(separator: ",") as AnyObject?
@@ -81,11 +81,11 @@ final public class LCQuery: NSObject, NSCopying, NSCoding {
 
     /// Parameters for query request.
     fileprivate var parameters: [String: AnyObject] {
-        var parameters = LCONValue
+        var parameters = lconValue
 
         /* Encode where field to string. */
         if let object = parameters["where"] {
-            parameters["where"] = Utility.JSONString(object) as AnyObject
+            parameters["where"] = Utility.jsonString(object) as AnyObject
         }
 
         return parameters
@@ -380,7 +380,7 @@ final public class LCQuery: NSObject, NSCopying, NSCoding {
      - returns: The result of the query request.
      */
     public func find<T: LCObject>() -> LCQueryResult<T> {
-        let response = RESTClient.request(.GET, endpoint, parameters: parameters)
+        let response = RESTClient.request(.get, endpoint, parameters: parameters)
 
         if let error = response.error {
             return .failure(error: error)
@@ -478,7 +478,7 @@ final public class LCQuery: NSObject, NSCopying, NSCoding {
         parameters["count"] = 1 as AnyObject?
         parameters["limit"] = 0 as AnyObject?
 
-        let response = RESTClient.request(.GET, endpoint, parameters: parameters)
+        let response = RESTClient.request(.get, endpoint, parameters: parameters)
         let result = LCCountResult(response: response)
 
         return result

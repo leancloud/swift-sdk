@@ -23,15 +23,15 @@ public final class LCDate: NSObject, LCValue, LCValueExtension {
         return formatter
     }()
 
-    static func dateFromString(_ string: String) -> Date? {
-        return dateFormatter.date(from: string)
+    static func dateFromString(_ isoString: String) -> Date? {
+        return dateFormatter.date(from: isoString)
     }
 
     static func stringFromDate(_ date: Date) -> String {
         return dateFormatter.string(from: date)
     }
 
-    var ISOString: String {
+    var isoString: String {
         return LCDate.stringFromDate(value)
     }
 
@@ -44,8 +44,8 @@ public final class LCDate: NSObject, LCValue, LCValueExtension {
         value = date
     }
 
-    init?(ISOString: String) {
-        guard let date = LCDate.dateFromString(ISOString) else {
+    init?(isoString: String) {
+        guard let date = LCDate.dateFromString(isoString) else {
             return nil
         }
 
@@ -59,7 +59,7 @@ public final class LCDate: NSObject, LCValue, LCValueExtension {
         guard let dataType = RESTClient.DataType(rawValue: type) else {
             return nil
         }
-        guard case dataType = RESTClient.DataType.Date else {
+        guard case dataType = RESTClient.DataType.date else {
             return nil
         }
         guard let ISOString = dictionary["iso"] as? String else {
@@ -72,10 +72,10 @@ public final class LCDate: NSObject, LCValue, LCValueExtension {
         value = date
     }
 
-    init?(JSONValue: AnyObject?) {
+    init?(jsonValue: AnyObject?) {
         var value: Date?
 
-        switch JSONValue {
+        switch jsonValue {
         case let ISOString as String:
             value = LCDate.dateFromString(ISOString)
         case let dictionary as [String: AnyObject]:
@@ -115,19 +115,19 @@ public final class LCDate: NSObject, LCValue, LCValueExtension {
         }
     }
 
-    public var JSONValue: AnyObject {
+    public var jsonValue: AnyObject {
         return [
             "__type": "Date",
-            "iso": ISOString
+            "iso": isoString
         ] as AnyObject
     }
 
-    public var JSONString: String {
+    public var jsonString: String {
         return ObjectProfiler.getJSONString(self)
     }
 
-    var LCONValue: AnyObject? {
-        return JSONValue
+    var lconValue: AnyObject? {
+        return jsonValue
     }
 
     static func instance() -> LCValue {

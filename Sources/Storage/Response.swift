@@ -43,7 +43,7 @@ open class LCResponse {
             if let error = response.result.error {
                 result = LCError(error: error)
             } else {
-                result = ObjectProfiler.error(JSONValue: value)
+                result = ObjectProfiler.error(jsonValue: value)
             }
         }
 

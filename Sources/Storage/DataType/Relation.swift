@@ -51,7 +51,7 @@ public final class LCRelation: NSObject, LCValue, LCValueExtension, Sequence {
         guard let dataType = RESTClient.DataType(rawValue: type) else {
             return nil
         }
-        guard case dataType = RESTClient.DataType.Relation else {
+        guard case dataType = RESTClient.DataType.relation else {
             return nil
         }
 
@@ -87,7 +87,7 @@ public final class LCRelation: NSObject, LCValue, LCValueExtension, Sequence {
         return value.makeIterator()
     }
 
-    public var JSONValue: AnyObject {
+    public var jsonValue: AnyObject {
         var result = [
             "__type": "Relation"
         ]
@@ -99,12 +99,12 @@ public final class LCRelation: NSObject, LCValue, LCValueExtension, Sequence {
         return result as AnyObject
     }
 
-    public var JSONString: String {
+    public var jsonString: String {
         return ObjectProfiler.getJSONString(self)
     }
 
-    var LCONValue: AnyObject? {
-        return value.map { (element) in element.LCONValue! } as AnyObject
+    var lconValue: AnyObject? {
+        return value.map { (element) in element.lconValue! } as AnyObject
     }
 
     static func instance() -> LCValue {

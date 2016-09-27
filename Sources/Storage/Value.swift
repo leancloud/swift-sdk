@@ -17,12 +17,12 @@ import Foundation
     /**
      The JSON representation.
      */
-    var JSONValue: AnyObject { get }
+    var jsonValue: AnyObject { get }
 
     /**
      The pretty description.
      */
-    var JSONString: String { get }
+    var jsonString: String { get }
 }
 
 /**
@@ -39,7 +39,7 @@ protocol LCValueExtension {
      However, some types might have different representations, or even have no LCON value.
      For example, when an object has not been saved, its LCON value is nil.
      */
-    var LCONValue: AnyObject? { get }
+    var lconValue: AnyObject? { get }
 
     /**
      Create an instance of current type.
@@ -315,7 +315,7 @@ extension Bool: LCBoolConvertible {
 
 extension NSNumber: LCNumberConvertible, LCBoolConvertible {
     public var lcValue: LCValue {
-        return try! ObjectProfiler.object(JSONValue: self)
+        return try! ObjectProfiler.object(jsonValue: self)
     }
 
     public var lcNumber: LCNumber {

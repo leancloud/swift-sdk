@@ -70,17 +70,17 @@ open class LCCQLClient {
     /**
      Assemble parameters for CQL execution.
 
-     - parameter CQL:        The CQL statement.
+     - parameter cql:        The CQL statement.
      - parameter parameters: The parameters for placeholders in CQL statement.
 
      - returns: The parameters for CQL execution.
      */
-    static func parameters(_ CQL: String, parameters: LCArrayConvertible?) -> [String: AnyObject] {
-        var result = ["cql": CQL]
+    static func parameters(_ cql: String, parameters: LCArrayConvertible?) -> [String: AnyObject] {
+        var result = ["cql": cql]
 
         if let parameters = parameters?.lcArray {
             if !parameters.isEmpty {
-                result["pvalues"] = Utility.JSONString(parameters.LCONValue!)
+                result["pvalues"] = Utility.jsonString(parameters.lconValue!)
             }
         }
 
@@ -90,14 +90,14 @@ open class LCCQLClient {
     /**
      Execute CQL statement synchronously.
 
-     - parameter CQL:        The CQL statement to be executed.
+     - parameter cql:        The CQL statement to be executed.
      - parameter parameters: The parameters for placeholders in CQL statement.
 
      - returns: The result of CQL statement.
      */
-    open static func execute(_ CQL: String, parameters: LCArrayConvertible? = nil) -> LCCQLResult {
-        let parameters = self.parameters(CQL, parameters: parameters)
-        let response   = RESTClient.request(.GET, endpoint, parameters: parameters)
+    open static func execute(_ cql: String, parameters: LCArrayConvertible? = nil) -> LCCQLResult {
+        let parameters = self.parameters(cql, parameters: parameters)
+        let response   = RESTClient.request(.get, endpoint, parameters: parameters)
 
         return LCCQLResult(response: response)
     }
@@ -105,12 +105,12 @@ open class LCCQLClient {
     /**
      Execute CQL statement asynchronously.
 
-     - parameter CQL:        The CQL statement to be executed.
+     - parameter cql:        The CQL statement to be executed.
      - parameter parameters: The parameters for placeholders in CQL statement.
      - parameter completion: The completion callback closure.
      */
-    open static func execute(_ CQL: String, parameters: LCArrayConvertible? = nil, completion: @escaping (_ result: LCCQLResult) -> Void) {
-        asynchronize({ execute(CQL, parameters: parameters) }) { result in
+    open static func execute(_ cql: String, parameters: LCArrayConvertible? = nil, completion: @escaping (_ result: LCCQLResult) -> Void) {
+        asynchronize({ execute(cql, parameters: parameters) }) { result in
             completion(result)
         }
     }

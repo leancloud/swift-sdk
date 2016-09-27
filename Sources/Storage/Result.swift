@@ -245,7 +245,7 @@ extension LCResponse {
             return .failure(error: LCError(code: .notFound, reason: "Response data not found."))
         }
 
-        let any = try! ObjectProfiler.object(JSONValue: value)
+        let any = try! ObjectProfiler.object(jsonValue: value)
 
         guard let object = any as? T else {
             return .failure(error: LCError(code: .invalidType, reason: "Invalid response data type.", userInfo: ["response": value, "object": any]))
@@ -278,7 +278,7 @@ extension LCResponse {
             return .success(object: nil)
         }
 
-        let object = try! ObjectProfiler.object(JSONValue: someValue)
+        let object = try! ObjectProfiler.object(jsonValue: someValue)
 
         return .success(object: object)
     }

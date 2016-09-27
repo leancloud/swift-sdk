@@ -48,7 +48,7 @@ public final class LCData: NSObject, LCValue, LCValueExtension {
         guard let dataType = RESTClient.DataType(rawValue: type) else {
             return nil
         }
-        guard case dataType = RESTClient.DataType.Bytes else {
+        guard case dataType = RESTClient.DataType.bytes else {
             return nil
         }
         guard let base64EncodedString = dictionary["base64"] as? String else {
@@ -81,19 +81,19 @@ public final class LCData: NSObject, LCValue, LCValueExtension {
         }
     }
 
-    public var JSONValue: AnyObject {
+    public var jsonValue: AnyObject {
         return [
             "__type": "Bytes",
             "base64": base64EncodedString
         ] as AnyObject
     }
 
-    public var JSONString: String {
+    public var jsonString: String {
         return ObjectProfiler.getJSONString(self)
     }
 
-    var LCONValue: AnyObject? {
-        return JSONValue
+    var lconValue: AnyObject? {
+        return jsonValue
     }
 
     static func instance() -> LCValue {

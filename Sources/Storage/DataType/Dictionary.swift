@@ -36,7 +36,7 @@ public final class LCDictionary: NSObject, LCValue, LCValueExtension, Collection
     public convenience init(unsafeObject: [Key: AnyObject]) {
         self.init()
         value = unsafeObject.mapValue { value in
-            try! ObjectProfiler.object(JSONValue: value)
+            try! ObjectProfiler.object(jsonValue: value)
         }
     }
 
@@ -85,16 +85,16 @@ public final class LCDictionary: NSObject, LCValue, LCValueExtension, Collection
         set { value[key] = newValue }
     }
 
-    public var JSONValue: AnyObject {
-        return value.mapValue { value in value.JSONValue } as AnyObject
+    public var jsonValue: AnyObject {
+        return value.mapValue { value in value.jsonValue } as AnyObject
     }
 
-    public var JSONString: String {
+    public var jsonString: String {
         return ObjectProfiler.getJSONString(self)
     }
 
-    var LCONValue: AnyObject? {
-        return value.mapValue { value in (value as! LCValueExtension).LCONValue! } as AnyObject
+    var lconValue: AnyObject? {
+        return value.mapValue { value in (value as! LCValueExtension).lconValue! } as AnyObject
     }
 
     static func instance() -> LCValue {

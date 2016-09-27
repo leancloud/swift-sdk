@@ -31,8 +31,8 @@ public final class LCEngine {
      - returns: The result of function all.
      */
     public static func call(_ function: String, parameters: LCDictionaryConvertible? = nil) -> LCOptionalResult {
-        let parameters = parameters?.lcDictionary.LCONValue as? [String: AnyObject]
-        let response   = RESTClient.request(.POST, "call/\(function)", parameters: parameters)
+        let parameters = parameters?.lcDictionary.lconValue as? [String: AnyObject]
+        let response   = RESTClient.request(.post, "call/\(function)", parameters: parameters)
 
         return response.optionalResult("result")
     }

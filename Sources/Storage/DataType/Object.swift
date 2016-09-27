@@ -109,8 +109,8 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
         return propertyTable.makeIterator()
     }
 
-    open var JSONValue: AnyObject {
-        var result = propertyTable.JSONValue as! [String: AnyObject]
+    open var jsonValue: AnyObject {
+        var result = propertyTable.jsonValue as! [String: AnyObject]
 
         result["__type"]    = "Object" as AnyObject?
         result["className"] = actualClassName as AnyObject?
@@ -118,11 +118,11 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
         return result as AnyObject
     }
 
-    open var JSONString: String {
+    open var jsonString: String {
         return ObjectProfiler.getJSONString(self)
     }
 
-    var LCONValue: AnyObject? {
+    var lconValue: AnyObject? {
         guard let objectId = objectId else {
             return nil
         }
@@ -238,36 +238,36 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
         self.willChangeValue(forKey: key)
 
         switch name {
-        case .Set:
+        case .set:
             propertyTable[key] = value
-        case .Delete:
+        case .delete:
             propertyTable[key] = nil
-        case .Increment:
+        case .increment:
             let amount   = (value as! LCNumber).value
             let property = try! loadProperty(key) as LCNumber
 
             property.addInPlace(amount)
-        case .Add:
+        case .add:
             let elements = (value as! LCArray).value
             let property = try! loadProperty(key) as LCArray
 
             property.concatenateInPlace(elements, unique: false)
-        case .AddUnique:
+        case .addUnique:
             let elements = (value as! LCArray).value
             let property = try! loadProperty(key) as LCArray
 
             property.concatenateInPlace(elements, unique: true)
-        case .Remove:
+        case .remove:
             let elements = (value as! LCArray).value
             let property = try! getProperty(key) as LCArray?
 
             property?.differInPlace(elements)
-        case .AddRelation:
+        case .addRelation:
             let elements = (value as! LCArray).value as! [LCRelation.Element]
             let relation = try! loadProperty(key) as LCRelation
 
             relation.appendElements(elements)
-        case .RemoveRelation:
+        case .removeRelation:
             let relation: LCRelation? = try! getProperty(key)
             let elements = (value as! LCArray).value as! [LCRelation.Element]
 
@@ -306,9 +306,9 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
 
         switch key {
         case "ACL":
-            return LCACL(JSONValue: value.JSONValue)
+            return LCACL(jsonValue: value.jsonValue)
         case "createdAt", "updatedAt":
-            return LCDate(JSONValue: value.JSONValue)
+            return LCDate(jsonValue: value.jsonValue)
         default:
             return value
         }
@@ -353,9 +353,9 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
      */
     func set(_ key: String, value: LCValue?) {
         if let value = value {
-            addOperation(.Set, key, value)
+            addOperation(.set, key, value)
         } else {
-            addOperation(.Delete, key)
+            addOperation(.delete, key)
         }
     }
 
@@ -378,7 +378,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
     @available(*, deprecated, message: "Use 'set(_:value:)' method instead.")
     open func set(_ key: String, object: AnyObject?) {
         if let object = object {
-            set(key, value: try! ObjectProfiler.object(JSONValue: object))
+            set(key, value: try! ObjectProfiler.object(jsonValue: object))
         } else {
             unset(key)
         }
@@ -390,7 +390,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
      - parameter key: The key for which to unset.
      */
     open func unset(_ key: String) {
-        addOperation(.Delete, key, nil)
+        addOperation(.delete, key, nil)
     }
 
     /**
@@ -400,7 +400,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
      - parameter amount: The amount to increase.
      */
     open func increase(_ key: String, by: LCNumberConvertible) {
-        addOperation(.Increment, key, by.lcNumber)
+        addOperation(.increment, key, by.lcNumber)
     }
 
     /**
@@ -410,7 +410,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
      - parameter element: The element to append.
      */
     open func append(_ key: String, element: LCValueConvertible) {
-        addOperation(.Add, key, LCArray([element.lcValue]))
+        addOperation(.add, key, LCArray([element.lcValue]))
     }
 
     /**
@@ -420,7 +420,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
      - parameter elements: The array of elements to append.
      */
     open func append(_ key: String, elements: LCArrayConvertible) {
-        addOperation(.Add, key, elements.lcArray)
+        addOperation(.add, key, elements.lcArray)
     }
 
     /**
@@ -433,7 +433,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
                           otherwise, element will always be appended.
      */
     open func append(_ key: String, element: LCValueConvertible, unique: Bool) {
-        addOperation(unique ? .AddUnique : .Add, key, LCArray([element.lcValue]))
+        addOperation(unique ? .addUnique : .add, key, LCArray([element.lcValue]))
     }
 
     /**
@@ -446,7 +446,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
      - parameter unique:   Whether append element by unique or not.
      */
     open func append(_ key: String, elements: LCArrayConvertible, unique: Bool) {
-        addOperation(unique ? .AddUnique : .Add, key, elements.lcArray)
+        addOperation(unique ? .addUnique : .add, key, elements.lcArray)
     }
 
     /**
@@ -456,7 +456,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
      - parameter element: The element to remove.
      */
     open func remove(_ key: String, element: LCValueConvertible) {
-        addOperation(.Remove, key, LCArray([element.lcValue]))
+        addOperation(.remove, key, LCArray([element.lcValue]))
     }
 
     /**
@@ -466,7 +466,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
      - parameter elements: The array of elements to remove.
      */
     open func remove(_ key: String, elements: LCArrayConvertible) {
-        addOperation(.Remove, key, elements.lcArray)
+        addOperation(.remove, key, elements.lcArray)
     }
 
     /**
@@ -487,7 +487,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
      - parameter object: The object to insert.
      */
     open func insertRelation(_ key: String, object: LCObject) {
-        addOperation(.AddRelation, key, LCArray([object]))
+        addOperation(.addRelation, key, LCArray([object]))
     }
 
     /**
@@ -497,7 +497,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
      - parameter object: The object to remove.
      */
     open func removeRelation(_ key: String, object: LCObject) {
-        addOperation(.RemoveRelation, key, LCArray([object]))
+        addOperation(.removeRelation, key, LCArray([object]))
     }
 
     /**

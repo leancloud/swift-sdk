@@ -122,7 +122,7 @@ extension Dictionary {
 }
 
 extension String {
-    var MD5String: String {
+    var md5String: String {
         let bytes = Array<MD5.Byte>(self.utf8)
         let encodedBytes = MD5.calculate(bytes)
 

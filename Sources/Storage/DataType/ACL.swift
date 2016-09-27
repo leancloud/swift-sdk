@@ -32,8 +32,8 @@ public final class LCACL: NSObject, LCValue, LCValueExtension {
         super.init()
     }
 
-    init?(JSONValue: AnyObject?) {
-        guard let value = JSONValue as? AccessTable else {
+    init?(jsonValue: AnyObject?) {
+        guard let value = jsonValue as? AccessTable else {
             return nil
         }
 
@@ -64,16 +64,16 @@ public final class LCACL: NSObject, LCValue, LCValueExtension {
         }
     }
 
-    public var JSONValue: AnyObject {
+    public var jsonValue: AnyObject {
         return value as AnyObject
     }
 
-    public var JSONString: String {
+    public var jsonString: String {
         return ObjectProfiler.getJSONString(self)
     }
 
-    var LCONValue: AnyObject? {
-        return JSONValue
+    var lconValue: AnyObject? {
+        return jsonValue
     }
 
     static func instance() -> LCValue {
@@ -106,8 +106,8 @@ public final class LCACL: NSObject, LCValue, LCValueExtension {
             self.rawValue = rawValue
         }
 
-        public static let Read  = Permission(rawValue: 1 << 0)
-        public static let Write = Permission(rawValue: 1 << 1)
+        public static let read  = Permission(rawValue: 1 << 0)
+        public static let write = Permission(rawValue: 1 << 1)
     }
 
     /**
@@ -202,12 +202,12 @@ public final class LCACL: NSObject, LCValue, LCValueExtension {
         }
 
         /* We use AND logic here. If any one of permissions is disallowed, return false. */
-        if permission.contains(.Read) {
+        if permission.contains(.read) {
             if access[LCACL.readPermissionKey] == nil {
                 return false
             }
         }
-        if permission.contains(.Write) {
+        if permission.contains(.write) {
             if access[LCACL.writePermissionKey] == nil {
                 return false
             }
@@ -227,10 +227,10 @@ public final class LCACL: NSObject, LCValue, LCValueExtension {
         var access = value[key] ?? [:]
 
         /* We reserve the allowed permissions only. */
-        if permission.contains(.Read) {
+        if permission.contains(.read) {
             access[LCACL.readPermissionKey] = allowed ? allowed : nil
         }
-        if permission.contains(.Write) {
+        if permission.contains(.write) {
             access[LCACL.writePermissionKey] = allowed ? allowed : nil
         }
 

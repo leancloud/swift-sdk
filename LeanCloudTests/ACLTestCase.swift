@@ -25,13 +25,13 @@ class ACLTestCase: BaseTestCase {
         let acl = LCACL()
 
         /* Update access permission for public. */
-        XCTAssertFalse(acl.getAccess(.Read))
-        acl.setAccess(.Read, allowed: true)
-        XCTAssertTrue(acl.getAccess(.Read))
-        XCTAssertFalse(acl.getAccess([.Read, .Write]))
-        acl.setAccess(.Write, allowed: true)
-        XCTAssertTrue(acl.getAccess(.Write))
-        XCTAssertTrue(acl.getAccess([.Read, .Write]))
+        XCTAssertFalse(acl.getAccess(.read))
+        acl.setAccess(.read, allowed: true)
+        XCTAssertTrue(acl.getAccess(.read))
+        XCTAssertFalse(acl.getAccess([.read, .write]))
+        acl.setAccess(.write, allowed: true)
+        XCTAssertTrue(acl.getAccess(.write))
+        XCTAssertTrue(acl.getAccess([.read, .write]))
 
         let userID   = "1"
         let roleName = "2"
@@ -40,17 +40,17 @@ class ACLTestCase: BaseTestCase {
         let roleAccessKey = LCACL.accessKey(roleName: roleName)
 
         /* Update access permission for user. */
-        acl.setAccess([.Read, .Write], allowed: true, forUserID: userID)
-        XCTAssertTrue(acl.getAccess([.Read, .Write], forUserID: userID))
-        acl.setAccess(.Write, allowed: false, forUserID: userID)
-        XCTAssertFalse(acl.getAccess(.Write, forUserID: userID))
+        acl.setAccess([.read, .write], allowed: true, forUserID: userID)
+        XCTAssertTrue(acl.getAccess([.read, .write], forUserID: userID))
+        acl.setAccess(.write, allowed: false, forUserID: userID)
+        XCTAssertFalse(acl.getAccess(.write, forUserID: userID))
 
         /* Update access permission for role. */
-        acl.setAccess([.Read, .Write], allowed: true, forRoleName: roleName)
+        acl.setAccess([.read, .write], allowed: true, forRoleName: roleName)
         XCTAssertEqual(acl.value[roleAccessKey]!, [readKey: true, writeKey: true])
-        acl.setAccess(.Write, allowed: false, forRoleName: roleName)
+        acl.setAccess(.write, allowed: false, forRoleName: roleName)
         XCTAssertEqual(acl.value[roleAccessKey]!, [readKey: true])
-        XCTAssertTrue(acl.getAccess(.Read, forRoleName: roleName))
+        XCTAssertTrue(acl.getAccess(.read, forRoleName: roleName))
     }
 
     func testPublicACL() {

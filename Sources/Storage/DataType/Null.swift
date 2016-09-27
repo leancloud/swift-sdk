@@ -36,15 +36,15 @@ open class LCNull: NSObject, LCValue, LCValueExtension {
         return object is LCNull
     }
 
-    open var JSONValue: AnyObject {
+    open var jsonValue: AnyObject {
         return NSNull()
     }
 
-    open var JSONString: String {
+    open var jsonString: String {
         return ObjectProfiler.getJSONString(self)
     }
 
-    var LCONValue: AnyObject? {
+    var lconValue: AnyObject? {
         return NSNull()
     }
 

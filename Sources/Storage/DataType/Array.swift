@@ -35,7 +35,7 @@ public final class LCArray: NSObject, LCValue, LCValueExtension, Collection, Exp
     public convenience init(unsafeObject: [AnyObject]) {
         self.init()
         value = unsafeObject.map { element in
-            try! ObjectProfiler.object(JSONValue: element)
+            try! ObjectProfiler.object(jsonValue: element)
         }
     }
 
@@ -79,16 +79,16 @@ public final class LCArray: NSObject, LCValue, LCValueExtension, Collection, Exp
         get { return value[index] }
     }
 
-    public var JSONValue: AnyObject {
-        return value.map { element in element.JSONValue } as AnyObject
+    public var jsonValue: AnyObject {
+        return value.map { element in element.jsonValue } as AnyObject
     }
 
-    public var JSONString: String {
+    public var jsonString: String {
         return ObjectProfiler.getJSONString(self)
     }
 
-    var LCONValue: AnyObject? {
-        return value.map { element in (element as! LCValueExtension).LCONValue! } as AnyObject
+    var lconValue: AnyObject? {
+        return value.map { element in (element as! LCValueExtension).lconValue! } as AnyObject
     }
 
     static func instance() -> LCValue {

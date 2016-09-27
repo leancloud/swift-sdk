@@ -18,9 +18,9 @@ public final class LCGeoPoint: NSObject, LCValue, LCValueExtension {
     public fileprivate(set) var longitude: Double = 0
 
     public enum Unit: String {
-        case Mile = "Miles"
-        case Kilometer = "Kilometers"
-        case Radian = "Radians"
+        case mile = "Miles"
+        case kilometer = "Kilometers"
+        case radian = "Radians"
     }
 
     public struct Distance {
@@ -50,7 +50,7 @@ public final class LCGeoPoint: NSObject, LCValue, LCValueExtension {
         guard let dataType = RESTClient.DataType(rawValue: type) else {
             return nil
         }
-        guard case dataType = RESTClient.DataType.GeoPoint else {
+        guard case dataType = RESTClient.DataType.geoPoint else {
             return nil
         }
         guard let latitude = dictionary["latitude"] as? Double else {
@@ -86,7 +86,7 @@ public final class LCGeoPoint: NSObject, LCValue, LCValueExtension {
         }
     }
 
-    public var JSONValue: AnyObject {
+    public var jsonValue: AnyObject {
         return [
             "__type"    : "GeoPoint",
             "latitude"  : latitude,
@@ -94,12 +94,12 @@ public final class LCGeoPoint: NSObject, LCValue, LCValueExtension {
         ] as AnyObject
     }
 
-    public var JSONString: String {
+    public var jsonString: String {
         return ObjectProfiler.getJSONString(self)
     }
 
-    var LCONValue: AnyObject? {
-        return JSONValue
+    var lconValue: AnyObject? {
+        return jsonValue
     }
 
     static func instance() -> LCValue {

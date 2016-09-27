@@ -172,7 +172,7 @@ open class LCUser: LCObject {
     open static func logIn<User: LCUser>(sessionToken: String) -> LCObjectResult<User> {
         let parameters = ["session_token": sessionToken]
         let endpoint   = RESTClient.endpoint(objectClassName())
-        let response   = RESTClient.request(.GET, "\(endpoint)/me", parameters: parameters as [String: AnyObject])
+        let response   = RESTClient.request(.get, "\(endpoint)/me", parameters: parameters as [String: AnyObject])
         let result     = objectResult(response) as LCObjectResult<User>
 
         if case let .success(user) = result {
@@ -202,7 +202,7 @@ open class LCUser: LCObject {
      - returns: The result of login request.
      */
     static func logIn<User: LCUser>(parameters: [String: AnyObject]) -> LCObjectResult<User> {
-        let response = RESTClient.request(.POST, "login", parameters: parameters)
+        let response = RESTClient.request(.post, "login", parameters: parameters)
         let result   = objectResult(response) as LCObjectResult<User>
 
         if case let .success(user) = result {
@@ -226,7 +226,7 @@ open class LCUser: LCObject {
             "smsCode": verificationCode
         ]
 
-        let response = RESTClient.request(.POST, "usersByMobilePhone", parameters: parameters as [String: AnyObject])
+        let response = RESTClient.request(.post, "usersByMobilePhone", parameters: parameters as [String: AnyObject])
         let result   = objectResult(response) as LCObjectResult<User>
 
         if case let .success(user) = result {
@@ -266,10 +266,10 @@ open class LCUser: LCObject {
         }
 
         /* Patch response data to fulfill object format. */
-        dictionary["__type"]    = RESTClient.DataType.Object.rawValue as AnyObject?
+        dictionary["__type"]    = RESTClient.DataType.object.rawValue as AnyObject?
         dictionary["className"] = LCUser.objectClassName() as AnyObject?
 
-        let user = try! ObjectProfiler.object(JSONValue: dictionary as AnyObject) as! User
+        let user = try! ObjectProfiler.object(jsonValue: dictionary as AnyObject) as! User
 
         return .success(object: user)
     }
@@ -290,7 +290,7 @@ open class LCUser: LCObject {
      */
     open static func requestVerificationMail(email: String) -> LCBooleanResult {
         let parameters = ["email": email]
-        let response   = RESTClient.request(.POST, "requestEmailVerify", parameters: parameters as [String: AnyObject])
+        let response   = RESTClient.request(.post, "requestEmailVerify", parameters: parameters as [String: AnyObject])
         return LCBooleanResult(response: response)
     }
 
@@ -315,7 +315,7 @@ open class LCUser: LCObject {
      */
     open static func requestVerificationCode(mobilePhoneNumber: String) -> LCBooleanResult {
         let parameters = ["mobilePhoneNumber": mobilePhoneNumber]
-        let response   = RESTClient.request(.POST, "requestMobilePhoneVerify", parameters: parameters as [String: AnyObject])
+        let response   = RESTClient.request(.post, "requestMobilePhoneVerify", parameters: parameters as [String: AnyObject])
         return LCBooleanResult(response: response)
     }
 
@@ -341,7 +341,7 @@ open class LCUser: LCObject {
      */
     open static func verifyMobilePhoneNumber(_ mobilePhoneNumber: String, verificationCode: String) -> LCBooleanResult {
         let parameters = ["mobilePhoneNumber": mobilePhoneNumber]
-        let response   = RESTClient.request(.GET, "verifyMobilePhone/\(verificationCode)", parameters: parameters as [String: AnyObject])
+        let response   = RESTClient.request(.get, "verifyMobilePhone/\(verificationCode)", parameters: parameters as [String: AnyObject])
         return LCBooleanResult(response: response)
     }
 
@@ -367,7 +367,7 @@ open class LCUser: LCObject {
      */
     open static func requestLoginVerificationCode(mobilePhoneNumber: String) -> LCBooleanResult {
         let parameters = ["mobilePhoneNumber": mobilePhoneNumber]
-        let response = RESTClient.request(.POST, "requestLoginSmsCode", parameters: parameters as [String: AnyObject])
+        let response = RESTClient.request(.post, "requestLoginSmsCode", parameters: parameters as [String: AnyObject])
         return LCBooleanResult(response: response)
     }
 
@@ -392,7 +392,7 @@ open class LCUser: LCObject {
      */
     open static func requestPasswordReset(email: String) -> LCBooleanResult {
         let parameters = ["email": email]
-        let response   = RESTClient.request(.POST, "requestPasswordReset", parameters: parameters as [String: AnyObject])
+        let response   = RESTClient.request(.post, "requestPasswordReset", parameters: parameters as [String: AnyObject])
         return LCBooleanResult(response: response)
     }
 
@@ -417,7 +417,7 @@ open class LCUser: LCObject {
      */
     open static func requestPasswordReset(mobilePhoneNumber: String) -> LCBooleanResult {
         let parameters = ["mobilePhoneNumber": mobilePhoneNumber]
-        let response   = RESTClient.request(.POST, "requestPasswordResetBySmsCode", parameters: parameters as [String: AnyObject])
+        let response   = RESTClient.request(.post, "requestPasswordResetBySmsCode", parameters: parameters as [String: AnyObject])
         return LCBooleanResult(response: response)
     }
 
@@ -452,7 +452,7 @@ open class LCUser: LCObject {
             "mobilePhoneNumber": mobilePhoneNumber,
             "password": newPassword
         ]
-        let response = RESTClient.request(.PUT, "resetPasswordBySmsCode/\(verificationCode)", parameters: parameters as [String: AnyObject])
+        let response = RESTClient.request(.put, "resetPasswordBySmsCode/\(verificationCode)", parameters: parameters as [String: AnyObject])
         return LCBooleanResult(response: response)
     }
 
@@ -490,8 +490,8 @@ open class LCUser: LCObject {
             "old_password": oldPassword,
             "new_password": newPassword
         ]
-        let headers  = [RESTClient.HeaderFieldName.Session: sessionToken.value]
-        let response = RESTClient.request(.PUT, endpoint + "/updatePassword", parameters: parameters as [String: AnyObject], headers: headers)
+        let headers  = [RESTClient.HeaderFieldName.session: sessionToken.value]
+        let response = RESTClient.request(.put, endpoint + "/updatePassword", parameters: parameters as [String: AnyObject], headers: headers)
 
         if let error = response.error {
             return .failure(error: error)

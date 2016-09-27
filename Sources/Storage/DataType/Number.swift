@@ -53,15 +53,15 @@ public final class LCNumber: NSObject, LCValue, LCValueExtension, ExpressibleByF
         }
     }
 
-    public var JSONValue: AnyObject {
+    public var jsonValue: AnyObject {
         return value as AnyObject
     }
 
-    public var JSONString: String {
+    public var jsonString: String {
         return ObjectProfiler.getJSONString(self)
     }
 
-    var LCONValue: AnyObject? {
+    var lconValue: AnyObject? {
         return value as AnyObject?
     }
 

@@ -283,8 +283,8 @@ class QueryTestCase: BaseTestCase {
 
         /* Tip: At the equator, one degree of longitude and latitude is approximately equal to about 111 kilometers, or 70 miles. */
 
-        let minimal = LCGeoPoint.Distance(value: 0, unit: .Kilometer)
-        let maximal = LCGeoPoint.Distance(value: 150, unit: .Kilometer)
+        let minimal = LCGeoPoint.Distance(value: 0, unit: .kilometer)
+        let maximal = LCGeoPoint.Distance(value: 150, unit: .kilometer)
 
         query.whereKey("geoPointField", .locatedNear(LCGeoPoint(latitude: 44, longitude: -45), minimal: minimal, maximal: maximal))
         query.limit = 1
@@ -545,8 +545,8 @@ class QueryTestCase: BaseTestCase {
 
         let keyPath = "where.stringField.$inQuery.limit"
 
-        XCTAssertEqual((queryCopy.LCONValue as NSDictionary).value(forKeyPath: keyPath) as? Int, 42)
-        XCTAssertNil((queryArchivement.LCONValue as NSDictionary).value(forKeyPath: keyPath))
+        XCTAssertEqual((queryCopy.lconValue as NSDictionary).value(forKeyPath: keyPath) as? Int, 42)
+        XCTAssertNil((queryArchivement.lconValue as NSDictionary).value(forKeyPath: keyPath))
     }
 
     func testSkip() {

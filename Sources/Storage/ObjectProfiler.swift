@@ -331,12 +331,12 @@ class ObjectProfiler {
     /**
      Check whether value is a boolean.
 
-     - parameter JSONValue: The value to check.
+     - parameter jsonValue: The value to check.
 
      - returns: true if value is a boolean, false otherwise.
      */
-    fileprivate static func isBoolean(_ JSONValue: AnyObject) -> Bool {
-        switch String(describing: type(of: JSONValue)) {
+    fileprivate static func isBoolean(_ jsonValue: AnyObject) -> Bool {
+        switch String(describing: type(of: jsonValue)) {
         case "__NSCFBoolean", "Bool": return true
         default: return false
         }
@@ -378,7 +378,7 @@ class ObjectProfiler {
      */
     static func object(dictionary: [String: AnyObject], className: String) -> LCObject {
         let result = object(className: className)
-        let keyValues = dictionary.mapValue { try! object(JSONValue: $0) }
+        let keyValues = dictionary.mapValue { try! object(jsonValue: $0) }
 
         keyValues.forEach { (key, value) in
             result.update(key, value)
@@ -397,17 +397,17 @@ class ObjectProfiler {
      */
     static func object(dictionary: [String: AnyObject], dataType: RESTClient.DataType) -> LCValue? {
         switch dataType {
-        case .Object, .Pointer:
+        case .object, .pointer:
             let className = dictionary["className"] as! String
 
             return object(dictionary: dictionary, className: className)
-        case .Relation:
+        case .relation:
             return LCRelation(dictionary: dictionary)
-        case .GeoPoint:
+        case .geoPoint:
             return LCGeoPoint(dictionary: dictionary)
-        case .Bytes:
+        case .bytes:
             return LCData(dictionary: dictionary)
-        case .Date:
+        case .date:
             return LCDate(dictionary: dictionary)
         }
     }
@@ -429,7 +429,7 @@ class ObjectProfiler {
         }
 
         if result == nil {
-            result = LCDictionary(dictionary.mapValue { try! object(JSONValue: $0) })
+            result = LCDictionary(dictionary.mapValue { try! object(jsonValue: $0) })
         }
 
         return result
@@ -438,16 +438,16 @@ class ObjectProfiler {
     /**
      Convert JSON value to LCValue object.
 
-     - parameter JSONValue: The JSON value.
+     - parameter jsonValue: The JSON value.
 
      - returns: An LCValue object of the corresponding JSON value.
      */
-    static func object(JSONValue: AnyObject) throws -> LCValue {
-        switch JSONValue {
+    static func object(jsonValue: AnyObject) throws -> LCValue {
+        switch jsonValue {
         case let string as String:
             return LCString(string)
         case let array as [AnyObject]:
-            return LCArray(array.map { try! object(JSONValue: $0) })
+            return LCArray(array.map { try! object(jsonValue: $0) })
         case let dictionary as [String: AnyObject]:
             return object(dictionary: dictionary)
         case let data as Data:
@@ -459,9 +459,9 @@ class ObjectProfiler {
         case let object as LCValue:
             return object
         default:
-            if isBoolean(JSONValue) {
-                return LCBool(JSONValue as! Bool)
-            } else if let number = JSONValue as? Double {
+            if isBoolean(jsonValue) {
+                return LCBool(jsonValue as! Bool)
+            } else if let number = jsonValue as? Double {
                 return LCNumber(number)
             }
         }
@@ -476,16 +476,16 @@ class ObjectProfiler {
 
      - returns: The JSON value of object.
      */
-    static func LCONValue(_ object: AnyObject) -> AnyObject {
+    static func lconValue(_ object: AnyObject) -> AnyObject {
         switch object {
         case let array as [AnyObject]:
-            return array.map { LCONValue($0) } as AnyObject
+            return array.map { lconValue($0) } as AnyObject
         case let dictionary as [String: AnyObject]:
-            return dictionary.mapValue { LCONValue($0) } as AnyObject
+            return dictionary.mapValue { lconValue($0) } as AnyObject
         case let object as LCValue:
-            return (object as! LCValueExtension).LCONValue!
+            return (object as! LCValueExtension).lconValue!
         case let query as LCQuery:
-            return query.LCONValue as AnyObject
+            return query.lconValue as AnyObject
         default:
             return object
         }
@@ -494,17 +494,17 @@ class ObjectProfiler {
     /**
      Find an error in JSON value.
 
-     - parameter JSONValue: The JSON value from which to find the error.
+     - parameter jsonValue: The JSON value from which to find the error.
 
      - returns: An error object, or nil if error not found.
      */
-    static func error(JSONValue: AnyObject?) -> LCError? {
+    static func error(jsonValue: AnyObject?) -> LCError? {
         var result: LCError?
 
-        switch JSONValue {
+        switch jsonValue {
         case let array as [AnyObject]:
             for element in array {
-                if let error = self.error(JSONValue: element) {
+                if let error = self.error(jsonValue: element) {
                     result = error
                     break
                 }
@@ -517,7 +517,7 @@ class ObjectProfiler {
                 result = LCError(dictionary: dictionary)
             } else {
                 for (_, value) in dictionary {
-                    if let error = self.error(JSONValue: value) {
+                    if let error = self.error(jsonValue: value) {
                         result = error
                         break
                     }
@@ -538,7 +538,7 @@ class ObjectProfiler {
      */
     static func updateObject(_ object: LCObject, _ dictionary: [String: AnyObject]) {
         dictionary.forEach { (key, value) in
-            object.update(key, try! self.object(JSONValue: value))
+            object.update(key, try! self.object(jsonValue: value))
         }
     }
 
@@ -621,8 +621,8 @@ class ObjectProfiler {
                      object is LCDate     ||
                      object is LCACL:
 
-            let JSONValue  = object.JSONValue
-            let dictionary = LCDictionary(unsafeObject: JSONValue as! [String : AnyObject])
+            let jsonValue  = object.jsonValue
+            let dictionary = LCDictionary(unsafeObject: jsonValue as! [String : AnyObject])
 
             return getJSONString(dictionary, depth: depth)
         default:
