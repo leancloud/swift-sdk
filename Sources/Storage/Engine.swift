@@ -10,7 +10,7 @@ import Foundation
 
 public final class LCEngine {
     /// The dispatch queue for network request task.
-    static let backgroundQueue = DispatchQueue(label: "LeanCloud.Engine", attributes: DispatchQueue.Attributes.concurrent)
+    static let backgroundQueue = DispatchQueue(label: "LeanCloud.Engine", attributes: .concurrent)
 
     /**
      Asynchronize task into background queue.

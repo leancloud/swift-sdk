@@ -55,7 +55,7 @@ open class LCCQLClient {
     static let endpoint = "cloudQuery"
 
     /// The dispatch queue for asynchronous CQL execution task.
-    static let backgroundQueue = DispatchQueue(label: "LeanCloud.CQLClient", attributes: DispatchQueue.Attributes.concurrent)
+    static let backgroundQueue = DispatchQueue(label: "LeanCloud.CQLClient", attributes: .concurrent)
 
     /**
      Asynchronize task into background queue.

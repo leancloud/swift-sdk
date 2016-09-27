@@ -92,7 +92,7 @@ final public class LCQuery: NSObject, NSCopying, NSCoding {
     }
 
     /// The dispatch queue for network request task.
-    static let backgroundQueue = DispatchQueue(label: "LeanCloud.Query", attributes: DispatchQueue.Attributes.concurrent)
+    static let backgroundQueue = DispatchQueue(label: "LeanCloud.Query", attributes: .concurrent)
 
     /**
      Constraint for key.

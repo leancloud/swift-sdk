@@ -155,7 +155,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
     }
 
     /// The dispatch queue for network request task.
-    static let backgroundQueue = DispatchQueue(label: "LeanCloud.Object", attributes: DispatchQueue.Attributes.concurrent)
+    static let backgroundQueue = DispatchQueue(label: "LeanCloud.Object", attributes: .concurrent)
 
     /**
      Set class name of current type.

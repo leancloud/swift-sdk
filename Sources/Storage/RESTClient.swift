@@ -63,7 +63,7 @@ class RESTClient {
     static let sharedInstance = RESTClient()
 
     /// Request dispatch queue.
-    static let dispatchQueue = DispatchQueue(label: "LeanCloud.REST", attributes: DispatchQueue.Attributes.concurrent)
+    static let dispatchQueue = DispatchQueue(label: "LeanCloud.REST", attributes: .concurrent)
 
     /// Shared session manager.
     static var requestManager: Alamofire.SessionManager = {
