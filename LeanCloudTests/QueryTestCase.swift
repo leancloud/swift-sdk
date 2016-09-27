@@ -16,7 +16,7 @@ let sharedObject: TestObject = {
     object.booleanField  = true
     object.stringField   = "foo"
     object.arrayField    = [LCNumber(42), LCString("bar"), sharedElement]
-    object.dateField     = LCDate(NSDate(timeIntervalSince1970: 1024))
+    object.dateField     = LCDate(Date(timeIntervalSince1970: 1024))
     object.geoPointField = LCGeoPoint(latitude: 45, longitude: -45)
     object.objectField   = sharedChild
     object.nullField     = LCNull()
@@ -60,7 +60,7 @@ class QueryTestCase: BaseTestCase {
         super.tearDown()
     }
 
-    func execute<T: LCObject>(query: LCQuery) -> (isSuccess: Bool, objects: [T]) {
+    func execute<T: LCObject>(_ query: LCQuery) -> (isSuccess: Bool, objects: [T]) {
         let result: LCQueryResult<T> = query.find()
 
         switch result {
@@ -136,7 +136,7 @@ class QueryTestCase: BaseTestCase {
         let query  = objectQuery()
 
         query.whereKey("objectId", .EqualTo(object.objectId!))
-        query.whereKey("dateField", .EqualTo(NSDate(timeIntervalSince1970: 1024)))
+        query.whereKey("dateField", .EqualTo(Date(timeIntervalSince1970: 1024)))
         query.whereKey("nullField", .EqualTo(NSNull()))
 
         /* Tip: You can use EqualTo to compare an value against elements in an array field.
@@ -169,7 +169,7 @@ class QueryTestCase: BaseTestCase {
         XCTAssertTrue(isSuccess1 && objects1.isEmpty)
 
         query.whereKey("numberField", .LessThan(43))
-        query.whereKey("dateField", .LessThan(NSDate(timeIntervalSince1970: 1025)))
+        query.whereKey("dateField", .LessThan(Date(timeIntervalSince1970: 1025)))
 
         let (isSuccess2, objects2) = execute(query)
         XCTAssertTrue(isSuccess2 && !objects2.isEmpty)
@@ -202,7 +202,7 @@ class QueryTestCase: BaseTestCase {
         let query  = objectQuery()
 
         query.whereKey("objectId", .EqualTo(object.objectId!))
-        query.whereKey("dateField", .GreaterThanOrEqualTo(NSDate(timeIntervalSince1970: 1023.9)))
+        query.whereKey("dateField", .GreaterThanOrEqualTo(Date(timeIntervalSince1970: 1023.9)))
 
         let (isSuccess, objects) = execute(query)
         XCTAssertTrue(isSuccess && !objects.isEmpty)
@@ -216,7 +216,7 @@ class QueryTestCase: BaseTestCase {
 
         /* Tip: You can use ContainedIn to compare an array of values against a non-array field.
            If any value in given array is equal to the value referenced by key, the comparation will be successful. */
-        query.whereKey("dateField", .ContainedIn([NSDate(timeIntervalSince1970: 1024)]))
+        query.whereKey("dateField", .ContainedIn([Date(timeIntervalSince1970: 1024)]))
 
         /* Tip: Also, you can apply the constraint to array field. */
         query.whereKey("arrayField", .ContainedIn([42, "bar"]))

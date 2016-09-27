@@ -13,8 +13,8 @@ import Foundation
 
  It is a wrapper of `Swift.String` type, used to store a string value.
  */
-public final class LCString: NSObject, LCValue, LCValueExtension, StringLiteralConvertible {
-    public private(set) var value: String = ""
+public final class LCString: NSObject, LCValue, LCValueExtension, ExpressibleByStringLiteral {
+    public fileprivate(set) var value: String = ""
 
     public typealias UnicodeScalarLiteralType = Character
     public typealias ExtendedGraphemeClusterLiteralType = StringLiteralType
@@ -41,18 +41,18 @@ public final class LCString: NSObject, LCValue, LCValueExtension, StringLiteralC
     }
 
     public required init?(coder aDecoder: NSCoder) {
-        value = (aDecoder.decodeObjectForKey("value") as? String) ?? ""
+        value = (aDecoder.decodeObject(forKey: "value") as? String) ?? ""
     }
 
-    public func encodeWithCoder(aCoder: NSCoder) {
-        aCoder.encodeObject(value, forKey: "value")
+    public func encode(with aCoder: NSCoder) {
+        aCoder.encode(value, forKey: "value")
     }
 
-    public func copyWithZone(zone: NSZone) -> AnyObject {
+    public func copy(with zone: NSZone?) -> Any {
         return LCString(value)
     }
 
-    public override func isEqual(object: AnyObject?) -> Bool {
+    public override func isEqual(_ object: Any?) -> Bool {
         if let object = object as? LCString {
             return object === self || object.value == value
         } else {
@@ -61,7 +61,7 @@ public final class LCString: NSObject, LCValue, LCValueExtension, StringLiteralC
     }
 
     public var JSONValue: AnyObject {
-        return value
+        return value as AnyObject
     }
 
     public var JSONString: String {
@@ -69,26 +69,26 @@ public final class LCString: NSObject, LCValue, LCValueExtension, StringLiteralC
     }
 
     var LCONValue: AnyObject? {
-        return value
+        return value as AnyObject?
     }
 
     class func instance() -> LCValue {
         return self.init()
     }
 
-    func forEachChild(body: (child: LCValue) -> Void) {
+    func forEachChild(_ body: (_ child: LCValue) -> Void) {
         /* Nothing to do. */
     }
 
-    func add(other: LCValue) throws -> LCValue {
-        throw LCError(code: .InvalidType, reason: "Object cannot be added.")
+    func add(_ other: LCValue) throws -> LCValue {
+        throw LCError(code: .invalidType, reason: "Object cannot be added.")
     }
 
-    func concatenate(other: LCValue, unique: Bool) throws -> LCValue {
-        throw LCError(code: .InvalidType, reason: "Object cannot be concatenated.")
+    func concatenate(_ other: LCValue, unique: Bool) throws -> LCValue {
+        throw LCError(code: .invalidType, reason: "Object cannot be concatenated.")
     }
 
-    func differ(other: LCValue) throws -> LCValue {
-        throw LCError(code: .InvalidType, reason: "Object cannot be differed.")
+    func differ(_ other: LCValue) throws -> LCValue {
+        throw LCError(code: .invalidType, reason: "Object cannot be differed.")
     }
 }

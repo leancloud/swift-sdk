@@ -15,7 +15,7 @@ import Foundation
 
  - note: This type is not a singleton type, because Swift does not support singleton well currently.
  */
-public class LCNull: NSObject, LCValue, LCValueExtension {
+open class LCNull: NSObject, LCValue, LCValueExtension {
     public override init() {
         super.init()
     }
@@ -24,23 +24,23 @@ public class LCNull: NSObject, LCValue, LCValueExtension {
         /* Nothing to decode. */
     }
 
-    public func encodeWithCoder(aCoder: NSCoder) {
+    open func encode(with aCoder: NSCoder) {
         /* Nothing to encode. */
     }
 
-    public func copyWithZone(zone: NSZone) -> AnyObject {
+    open func copy(with zone: NSZone?) -> Any {
         return LCNull()
     }
 
-    public override func isEqual(object: AnyObject?) -> Bool {
+    open override func isEqual(_ object: Any?) -> Bool {
         return object is LCNull
     }
 
-    public var JSONValue: AnyObject {
+    open var JSONValue: AnyObject {
         return NSNull()
     }
 
-    public var JSONString: String {
+    open var JSONString: String {
         return ObjectProfiler.getJSONString(self)
     }
 
@@ -52,19 +52,19 @@ public class LCNull: NSObject, LCValue, LCValueExtension {
         return LCNull()
     }
 
-    func forEachChild(body: (child: LCValue) -> Void) {
+    func forEachChild(_ body: (_ child: LCValue) -> Void) {
         /* Nothing to do. */
     }
 
-    func add(other: LCValue) throws -> LCValue {
-        throw LCError(code: .InvalidType, reason: "Object cannot be added.")
+    func add(_ other: LCValue) throws -> LCValue {
+        throw LCError(code: .invalidType, reason: "Object cannot be added.")
     }
 
-    func concatenate(other: LCValue, unique: Bool) throws -> LCValue {
-        throw LCError(code: .InvalidType, reason: "Object cannot be concatenated.")
+    func concatenate(_ other: LCValue, unique: Bool) throws -> LCValue {
+        throw LCError(code: .invalidType, reason: "Object cannot be concatenated.")
     }
 
-    func differ(other: LCValue) throws -> LCValue {
-        throw LCError(code: .InvalidType, reason: "Object cannot be differed.")
+    func differ(_ other: LCValue) throws -> LCValue {
+        throw LCError(code: .invalidType, reason: "Object cannot be differed.")
     }
 }

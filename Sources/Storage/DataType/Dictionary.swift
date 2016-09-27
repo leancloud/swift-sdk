@@ -13,12 +13,12 @@ import Foundation
 
  It is a wrapper of `Swift.Dictionary` type, used to store a dictionary value.
  */
-public final class LCDictionary: NSObject, LCValue, LCValueExtension, CollectionType, DictionaryLiteralConvertible {
+public final class LCDictionary: NSObject, LCValue, LCValueExtension, Collection, ExpressibleByDictionaryLiteral {
     public typealias Key   = String
     public typealias Value = LCValue
     public typealias Index = DictionaryIndex<Key, Value>
 
-    public private(set) var value: [Key: Value] = [:]
+    public fileprivate(set) var value: [Key: Value] = [:]
 
     public override init() {
         super.init()
@@ -41,18 +41,18 @@ public final class LCDictionary: NSObject, LCValue, LCValueExtension, Collection
     }
 
     public required init?(coder aDecoder: NSCoder) {
-        value = (aDecoder.decodeObjectForKey("value") as? [String: LCValue]) ?? [:]
+        value = (aDecoder.decodeObject(forKey: "value") as? [String: LCValue]) ?? [:]
     }
 
-    public func encodeWithCoder(aCoder: NSCoder) {
-        aCoder.encodeObject(value, forKey: "value")
+    public func encode(with aCoder: NSCoder) {
+        aCoder.encode(value, forKey: "value")
     }
 
-    public func copyWithZone(zone: NSZone) -> AnyObject {
+    public func copy(with zone: NSZone?) -> Any {
         return LCDictionary(value)
     }
 
-    public override func isEqual(object: AnyObject?) -> Bool {
+    public override func isEqual(_ object: Any?) -> Bool {
         if let object = object as? LCDictionary {
             return object === self || object.value == value
         } else {
@@ -60,8 +60,8 @@ public final class LCDictionary: NSObject, LCValue, LCValueExtension, Collection
         }
     }
 
-    public func generate() -> DictionaryGenerator<Key, Value> {
-        return value.generate()
+    public func makeIterator() -> DictionaryIterator<Key, Value> {
+        return value.makeIterator()
     }
 
     public var startIndex: DictionaryIndex<Key, Value> {
@@ -72,7 +72,11 @@ public final class LCDictionary: NSObject, LCValue, LCValueExtension, Collection
         return value.endIndex
     }
 
-    public subscript (position: DictionaryIndex<Key, Value>) -> (Key, Value) {
+    public func index(after i: DictionaryIndex<Key, Value>) -> DictionaryIndex<Key, Value> {
+        return value.index(after: i)
+    }
+
+    public subscript(position: DictionaryIndex<Key, Value>) -> (key: Key, value: Value) {
         return value[position]
     }
 
@@ -82,7 +86,7 @@ public final class LCDictionary: NSObject, LCValue, LCValueExtension, Collection
     }
 
     public var JSONValue: AnyObject {
-        return value.mapValue { value in value.JSONValue }
+        return value.mapValue { value in value.JSONValue } as AnyObject
     }
 
     public var JSONString: String {
@@ -90,26 +94,26 @@ public final class LCDictionary: NSObject, LCValue, LCValueExtension, Collection
     }
 
     var LCONValue: AnyObject? {
-        return value.mapValue { value in (value as! LCValueExtension).LCONValue! }
+        return value.mapValue { value in (value as! LCValueExtension).LCONValue! } as AnyObject
     }
 
     static func instance() -> LCValue {
         return self.init([:])
     }
 
-    func forEachChild(body: (child: LCValue) -> Void) {
-        forEach { body(child: $1) }
+    func forEachChild(_ body: (_ child: LCValue) -> Void) {
+        forEach { body($1) }
     }
 
-    func add(other: LCValue) throws -> LCValue {
-        throw LCError(code: .InvalidType, reason: "Object cannot be added.")
+    func add(_ other: LCValue) throws -> LCValue {
+        throw LCError(code: .invalidType, reason: "Object cannot be added.")
     }
 
-    func concatenate(other: LCValue, unique: Bool) throws -> LCValue {
-        throw LCError(code: .InvalidType, reason: "Object cannot be concatenated.")
+    func concatenate(_ other: LCValue, unique: Bool) throws -> LCValue {
+        throw LCError(code: .invalidType, reason: "Object cannot be concatenated.")
     }
 
-    func differ(other: LCValue) throws -> LCValue {
-        throw LCError(code: .InvalidType, reason: "Object cannot be differed.")
+    func differ(_ other: LCValue) throws -> LCValue {
+        throw LCError(code: .invalidType, reason: "Object cannot be differed.")
     }
 }

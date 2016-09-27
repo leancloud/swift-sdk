@@ -13,8 +13,8 @@ import Foundation
 
  It is a wrapper of `Swift.Double` type, used to store a number value.
  */
-public final class LCNumber: NSObject, LCValue, LCValueExtension, FloatLiteralConvertible, IntegerLiteralConvertible {
-    public private(set) var value: Double = 0
+public final class LCNumber: NSObject, LCValue, LCValueExtension, ExpressibleByFloatLiteral, ExpressibleByIntegerLiteral {
+    public fileprivate(set) var value: Double = 0
 
     public override init() {
         super.init()
@@ -34,18 +34,18 @@ public final class LCNumber: NSObject, LCValue, LCValueExtension, FloatLiteralCo
     }
 
     public required init?(coder aDecoder: NSCoder) {
-        value = aDecoder.decodeDoubleForKey("value")
+        value = aDecoder.decodeDouble(forKey: "value")
     }
 
-    public func encodeWithCoder(aCoder: NSCoder) {
-        aCoder.encodeDouble(value, forKey: "value")
+    public func encode(with aCoder: NSCoder) {
+        aCoder.encode(value, forKey: "value")
     }
 
-    public func copyWithZone(zone: NSZone) -> AnyObject {
+    public func copy(with zone: NSZone?) -> Any {
         return LCNumber(value)
     }
 
-    public override func isEqual(object: AnyObject?) -> Bool {
+    public override func isEqual(_ object: Any?) -> Bool {
         if let object = object as? LCNumber {
             return object === self || object.value == value
         } else {
@@ -54,7 +54,7 @@ public final class LCNumber: NSObject, LCValue, LCValueExtension, FloatLiteralCo
     }
 
     public var JSONValue: AnyObject {
-        return value
+        return value as AnyObject
     }
 
     public var JSONString: String {
@@ -62,18 +62,18 @@ public final class LCNumber: NSObject, LCValue, LCValueExtension, FloatLiteralCo
     }
 
     var LCONValue: AnyObject? {
-        return value
+        return value as AnyObject?
     }
 
     static func instance() -> LCValue {
         return LCNumber()
     }
 
-    func forEachChild(body: (child: LCValue) -> Void) {
+    func forEachChild(_ body: (_ child: LCValue) -> Void) {
         /* Nothing to do. */
     }
 
-    func add(other: LCValue) throws -> LCValue {
+    func add(_ other: LCValue) throws -> LCValue {
         let result = LCNumber(value)
 
         result.addInPlace((other as! LCNumber).value)
@@ -81,15 +81,15 @@ public final class LCNumber: NSObject, LCValue, LCValueExtension, FloatLiteralCo
         return result
     }
 
-    func addInPlace(amount: Double) {
+    func addInPlace(_ amount: Double) {
         value += amount
     }
 
-    func concatenate(other: LCValue, unique: Bool) throws -> LCValue {
-        throw LCError(code: .InvalidType, reason: "Object cannot be concatenated.")
+    func concatenate(_ other: LCValue, unique: Bool) throws -> LCValue {
+        throw LCError(code: .invalidType, reason: "Object cannot be concatenated.")
     }
 
-    func differ(other: LCValue) throws -> LCValue {
-        throw LCError(code: .InvalidType, reason: "Object cannot be differed.")
+    func differ(_ other: LCValue) throws -> LCValue {
+        throw LCError(code: .invalidType, reason: "Object cannot be differed.")
     }
 }

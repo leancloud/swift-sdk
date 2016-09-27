@@ -11,7 +11,7 @@ import Foundation
 /**
  A type represents the result value of CQL execution.
  */
-public class LCCQLValue {
+open class LCCQLValue {
     let response: LCResponse
 
     init(response: LCResponse) {
@@ -29,7 +29,7 @@ public class LCCQLValue {
     /**
      Get objects for object query.
      */
-    public var objects: [LCObject] {
+    open var objects: [LCObject] {
         let results   = self.results
         let className = self.className
 
@@ -41,7 +41,7 @@ public class LCCQLValue {
     /**
      Get count value for count query.
      */
-    public var count: Int {
+    open var count: Int {
         return response.count
     }
 }
@@ -51,11 +51,11 @@ public class LCCQLValue {
 
  CQLClient allow you to use CQL (Cloud Query Language) to make CRUD for object.
  */
-public class LCCQLClient {
+open class LCCQLClient {
     static let endpoint = "cloudQuery"
 
     /// The dispatch queue for asynchronous CQL execution task.
-    static let backgroundQueue = dispatch_queue_create("LeanCloud.CQLClient", DISPATCH_QUEUE_CONCURRENT)
+    static let backgroundQueue = DispatchQueue(label: "LeanCloud.CQLClient", attributes: DispatchQueue.Attributes.concurrent)
 
     /**
      Asynchronize task into background queue.
@@ -63,7 +63,7 @@ public class LCCQLClient {
      - parameter task:       The task to be performed.
      - parameter completion: The completion closure to be called on main thread after task finished.
      */
-    static func asynchronize<Result>(task: () -> Result, completion: (Result) -> Void) {
+    static func asynchronize(_ task: @escaping () -> LCCQLResult, completion: @escaping (LCCQLResult) -> Void) {
         Utility.asynchronize(task, backgroundQueue, completion)
     }
 
@@ -75,7 +75,7 @@ public class LCCQLClient {
 
      - returns: The parameters for CQL execution.
      */
-    static func parameters(CQL: String, parameters: LCArrayConvertible?) -> [String: AnyObject] {
+    static func parameters(_ CQL: String, parameters: LCArrayConvertible?) -> [String: AnyObject] {
         var result = ["cql": CQL]
 
         if let parameters = parameters?.lcArray {
@@ -84,7 +84,7 @@ public class LCCQLClient {
             }
         }
 
-        return result
+        return result as [String : AnyObject]
     }
 
     /**
@@ -95,7 +95,7 @@ public class LCCQLClient {
 
      - returns: The result of CQL statement.
      */
-    public static func execute(CQL: String, parameters: LCArrayConvertible? = nil) -> LCCQLResult {
+    open static func execute(_ CQL: String, parameters: LCArrayConvertible? = nil) -> LCCQLResult {
         let parameters = self.parameters(CQL, parameters: parameters)
         let response   = RESTClient.request(.GET, endpoint, parameters: parameters)
 
@@ -109,9 +109,9 @@ public class LCCQLClient {
      - parameter parameters: The parameters for placeholders in CQL statement.
      - parameter completion: The completion callback closure.
      */
-    public static func execute(CQL: String, parameters: LCArrayConvertible? = nil, completion: (result: LCCQLResult) -> Void) {
+    open static func execute(_ CQL: String, parameters: LCArrayConvertible? = nil, completion: @escaping (_ result: LCCQLResult) -> Void) {
         asynchronize({ execute(CQL, parameters: parameters) }) { result in
-            completion(result: result)
+            completion(result)
         }
     }
 }

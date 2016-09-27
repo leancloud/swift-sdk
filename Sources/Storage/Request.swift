@@ -9,7 +9,7 @@
 import Foundation
 import Alamofire
 
-public class LCRequest {
+open class LCRequest {
     let alamofireRequest: Alamofire.Request
 
     init(_ alamofireRequest: Alamofire.Request) {

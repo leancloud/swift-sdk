@@ -9,11 +9,11 @@
 import Foundation
 import Alamofire
 
-public class LCResponse {
+open class LCResponse {
     /// Internal error.
     /// It will override alamofire's response error.
-    private var internalError: LCError?
-    private var alamofireResponse: Alamofire.Response<AnyObject, NSError>?
+    fileprivate var internalError: LCError?
+    fileprivate var alamofireResponse: Alamofire.DataResponse<Any>?
 
     init() {}
 
@@ -21,12 +21,12 @@ public class LCResponse {
         internalError = error
     }
 
-    init(_ alamofireResponse: Alamofire.Response<AnyObject, NSError>) {
+    init(_ alamofireResponse: Alamofire.DataResponse<Any>?) {
         self.alamofireResponse = alamofireResponse
     }
 
     var value: AnyObject? {
-        return alamofireResponse?.result.value
+        return alamofireResponse?.result.value as AnyObject?
     }
 
     var error: LCError? {
@@ -50,14 +50,14 @@ public class LCResponse {
         return result
     }
 
-    public subscript(key: String) -> AnyObject? {
-        return value?[key]
+    open subscript(key: String) -> AnyObject? {
+        return value?[key] as AnyObject?
     }
 
     /**
      A boolean property indicates whether response is OK or not.
      */
-    public var isSuccess: Bool {
+    open var isSuccess: Bool {
         return error == nil
     }
 }

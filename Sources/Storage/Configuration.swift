@@ -10,7 +10,7 @@ import Foundation
 
 /// Service region.
 public enum LCServiceRegion {
-    case CN, US
+    case cn, us
 }
 
 class Configuration {
@@ -19,5 +19,5 @@ class Configuration {
     var applicationID:  String!
     var applicationKey: String!
 
-    var serviceRegion: LCServiceRegion = .CN
+    var serviceRegion: LCServiceRegion = .cn
 }

@@ -43,7 +43,7 @@ class BatchRequest {
 
     var body: AnyObject {
         var body: [String: AnyObject] = [
-            "__internalId": object.objectId?.value ?? object.internalId
+            "__internalId": object.objectId?.value as AnyObject? ?? object.internalId as AnyObject
         ]
 
         var children: [(String, LCObject)] = []
@@ -73,21 +73,21 @@ class BatchRequest {
                     "className": child.actualClassName,
                     "cid": child.internalId,
                     "key": key
-                ])
+                ] as AnyObject)
             }
 
-            body["__children"] = list
+            body["__children"] = list as AnyObject?
         }
 
-        return body
+        return body as AnyObject
     }
 
     func JSONValue() -> AnyObject {
         let method = actualMethod
 
         var request: [String: AnyObject] = [
-            "path": path,
-            "method": method.rawValue
+            "path": path as AnyObject,
+            "method": method.rawValue as AnyObject
         ]
 
         switch method {
@@ -97,13 +97,13 @@ class BatchRequest {
             request["body"] = body
 
             if isNewborn {
-                request["new"] = true
+                request["new"] = true as AnyObject?
             }
         case .DELETE:
             break
         }
 
-        return request
+        return request as AnyObject
     }
 }
 
@@ -115,7 +115,7 @@ class BatchRequestBuilder {
 
      - returns: A list of request.
      */
-    static func buildRequests(object: LCObject) -> [BatchRequest] {
+    static func buildRequests(_ object: LCObject) -> [BatchRequest] {
         return operationTableList(object).map { element in
             BatchRequest(object: object, operationTable: element)
         }
@@ -128,7 +128,7 @@ class BatchRequestBuilder {
 
      - returns: The operation table list.
      */
-    private static func initialOperationTableList(object: LCObject) -> OperationTableList {
+    fileprivate static func initialOperationTableList(_ object: LCObject) -> OperationTableList {
         var operationTable: OperationTable = [:]
 
         /* Collect all non-null properties. */
@@ -154,7 +154,7 @@ class BatchRequestBuilder {
 
      - returns: A list of operation tables.
      */
-    private static func operationTableList(object: LCObject) -> OperationTableList {
+    fileprivate static func operationTableList(_ object: LCObject) -> OperationTableList {
         if object.hasObjectId {
             return object.operationHub.operationTableList()
         } else {

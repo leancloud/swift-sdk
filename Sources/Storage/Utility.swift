@@ -10,15 +10,16 @@ import Foundation
 
 class Utility {
     static func uuid() -> String {
-        return NSUUID().UUIDString.stringByReplacingOccurrencesOfString("-", withString: "").lowercaseString
+        let uuid = NSUUID().uuidString
+        return (uuid as NSString).replacingOccurrences(of: "-", with: "").lowercased()
     }
 
-    static func JSONString(object: AnyObject) -> String {
-        let data = try! NSJSONSerialization.dataWithJSONObject(object, options: NSJSONWritingOptions(rawValue: 0))
-        return String(data: data, encoding: NSUTF8StringEncoding)!
+    static func JSONString(_ object: AnyObject) -> String {
+        let data = try! JSONSerialization.data(withJSONObject: object, options: JSONSerialization.WritingOptions(rawValue: 0))
+        return String(data: data, encoding: String.Encoding.utf8)!
     }
 
-    static let mainQueue = dispatch_get_main_queue()
+    static let mainQueue = DispatchQueue.main
 
     /**
      Asynchronize a task into specified dispatch queue.
@@ -27,10 +28,10 @@ class Utility {
      - parameter queue:      The dispatch queue into which the task will be enqueued.
      - parameter completion: The completion closure to be called on main thread after task executed.
      */
-    static func asynchronize<Result>(task: () -> Result, _ queue: dispatch_queue_t, _ completion: (Result) -> Void) {
-        dispatch_async(queue) {
+    static func asynchronize<Result>(_ task: @escaping () -> Result, _ queue: DispatchQueue, _ completion: @escaping (Result) -> Void) {
+        queue.async {
             let result = task()
-            dispatch_async(mainQueue) {
+            mainQueue.async {
                 completion(result)
             }
         }

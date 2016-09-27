@@ -21,7 +21,7 @@ class TypeTestCase: BaseTestCase {
         super.tearDown()
     }
 
-    func convert(object: LCValueConvertible) -> LCValue {
+    func convert(_ object: LCValueConvertible) -> LCValue {
         return object.lcValue
     }
 
@@ -54,22 +54,22 @@ class TypeTestCase: BaseTestCase {
     }
 
     func testArrayConvertible() {
-        let array = [42, true, NSNull(), [:], [], NSData(), NSDate()]
+        let array = [42, true, NSNull(), [:], [], Data(), Date()] as [Any]
         XCTAssertEqual(convert(array) as? LCArray, LCArray(unsafeObject: array))
     }
 
     func testDictionaryConvertible() {
-        let dictionary = ["foo": "bar", "true": true, "dict": ["null": NSNull()]]
+        let dictionary = ["foo": "bar", "true": true, "dict": ["null": NSNull()]] as [String : Any]
         XCTAssertEqual(convert(dictionary) as? LCDictionary, LCDictionary(unsafeObject: dictionary))
     }
 
     func testDataConvertible() {
-        let data = NSData()
+        let data = Data()
         XCTAssertEqual(convert(data) as? LCData, LCData(data))
     }
 
     func testDateConvertible() {
-        let date = NSDate()
+        let date = Date()
         XCTAssertEqual(convert(date) as? LCDate, LCDate(date))
     }
 

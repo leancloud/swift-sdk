@@ -14,8 +14,8 @@ import Foundation
  This type can be used to represent a 2D location with latitude and longitude.
  */
 public final class LCGeoPoint: NSObject, LCValue, LCValueExtension {
-    public private(set) var latitude: Double = 0
-    public private(set) var longitude: Double = 0
+    public fileprivate(set) var latitude: Double = 0
+    public fileprivate(set) var longitude: Double = 0
 
     public enum Unit: String {
         case Mile = "Miles"
@@ -65,20 +65,20 @@ public final class LCGeoPoint: NSObject, LCValue, LCValueExtension {
     }
 
     public required init?(coder aDecoder: NSCoder) {
-        latitude  = aDecoder.decodeDoubleForKey("latitude")
-        longitude = aDecoder.decodeDoubleForKey("longitude")
+        latitude  = aDecoder.decodeDouble(forKey: "latitude")
+        longitude = aDecoder.decodeDouble(forKey: "longitude")
     }
 
-    public func encodeWithCoder(aCoder: NSCoder) {
-        aCoder.encodeDouble(latitude, forKey: "latitude")
-        aCoder.encodeDouble(longitude, forKey: "longitude")
+    public func encode(with aCoder: NSCoder) {
+        aCoder.encode(latitude, forKey: "latitude")
+        aCoder.encode(longitude, forKey: "longitude")
     }
 
-    public func copyWithZone(zone: NSZone) -> AnyObject {
+    public func copy(with zone: NSZone?) -> Any {
         return LCGeoPoint(latitude: latitude, longitude: longitude)
     }
 
-    public override func isEqual(object: AnyObject?) -> Bool {
+    public override func isEqual(_ object: Any?) -> Bool {
         if let object = object as? LCGeoPoint {
             return object === self || (object.latitude == latitude && object.longitude == longitude)
         } else {
@@ -91,7 +91,7 @@ public final class LCGeoPoint: NSObject, LCValue, LCValueExtension {
             "__type"    : "GeoPoint",
             "latitude"  : latitude,
             "longitude" : longitude
-        ]
+        ] as AnyObject
     }
 
     public var JSONString: String {
@@ -106,19 +106,19 @@ public final class LCGeoPoint: NSObject, LCValue, LCValueExtension {
         return self.init()
     }
 
-    func forEachChild(body: (child: LCValue) -> Void) {
+    func forEachChild(_ body: (_ child: LCValue) -> Void) {
         /* Nothing to do. */
     }
 
-    func add(other: LCValue) throws -> LCValue {
-        throw LCError(code: .InvalidType, reason: "Object cannot be added.")
+    func add(_ other: LCValue) throws -> LCValue {
+        throw LCError(code: .invalidType, reason: "Object cannot be added.")
     }
 
-    func concatenate(other: LCValue, unique: Bool) throws -> LCValue {
-        throw LCError(code: .InvalidType, reason: "Object cannot be concatenated.")
+    func concatenate(_ other: LCValue, unique: Bool) throws -> LCValue {
+        throw LCError(code: .invalidType, reason: "Object cannot be concatenated.")
     }
 
-    func differ(other: LCValue) throws -> LCValue {
-        throw LCError(code: .InvalidType, reason: "Object cannot be differed.")
+    func differ(_ other: LCValue) throws -> LCValue {
+        throw LCError(code: .invalidType, reason: "Object cannot be differed.")
     }
 }

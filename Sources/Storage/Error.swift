@@ -7,23 +7,26 @@
 //
 
 import Foundation
+import Alamofire
 
-public struct LCError: ErrorType {
-    public typealias UserInfo = [NSObject: AnyObject]
+public struct LCError: Error {
+    public typealias UserInfo = [AnyHashable: Any]
 
-    public let code: Int
-    public let reason: String?
-    public let userInfo: UserInfo?
+    public var code: Int = 0
+    public var reason: String?
+    public var userInfo: UserInfo?
+
+    public var underlyingError: Error?
 
     enum InternalErrorCode: Int {
-        case NotFound      = 9973
-        case InvalidType   = 9974
-        case MalformedData = 9975
-        case Inconsistency = 9976
+        case notFound      = 9973
+        case invalidType   = 9974
+        case malformedData = 9975
+        case inconsistency = 9976
     }
 
     enum ServerErrorCode: Int {
-        case ObjectNotFound = 101
+        case objectNotFound = 101
     }
 
     init(code: Int, reason: String? = nil, userInfo: UserInfo? = nil) {
@@ -46,9 +49,16 @@ public struct LCError: ErrorType {
         userInfo = dictionary
     }
 
-    init(error: NSError) {
-        code = error.code
-        reason = error.localizedFailureReason
-        userInfo = error.userInfo
+    init(error: Error) {
+        underlyingError = error
+
+        switch error {
+        case let error as NSError:
+            code = error.code
+            reason = error.localizedFailureReason
+            userInfo = error.userInfo
+        default:
+            break
+        }
     }
 }

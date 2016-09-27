@@ -21,12 +21,12 @@ class ObjectUpdater {
 
      - returns: An array of batch requests.
      */
-    private static func batchRequests(objects: Set<LCObject>) -> [BatchRequest] {
+    fileprivate static func batchRequests(_ objects: Set<LCObject>) -> [BatchRequest] {
         var requests: [BatchRequest] = []
         let toposort = ObjectProfiler.toposort(objects)
 
         toposort.forEach { object in
-            requests.appendContentsOf(BatchRequestBuilder.buildRequests(object))
+            requests.append(contentsOf: BatchRequestBuilder.buildRequests(object))
         }
 
         return requests
@@ -40,7 +40,7 @@ class ObjectUpdater {
      - parameter objects:  A set of object to update.
      - parameter response: The response of batch request.
      */
-    static func updateObjects(objects: Set<LCObject>, _ response: LCResponse) {
+    static func updateObjects(_ objects: Set<LCObject>, _ response: LCResponse) {
         let value = response.value
 
         guard let dictionary = value as? BatchResponse else {
@@ -64,12 +64,12 @@ class ObjectUpdater {
      - parameter requests: A list of batch requests.
      - returns: The response of request.
      */
-    private static func sendBatchRequests(requests: [BatchRequest], _ objects: Set<LCObject>) -> LCResponse {
+    fileprivate static func sendBatchRequests(_ requests: [BatchRequest], _ objects: Set<LCObject>) -> LCResponse {
         let parameters = [
             "requests": requests.map { request in request.JSONValue() }
         ]
 
-        let response = RESTClient.request(.POST, "batch/save", parameters: parameters)
+        let response = RESTClient.request(.POST, "batch/save", parameters: parameters as [String: AnyObject])
 
         if response.isSuccess {
             updateObjects(objects, response)
@@ -87,10 +87,10 @@ class ObjectUpdater {
 
      - parameter objects: A set of objects to validate.
      */
-    private static func validateObjectId(objects: Set<LCObject>) throws {
+    fileprivate static func validateObjectId(_ objects: Set<LCObject>) throws {
         try objects.forEach { object in
             if object.objectId == nil {
-                throw LCError(code: .NotFound, reason: "Object ID not found.", userInfo: nil)
+                throw LCError(code: .notFound, reason: "Object ID not found.", userInfo: nil)
             }
         }
     }
@@ -102,11 +102,11 @@ class ObjectUpdater {
 
      - returns: The response of request.
      */
-    private static func saveIndependentObjects(objects: Set<LCObject>) -> LCResponse {
+    fileprivate static func saveIndependentObjects(_ objects: Set<LCObject>) -> LCResponse {
         var family: Set<LCObject> = []
 
         objects.forEach { object in
-            family.unionInPlace(ObjectProfiler.family(object))
+            family.formUnion(ObjectProfiler.family(object))
         }
 
         let requests = batchRequests(family)
@@ -131,7 +131,7 @@ class ObjectUpdater {
      - parameter object: The ancestor object.
      - returns: The response of request.
      */
-    private static func saveNewbornOrphans(object: LCObject) -> LCResponse {
+    fileprivate static func saveNewbornOrphans(_ object: LCObject) -> LCResponse {
         var response = LCResponse()
 
         repeat {
@@ -167,7 +167,7 @@ class ObjectUpdater {
 
      - returns: The response of request.
      */
-    static func save(object: LCObject) -> LCResponse {
+    static func save(_ object: LCObject) -> LCResponse {
         object.validateBeforeSaving()
 
         var response = saveNewbornOrphans(object)
@@ -190,9 +190,9 @@ class ObjectUpdater {
 
      - returns: The response of request.
      */
-    static func delete(object: LCObject) -> LCResponse {
+    static func delete(_ object: LCObject) -> LCResponse {
         guard let endpoint = RESTClient.eigenEndpoint(object) else {
-            return LCResponse(LCError(code: .NotFound, reason: "Object not found."))
+            return LCResponse(LCError(code: .notFound, reason: "Object not found."))
         }
 
         return RESTClient.request(.DELETE, endpoint, parameters: nil)
@@ -205,7 +205,7 @@ class ObjectUpdater {
 
      - returns: The response of deletion request.
      */
-    static func delete<T: LCObject>(objects: [T]) -> LCResponse {
+    static func delete<T: LCObject>(_ objects: [T]) -> LCResponse {
         var response = LCResponse()
 
         /* If no objects, do nothing. */
@@ -215,7 +215,7 @@ class ObjectUpdater {
             BatchRequest(object: object, method: .DELETE).JSONValue()
         }
 
-        response = RESTClient.request(.POST, "batch", parameters: ["requests": requests])
+        response = RESTClient.request(.POST, "batch", parameters: ["requests": requests as AnyObject])
 
         return response
     }
@@ -228,11 +228,11 @@ class ObjectUpdater {
 
      - returns: The error response, or nil if error not found.
      */
-    static func handleFetchedResult(result: AnyObject?, _ objects: [LCObject]) -> LCResponse? {
+    static func handleFetchedResult(_ result: AnyObject?, _ objects: [LCObject]) -> LCResponse? {
         let dictionary = (result as? [String: AnyObject]) ?? [:]
 
         guard let objectId = dictionary["objectId"] as? String else {
-            return LCResponse(LCError(code: .ObjectNotFound, reason: "Object not found."))
+            return LCResponse(LCError(code: .objectNotFound, reason: "Object not found."))
         }
 
         let matched = objects.filter { object in
@@ -255,12 +255,12 @@ class ObjectUpdater {
 
      - returns: The handled response.
      */
-    static func handleFetchedResponse(response: LCResponse, _ objects: [LCObject]) -> LCResponse {
+    static func handleFetchedResponse(_ response: LCResponse, _ objects: [LCObject]) -> LCResponse {
         guard response.isSuccess else {
             return response
         }
-        guard let results = response.value as? [AnyObject] else {
-            return LCResponse(LCError(code: .ObjectNotFound, reason: "Object not found."))
+        guard let results = response.value as? [[String: AnyObject]] else {
+            return LCResponse(LCError(code: .objectNotFound, reason: "Object not found."))
         }
 
         var response = response
@@ -281,7 +281,7 @@ class ObjectUpdater {
 
      - returns: The response of fetching request.
      */
-    static func fetch(objects: [LCObject]) -> LCResponse {
+    static func fetch(_ objects: [LCObject]) -> LCResponse {
         var response = LCResponse()
 
         /* If no object, do nothing. */
@@ -290,7 +290,7 @@ class ObjectUpdater {
         /* If any object has no object ID, return not found error. */
         for object in objects {
             guard object.hasObjectId else {
-                return LCResponse(LCError(code: .NotFound, reason: "Object ID not found."))
+                return LCResponse(LCError(code: .notFound, reason: "Object ID not found."))
             }
         }
 
@@ -298,7 +298,7 @@ class ObjectUpdater {
             BatchRequest(object: object, method: .GET).JSONValue()
         }
 
-        response = RESTClient.request(.POST, "batch", parameters: ["requests": requests])
+        response = RESTClient.request(.POST, "batch", parameters: ["requests": requests as AnyObject])
 
         response = handleFetchedResponse(response, objects)
 
@@ -310,9 +310,9 @@ class ObjectUpdater {
 
      - returns: The response of request.
      */
-    static func fetch(object: LCObject) -> LCResponse {
+    static func fetch(_ object: LCObject) -> LCResponse {
         guard let endpoint = RESTClient.eigenEndpoint(object) else {
-            return LCResponse(LCError(code: .NotFound, reason: "Object not found."))
+            return LCResponse(LCError(code: .notFound, reason: "Object not found."))
         }
 
         let response = RESTClient.request(.GET, endpoint, parameters: nil)
@@ -324,7 +324,7 @@ class ObjectUpdater {
         let dictionary = (response.value as? [String: AnyObject]) ?? [:]
 
         guard dictionary["objectId"] != nil else {
-            return LCResponse(LCError(code: .ObjectNotFound, reason: "Object not found."))
+            return LCResponse(LCError(code: .objectNotFound, reason: "Object not found."))
         }
 
         ObjectProfiler.updateObject(object, dictionary)

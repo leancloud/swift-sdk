@@ -37,7 +37,7 @@ class Operation {
 
         self.name  = name
         self.key   = key
-        self.value = value?.copyWithZone(nil) as? LCValue
+        self.value = value?.copy(with: nil) as? LCValue
     }
 
     /**
@@ -50,15 +50,15 @@ class Operation {
         case .Set:
             return LCONValue!
         case .Delete:
-            return ["__op": name.rawValue]
+            return ["__op": name.rawValue] as AnyObject
         case .Increment:
-            return ["__op": name.rawValue, "amount": LCONValue!]
+            return ["__op": name.rawValue, "amount": LCONValue!] as AnyObject
         case .Add,
              .AddUnique,
              .AddRelation,
              .Remove,
              .RemoveRelation:
-            return ["__op": name.rawValue, "objects": LCONValue!]
+            return ["__op": name.rawValue, "objects": LCONValue!] as AnyObject
         }
     }
 
@@ -69,18 +69,18 @@ class Operation {
 
      - throws: A MalformedData error if key is invalid.
      */
-    static func validateKey(key: String) throws {
-        let options: NSStringCompareOptions = [
-            .RegularExpressionSearch,
-            .CaseInsensitiveSearch
+    static func validateKey(_ key: String) throws {
+        let options: NSString.CompareOptions = [
+            .regularExpression,
+            .caseInsensitive
         ]
 
-        guard key.rangeOfString("^[a-z0-9][a-z0-9_]*$", options: options) != nil else {
-            throw LCError(code: .MalformedData, reason: "Malformed key.", userInfo: ["key": key])
+        guard key.range(of: "^[a-z0-9][a-z0-9_]*$", options: options) != nil else {
+            throw LCError(code: .malformedData, reason: "Malformed key.", userInfo: ["key": key])
         }
     }
 
-    static func reducerType(type: LCValue.Type) -> OperationReducer.Type {
+    static func reducerType(_ type: LCValue.Type) -> OperationReducer.Type {
         switch type {
         case _ where type === LCArray.self:
             return OperationReducer.Array.self
@@ -99,7 +99,7 @@ class Operation {
     var reducerType: OperationReducer.Type? {
         switch name {
         case .Set:
-            return Operation.reducerType(value!.dynamicType)
+            return Operation.reducerType(type(of: value!))
         case .Delete:
             return nil
         case .Add,
@@ -147,7 +147,7 @@ class OperationHub {
 
      - parameter operation: The operation which you want to reduce.
      */
-    func reduce(operation: Operation) {
+    func reduce(_ operation: Operation) {
         let key = operation.key
         let operationReducer = operationReducerTable[key]
 
@@ -159,7 +159,7 @@ class OperationHub {
             operationReducerTable[key] = operationReducer
 
             if let unreducedOperation = unreducedOperationTable[key] {
-                unreducedOperationTable.removeValueForKey(key)
+                unreducedOperationTable.removeValue(forKey: key)
                 try! operationReducer.reduce(unreducedOperation)
             }
 
@@ -176,7 +176,7 @@ class OperationHub {
 
      - returns: Operation reducer type, or nil if not found.
      */
-    func operationReducerType(operation: Operation) -> OperationReducer.Type? {
+    func operationReducerType(_ operation: Operation) -> OperationReducer.Type? {
         let propertyName = operation.key
         let propertyType = ObjectProfiler.getLCValue(object: object, propertyName: propertyName)
 
@@ -219,12 +219,12 @@ class OperationHub {
 
      - returns: An operation table, or nil if no operations can be extracted.
      */
-    func extractOperationTable(inout operationStack: OperationStack) -> OperationTable? {
+    func extractOperationTable(_ operationStack: inout OperationStack) -> OperationTable? {
         var table: OperationTable = [:]
 
         operationStack.forEach { (key, operations) in
             if operations.isEmpty {
-                operationStack.removeValueForKey(key)
+                operationStack.removeValue(forKey: key)
             } else {
                 table[key] = operations.first
                 operationStack[key] = Array(operations[1..<operations.count])
@@ -289,11 +289,11 @@ class OperationReducer {
 
      - parameter operation: The operation to validate.
      */
-    func validate(operation: Operation) throws {
-        let operationNames = self.dynamicType.validOperationNames()
+    func validate(_ operation: Operation) throws {
+        let operationNames = type(of: self).validOperationNames()
 
         guard operationNames.contains(operation.name) else {
-            throw LCError(code: .InvalidType, reason: "Invalid operation type.", userInfo: nil)
+            throw LCError(code: .invalidType, reason: "Invalid operation type.", userInfo: nil)
         }
     }
 
@@ -302,8 +302,8 @@ class OperationReducer {
 
      - parameter operation: The operation to be reduced.
      */
-    func reduce(operation: Operation) throws {
-        throw LCError(code: .InvalidType, reason: "Operation cannot be reduced.", userInfo: nil)
+    func reduce(_ operation: Operation) throws {
+        throw LCError(code: .invalidType, reason: "Operation cannot be reduced.", userInfo: nil)
     }
 
     /**
@@ -330,7 +330,7 @@ class OperationReducer {
             return [.Set, .Delete]
         }
 
-        override func reduce(operation: Operation) {
+        override func reduce(_ operation: Operation) {
             try! super.validate(operation)
 
             /* SET or DELETE will always override the previous. */
@@ -358,7 +358,7 @@ class OperationReducer {
             return [.Set, .Delete, .Increment]
         }
 
-        override func reduce(operation: Operation) {
+        override func reduce(_ operation: Operation) {
             try! super.validate(operation)
 
             if let previousOperation = self.operation {
@@ -368,7 +368,7 @@ class OperationReducer {
             }
         }
 
-        func reduce(operation: Operation, previousOperation: Operation) -> Operation? {
+        func reduce(_ operation: Operation, previousOperation: Operation) -> Operation? {
             let lhs = previousOperation
             let rhs = operation
 
@@ -409,7 +409,7 @@ class OperationReducer {
             return [.Set, .Delete, .Add, .AddUnique, .Remove]
         }
 
-        override func reduce(operation: Operation) {
+        override func reduce(_ operation: Operation) {
             try! super.validate(operation)
 
             switch operation.name {
@@ -460,7 +460,7 @@ class OperationReducer {
          - parameter operationTable: The operation table.
          - parameter operationNames: A set of operation names that specify which operation should be removed from operation table if it is empty.
          */
-        func removeEmptyOperation(inout operationTable: [Operation.Name:Operation], _ operationNames:Set<Operation.Name>) {
+        func removeEmptyOperation(_ operationTable: inout [Operation.Name:Operation], _ operationNames:Set<Operation.Name>) {
             operationNames.forEach { (operationName) in
                 if let operation = operationTable[operationName] {
                     if !hasObjects(operation) {
@@ -477,7 +477,7 @@ class OperationReducer {
 
          - returns: true if operation has objects, false otherwise.
          */
-        func hasObjects(operation: Operation) -> Bool {
+        func hasObjects(_ operation: Operation) -> Bool {
             if let array = operation.value as? LCArray {
                 return !array.value.isEmpty
             } else {
@@ -492,7 +492,7 @@ class OperationReducer {
 
          - returns: true if operation existed for operation name, false otherwise.
          */
-        func hasOperation(name: Operation.Name) -> Bool {
+        func hasOperation(_ name: Operation.Name) -> Bool {
             return operationTable[name] != nil
         }
 
@@ -502,7 +502,7 @@ class OperationReducer {
          - parameter operation:     The operation that contains objects to be removed.
          - parameter operationName: The operation name that specifies operation from which the objects will be removed.
          */
-        func removeObjects(operation: Operation, _ operationName: Operation.Name) {
+        func removeObjects(_ operation: Operation, _ operationName: Operation.Name) {
             guard let rhs = operation.value as? LCArray else {
                 return
             }
@@ -521,7 +521,7 @@ class OperationReducer {
          - parameter operation:     The operation that contains objects to be removed.
          - parameter operationName: The operation name that specifies operation from which the objects will be removed.
          */
-        func addObjects(operation: Operation, _ operationName: Operation.Name, unique: Bool = false) {
+        func addObjects(_ operation: Operation, _ operationName: Operation.Name, unique: Bool = false) {
             guard var value = operation.value else {
                 return
             }
@@ -540,7 +540,7 @@ class OperationReducer {
 
          - parameter operation: The operation to set.
          */
-        func setOperation(operation: Operation) {
+        func setOperation(_ operation: Operation) {
             self.operationTable[operation.name] = operation
         }
 
@@ -565,7 +565,7 @@ class OperationReducer {
             return [.AddRelation, .RemoveRelation]
         }
 
-        override func reduce(operation: Operation) {
+        override func reduce(_ operation: Operation) {
             try! super.validate(operation)
 
             switch operation.name {

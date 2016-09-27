@@ -16,7 +16,7 @@ public let Version = "1.2.0"
  - parameter applicationID:  Application ID.
  - parameter applicationKey: Application key.
  */
-public func initialize(applicationID applicationID: String, applicationKey: String) {
+public func initialize(applicationID: String, applicationKey: String) {
     let configure = Configuration.sharedInstance
 
     configure.applicationID  = applicationID
@@ -30,6 +30,6 @@ public func initialize(applicationID applicationID: String, applicationKey: Stri
 
  - parameter serviceRegion: The service region.
  */
-public func setServiceRegion(serviceRegion: LCServiceRegion) {
+public func setServiceRegion(_ serviceRegion: LCServiceRegion) {
     Configuration.sharedInstance.serviceRegion = serviceRegion
 }

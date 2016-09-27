@@ -23,12 +23,12 @@ class RESTClient {
         case DELETE
 
         /// Get Alamofire corresponding method
-        var alamofireMethod: Alamofire.Method {
+        var alamofireMethod: Alamofire.HTTPMethod {
             switch self {
-            case .GET:    return .GET
-            case .POST:   return .POST
-            case .PUT:    return .PUT
-            case .DELETE: return .DELETE
+            case .GET:    return .get
+            case .POST:   return .post
+            case .PUT:    return .put
+            case .DELETE: return .delete
             }
         }
     }
@@ -41,14 +41,6 @@ class RESTClient {
         case GeoPoint = "GeoPoint"
         case Bytes    = "Bytes"
         case Date     = "Date"
-    }
-
-    /// Reserved key.
-    class ReservedKey {
-        static let Op         = "__op"
-        static let Type       = "__type"
-        static let InternalId = "__internalId"
-        static let Children   = "__children"
     }
 
     /// Header field name.
@@ -65,19 +57,19 @@ class RESTClient {
     static let APIVersion = "1.1"
 
     /// Default timeout interval of each request.
-    static let defaultTimeoutInterval: NSTimeInterval = 10
+    static let defaultTimeoutInterval: TimeInterval = 10
 
     /// REST client shared instance.
     static let sharedInstance = RESTClient()
 
     /// Request dispatch queue.
-    static let dispatchQueue = dispatch_queue_create("LeanCloud.REST", DISPATCH_QUEUE_CONCURRENT)
+    static let dispatchQueue = DispatchQueue(label: "LeanCloud.REST", attributes: DispatchQueue.Attributes.concurrent)
 
-    /// Shared request manager.
-    static var requestManager: Alamofire.Manager = {
-        let configuration = NSURLSessionConfiguration.defaultSessionConfiguration()
+    /// Shared session manager.
+    static var requestManager: Alamofire.SessionManager = {
+        let configuration = URLSessionConfiguration.default
         configuration.timeoutIntervalForRequest = defaultTimeoutInterval
-        return Manager(configuration: configuration)
+        return SessionManager(configuration: configuration)
     }()
 
     /// User agent of SDK.
@@ -85,8 +77,8 @@ class RESTClient {
 
     /// Signature of each request.
     static var signature: String {
-        let timestamp = String(format: "%.0f", 1000 * NSDate().timeIntervalSince1970)
-        let hash = "\(timestamp)\(Configuration.sharedInstance.applicationKey)".MD5String.lowercaseString
+        let timestamp = String(format: "%.0f", 1000 * Date().timeIntervalSince1970)
+        let hash = (timestamp + Configuration.sharedInstance.applicationKey).MD5String.lowercased()
 
         return "\(hash),\(timestamp)"
     }
@@ -110,8 +102,8 @@ class RESTClient {
     /// REST host for current service region.
     static var host: String {
         switch Configuration.sharedInstance.serviceRegion {
-        case .CN: return "api.leancloud.cn"
-        case .US: return "us-api.leancloud.cn"
+        case .cn: return "api.leancloud.cn"
+        case .us: return "us-api.leancloud.cn"
         }
     }
 
@@ -122,7 +114,7 @@ class RESTClient {
 
      - returns: The endpoint of object.
      */
-    static func endpoint(object: LCObject) -> String {
+    static func endpoint(_ object: LCObject) -> String {
         return endpoint(object.actualClassName)
     }
 
@@ -133,7 +125,7 @@ class RESTClient {
 
      - returns: The eigen endpoint of object.
      */
-    static func eigenEndpoint(object: LCObject) -> String? {
+    static func eigenEndpoint(_ object: LCObject) -> String? {
         guard let objectId = object.objectId else {
             return nil
         }
@@ -148,7 +140,7 @@ class RESTClient {
 
      - returns: The endpoint for class name.
      */
-    static func endpoint(className: String) -> String {
+    static func endpoint(_ className: String) -> String {
         switch className {
         case LCUser.objectClassName():
             return "users"
@@ -166,7 +158,7 @@ class RESTClient {
 
      - returns: An absolute REST API URL string.
      */
-    static func absoluteURLString(endpoint: String) -> String {
+    static func absoluteURLString(_ endpoint: String) -> String {
         return "https://\(self.host)/\(self.APIVersion)/\(endpoint)"
     }
 
@@ -179,7 +171,7 @@ class RESTClient {
 
      - returns: The merged headers.
      */
-    static func mergeCommonHeaders(headers: [String: String]?) -> [String: String] {
+    static func mergeCommonHeaders(_ headers: [String: String]?) -> [String: String] {
         var result = commonHeaders
 
         headers?.forEach { (key, value) in result[key] = value }
@@ -199,24 +191,24 @@ class RESTClient {
      - returns: A request object.
      */
     static func request(
-        method: Method,
+        _ method: Method,
         _ endpoint: String,
         parameters: [String: AnyObject]? = nil,
         headers: [String: String]? = nil,
-        completionHandler: (LCResponse) -> Void)
+        completionHandler: @escaping (LCResponse) -> Void)
         -> LCRequest
     {
         let method    = method.alamofireMethod
-        let URLString = absoluteURLString(endpoint)
+        let urlString = absoluteURLString(endpoint)
         let headers   = mergeCommonHeaders(headers)
         var encoding: ParameterEncoding!
 
         switch method {
-        case .GET: encoding = .URLEncodedInURL
-        default:   encoding = .JSON
+        case .get: encoding = URLEncoding.default
+        default:   encoding = JSONEncoding.default
         }
 
-        let request = requestManager.request(method, URLString, parameters: parameters, encoding: encoding, headers: headers)
+        let request = requestManager.request(urlString, method: method, parameters: parameters, encoding: encoding, headers: headers)
 
         request.responseJSON(queue: dispatchQueue) { response in
             completionHandler(LCResponse(response))
@@ -236,22 +228,22 @@ class RESTClient {
      - returns: A response object.
      */
     static func request(
-        method: Method,
+        _ method: Method,
         _ endpoint: String,
-        headers: [String: String]? = nil,
-        parameters: [String: AnyObject]? = nil)
+        parameters: [String: AnyObject]? = nil,
+        headers: [String: String]? = nil)
         -> LCResponse
     {
         var result: LCResponse!
 
-        let semaphore = dispatch_semaphore_create(0)
+        let semaphore = DispatchSemaphore(value: 0)
 
-        request(method, endpoint, parameters: parameters, headers: headers) { response in
+        _ = request(method, endpoint, parameters: parameters, headers: headers) { response in
             result = response
-            dispatch_semaphore_signal(semaphore)
+            semaphore.signal()
         }
 
-        dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER)
+        _ = semaphore.wait(timeout: DispatchTime.distantFuture)
 
         return result
     }
@@ -262,7 +254,7 @@ class RESTClient {
      - parameter task:       The task to be asynchronized.
      - parameter completion: The completion closure to be called on main thread after task finished.
      */
-    static func asynchronize<Result>(task: () -> Result, completion: (Result) -> Void) {
+    static func asynchronize<Result>(_ task: @escaping () -> Result, completion: @escaping (Result) -> Void) {
         Utility.asynchronize(task, dispatchQueue, completion)
     }
 }

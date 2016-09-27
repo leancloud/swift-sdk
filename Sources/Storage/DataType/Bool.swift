@@ -13,8 +13,8 @@ import Foundation
 
  It is a wrapper of `Swift.Bool` type, used to store a boolean value.
  */
-public final class LCBool: NSObject, LCValue, LCValueExtension, BooleanLiteralConvertible {
-    public private(set) var value: Bool = false
+public final class LCBool: NSObject, LCValue, LCValueExtension, ExpressibleByBooleanLiteral {
+    public fileprivate(set) var value: Bool = false
 
     public override init() {
         super.init()
@@ -30,18 +30,18 @@ public final class LCBool: NSObject, LCValue, LCValueExtension, BooleanLiteralCo
     }
 
     public required init?(coder aDecoder: NSCoder) {
-        value = aDecoder.decodeBoolForKey("value")
+        value = aDecoder.decodeBool(forKey: "value")
     }
 
-    public func encodeWithCoder(aCoder: NSCoder) {
-        aCoder.encodeBool(value, forKey: "value")
+    public func encode(with aCoder: NSCoder) {
+        aCoder.encode(value, forKey: "value")
     }
 
-    public func copyWithZone(zone: NSZone) -> AnyObject {
+    public func copy(with zone: NSZone?) -> Any {
         return LCBool(value)
     }
 
-    public override func isEqual(object: AnyObject?) -> Bool {
+    public override func isEqual(_ object: Any?) -> Bool {
         if let object = object as? LCBool {
             return object === self || object.value == value
         } else {
@@ -50,7 +50,7 @@ public final class LCBool: NSObject, LCValue, LCValueExtension, BooleanLiteralCo
     }
 
     public var JSONValue: AnyObject {
-        return value
+        return value as AnyObject
     }
 
     public var JSONString: String {
@@ -58,26 +58,26 @@ public final class LCBool: NSObject, LCValue, LCValueExtension, BooleanLiteralCo
     }
 
     var LCONValue: AnyObject? {
-        return value
+        return value as AnyObject?
     }
 
     static func instance() -> LCValue {
         return LCBool()
     }
 
-    func forEachChild(body: (child: LCValue) -> Void) {
+    func forEachChild(_ body: (_ child: LCValue) -> Void) {
         /* Nothing to do. */
     }
 
-    func add(other: LCValue) throws -> LCValue {
-        throw LCError(code: .InvalidType, reason: "Object cannot be added.")
+    func add(_ other: LCValue) throws -> LCValue {
+        throw LCError(code: .invalidType, reason: "Object cannot be added.")
     }
 
-    func concatenate(other: LCValue, unique: Bool) throws -> LCValue {
-        throw LCError(code: .InvalidType, reason: "Object cannot be concatenated.")
+    func concatenate(_ other: LCValue, unique: Bool) throws -> LCValue {
+        throw LCError(code: .invalidType, reason: "Object cannot be concatenated.")
     }
 
-    func differ(other: LCValue) throws -> LCValue {
-        throw LCError(code: .InvalidType, reason: "Object cannot be differed.")
+    func differ(_ other: LCValue) throws -> LCValue {
+        throw LCError(code: .invalidType, reason: "Object cannot be differed.")
     }
 }

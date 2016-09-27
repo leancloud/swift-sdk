@@ -37,8 +37,8 @@ class ObjectTestCase: BaseTestCase {
         object.booleanField  = true
         object.stringField   = "123456"
         object.geoPointField = LCGeoPoint(latitude: 45, longitude: -45)
-        object.dataField     = LCData(NSData())
-        object.dateField     = LCDate(NSDate(timeIntervalSince1970: 1))
+        object.dataField     = LCData(Data())
+        object.dateField     = LCDate(Date(timeIntervalSince1970: 1))
 
         XCTAssertTrue(object.save().isSuccess)
         XCTAssertNotNil(object.objectId)
@@ -219,11 +219,11 @@ class ObjectTestCase: BaseTestCase {
         XCTAssertTrue(observed)
     }
 
-    override func observeValueForKeyPath(
-        keyPath: String?,
-        ofObject object: AnyObject?,
-        change: [String : AnyObject]?,
-        context: UnsafeMutablePointer<Void>)
+    override func observeValue(
+        forKeyPath keyPath: String?,
+        of object: Any?,
+        change: [NSKeyValueChangeKey : Any]?,
+        context: UnsafeMutableRawPointer?)
     {
         if let newValue = change?["new"] as? LCString {
             if newValue == LCString("yet another value") {

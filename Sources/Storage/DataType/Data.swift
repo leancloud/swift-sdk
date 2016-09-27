@@ -14,21 +14,21 @@ import Foundation
  This type can be used to represent a byte buffers.
  */
 public final class LCData: NSObject, LCValue, LCValueExtension {
-    public private(set) var value: NSData = NSData()
+    public fileprivate(set) var value: Data = Data()
 
     var base64EncodedString: String {
-        return value.base64EncodedStringWithOptions(NSDataBase64EncodingOptions(rawValue: 0))
+        return value.base64EncodedString(options: NSData.Base64EncodingOptions(rawValue: 0))
     }
 
-    static func dataFromString(string: String) -> NSData? {
-        return NSData(base64EncodedString: string, options: NSDataBase64DecodingOptions(rawValue: 0))
+    static func dataFromString(_ string: String) -> Data? {
+        return Data(base64Encoded: string, options: NSData.Base64DecodingOptions(rawValue: 0))
     }
 
     public override init() {
         super.init()
     }
 
-    public convenience init(_ data: NSData) {
+    public convenience init(_ data: Data) {
         self.init()
         value = data
     }
@@ -62,18 +62,18 @@ public final class LCData: NSObject, LCValue, LCValueExtension {
     }
 
     public required init?(coder aDecoder: NSCoder) {
-        value = (aDecoder.decodeObjectForKey("value") as? NSData) ?? NSData()
+        value = (aDecoder.decodeObject(forKey: "value") as? Data) ?? Data()
     }
 
-    public func encodeWithCoder(aCoder: NSCoder) {
-        aCoder.encodeObject(value, forKey: "value")
+    public func encode(with aCoder: NSCoder) {
+        aCoder.encode(value, forKey: "value")
     }
 
-    public func copyWithZone(zone: NSZone) -> AnyObject {
-        return LCData(value.copy() as! NSData)
+    public func copy(with zone: NSZone?) -> Any {
+        return LCData((value as NSData).copy() as! Data)
     }
 
-    public override func isEqual(object: AnyObject?) -> Bool {
+    public override func isEqual(_ object: Any?) -> Bool {
         if let object = object as? LCData {
             return object === self || object.value == value
         } else {
@@ -85,7 +85,7 @@ public final class LCData: NSObject, LCValue, LCValueExtension {
         return [
             "__type": "Bytes",
             "base64": base64EncodedString
-        ]
+        ] as AnyObject
     }
 
     public var JSONString: String {
@@ -100,19 +100,19 @@ public final class LCData: NSObject, LCValue, LCValueExtension {
         return self.init()
     }
 
-    func forEachChild(body: (child: LCValue) -> Void) {
+    func forEachChild(_ body: (_ child: LCValue) -> Void) {
         /* Nothing to do. */
     }
 
-    func add(other: LCValue) throws -> LCValue {
-        throw LCError(code: .InvalidType, reason: "Object cannot be added.")
+    func add(_ other: LCValue) throws -> LCValue {
+        throw LCError(code: .invalidType, reason: "Object cannot be added.")
     }
 
-    func concatenate(other: LCValue, unique: Bool) throws -> LCValue {
-        throw LCError(code: .InvalidType, reason: "Object cannot be concatenated.")
+    func concatenate(_ other: LCValue, unique: Bool) throws -> LCValue {
+        throw LCError(code: .invalidType, reason: "Object cannot be concatenated.")
     }
 
-    func differ(other: LCValue) throws -> LCValue {
-        throw LCError(code: .InvalidType, reason: "Object cannot be differed.")
+    func differ(_ other: LCValue) throws -> LCValue {
+        throw LCError(code: .invalidType, reason: "Object cannot be differed.")
     }
 }

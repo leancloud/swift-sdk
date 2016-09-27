@@ -15,15 +15,15 @@ import Foundation
  It can be extended into subclass while adding some other properties to form a new type.
  Each object is correspond to a record in data storage.
  */
-public class LCObject: NSObject, LCValue, LCValueExtension, SequenceType {
+open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
     /// Access control lists.
-    public dynamic var ACL: LCACL?
+    open dynamic var ACL: LCACL?
 
     /// Object identifier.
-    public private(set) dynamic var objectId: LCString?
+    open fileprivate(set) dynamic var objectId: LCString?
 
-    public private(set) dynamic var createdAt: LCDate?
-    public private(set) dynamic var updatedAt: LCDate?
+    open fileprivate(set) dynamic var createdAt: LCDate?
+    open fileprivate(set) dynamic var updatedAt: LCDate?
 
     /**
      The table of all properties.
@@ -36,7 +36,7 @@ public class LCObject: NSObject, LCValue, LCValueExtension, SequenceType {
 
     var actualClassName: String {
         let className = self["className"] as? LCString
-        return (className?.value) ?? self.dynamicType.objectClassName()
+        return (className?.value) ?? type(of: self).objectClassName()
     }
 
     /// The temp in-memory object identifier.
@@ -78,18 +78,18 @@ public class LCObject: NSObject, LCValue, LCValueExtension, SequenceType {
     }
 
     public required init?(coder aDecoder: NSCoder) {
-        propertyTable = (aDecoder.decodeObjectForKey("propertyTable") as? LCDictionary) ?? [:]
+        propertyTable = (aDecoder.decodeObject(forKey: "propertyTable") as? LCDictionary) ?? [:]
     }
 
-    public func encodeWithCoder(aCoder: NSCoder) {
-        aCoder.encodeObject(propertyTable, forKey: "propertyTable")
+    open func encode(with aCoder: NSCoder) {
+        aCoder.encode(propertyTable, forKey: "propertyTable")
     }
 
-    public func copyWithZone(zone: NSZone) -> AnyObject {
+    open func copy(with zone: NSZone?) -> Any {
         return self
     }
 
-    public override func isEqual(object: AnyObject?) -> Bool {
+    open override func isEqual(_ object: Any?) -> Bool {
         if let object = object as? LCObject {
             return object === self || (hasObjectId && object.objectId == objectId)
         } else {
@@ -97,28 +97,28 @@ public class LCObject: NSObject, LCValue, LCValueExtension, SequenceType {
         }
     }
 
-    public override func valueForKey(key: String) -> AnyObject? {
+    open override func value(forKey key: String) -> Any? {
         guard let value = get(key) else {
-            return super.valueForKey(key)
+            return super.value(forKey: key)
         }
 
         return value
     }
 
-    public func generate() -> DictionaryGenerator<String, LCValue> {
-        return propertyTable.generate()
+    open func makeIterator() -> DictionaryIterator<String, LCValue> {
+        return propertyTable.makeIterator()
     }
 
-    public var JSONValue: AnyObject {
+    open var JSONValue: AnyObject {
         var result = propertyTable.JSONValue as! [String: AnyObject]
 
-        result["__type"]    = "Object"
-        result["className"] = actualClassName
+        result["__type"]    = "Object" as AnyObject?
+        result["className"] = actualClassName as AnyObject?
 
-        return result
+        return result as AnyObject
     }
 
-    public var JSONString: String {
+    open var JSONString: String {
         return ObjectProfiler.getJSONString(self)
     }
 
@@ -131,31 +131,31 @@ public class LCObject: NSObject, LCValue, LCValueExtension, SequenceType {
             "__type"    : "Pointer",
             "className" : actualClassName,
             "objectId"  : objectId.value
-        ]
+        ] as AnyObject
     }
 
     static func instance() -> LCValue {
         return self.init()
     }
 
-    func forEachChild(body: (child: LCValue) -> Void) {
+    func forEachChild(_ body: (_ child: LCValue) -> Void) {
         propertyTable.forEachChild(body)
     }
 
-    func add(other: LCValue) throws -> LCValue {
-        throw LCError(code: .InvalidType, reason: "Object cannot be added.")
+    func add(_ other: LCValue) throws -> LCValue {
+        throw LCError(code: .invalidType, reason: "Object cannot be added.")
     }
 
-    func concatenate(other: LCValue, unique: Bool) throws -> LCValue {
-        throw LCError(code: .InvalidType, reason: "Object cannot be concatenated.")
+    func concatenate(_ other: LCValue, unique: Bool) throws -> LCValue {
+        throw LCError(code: .invalidType, reason: "Object cannot be concatenated.")
     }
 
-    func differ(other: LCValue) throws -> LCValue {
-        throw LCError(code: .InvalidType, reason: "Object cannot be differed.")
+    func differ(_ other: LCValue) throws -> LCValue {
+        throw LCError(code: .invalidType, reason: "Object cannot be differed.")
     }
 
     /// The dispatch queue for network request task.
-    static let backgroundQueue = dispatch_queue_create("LeanCloud.Object", DISPATCH_QUEUE_CONCURRENT)
+    static let backgroundQueue = DispatchQueue(label: "LeanCloud.Object", attributes: DispatchQueue.Attributes.concurrent)
 
     /**
      Set class name of current type.
@@ -164,12 +164,12 @@ public class LCObject: NSObject, LCValue, LCValueExtension, SequenceType {
 
      - returns: The class name of current type.
      */
-    public class func objectClassName() -> String {
-        let className = String(UTF8String: class_getName(self))!
+    open class func objectClassName() -> String {
+        let className = String(validatingUTF8: class_getName(self))!
 
         /* Strip root namespace to cope with application package name's change. */
-        if let index = className.characters.indexOf(".") {
-            return className.substringFromIndex(index.successor())
+        if let index = className.characters.index(of: ".") {
+            return className.substring(from: className.index(after: index))
         } else {
             return className
         }
@@ -178,7 +178,7 @@ public class LCObject: NSObject, LCValue, LCValueExtension, SequenceType {
     /**
      Register current object class manually.
      */
-    public static func register() {
+    open static func register() {
         ObjectProfiler.registerClass(self)
     }
 
@@ -191,13 +191,13 @@ public class LCObject: NSObject, LCValue, LCValueExtension, SequenceType {
 
      - returns: The property value.
      */
-    func getProperty<Value: LCValue>(key: String) throws -> Value? {
+    func getProperty<Value: LCValue>(_ key: String) throws -> Value? {
         let value = propertyTable[key]
 
         if let value = value {
             guard value is Value else {
                 let reason = String(format: "No such a property with name \"%@\" and type \"%s\".", key, class_getName(Value.self))
-                throw LCError(code: .InvalidType, reason: reason, userInfo: nil)
+                throw LCError(code: .invalidType, reason: reason, userInfo: nil)
             }
         }
 
@@ -214,7 +214,7 @@ public class LCObject: NSObject, LCValue, LCValueExtension, SequenceType {
 
      - returns: The property value.
      */
-    func loadProperty<Value: LCValue>(key: String) throws -> Value {
+    func loadProperty<Value: LCValue>(_ key: String) throws -> Value {
         if let value: Value = try getProperty(key) {
             return value
         }
@@ -230,12 +230,12 @@ public class LCObject: NSObject, LCValue, LCValueExtension, SequenceType {
 
      - parameter operation: The operation used to update property.
      */
-    func updateProperty(operation: Operation) {
+    func updateProperty(_ operation: Operation) {
         let key   = operation.key
         let name  = operation.name
         let value = operation.value
 
-        self.willChangeValueForKey(key)
+        self.willChangeValue(forKey: key)
 
         switch name {
         case .Set:
@@ -274,7 +274,7 @@ public class LCObject: NSObject, LCValue, LCValueExtension, SequenceType {
             relation?.removeElements(elements)
         }
 
-        self.didChangeValueForKey(key)
+        self.didChangeValue(forKey: key)
     }
 
     /**
@@ -284,7 +284,7 @@ public class LCObject: NSObject, LCValue, LCValueExtension, SequenceType {
      - parameter key:   The operation key.
      - parameter value: The operation value.
      */
-    func addOperation(name: Operation.Name, _ key: String, _ value: LCValue? = nil) {
+    func addOperation(_ name: Operation.Name, _ key: String, _ value: LCValue? = nil) {
         let operation = Operation(name: name, key: key, value: value)
 
         updateProperty(operation)
@@ -299,7 +299,7 @@ public class LCObject: NSObject, LCValue, LCValueExtension, SequenceType {
 
      - returns: The transformed value for key.
      */
-    func transformValue(key: String, _ value: LCValue?) -> LCValue? {
+    func transformValue(_ key: String, _ value: LCValue?) -> LCValue? {
         guard let value = value else {
             return nil
         }
@@ -320,16 +320,16 @@ public class LCObject: NSObject, LCValue, LCValueExtension, SequenceType {
      - parameter key:   The property key to be updated.
      - parameter value: The property value.
      */
-    func update(key: String, _ value: LCValue?) {
-        self.willChangeValueForKey(key)
+    func update(_ key: String, _ value: LCValue?) {
+        self.willChangeValue(forKey: key)
         propertyTable[key] = transformValue(key, value)
-        self.didChangeValueForKey(key)
+        self.didChangeValue(forKey: key)
     }
 
     /**
      Get and set value via subscript syntax.
      */
-    public subscript(key: String) -> LCValue? {
+    open subscript(key: String) -> LCValue? {
         get { return get(key) }
         set { set(key, value: newValue) }
     }
@@ -341,7 +341,7 @@ public class LCObject: NSObject, LCValue, LCValueExtension, SequenceType {
 
      - returns: The value for key.
      */
-    public func get(key: String) -> LCValue? {
+    open func get(_ key: String) -> LCValue? {
         return propertyTable[key]
     }
 
@@ -351,7 +351,7 @@ public class LCObject: NSObject, LCValue, LCValueExtension, SequenceType {
      - parameter key:   The key for which to set the value.
      - parameter value: The new value.
      */
-    func set(key: String, value: LCValue?) {
+    func set(_ key: String, value: LCValue?) {
         if let value = value {
             addOperation(.Set, key, value)
         } else {
@@ -365,7 +365,7 @@ public class LCObject: NSObject, LCValue, LCValueExtension, SequenceType {
      - parameter key:   The key for which to set the value.
      - parameter value: The new value.
      */
-    public func set(key: String, value: LCValueConvertible?) {
+    open func set(_ key: String, value: LCValueConvertible?) {
         set(key, value: value?.lcValue)
     }
 
@@ -375,8 +375,8 @@ public class LCObject: NSObject, LCValue, LCValueExtension, SequenceType {
      - parameter key:    The key for which to set the object.
      - parameter object: The new object.
      */
-    @available(*, deprecated, message="Use 'set(_:value:)' method instead.")
-    public func set(key: String, object: AnyObject?) {
+    @available(*, deprecated, message: "Use 'set(_:value:)' method instead.")
+    open func set(_ key: String, object: AnyObject?) {
         if let object = object {
             set(key, value: try! ObjectProfiler.object(JSONValue: object))
         } else {
@@ -389,7 +389,7 @@ public class LCObject: NSObject, LCValue, LCValueExtension, SequenceType {
 
      - parameter key: The key for which to unset.
      */
-    public func unset(key: String) {
+    open func unset(_ key: String) {
         addOperation(.Delete, key, nil)
     }
 
@@ -399,7 +399,7 @@ public class LCObject: NSObject, LCValue, LCValueExtension, SequenceType {
      - parameter key:    The key of number which you want to increase.
      - parameter amount: The amount to increase.
      */
-    public func increase(key: String, by: LCNumberConvertible) {
+    open func increase(_ key: String, by: LCNumberConvertible) {
         addOperation(.Increment, key, by.lcNumber)
     }
 
@@ -409,7 +409,7 @@ public class LCObject: NSObject, LCValue, LCValueExtension, SequenceType {
      - parameter key:     The key of array into which you want to append the element.
      - parameter element: The element to append.
      */
-    public func append(key: String, element: LCValueConvertible) {
+    open func append(_ key: String, element: LCValueConvertible) {
         addOperation(.Add, key, LCArray([element.lcValue]))
     }
 
@@ -419,7 +419,7 @@ public class LCObject: NSObject, LCValue, LCValueExtension, SequenceType {
      - parameter key:      The key of array into which you want to append the elements.
      - parameter elements: The array of elements to append.
      */
-    public func append(key: String, elements: LCArrayConvertible) {
+    open func append(_ key: String, elements: LCArrayConvertible) {
         addOperation(.Add, key, elements.lcArray)
     }
 
@@ -432,7 +432,7 @@ public class LCObject: NSObject, LCValue, LCValueExtension, SequenceType {
                           If true, element will not be appended if it had already existed in array;
                           otherwise, element will always be appended.
      */
-    public func append(key: String, element: LCValueConvertible, unique: Bool) {
+    open func append(_ key: String, element: LCValueConvertible, unique: Bool) {
         addOperation(unique ? .AddUnique : .Add, key, LCArray([element.lcValue]))
     }
 
@@ -445,7 +445,7 @@ public class LCObject: NSObject, LCValue, LCValueExtension, SequenceType {
      - parameter elements: The array of elements to append.
      - parameter unique:   Whether append element by unique or not.
      */
-    public func append(key: String, elements: LCArrayConvertible, unique: Bool) {
+    open func append(_ key: String, elements: LCArrayConvertible, unique: Bool) {
         addOperation(unique ? .AddUnique : .Add, key, elements.lcArray)
     }
 
@@ -455,7 +455,7 @@ public class LCObject: NSObject, LCValue, LCValueExtension, SequenceType {
      - parameter key:     The key of array from which you want to remove the element.
      - parameter element: The element to remove.
      */
-    public func remove(key: String, element: LCValueConvertible) {
+    open func remove(_ key: String, element: LCValueConvertible) {
         addOperation(.Remove, key, LCArray([element.lcValue]))
     }
 
@@ -465,7 +465,7 @@ public class LCObject: NSObject, LCValue, LCValueExtension, SequenceType {
      - parameter key:      The key of array from which you want to remove the element.
      - parameter elements: The array of elements to remove.
      */
-    public func remove(key: String, elements: LCArrayConvertible) {
+    open func remove(_ key: String, elements: LCArrayConvertible) {
         addOperation(.Remove, key, elements.lcArray)
     }
 
@@ -476,7 +476,7 @@ public class LCObject: NSObject, LCValue, LCValueExtension, SequenceType {
 
      - returns: The relation for key.
      */
-    public func relationForKey(key: String) -> LCRelation {
+    open func relationForKey(_ key: String) -> LCRelation {
         return LCRelation(key: key, parent: self)
     }
 
@@ -486,7 +486,7 @@ public class LCObject: NSObject, LCValue, LCValueExtension, SequenceType {
      - parameter key:    The key of relation into which you want to insert the object.
      - parameter object: The object to insert.
      */
-    public func insertRelation(key: String, object: LCObject) {
+    open func insertRelation(_ key: String, object: LCObject) {
         addOperation(.AddRelation, key, LCArray([object]))
     }
 
@@ -496,7 +496,7 @@ public class LCObject: NSObject, LCValue, LCValueExtension, SequenceType {
      - parameter key:    The key of relation from which you want to remove the object.
      - parameter object: The object to remove.
      */
-    public func removeRelation(key: String, object: LCObject) {
+    open func removeRelation(_ key: String, object: LCObject) {
         addOperation(.RemoveRelation, key, LCArray([object]))
     }
 
@@ -523,7 +523,7 @@ public class LCObject: NSObject, LCValue, LCValueExtension, SequenceType {
      - parameter task:       The task to be performed.
      - parameter completion: The completion closure to be called on main thread after task finished.
      */
-    func asynchronize<Result>(task: () -> Result, completion: (Result) -> Void) {
+    func asynchronize<Result>(_ task: @escaping () -> Result, completion: @escaping (Result) -> Void) {
         LCObject.asynchronize(task, completion: completion)
     }
 
@@ -533,7 +533,7 @@ public class LCObject: NSObject, LCValue, LCValueExtension, SequenceType {
      - parameter task:       The task to be performed.
      - parameter completion: The completion closure to be called on main thread after task finished.
      */
-    static func asynchronize<Result>(task: () -> Result, completion: (Result) -> Void) {
+    static func asynchronize<Result>(_ task: @escaping () -> Result, completion: @escaping (Result) -> Void) {
         Utility.asynchronize(task, backgroundQueue, completion)
     }
 
@@ -542,7 +542,7 @@ public class LCObject: NSObject, LCValue, LCValueExtension, SequenceType {
 
      - returns: The result of saving request.
      */
-    public func save() -> LCBooleanResult {
+    open func save() -> LCBooleanResult {
         return LCBooleanResult(response: ObjectUpdater.save(self))
     }
 
@@ -551,7 +551,7 @@ public class LCObject: NSObject, LCValue, LCValueExtension, SequenceType {
 
      - parameter completion: The completion callback closure.
      */
-    public func save(completion: (LCBooleanResult) -> Void) {
+    open func save(_ completion: @escaping (LCBooleanResult) -> Void) {
         asynchronize({ self.save() }) { result in
             completion(result)
         }
@@ -564,7 +564,7 @@ public class LCObject: NSObject, LCValue, LCValueExtension, SequenceType {
 
      - returns: The result of deletion request.
      */
-    public static func delete(objects: [LCObject]) -> LCBooleanResult {
+    open static func delete(_ objects: [LCObject]) -> LCBooleanResult {
         return LCBooleanResult(response: ObjectUpdater.delete(objects))
     }
 
@@ -573,7 +573,7 @@ public class LCObject: NSObject, LCValue, LCValueExtension, SequenceType {
 
      - parameter completion: The completion callback closure.
      */
-    public static func delete(objects: [LCObject], completion: (LCBooleanResult) -> Void) {
+    open static func delete(_ objects: [LCObject], completion: @escaping (LCBooleanResult) -> Void) {
         asynchronize({ delete(objects) }) { result in
             completion(result)
         }
@@ -584,7 +584,7 @@ public class LCObject: NSObject, LCValue, LCValueExtension, SequenceType {
 
      - returns: The result of deletion request.
      */
-    public func delete() -> LCBooleanResult {
+    open func delete() -> LCBooleanResult {
         return LCBooleanResult(response: ObjectUpdater.delete(self))
     }
 
@@ -593,7 +593,7 @@ public class LCObject: NSObject, LCValue, LCValueExtension, SequenceType {
 
      - parameter completion: The completion callback closure.
      */
-    public func delete(completion: (LCBooleanResult) -> Void) {
+    open func delete(_ completion: @escaping (LCBooleanResult) -> Void) {
         asynchronize({ self.delete() }) { result in
             completion(result)
         }
@@ -606,7 +606,7 @@ public class LCObject: NSObject, LCValue, LCValueExtension, SequenceType {
 
      - returns: The result of fetching request.
      */
-    public static func fetch(objects: [LCObject]) -> LCBooleanResult {
+    open static func fetch(_ objects: [LCObject]) -> LCBooleanResult {
         return LCBooleanResult(response: ObjectUpdater.fetch(objects))
     }
 
@@ -615,7 +615,7 @@ public class LCObject: NSObject, LCValue, LCValueExtension, SequenceType {
 
      - parameter completion: The completion callback closure.
      */
-    public static func fetch(objects: [LCObject], completion: (LCBooleanResult) -> Void) {
+    open static func fetch(_ objects: [LCObject], completion: @escaping (LCBooleanResult) -> Void) {
         asynchronize({ fetch(objects) }) { result in
             completion(result)
         }
@@ -626,7 +626,7 @@ public class LCObject: NSObject, LCValue, LCValueExtension, SequenceType {
 
      - returns: The result of fetching request.
      */
-    public func fetch() -> LCBooleanResult {
+    open func fetch() -> LCBooleanResult {
         return LCBooleanResult(response: ObjectUpdater.fetch(self))
     }
 
@@ -635,7 +635,7 @@ public class LCObject: NSObject, LCValue, LCValueExtension, SequenceType {
 
      - parameter completion: The completion callback closure.
      */
-    public func fetch(completion: (LCBooleanResult) -> Void) {
+    open func fetch(_ completion: @escaping (LCBooleanResult) -> Void) {
         asynchronize({ self.fetch() }) { result in
             completion(result)
         }

@@ -13,7 +13,7 @@ import Foundation
 
  This type can be used to make one-to-many relationship between objects.
  */
-public final class LCRelation: NSObject, LCValue, LCValueExtension, SequenceType {
+public final class LCRelation: NSObject, LCValue, LCValueExtension, Sequence {
     public typealias Element = LCObject
 
     /// The key where relationship based on.
@@ -59,23 +59,23 @@ public final class LCRelation: NSObject, LCValue, LCValueExtension, SequenceType
     }
 
     public required init?(coder aDecoder: NSCoder) {
-        value = (aDecoder.decodeObjectForKey("value") as? [Element]) ?? []
-        objectClassName = aDecoder.decodeObjectForKey("objectClassName") as? String
+        value = (aDecoder.decodeObject(forKey: "value") as? [Element]) ?? []
+        objectClassName = aDecoder.decodeObject(forKey: "objectClassName") as? String
     }
 
-    public func encodeWithCoder(aCoder: NSCoder) {
-        aCoder.encodeObject(value, forKey: "value")
+    public func encode(with aCoder: NSCoder) {
+        aCoder.encode(value, forKey: "value")
 
         if let objectClassName = objectClassName {
-            aCoder.encodeObject(objectClassName, forKey: "objectClassName")
+            aCoder.encode(objectClassName, forKey: "objectClassName")
         }
     }
 
-    public func copyWithZone(zone: NSZone) -> AnyObject {
+    public func copy(with zone: NSZone?) -> Any {
         return self
     }
 
-    public override func isEqual(object: AnyObject?) -> Bool {
+    public override func isEqual(_ object: Any?) -> Bool {
         if let object = object as? LCRelation {
             return object === self || (parent != nil && key != nil && object.parent == parent && object.key == key)
         } else {
@@ -83,8 +83,8 @@ public final class LCRelation: NSObject, LCValue, LCValueExtension, SequenceType
         }
     }
 
-    public func generate() -> IndexingGenerator<[Element]> {
-        return value.generate()
+    public func makeIterator() -> IndexingIterator<[Element]> {
+        return value.makeIterator()
     }
 
     public var JSONValue: AnyObject {
@@ -96,7 +96,7 @@ public final class LCRelation: NSObject, LCValue, LCValueExtension, SequenceType
             result["className"] = className
         }
 
-        return result
+        return result as AnyObject
     }
 
     public var JSONString: String {
@@ -104,37 +104,37 @@ public final class LCRelation: NSObject, LCValue, LCValueExtension, SequenceType
     }
 
     var LCONValue: AnyObject? {
-        return value.map { (element) in element.LCONValue! }
+        return value.map { (element) in element.LCONValue! } as AnyObject
     }
 
     static func instance() -> LCValue {
         return self.init()
     }
 
-    func forEachChild(body: (child: LCValue) -> Void) {
-        value.forEach { body(child: $0) }
+    func forEachChild(_ body: (_ child: LCValue) -> Void) {
+        value.forEach { body($0) }
     }
 
-    func add(other: LCValue) throws -> LCValue {
-        throw LCError(code: .InvalidType, reason: "Object cannot be added.")
+    func add(_ other: LCValue) throws -> LCValue {
+        throw LCError(code: .invalidType, reason: "Object cannot be added.")
     }
 
-    func concatenate(other: LCValue, unique: Bool) throws -> LCValue {
-        throw LCError(code: .InvalidType, reason: "Object cannot be concatenated.")
+    func concatenate(_ other: LCValue, unique: Bool) throws -> LCValue {
+        throw LCError(code: .invalidType, reason: "Object cannot be concatenated.")
     }
 
-    func differ(other: LCValue) throws -> LCValue {
-        throw LCError(code: .InvalidType, reason: "Object cannot be differed.")
+    func differ(_ other: LCValue) throws -> LCValue {
+        throw LCError(code: .invalidType, reason: "Object cannot be differed.")
     }
 
-    func validateClassName(objects: [Element]) throws {
+    func validateClassName(_ objects: [Element]) throws {
         guard !objects.isEmpty else { return }
 
         let className = effectiveObjectClassName ?? objects.first!.actualClassName
 
         for object in objects {
             guard object.actualClassName == className else {
-                throw LCError(code: .InvalidType, reason: "Invalid class name.", userInfo: nil)
+                throw LCError(code: .invalidType, reason: "Invalid class name.", userInfo: nil)
             }
         }
     }
@@ -144,7 +144,7 @@ public final class LCRelation: NSObject, LCValue, LCValueExtension, SequenceType
 
      - parameter elements: The elements to be appended.
      */
-    func appendElements(elements: [Element]) {
+    func appendElements(_ elements: [Element]) {
         try! validateClassName(elements)
 
         value = value + elements
@@ -155,7 +155,7 @@ public final class LCRelation: NSObject, LCValue, LCValueExtension, SequenceType
 
      - parameter elements: The elements to be removed.
      */
-    func removeElements(elements: [Element]) {
+    func removeElements(_ elements: [Element]) {
         value = value - elements
     }
 
@@ -164,7 +164,7 @@ public final class LCRelation: NSObject, LCValue, LCValueExtension, SequenceType
 
      - parameter child: The child that you want to insert.
      */
-    public func insert(child: LCObject) {
+    public func insert(_ child: LCObject) {
         parent!.insertRelation(key!, object: child)
     }
 
@@ -173,7 +173,7 @@ public final class LCRelation: NSObject, LCValue, LCValueExtension, SequenceType
 
      - parameter child: The child that you want to remove.
      */
-    public func remove(child: LCObject) {
+    public func remove(_ child: LCObject) {
         parent!.removeRelation(key!, object: child)
     }
 
@@ -193,11 +193,11 @@ public final class LCRelation: NSObject, LCValue, LCValueExtension, SequenceType
         } else {
             query = LCQuery(className: parent.actualClassName)
             query.extraParameters = [
-                "redirectClassNameForKey": key
+                "redirectClassNameForKey": key as AnyObject
             ]
         }
 
-        query.whereKey(key, .RelatedTo(parent))
+        query.whereKey(key, .relatedTo(parent))
 
         return query
     }

@@ -13,11 +13,11 @@ import Foundation
 
  It is a wrapper of `Swift.Array` type, used to store a list of objects.
  */
-public final class LCArray: NSObject, LCValue, LCValueExtension, CollectionType, ArrayLiteralConvertible {
+public final class LCArray: NSObject, LCValue, LCValueExtension, Collection, ExpressibleByArrayLiteral {
     public typealias Index = Int
     public typealias Element = LCValue
 
-    public private(set) var value: [Element] = []
+    public fileprivate(set) var value: [Element] = []
 
     public override init() {
         super.init()
@@ -40,18 +40,18 @@ public final class LCArray: NSObject, LCValue, LCValueExtension, CollectionType,
     }
 
     public required init?(coder aDecoder: NSCoder) {
-        value = (aDecoder.decodeObjectForKey("value") as? [Element]) ?? []
+        value = (aDecoder.decodeObject(forKey: "value") as? [Element]) ?? []
     }
 
-    public func encodeWithCoder(aCoder: NSCoder) {
-        aCoder.encodeObject(value, forKey: "value")
+    public func encode(with aCoder: NSCoder) {
+        aCoder.encode(value, forKey: "value")
     }
 
-    public func copyWithZone(zone: NSZone) -> AnyObject {
+    public func copy(with zone: NSZone?) -> Any {
         return LCArray(value)
     }
 
-    public override func isEqual(object: AnyObject?) -> Bool {
+    public override func isEqual(_ object: Any?) -> Bool {
         if let object = object as? LCArray {
             return object === self || object.value == value
         } else {
@@ -59,8 +59,8 @@ public final class LCArray: NSObject, LCValue, LCValueExtension, CollectionType,
         }
     }
 
-    public func generate() -> IndexingGenerator<[Element]> {
-        return value.generate()
+    public func makeIterator() -> IndexingIterator<[Element]> {
+        return value.makeIterator()
     }
 
     public var startIndex: Int {
@@ -71,12 +71,16 @@ public final class LCArray: NSObject, LCValue, LCValueExtension, CollectionType,
         return value.count
     }
 
+    public func index(after i: Int) -> Int {
+        return value.index(after: i)
+    }
+
     public subscript(index: Int) -> LCValue {
         get { return value[index] }
     }
 
     public var JSONValue: AnyObject {
-        return value.map { element in element.JSONValue }
+        return value.map { element in element.JSONValue } as AnyObject
     }
 
     public var JSONString: String {
@@ -84,22 +88,22 @@ public final class LCArray: NSObject, LCValue, LCValueExtension, CollectionType,
     }
 
     var LCONValue: AnyObject? {
-        return value.map { element in (element as! LCValueExtension).LCONValue! }
+        return value.map { element in (element as! LCValueExtension).LCONValue! } as AnyObject
     }
 
     static func instance() -> LCValue {
         return self.init([])
     }
 
-    func forEachChild(body: (child: LCValue) -> Void) {
-        forEach { element in body(child: element) }
+    func forEachChild(_ body: (_ child: LCValue) -> Void) {
+        forEach { element in body(element) }
     }
 
-    func add(other: LCValue) throws -> LCValue {
-        throw LCError(code: .InvalidType, reason: "Object cannot be added.")
+    func add(_ other: LCValue) throws -> LCValue {
+        throw LCError(code: .invalidType, reason: "Object cannot be added.")
     }
 
-    func concatenate(other: LCValue, unique: Bool) throws -> LCValue {
+    func concatenate(_ other: LCValue, unique: Bool) throws -> LCValue {
         let result   = LCArray(value)
         let elements = (other as! LCArray).value
 
@@ -108,11 +112,11 @@ public final class LCArray: NSObject, LCValue, LCValueExtension, CollectionType,
         return result
     }
 
-    func concatenateInPlace(elements: [Element], unique: Bool) {
+    func concatenateInPlace(_ elements: [Element], unique: Bool) {
         value = unique ? (value +~ elements) : (value + elements)
     }
 
-    func differ(other: LCValue) throws -> LCValue {
+    func differ(_ other: LCValue) throws -> LCValue {
         let result   = LCArray(value)
         let elements = (other as! LCArray).value
 
@@ -121,7 +125,7 @@ public final class LCArray: NSObject, LCValue, LCValueExtension, CollectionType,
         return result
     }
 
-    func differInPlace(elements: [Element]) {
+    func differInPlace(_ elements: [Element]) {
         value = value - elements
     }
 }

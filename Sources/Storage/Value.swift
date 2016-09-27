@@ -57,7 +57,7 @@ protocol LCValueExtension {
 
      - parameter body: The iterator closure.
      */
-    func forEachChild(body: (child: LCValue) -> Void)
+    func forEachChild(_ body: (_ child: LCValue) -> Void)
 
     // MARK: Arithmetic
 
@@ -68,7 +68,7 @@ protocol LCValueExtension {
 
      - returns: The sum of addition.
      */
-    func add(other: LCValue) throws -> LCValue
+    func add(_ other: LCValue) throws -> LCValue
 
     /**
      Concatenate an object with unique option.
@@ -81,7 +81,7 @@ protocol LCValueExtension {
 
      - returns: The concatenation result.
      */
-    func concatenate(other: LCValue, unique: Bool) throws -> LCValue
+    func concatenate(_ other: LCValue, unique: Bool) throws -> LCValue
 
     /**
      Calculate difference with other.
@@ -90,7 +90,7 @@ protocol LCValueExtension {
 
      - returns: The difference result.
      */
-    func differ(other: LCValue) throws -> LCValue
+    func differ(_ other: LCValue) throws -> LCValue
 }
 
 /**
@@ -355,7 +355,7 @@ extension Array: LCArrayConvertible {
     public var lcArray: LCArray {
         let value = try! map { element -> LCValue in
             guard let element = element as? LCValueConvertible else {
-                throw LCError(code: .InvalidType, reason: "Element is not LCValue-convertible.", userInfo: nil)
+                throw LCError(code: .invalidType, reason: "Element is not LCValue-convertible.", userInfo: nil)
             }
             return element.lcValue
         }
@@ -382,10 +382,10 @@ extension Dictionary: LCDictionaryConvertible {
     public var lcDictionary: LCDictionary {
         let elements = try! map { (key, value) -> (String, LCValue) in
             guard let key = key as? String else {
-                throw LCError(code: .InvalidType, reason: "Key is not a string.", userInfo: nil)
+                throw LCError(code: .invalidType, reason: "Key is not a string.", userInfo: nil)
             }
             guard let value = value as? LCValueConvertible else {
-                throw LCError(code: .InvalidType, reason: "Value is not LCValue-convertible.", userInfo: nil)
+                throw LCError(code: .invalidType, reason: "Value is not LCValue-convertible.", userInfo: nil)
             }
             return (key, value.lcValue)
         }
@@ -405,7 +405,7 @@ extension NSDictionary: LCDictionaryConvertible {
     }
 }
 
-extension NSData: LCDataConvertible {
+extension Data: LCDataConvertible {
     public var lcValue: LCValue {
         return lcData
     }
@@ -415,13 +415,33 @@ extension NSData: LCDataConvertible {
     }
 }
 
-extension NSDate: LCDateConvertible {
+extension NSData: LCDataConvertible {
+    public var lcValue: LCValue {
+        return lcData
+    }
+
+    public var lcData: LCData {
+        return LCData(self as Data)
+    }
+}
+
+extension Date: LCDateConvertible {
     public var lcValue: LCValue {
         return lcDate
     }
 
     public var lcDate: LCDate {
         return LCDate(self)
+    }
+}
+
+extension NSDate: LCDateConvertible {
+    public var lcValue: LCValue {
+        return lcDate
+    }
+
+    public var lcDate: LCDate {
+        return LCDate(self as Date)
     }
 }
 

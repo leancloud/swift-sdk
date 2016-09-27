@@ -24,7 +24,7 @@ class ObjectProfiler {
 
      - parameter aClass: The object class to be registered.
      */
-    static func registerClass(aClass: LCObject.Type) {
+    static func registerClass(_ aClass: LCObject.Type) {
         synthesizeProperty(aClass)
         cache(objectClass: aClass)
     }
@@ -34,7 +34,7 @@ class ObjectProfiler {
 
      - parameter aClass: The object class need to be synthesized.
      */
-    static func synthesizeProperty(aClass: LCObject.Type) {
+    static func synthesizeProperty(_ aClass: LCObject.Type) {
         let properties = synthesizableProperties(aClass)
         properties.forEach { synthesizeProperty($0, aClass) }
         cache(properties: properties, aClass)
@@ -45,7 +45,7 @@ class ObjectProfiler {
 
      - parameter aClass: The class to be cached.
      */
-    static func cache(objectClass objectClass: LCObject.Type) {
+    static func cache(objectClass: LCObject.Type) {
         objectClassTable[objectClass.objectClassName()] = objectClass
     }
 
@@ -55,8 +55,8 @@ class ObjectProfiler {
      - parameter properties: The property list to be cached.
      - parameter aClass:     The class of property list.
      */
-    static func cache(properties properties: [objc_property_t], _ aClass: AnyClass) {
-        propertyListTable[ObjectIdentifier(aClass).uintValue] = properties
+    static func cache(properties: [objc_property_t], _ aClass: AnyClass) {
+        propertyListTable[UInt(bitPattern: ObjectIdentifier(aClass))] = properties
     }
 
     /**
@@ -71,7 +71,7 @@ class ObjectProfiler {
         var classes = [LCObject.self]
         let subclasses = Runtime.subclasses(LCObject.self) as! [LCObject.Type]
 
-        classes.appendContentsOf(subclasses)
+        classes.append(contentsOf: subclasses)
 
         /* Sort classes to make sure subclass will be registered after superclass. */
         classes = Runtime.toposort(classes: classes) as! [LCObject.Type]
@@ -93,7 +93,7 @@ class ObjectProfiler {
 
      - returns: An array of synthesizable properties.
      */
-    static func synthesizableProperties(aClass: LCObject.Type) -> [objc_property_t] {
+    static func synthesizableProperties(_ aClass: LCObject.Type) -> [objc_property_t] {
         return Runtime.nonComputedProperties(aClass).filter { hasLCValue($0) }
     }
 
@@ -104,7 +104,7 @@ class ObjectProfiler {
 
      - returns: true if property type has LeanCloud data type, false otherwise.
      */
-    static func hasLCValue(property: objc_property_t) -> Bool {
+    static func hasLCValue(_ property: objc_property_t) -> Bool {
         return getLCValue(property) != nil
     }
 
@@ -115,14 +115,14 @@ class ObjectProfiler {
 
      - returns: Concrete LCValue subclass, or nil if property type is not LCValue.
      */
-    static func getLCValue(property: objc_property_t) -> LCValue.Type? {
+    static func getLCValue(_ property: objc_property_t) -> LCValue.Type? {
         let typeEncoding = Runtime.typeEncoding(property)
 
         guard typeEncoding.hasPrefix("@\"") else {
             return nil
         }
 
-        let name = typeEncoding[typeEncoding.startIndex.advancedBy(2)..<typeEncoding.endIndex.advancedBy(-1)]
+        let name = typeEncoding[typeEncoding.characters.index(typeEncoding.startIndex, offsetBy: 2)..<typeEncoding.characters.index(typeEncoding.endIndex, offsetBy: -1)]
 
         if let subclass = objc_getClass(name) as? AnyClass {
             if class_conformsToProtocol(subclass, LCValue.self) {
@@ -141,11 +141,11 @@ class ObjectProfiler {
 
      - returns: Concrete LCValue subclass, or nil if property type is not LCValue.
      */
-    static func getLCValue(object object: LCObject, propertyName: String) -> LCValue.Type? {
+    static func getLCValue(object: LCObject, propertyName: String) -> LCValue.Type? {
         let property = class_getProperty(object_getClass(object), propertyName)
 
         if property != nil {
-            return getLCValue(property)
+            return getLCValue(property!)
         } else {
             return nil
         }
@@ -157,12 +157,12 @@ class ObjectProfiler {
      - parameter property: Property which to be synthesized.
      - parameter aClass:   Class of property.
      */
-    static func synthesizeProperty(property: objc_property_t, _ aClass: AnyClass) {
+    static func synthesizeProperty(_ property: objc_property_t, _ aClass: AnyClass) {
         let getterName = Runtime.propertyName(property)
         let setterName = "set\(getterName.firstUppercaseString):"
 
-        class_replaceMethod(aClass, Selector(getterName), unsafeBitCast(self.propertyGetter, IMP.self), "@@:")
-        class_replaceMethod(aClass, Selector(setterName), unsafeBitCast(self.propertySetter, IMP.self), "v@:@")
+        class_replaceMethod(aClass, Selector(getterName), unsafeBitCast(self.propertyGetter, to: IMP.self), "@@:")
+        class_replaceMethod(aClass, Selector(setterName), unsafeBitCast(self.propertySetter, to: IMP.self), "v@:@")
     }
 
     /**
@@ -175,7 +175,7 @@ class ObjectProfiler {
 
      - returns: true if object has newborn orphan object, false otherwise.
      */
-    static func deepestNewbornOrphans(object: LCValue, parent: LCValue?, inout output: Set<LCObject>) -> Bool {
+    static func deepestNewbornOrphans(_ object: LCValue, parent: LCValue?, output: inout Set<LCObject>) -> Bool {
         var hasNewbornOrphan = false
 
         switch object {
@@ -213,10 +213,10 @@ class ObjectProfiler {
 
      - returns: A set of deepest descendant newborn orphan objects.
      */
-    static func deepestNewbornOrphans(object: LCObject) -> Set<LCObject> {
+    static func deepestNewbornOrphans(_ object: LCObject) -> Set<LCObject> {
         var output: Set<LCObject> = []
 
-        deepestNewbornOrphans(object, parent: nil, output: &output)
+        _ = deepestNewbornOrphans(object, parent: nil, output: &output)
         output.remove(object)
 
         return output
@@ -229,18 +229,18 @@ class ObjectProfiler {
 
      - returns: An array of objects ordered by toposort.
      */
-    static func toposort(objects: Set<LCObject>) -> [LCObject] {
+    static func toposort(_ objects: Set<LCObject>) -> [LCObject] {
         var result: [LCObject] = []
         var visitStatusTable: [UInt: Int] = [:]
         toposortStart(objects, &result, &visitStatusTable)
         return result
     }
 
-    private static func toposortStart(objects: Set<LCObject>, inout _ result: [LCObject], inout _ visitStatusTable: [UInt: Int]) {
+    fileprivate static func toposortStart(_ objects: Set<LCObject>, _ result: inout [LCObject], _ visitStatusTable: inout [UInt: Int]) {
         objects.forEach { try! toposortVisit($0, objects, &result, &visitStatusTable) }
     }
 
-    private static func toposortVisit(value: LCValue, _ objects: Set<LCObject>, inout _ result: [LCObject], inout _ visitStatusTable: [UInt: Int]) throws {
+    fileprivate static func toposortVisit(_ value: LCValue, _ objects: Set<LCObject>, _ result: inout [LCObject], _ visitStatusTable: inout [UInt: Int]) throws {
         guard let object = value as? LCObject else {
             (value as! LCValueExtension).forEachChild { child in
                 try! toposortVisit(child, objects, &result, &visitStatusTable)
@@ -248,7 +248,7 @@ class ObjectProfiler {
             return
         }
 
-        let key = ObjectIdentifier(object).uintValue
+        let key = UInt(bitPattern: ObjectIdentifier(object))
 
         switch visitStatusTable[key] ?? 0 {
         case 0: /* Unvisited */
@@ -262,7 +262,7 @@ class ObjectProfiler {
                 result.append(object)
             }
         case 1: /* Visiting */
-            throw LCError(code: .Inconsistency, reason: "Circular reference.", userInfo: nil)
+            throw LCError(code: .inconsistency, reason: "Circular reference.", userInfo: nil)
         default: /* Visited */
             break
         }
@@ -277,13 +277,13 @@ class ObjectProfiler {
 
      - returns: A set of objects in family.
      */
-    static func family(object: LCObject) -> Set<LCObject> {
+    static func family(_ object: LCObject) -> Set<LCObject> {
         var result: Set<LCObject> = []
         familyVisit(object, result: &result)
         return result
     }
 
-    private static func familyVisit(value: LCValue, inout result: Set<LCObject>) {
+    fileprivate static func familyVisit(_ value: LCValue, result: inout Set<LCObject>) {
         (value as! LCValueExtension).forEachChild { child in
             familyVisit(child, result: &result)
         }
@@ -300,7 +300,7 @@ class ObjectProfiler {
 
      - parameter object: The object to validate.
      */
-    static func validateCircularReference(object: LCObject) {
+    static func validateCircularReference(_ object: LCObject) {
         var visitStatusTable: [UInt: Int] = [:]
         try! validateCircularReference(object, visitStatusTable: &visitStatusTable)
     }
@@ -311,8 +311,8 @@ class ObjectProfiler {
      - parameter object: The object to validate.
      - parameter visitStatusTable: The object visit status table.
      */
-    private static func validateCircularReference(object: LCValue, inout visitStatusTable: [UInt: Int]) throws {
-        let key = ObjectIdentifier(object).uintValue
+    fileprivate static func validateCircularReference(_ object: LCValue, visitStatusTable: inout [UInt: Int]) throws {
+        let key = UInt(bitPattern: ObjectIdentifier(object))
 
         switch visitStatusTable[key] ?? 0 {
         case 0: /* Unvisited */
@@ -322,7 +322,7 @@ class ObjectProfiler {
             }
             visitStatusTable[key] = 2
         case 1: /* Visiting */
-            throw LCError(code: .Inconsistency, reason: "Circular reference.", userInfo: nil)
+            throw LCError(code: .inconsistency, reason: "Circular reference.", userInfo: nil)
         default: /* Visited */
             break
         }
@@ -335,8 +335,8 @@ class ObjectProfiler {
 
      - returns: true if value is a boolean, false otherwise.
      */
-    private static func isBoolean(JSONValue: AnyObject) -> Bool {
-        switch String(JSONValue.dynamicType) {
+    fileprivate static func isBoolean(_ JSONValue: AnyObject) -> Bool {
+        switch String(describing: type(of: JSONValue)) {
         case "__NSCFBoolean", "Bool": return true
         default: return false
         }
@@ -349,7 +349,7 @@ class ObjectProfiler {
 
      - returns: The class.
      */
-    static func objectClass(className: String) -> LCObject.Type? {
+    static func objectClass(_ className: String) -> LCObject.Type? {
         return ObjectProfiler.objectClassTable[className]
     }
 
@@ -360,7 +360,7 @@ class ObjectProfiler {
 
      - returns: An LCObject object for class name.
      */
-    static func object(className className: String) -> LCObject {
+    static func object(className: String) -> LCObject {
         if let objectClass = objectClass(className) {
             return objectClass.init()
         } else {
@@ -376,7 +376,7 @@ class ObjectProfiler {
 
      - returns: An LCObject object.
      */
-    static func object(dictionary dictionary: [String: AnyObject], className: String) -> LCObject {
+    static func object(dictionary: [String: AnyObject], className: String) -> LCObject {
         let result = object(className: className)
         let keyValues = dictionary.mapValue { try! object(JSONValue: $0) }
 
@@ -395,7 +395,7 @@ class ObjectProfiler {
 
      - returns: An LCValue object, or nil if object can not be decoded.
      */
-    static func object(dictionary dictionary: [String: AnyObject], dataType: RESTClient.DataType) -> LCValue? {
+    static func object(dictionary: [String: AnyObject], dataType: RESTClient.DataType) -> LCValue? {
         switch dataType {
         case .Object, .Pointer:
             let className = dictionary["className"] as! String
@@ -419,7 +419,7 @@ class ObjectProfiler {
 
      - returns: An LCValue object.
      */
-    private static func object(dictionary dictionary: [String: AnyObject]) -> LCValue {
+    fileprivate static func object(dictionary: [String: AnyObject]) -> LCValue {
         var result: LCValue!
 
         if let type = dictionary["__type"] as? String {
@@ -442,7 +442,7 @@ class ObjectProfiler {
 
      - returns: An LCValue object of the corresponding JSON value.
      */
-    static func object(JSONValue JSONValue: AnyObject) throws -> LCValue {
+    static func object(JSONValue: AnyObject) throws -> LCValue {
         switch JSONValue {
         case let string as String:
             return LCString(string)
@@ -450,9 +450,9 @@ class ObjectProfiler {
             return LCArray(array.map { try! object(JSONValue: $0) })
         case let dictionary as [String: AnyObject]:
             return object(dictionary: dictionary)
-        case let data as NSData:
+        case let data as Data:
             return LCData(data)
-        case let date as NSDate:
+        case let date as Date:
             return LCDate(date)
         case is NSNull:
             return LCNull()
@@ -466,7 +466,7 @@ class ObjectProfiler {
             }
         }
 
-        throw LCError(code: .InvalidType, reason: "Unrecognized object.")
+        throw LCError(code: .invalidType, reason: "Unrecognized object.")
     }
 
     /**
@@ -476,16 +476,16 @@ class ObjectProfiler {
 
      - returns: The JSON value of object.
      */
-    static func LCONValue(object: AnyObject) -> AnyObject {
+    static func LCONValue(_ object: AnyObject) -> AnyObject {
         switch object {
         case let array as [AnyObject]:
-            return array.map { LCONValue($0) }
+            return array.map { LCONValue($0) } as AnyObject
         case let dictionary as [String: AnyObject]:
-            return dictionary.mapValue { LCONValue($0) }
+            return dictionary.mapValue { LCONValue($0) } as AnyObject
         case let object as LCValue:
             return (object as! LCValueExtension).LCONValue!
         case let query as LCQuery:
-            return query.LCONValue
+            return query.LCONValue as AnyObject
         default:
             return object
         }
@@ -498,7 +498,7 @@ class ObjectProfiler {
 
      - returns: An error object, or nil if error not found.
      */
-    static func error(JSONValue JSONValue: AnyObject?) -> LCError? {
+    static func error(JSONValue: AnyObject?) -> LCError? {
         var result: LCError?
 
         switch JSONValue {
@@ -536,7 +536,7 @@ class ObjectProfiler {
      - parameter object:     The object to be updated.
      - parameter dictionary: A dictionary of key-value pairs.
      */
-    static func updateObject(object: LCObject, _ dictionary: [String: AnyObject]) {
+    static func updateObject(_ object: LCObject, _ dictionary: [String: AnyObject]) {
         dictionary.forEach { (key, value) in
             object.update(key, try! self.object(JSONValue: value))
         }
@@ -549,20 +549,20 @@ class ObjectProfiler {
 
      - returns: A property name correspond to the setter selector.
      */
-    static func propertyName(setter: Selector) -> String {
+    static func propertyName(_ setter: Selector) -> String {
         var propertyName = NSStringFromSelector(setter)
 
-        propertyName = propertyName.substringFromIndex(propertyName.startIndex.advancedBy(3))
-        propertyName = propertyName.substringToIndex(propertyName.endIndex.advancedBy(-1))
+        propertyName = propertyName.substring(from: propertyName.characters.index(propertyName.startIndex, offsetBy: 3))
+        propertyName = propertyName.substring(to: propertyName.characters.index(propertyName.endIndex, offsetBy: -1))
 
         return propertyName
     }
 
-    static func getJSONString(object: LCValue) -> String {
+    static func getJSONString(_ object: LCValue) -> String {
         return getJSONString(object, depth: 0)
     }
 
-    static func getJSONString(object: LCValue, depth: Int, indent: Int = 4) -> String {
+    static func getJSONString(_ object: LCValue, depth: Int, indent: Int = 4) -> String {
         switch object {
         case is LCNull:
             return "null"
@@ -588,7 +588,7 @@ class ObjectProfiler {
                 let bodyIndent = " " * (indent * (depth + 1))
                 let body = value
                     .map { element in getJSONString(element, depth: depth + 1) }
-                    .joinWithSeparator(",\n" + bodyIndent)
+                    .joined(separator: ",\n" + bodyIndent)
 
                 return "[\n\(bodyIndent)\(body)\n\(lastIndent)]"
             }
@@ -601,10 +601,10 @@ class ObjectProfiler {
                 let lastIndent = " " * (indent * depth)
                 let bodyIndent = " " * (indent * (depth + 1))
                 let body = value
-                    .map  { (key, value)  in (key, getJSONString(value, depth: depth + 1)) }
-                    .sort { (left, right) in left.0 < right.0 }
-                    .map  { (key, value)  in "\"\(key.doubleQuoteEscapedString)\" : \(value)" }
-                    .joinWithSeparator(",\n" + bodyIndent)
+                    .map    { (key, value)  in (key, getJSONString(value, depth: depth + 1)) }
+                    .sorted { (left, right) in left.0 < right.0 }
+                    .map    { (key, value)  in "\"\(key.doubleQuoteEscapedString)\" : \(value)" }
+                    .joined(separator: ",\n" + bodyIndent)
 
                 return "{\n\(bodyIndent)\(body)\n\(lastIndent)}"
             }
@@ -633,16 +633,16 @@ class ObjectProfiler {
     /**
      Getter implementation of LeanCloud data type property.
      */
-    static let propertyGetter: @convention(c) (LCObject!, Selector) -> AnyObject? = {
-        (object: LCObject!, cmd: Selector) -> AnyObject? in
+    static let propertyGetter: @convention(c) (LCObject, Selector) -> AnyObject? = {
+        (object: LCObject, cmd: Selector) -> AnyObject? in
         return object.get(NSStringFromSelector(cmd))
     }
 
     /**
      Setter implementation of LeanCloud data type property.
      */
-    static let propertySetter: @convention(c) (LCObject!, Selector, AnyObject?) -> Void = {
-        (object: LCObject!, cmd: Selector, value: AnyObject?) -> Void in
+    static let propertySetter: @convention(c) (LCObject, Selector, AnyObject?) -> Void = {
+        (object: LCObject, cmd: Selector, value: AnyObject?) -> Void in
         let key = ObjectProfiler.propertyName(cmd)
         let value = value as? LCValue
 
