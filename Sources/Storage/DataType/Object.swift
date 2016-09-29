@@ -35,7 +35,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
     }
 
     var actualClassName: String {
-        let className = self["className"] as? LCString
+        let className = self.get("className") as? LCString
         return (className?.value) ?? type(of: self).objectClassName()
     }
 
