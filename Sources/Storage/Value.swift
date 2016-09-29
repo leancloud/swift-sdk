@@ -528,3 +528,9 @@ extension LCDate: LCValueConvertible, LCDateConvertible {
         return self
     }
 }
+
+extension LCACL: LCValueConvertible {
+    public var lcValue: LCValue {
+        return self
+    }
+}
