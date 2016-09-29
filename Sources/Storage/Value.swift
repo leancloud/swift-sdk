@@ -42,6 +42,14 @@ protocol LCValueExtension {
     var lconValue: AnyObject? { get }
 
     /**
+     The raw value of current value.
+
+     For JSON-compatible objects, such as string, array, etc., raw value is the value of corresponding Swift built-in type.
+     For some objects of other types, such as `LCObject`, `LCACL` etc., raw value is itself.
+     */
+    var rawValue: LCValueConvertible { get }
+
+    /**
      Create an instance of current type.
 
      This method exists because some data types cannot be instantiated externally.

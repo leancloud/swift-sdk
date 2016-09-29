@@ -107,6 +107,10 @@ public final class LCRelation: NSObject, LCValue, LCValueExtension, Sequence {
         return value.map { (element) in element.lconValue! } as AnyObject
     }
 
+    var rawValue: LCValueConvertible {
+        return self
+    }
+
     static func instance() -> LCValue {
         return self.init()
     }

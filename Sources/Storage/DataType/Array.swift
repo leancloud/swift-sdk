@@ -91,6 +91,10 @@ public final class LCArray: NSObject, LCValue, LCValueExtension, Collection, Exp
         return value.map { element in (element as! LCValueExtension).lconValue! } as AnyObject
     }
 
+    var rawValue: LCValueConvertible {
+        return value.map { element in (element as! LCValueExtension).rawValue }
+    }
+
     static func instance() -> LCValue {
         return self.init([])
     }

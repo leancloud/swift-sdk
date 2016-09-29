@@ -48,6 +48,10 @@ open class LCNull: NSObject, LCValue, LCValueExtension {
         return NSNull()
     }
 
+    var rawValue: LCValueConvertible {
+        return NSNull()
+    }
+
     static func instance() throws -> LCValue {
         return LCNull()
     }

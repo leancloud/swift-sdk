@@ -72,6 +72,10 @@ public final class LCString: NSObject, LCValue, LCValueExtension, ExpressibleByS
         return value as AnyObject?
     }
 
+    var rawValue: LCValueConvertible {
+        return value
+    }
+
     class func instance() -> LCValue {
         return self.init()
     }

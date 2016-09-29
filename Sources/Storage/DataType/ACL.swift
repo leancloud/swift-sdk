@@ -76,6 +76,10 @@ public final class LCACL: NSObject, LCValue, LCValueExtension {
         return jsonValue
     }
 
+    var rawValue: LCValueConvertible {
+        return self
+    }
+
     static func instance() -> LCValue {
         return self.init()
     }

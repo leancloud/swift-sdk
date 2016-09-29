@@ -61,6 +61,10 @@ public final class LCBool: NSObject, LCValue, LCValueExtension, ExpressibleByBoo
         return value as AnyObject?
     }
 
+    var rawValue: LCValueConvertible {
+        return value
+    }
+
     static func instance() -> LCValue {
         return LCBool()
     }

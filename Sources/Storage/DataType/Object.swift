@@ -134,6 +134,10 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
         ] as AnyObject
     }
 
+    var rawValue: LCValueConvertible {
+        return self
+    }
+
     static func instance() -> LCValue {
         return self.init()
     }
@@ -329,8 +333,8 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
     /**
      Get and set value via subscript syntax.
      */
-    open subscript(key: String) -> LCValue? {
-        get { return get(key) }
+    open subscript(key: String) -> LCValueConvertible? {
+        get { return (get(key) as? LCValueExtension)?.rawValue }
         set { set(key, value: newValue) }
     }
 

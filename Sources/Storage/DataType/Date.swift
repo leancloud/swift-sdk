@@ -130,6 +130,10 @@ public final class LCDate: NSObject, LCValue, LCValueExtension {
         return jsonValue
     }
 
+    var rawValue: LCValueConvertible {
+        return value
+    }
+
     static func instance() -> LCValue {
         return self.init()
     }

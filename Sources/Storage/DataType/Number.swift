@@ -65,6 +65,10 @@ public final class LCNumber: NSObject, LCValue, LCValueExtension, ExpressibleByF
         return value as AnyObject?
     }
 
+    var rawValue: LCValueConvertible {
+        return value
+    }
+
     static func instance() -> LCValue {
         return LCNumber()
     }

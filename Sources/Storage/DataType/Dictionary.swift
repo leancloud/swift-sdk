@@ -97,6 +97,10 @@ public final class LCDictionary: NSObject, LCValue, LCValueExtension, Collection
         return value.mapValue { value in (value as! LCValueExtension).lconValue! } as AnyObject
     }
 
+    var rawValue: LCValueConvertible {
+        return value.mapValue { value in (value as! LCValueExtension).rawValue }
+    }
+
     static func instance() -> LCValue {
         return self.init([:])
     }
