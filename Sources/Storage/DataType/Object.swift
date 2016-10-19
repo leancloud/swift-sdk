@@ -54,6 +54,10 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
     public override required init() {
         super.init()
         operationHub = OperationHub(self)
+
+        propertyTable.elementDidChange = { (key, value) in
+            Runtime.setInstanceVariable(self, key, value)
+        };
     }
 
     public convenience init(objectId: LCStringConvertible) {

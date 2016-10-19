@@ -20,6 +20,8 @@ public final class LCDictionary: NSObject, LCValue, LCValueExtension, Collection
 
     public fileprivate(set) var value: [Key: Value] = [:]
 
+    var elementDidChange: ((Key, Value?) -> Void)?
+
     public override init() {
         super.init()
     }
@@ -82,7 +84,10 @@ public final class LCDictionary: NSObject, LCValue, LCValueExtension, Collection
 
     public subscript(key: Key) -> Value? {
         get { return value[key] }
-        set { value[key] = newValue }
+        set {
+            value[key] = newValue
+            elementDidChange?(key, newValue)
+        }
     }
 
     public var jsonValue: AnyObject {
