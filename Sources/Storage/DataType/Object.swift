@@ -333,8 +333,8 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
     /**
      Get and set value via subscript syntax.
      */
-    open subscript(key: String) -> LCValueConvertible? {
-        get { return (get(key) as? LCValueExtension)?.rawValue }
+    open subscript(key: String) -> LCValue? {
+        get { return get(key) }
         set { set(key, value: newValue) }
     }
 
