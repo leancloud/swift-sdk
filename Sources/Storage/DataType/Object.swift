@@ -364,16 +364,6 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
     }
 
     /**
-     Set value for key.
-
-     - parameter key:   The key for which to set the value.
-     - parameter value: The new value.
-     */
-    open func set(_ key: String, value: LCValueConvertible?) {
-        set(key, value: value?.lcValue)
-    }
-
-    /**
      Set object for key.
 
      - parameter key:    The key for which to set the object.
