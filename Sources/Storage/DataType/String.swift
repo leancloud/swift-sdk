@@ -68,12 +68,12 @@ public final class LCString: NSObject, LCValue, LCValueExtension, ExpressibleByS
         return ObjectProfiler.getJSONString(self)
     }
 
-    var lconValue: AnyObject? {
-        return value as AnyObject?
+    public var rawValue: LCValueConvertible {
+        return value
     }
 
-    var rawValue: LCValueConvertible {
-        return value
+    var lconValue: AnyObject? {
+        return value as AnyObject?
     }
 
     class func instance() -> LCValue {

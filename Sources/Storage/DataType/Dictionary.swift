@@ -93,12 +93,12 @@ public final class LCDictionary: NSObject, LCValue, LCValueExtension, Collection
         return ObjectProfiler.getJSONString(self)
     }
 
-    var lconValue: AnyObject? {
-        return value.mapValue { value in (value as! LCValueExtension).lconValue! } as AnyObject
+    public var rawValue: LCValueConvertible {
+        return value.mapValue { value in value.rawValue }
     }
 
-    var rawValue: LCValueConvertible {
-        return value.mapValue { value in (value as! LCValueExtension).rawValue }
+    var lconValue: AnyObject? {
+        return value.mapValue { value in (value as! LCValueExtension).lconValue! } as AnyObject
     }
 
     static func instance() -> LCValue {

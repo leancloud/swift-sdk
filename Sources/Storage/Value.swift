@@ -23,6 +23,14 @@ public protocol LCValue: NSObjectProtocol, NSCoding, NSCopying {
      The pretty description.
      */
     var jsonString: String { get }
+
+    /**
+     The raw value of current value.
+
+     For JSON-compatible objects, such as string, array, etc., raw value is the value of corresponding Swift built-in type.
+     For some objects of other types, such as `LCObject`, `LCACL` etc., raw value is itself.
+     */
+    var rawValue: LCValueConvertible { get }
 }
 
 /**
@@ -40,14 +48,6 @@ protocol LCValueExtension {
      For example, when an object has not been saved, its LCON value is nil.
      */
     var lconValue: AnyObject? { get }
-
-    /**
-     The raw value of current value.
-
-     For JSON-compatible objects, such as string, array, etc., raw value is the value of corresponding Swift built-in type.
-     For some objects of other types, such as `LCObject`, `LCACL` etc., raw value is itself.
-     */
-    var rawValue: LCValueConvertible { get }
 
     /**
      Create an instance of current type.

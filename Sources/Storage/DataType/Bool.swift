@@ -57,12 +57,12 @@ public final class LCBool: NSObject, LCValue, LCValueExtension, ExpressibleByBoo
         return ObjectProfiler.getJSONString(self)
     }
 
-    var lconValue: AnyObject? {
-        return value as AnyObject?
+    public var rawValue: LCValueConvertible {
+        return value
     }
 
-    var rawValue: LCValueConvertible {
-        return value
+    var lconValue: AnyObject? {
+        return value as AnyObject?
     }
 
     static func instance() -> LCValue {

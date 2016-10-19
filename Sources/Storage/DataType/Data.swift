@@ -92,12 +92,12 @@ public final class LCData: NSObject, LCValue, LCValueExtension {
         return ObjectProfiler.getJSONString(self)
     }
 
-    var lconValue: AnyObject? {
-        return jsonValue
+    public var rawValue: LCValueConvertible {
+        return value
     }
 
-    var rawValue: LCValueConvertible {
-        return value
+    var lconValue: AnyObject? {
+        return jsonValue
     }
 
     static func instance() -> LCValue {

@@ -87,12 +87,12 @@ public final class LCArray: NSObject, LCValue, LCValueExtension, Collection, Exp
         return ObjectProfiler.getJSONString(self)
     }
 
-    var lconValue: AnyObject? {
-        return value.map { element in (element as! LCValueExtension).lconValue! } as AnyObject
+    public var rawValue: LCValueConvertible {
+        return value.map { element in element.rawValue }
     }
 
-    var rawValue: LCValueConvertible {
-        return value.map { element in (element as! LCValueExtension).rawValue }
+    var lconValue: AnyObject? {
+        return value.map { element in (element as! LCValueExtension).lconValue! } as AnyObject
     }
 
     static func instance() -> LCValue {

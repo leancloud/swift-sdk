@@ -122,6 +122,10 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
         return ObjectProfiler.getJSONString(self)
     }
 
+    public var rawValue: LCValueConvertible {
+        return self
+    }
+
     var lconValue: AnyObject? {
         guard let objectId = objectId else {
             return nil
@@ -132,10 +136,6 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
             "className" : actualClassName,
             "objectId"  : objectId.value
         ] as AnyObject
-    }
-
-    var rawValue: LCValueConvertible {
-        return self
     }
 
     static func instance() -> LCValue {

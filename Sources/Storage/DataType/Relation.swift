@@ -103,12 +103,12 @@ public final class LCRelation: NSObject, LCValue, LCValueExtension, Sequence {
         return ObjectProfiler.getJSONString(self)
     }
 
-    var lconValue: AnyObject? {
-        return value.map { (element) in element.lconValue! } as AnyObject
+    public var rawValue: LCValueConvertible {
+        return self
     }
 
-    var rawValue: LCValueConvertible {
-        return self
+    var lconValue: AnyObject? {
+        return value.map { (element) in element.lconValue! } as AnyObject
     }
 
     static func instance() -> LCValue {
