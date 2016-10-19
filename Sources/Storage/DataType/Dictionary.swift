@@ -20,6 +20,8 @@ public final class LCDictionary: NSObject, LCValue, LCValueExtension, Collection
 
     public fileprivate(set) var value: [Key: Value] = [:]
 
+    var elementDidChange: ((Key, Value?) -> Void)?
+
     public override init() {
         super.init()
     }
@@ -82,7 +84,10 @@ public final class LCDictionary: NSObject, LCValue, LCValueExtension, Collection
 
     public subscript(key: Key) -> Value? {
         get { return value[key] }
-        set { value[key] = newValue }
+        set {
+            value[key] = newValue
+            elementDidChange?(key, newValue)
+        }
     }
 
     public var jsonValue: AnyObject {
@@ -93,12 +98,12 @@ public final class LCDictionary: NSObject, LCValue, LCValueExtension, Collection
         return ObjectProfiler.getJSONString(self)
     }
 
-    var lconValue: AnyObject? {
-        return value.mapValue { value in (value as! LCValueExtension).lconValue! } as AnyObject
+    public var rawValue: LCValueConvertible {
+        return value.mapValue { value in value.rawValue }
     }
 
-    var rawValue: LCValueConvertible {
-        return value.mapValue { value in (value as! LCValueExtension).rawValue }
+    var lconValue: AnyObject? {
+        return value.mapValue { value in (value as! LCValueExtension).lconValue! } as AnyObject
     }
 
     static func instance() -> LCValue {

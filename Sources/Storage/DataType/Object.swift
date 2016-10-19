@@ -54,6 +54,10 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
     public override required init() {
         super.init()
         operationHub = OperationHub(self)
+
+        propertyTable.elementDidChange = { (key, value) in
+            Runtime.setInstanceVariable(self, key, value)
+        };
     }
 
     public convenience init(objectId: LCStringConvertible) {
@@ -122,6 +126,10 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
         return ObjectProfiler.getJSONString(self)
     }
 
+    public var rawValue: LCValueConvertible {
+        return self
+    }
+
     var lconValue: AnyObject? {
         guard let objectId = objectId else {
             return nil
@@ -132,10 +140,6 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
             "className" : actualClassName,
             "objectId"  : objectId.value
         ] as AnyObject
-    }
-
-    var rawValue: LCValueConvertible {
-        return self
     }
 
     static func instance() -> LCValue {
@@ -223,7 +227,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
             return value
         }
 
-        let value = (Value.self as AnyClass).instance() as! Value
+        let value = try! (Value.self as! LCValueExtension.Type).instance() as! Value
         propertyTable[key] = value
 
         return value
@@ -333,8 +337,8 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
     /**
      Get and set value via subscript syntax.
      */
-    open subscript(key: String) -> LCValueConvertible? {
-        get { return (get(key) as? LCValueExtension)?.rawValue }
+    open subscript(key: String) -> LCValue? {
+        get { return get(key) }
         set { set(key, value: newValue) }
     }
 
@@ -360,31 +364,6 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
             addOperation(.set, key, value)
         } else {
             addOperation(.delete, key)
-        }
-    }
-
-    /**
-     Set value for key.
-
-     - parameter key:   The key for which to set the value.
-     - parameter value: The new value.
-     */
-    open func set(_ key: String, value: LCValueConvertible?) {
-        set(key, value: value?.lcValue)
-    }
-
-    /**
-     Set object for key.
-
-     - parameter key:    The key for which to set the object.
-     - parameter object: The new object.
-     */
-    @available(*, deprecated, message: "Use 'set(_:value:)' method instead.")
-    open func set(_ key: String, object: AnyObject?) {
-        if let object = object {
-            set(key, value: try! ObjectProfiler.object(jsonValue: object))
-        } else {
-            unset(key)
         }
     }
 

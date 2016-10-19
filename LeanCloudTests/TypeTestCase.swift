@@ -43,9 +43,8 @@ class TypeTestCase: BaseTestCase {
     }
 
     func testFloatConvertible() {
-        XCTAssertEqual(convert(Float(42))   as? LCNumber, 42)
-        XCTAssertEqual(convert(Float80(42)) as? LCNumber, 42)
-        XCTAssertEqual(convert(Double(42))  as? LCNumber, 42)
+        XCTAssertEqual(convert(Float(42))  as? LCNumber, 42)
+        XCTAssertEqual(convert(Double(42)) as? LCNumber, 42)
     }
 
     func testStringConvertible() {

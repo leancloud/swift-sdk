@@ -13,7 +13,7 @@ import Foundation
 
  All LeanCloud data types must confirm this protocol.
  */
-@objc public protocol LCValue: NSObjectProtocol, NSCoding, NSCopying {
+public protocol LCValue: NSObjectProtocol, NSCoding, NSCopying {
     /**
      The JSON representation.
      */
@@ -23,6 +23,122 @@ import Foundation
      The pretty description.
      */
     var jsonString: String { get }
+
+    /**
+     The raw value of current value.
+
+     For JSON-compatible objects, such as string, array, etc., raw value is the value of corresponding Swift built-in type.
+     For some objects of other types, such as `LCObject`, `LCACL` etc., raw value is itself.
+     */
+    var rawValue: LCValueConvertible { get }
+
+    /* Shorthands for type conversion. */
+
+    var intValue: Int? { get }
+    var uintValue: UInt? { get }
+    var int8Value: Int8? { get }
+    var uint8Value: UInt8? { get }
+    var int16Value: Int16? { get }
+    var uint16Value: UInt16? { get }
+    var int32Value: Int32? { get }
+    var uint32Value: UInt32? { get }
+    var int64Value: Int64? { get }
+    var uint64Value: UInt64? { get }
+    var floatValue: Float? { get }
+    var doubleValue: Double? { get }
+    var boolValue: Bool? { get }
+    var stringValue: String? { get }
+    var arrayValue: [LCValueConvertible]? { get }
+    var dictionaryValue: [String: LCValueConvertible]? { get }
+    var dataValue: Data? { get }
+    var dateValue: Date? { get }
+}
+
+extension LCValue {
+    public var intValue: Int? {
+        guard let number = rawValue as? Double else { return nil }
+        return Int(number)
+    }
+
+    public var uintValue: UInt? {
+        guard let number = rawValue as? Double else { return nil }
+        return UInt(number)
+    }
+
+    public var int8Value: Int8? {
+        guard let number = rawValue as? Double else { return nil }
+        return Int8(number)
+    }
+
+    public var uint8Value: UInt8? {
+        guard let number = rawValue as? Double else { return nil }
+        return UInt8(number)
+    }
+
+    public var int16Value: Int16? {
+        guard let number = rawValue as? Double else { return nil }
+        return Int16(number)
+    }
+
+    public var uint16Value: UInt16? {
+        guard let number = rawValue as? Double else { return nil }
+        return UInt16(number)
+    }
+
+    public var int32Value: Int32? {
+        guard let number = rawValue as? Double else { return nil }
+        return Int32(number)
+    }
+
+    public var uint32Value: UInt32? {
+        guard let number = rawValue as? Double else { return nil }
+        return UInt32(number)
+    }
+
+    public var int64Value: Int64? {
+        guard let number = rawValue as? Double else { return nil }
+        return Int64(number)
+    }
+
+    public var uint64Value: UInt64? {
+        guard let number = rawValue as? Double else { return nil }
+        return UInt64(number)
+    }
+
+    public var floatValue: Float? {
+        guard let number = rawValue as? Double else { return nil }
+        return Float(number)
+    }
+
+    public var doubleValue: Double? {
+        guard let number = rawValue as? Double else { return nil }
+        return Double(number)
+    }
+
+    public var boolValue: Bool? {
+        guard let number = rawValue as? Double else { return nil }
+        return number != 0
+    }
+
+    public var stringValue: String? {
+        return rawValue as? String
+    }
+
+    public var arrayValue: [LCValueConvertible]? {
+        return rawValue as? [LCValueConvertible]
+    }
+
+    public var dictionaryValue: [String: LCValueConvertible]? {
+        return rawValue as? [String: LCValueConvertible]
+    }
+
+    public var dataValue: Data? {
+        return rawValue as? Data
+    }
+
+    public var dateValue: Date? {
+        return rawValue as? Date
+    }
 }
 
 /**
@@ -40,14 +156,6 @@ protocol LCValueExtension {
      For example, when an object has not been saved, its LCON value is nil.
      */
     var lconValue: AnyObject? { get }
-
-    /**
-     The raw value of current value.
-
-     For JSON-compatible objects, such as string, array, etc., raw value is the value of corresponding Swift built-in type.
-     For some objects of other types, such as `LCObject`, `LCACL` etc., raw value is itself.
-     */
-    var rawValue: LCValueConvertible { get }
 
     /**
      Create an instance of current type.

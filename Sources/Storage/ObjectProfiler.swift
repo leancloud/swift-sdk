@@ -125,8 +125,8 @@ class ObjectProfiler {
         let name = typeEncoding[typeEncoding.characters.index(typeEncoding.startIndex, offsetBy: 2)..<typeEncoding.characters.index(typeEncoding.endIndex, offsetBy: -1)]
 
         if let subclass = objc_getClass(name) as? AnyClass {
-            if class_conformsToProtocol(subclass, LCValue.self) {
-                return subclass as? LCValue.Type
+            if let type = subclass as? LCValue.Type {
+                return type
             }
         }
 

@@ -61,12 +61,12 @@ public final class LCNumber: NSObject, LCValue, LCValueExtension, ExpressibleByF
         return ObjectProfiler.getJSONString(self)
     }
 
-    var lconValue: AnyObject? {
-        return value as AnyObject?
+    public var rawValue: LCValueConvertible {
+        return value
     }
 
-    var rawValue: LCValueConvertible {
-        return value
+    var lconValue: AnyObject? {
+        return value as AnyObject?
     }
 
     static func instance() -> LCValue {

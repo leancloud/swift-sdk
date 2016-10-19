@@ -44,11 +44,11 @@ open class LCNull: NSObject, LCValue, LCValueExtension {
         return ObjectProfiler.getJSONString(self)
     }
 
-    var lconValue: AnyObject? {
+    public var rawValue: LCValueConvertible {
         return NSNull()
     }
 
-    var rawValue: LCValueConvertible {
+    var lconValue: AnyObject? {
         return NSNull()
     }
 
