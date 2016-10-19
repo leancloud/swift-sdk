@@ -223,7 +223,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
             return value
         }
 
-        let value = (Value.self as AnyClass).instance() as! Value
+        let value = try! (Value.self as! LCValueExtension.Type).instance() as! Value
         propertyTable[key] = value
 
         return value

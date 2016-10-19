@@ -13,7 +13,7 @@ import Foundation
 
  All LeanCloud data types must confirm this protocol.
  */
-@objc public protocol LCValue: NSObjectProtocol, NSCoding, NSCopying {
+public protocol LCValue: NSObjectProtocol, NSCoding, NSCopying {
     /**
      The JSON representation.
      */
