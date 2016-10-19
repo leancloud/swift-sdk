@@ -364,21 +364,6 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
     }
 
     /**
-     Set object for key.
-
-     - parameter key:    The key for which to set the object.
-     - parameter object: The new object.
-     */
-    @available(*, deprecated, message: "Use 'set(_:value:)' method instead.")
-    open func set(_ key: String, object: AnyObject?) {
-        if let object = object {
-            set(key, value: try! ObjectProfiler.object(jsonValue: object))
-        } else {
-            unset(key)
-        }
-    }
-
-    /**
      Unset value for key.
 
      - parameter key: The key for which to unset.
