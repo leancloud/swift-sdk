@@ -7,7 +7,7 @@
 //
 
 import XCTest
-import LeanCloud
+@testable import LeanCloud
 
 class TypeTestCase: BaseTestCase {
 
@@ -70,6 +70,62 @@ class TypeTestCase: BaseTestCase {
     func testDateConvertible() {
         let date = Date()
         XCTAssertEqual(convert(date) as? LCDate, LCDate(date))
+    }
+
+    func archiveThenUnarchive<T>(_ object: T) -> T {
+        return NSKeyedUnarchiver.unarchiveObject(with: NSKeyedArchiver.archivedData(withRootObject: object)) as! T
+    }
+
+    func testCoding() {
+        let acl = LCACL()
+        acl.setAccess(.write, allowed: true)
+        let aclCopy = archiveThenUnarchive(acl)
+        XCTAssertTrue(aclCopy.getAccess(.write))
+
+        let array = [true, 42, "foo"].lcArray
+        let arrayCopy = archiveThenUnarchive(array)
+        XCTAssertEqual(arrayCopy, array)
+
+        let bool = LCBool(true)
+        let boolCopy = archiveThenUnarchive(bool)
+        XCTAssertEqual(boolCopy, bool)
+
+        let data = LCData(base64EncodedString: "Zm9v")!
+        let dataCopy = archiveThenUnarchive(data)
+        XCTAssertEqual(dataCopy, data)
+
+        let date = LCDate()
+        let dateCopy = archiveThenUnarchive(date)
+        XCTAssertEqual(dateCopy, date)
+
+        let dictionary = ["foo": "bar", "baz": 42].lcDictionary
+        let dictionaryCopy = archiveThenUnarchive(dictionary)
+        XCTAssertEqual(dictionaryCopy, dictionary)
+
+        let geoPoint = LCGeoPoint(latitude: 12, longitude: 34)
+        let geoPointCopy = archiveThenUnarchive(geoPoint)
+        XCTAssertEqual(geoPointCopy, geoPoint)
+
+        let null = LCNull()
+        let nullCopy = archiveThenUnarchive(null)
+        XCTAssertEqual(nullCopy, null)
+
+        let number = LCNumber(42)
+        let numberCopy = archiveThenUnarchive(number)
+        XCTAssertEqual(numberCopy, number)
+
+        let object = LCObject(objectId: "1234567890")
+        let friend = LCObject(objectId: "0987654321")
+        object.insertRelation("friend", object: friend)
+        let objectCopy = archiveThenUnarchive(object)
+        XCTAssertEqual(objectCopy, object)
+        let relation = object.relationForKey("friend")
+        let relationCopy = objectCopy.relationForKey("friend")
+        XCTAssertEqual(relationCopy.value, relation.value)
+
+        let string = LCString("foo")
+        let stringCopy = archiveThenUnarchive(string)
+        XCTAssertEqual(stringCopy, string)
     }
 
 }
