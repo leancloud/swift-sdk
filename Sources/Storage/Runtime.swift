@@ -221,7 +221,7 @@ class Runtime {
      - parameter value:        New property value.
      */
     static func setInstanceVariable(_ object: AnyObject, _ propertyName: String, _ value: AnyObject?) {
-        object_setIvar(object, instanceVariable(object_getClass(object), propertyName), value)
+        object_setIvar(object, instanceVariable(object_getClass(object), propertyName), retainedObject(value))
     }
 
     /**

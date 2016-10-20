@@ -57,7 +57,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
 
         propertyTable.elementDidChange = { (key, value) in
             Runtime.setInstanceVariable(self, key, value)
-        };
+        }
     }
 
     public convenience init(objectId: LCStringConvertible) {
@@ -79,10 +79,19 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
     convenience init(dictionary: LCDictionaryConvertible) {
         self.init()
         propertyTable = dictionary.lcDictionary
+
+        propertyTable.forEach { (key, value) in
+            Runtime.setInstanceVariable(self, key, value)
+        }
     }
 
     public required init?(coder aDecoder: NSCoder) {
+        super.init()
         propertyTable = (aDecoder.decodeObject(forKey: "propertyTable") as? LCDictionary) ?? [:]
+
+        propertyTable.forEach { (key, value) in
+            Runtime.setInstanceVariable(self, key, value)
+        }
     }
 
     open func encode(with aCoder: NSCoder) {
