@@ -78,7 +78,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
 
     convenience init(dictionary: LCDictionaryConvertible) {
         self.init()
-        self.propertyTable = dictionary.lcDictionary
+        propertyTable = dictionary.lcDictionary
     }
 
     public required init?(coder aDecoder: NSCoder) {
@@ -243,7 +243,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
         let name  = operation.name
         let value = operation.value
 
-        self.willChangeValue(forKey: key)
+        willChangeValue(forKey: key)
 
         switch name {
         case .set:
@@ -282,7 +282,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
             relation?.removeElements(elements)
         }
 
-        self.didChangeValue(forKey: key)
+        didChangeValue(forKey: key)
     }
 
     /**
@@ -329,9 +329,9 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
      - parameter value: The property value.
      */
     func update(_ key: String, _ value: LCValue?) {
-        self.willChangeValue(forKey: key)
+        willChangeValue(forKey: key)
         propertyTable[key] = transformValue(key, value)
-        self.didChangeValue(forKey: key)
+        didChangeValue(forKey: key)
     }
 
     /**
@@ -497,7 +497,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
      Reset operations, make object unmodified.
      */
     func resetOperation() {
-        self.operationHub.reset()
+        operationHub.reset()
     }
 
     /**
