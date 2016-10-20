@@ -43,7 +43,9 @@ public final class LCDictionary: NSObject, LCValue, LCValueExtension, Collection
     }
 
     public required init?(coder aDecoder: NSCoder) {
-        value = (aDecoder.decodeObject(forKey: "value") as? [String: LCValue]) ?? [:]
+        /* Note: We have to make type casting twice here, or it will crash for unknown reason.
+                 It seems that it's a bug of Swift. */
+        value = (aDecoder.decodeObject(forKey: "value") as? [String: AnyObject] as? [String: LCValue]) ?? [:]
     }
 
     public func encode(with aCoder: NSCoder) {
