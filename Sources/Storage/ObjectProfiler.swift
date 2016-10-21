@@ -635,7 +635,8 @@ class ObjectProfiler {
      */
     static let propertyGetter: @convention(c) (LCObject, Selector) -> AnyObject? = {
         (object: LCObject, cmd: Selector) -> AnyObject? in
-        return object.get(NSStringFromSelector(cmd))
+        let key = NSStringFromSelector(cmd)
+        return Runtime.instanceVariableValue(object, key) ?? object.get(key)
     }
 
     /**

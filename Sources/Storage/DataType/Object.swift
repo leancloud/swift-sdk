@@ -62,7 +62,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
 
     public convenience init(objectId: LCStringConvertible) {
         self.init()
-        propertyTable["objectId"] = objectId.lcString
+        self.objectId = objectId.lcString
     }
 
     public convenience init(className: LCStringConvertible) {
@@ -73,7 +73,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
     public convenience init(className: LCStringConvertible, objectId: LCStringConvertible) {
         self.init()
         propertyTable["className"] = className.lcString
-        propertyTable["objectId"]  = objectId.lcString
+        self.objectId = objectId.lcString
     }
 
     convenience init(dictionary: LCDictionaryConvertible) {
