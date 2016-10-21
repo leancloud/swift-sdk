@@ -166,6 +166,34 @@ class ObjectProfiler {
     }
 
     /**
+     Iterate all object properties of type LCValue.
+
+     - parameter object: The object to be inspected.
+     - parameter body:   The body for each iteration.
+     */
+    static func iterateProperties(_ object: LCObject, body: (String, objc_property_t) -> Void) {
+        var visitedKeys: Set<String> = []
+        var aClass: AnyClass? = object_getClass(object)
+
+        repeat {
+            guard aClass != nil else { return }
+
+            let properties = propertyListTable[UInt(bitPattern: ObjectIdentifier(aClass!))]
+
+            properties?.forEach { property in
+                let key = Runtime.propertyName(property)
+
+                if !visitedKeys.contains(key) {
+                    visitedKeys.insert(key)
+                    body(key, property)
+                }
+            }
+
+            aClass = class_getSuperclass(aClass)
+        } while aClass != LCObject.self
+    }
+
+    /**
      Get deepest descendant newborn orphan objects of an object recursively.
 
      - parameter object:  The root object.
@@ -635,7 +663,8 @@ class ObjectProfiler {
      */
     static let propertyGetter: @convention(c) (LCObject, Selector) -> AnyObject? = {
         (object: LCObject, cmd: Selector) -> AnyObject? in
-        return object.get(NSStringFromSelector(cmd))
+        let key = NSStringFromSelector(cmd)
+        return Runtime.instanceVariableValue(object, key) ?? object.get(key)
     }
 
     /**

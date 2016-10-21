@@ -62,7 +62,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
 
     public convenience init(objectId: LCStringConvertible) {
         self.init()
-        propertyTable["objectId"] = objectId.lcString
+        self.objectId = objectId.lcString
     }
 
     public convenience init(className: LCStringConvertible) {
@@ -73,7 +73,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
     public convenience init(className: LCStringConvertible, objectId: LCStringConvertible) {
         self.init()
         propertyTable["className"] = className.lcString
-        propertyTable["objectId"]  = objectId.lcString
+        self.objectId = objectId.lcString
     }
 
     convenience init(dictionary: LCDictionaryConvertible) {
@@ -95,6 +95,21 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
     }
 
     open func encode(with aCoder: NSCoder) {
+        let propertyTable = self.propertyTable.copy() as! LCDictionary
+
+        /* We merge nonnull instance variables into property table here.
+           Because, when a property is set through dot syntax in initializer, the corresponding setter hook will not be called,
+           as a side effect, the property will not be added into property table.
+           If skip this step, the properties that set in initializer will be lost.
+         */
+        ObjectProfiler.iterateProperties(self) { (key, _) in
+            if key == "propertyTable" { return }
+
+            if let instanceVariableValue = Runtime.instanceVariableValue(self, key) as? LCValue {
+                propertyTable[key] = instanceVariableValue
+            }
+        }
+
         aCoder.encode(propertyTable, forKey: "propertyTable")
     }
 
