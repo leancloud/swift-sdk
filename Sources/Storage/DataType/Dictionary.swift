@@ -92,7 +92,7 @@ public final class LCDictionary: NSObject, LCValue, LCValueExtension, Collection
         }
     }
 
-    func set(_ key: String, _ value: LCValue) {
+    func set(_ key: String, _ value: LCValue?) {
         self.value[key] = value
     }
 
