@@ -141,7 +141,7 @@ class ObjectProfiler {
 
      - returns: Concrete LCValue subclass, or nil if property type is not LCValue.
      */
-    static func getLCValue(object: LCObject, propertyName: String) -> LCValue.Type? {
+    static func getLCValue(_ object: LCObject, _ propertyName: String) -> LCValue.Type? {
         let property = class_getProperty(object_getClass(object), propertyName)
 
         if property != nil {
@@ -675,7 +675,7 @@ class ObjectProfiler {
         let key = ObjectProfiler.propertyName(cmd)
         let value = value as? LCValue
 
-        if ObjectProfiler.getLCValue(object: object, propertyName: key) == nil {
+        if ObjectProfiler.getLCValue(object, key) == nil {
             object.set(key.firstLowercaseString, value: value)
         } else {
             object.set(key, value: value)

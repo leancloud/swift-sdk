@@ -178,7 +178,7 @@ class OperationHub {
      */
     func operationReducerType(_ operation: Operation) -> OperationReducer.Type? {
         let propertyName = operation.key
-        let propertyType = ObjectProfiler.getLCValue(object: object, propertyName: propertyName)
+        let propertyType = ObjectProfiler.getLCValue(object, propertyName)
 
         if let propertyType = propertyType {
             return Operation.reducerType(propertyType)
