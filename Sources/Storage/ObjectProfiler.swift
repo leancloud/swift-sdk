@@ -152,6 +152,18 @@ class ObjectProfiler {
     }
 
     /**
+     Check if object has a property of type LCValue for given name.
+
+     - parameter object:       Target object.
+     - parameter propertyName: The name of property to be inspected.
+
+     - returns: true if object has a property of type LCValue for given name, false otherwise.
+     */
+    static func hasLCValue(_ object: LCObject, _ propertyName: String) -> Bool {
+        return getLCValue(object, propertyName) != nil
+    }
+
+    /**
      Synthesize a single property for class.
 
      - parameter property: Property which to be synthesized.
@@ -586,6 +598,20 @@ class ObjectProfiler {
         return propertyName
     }
 
+    /**
+     Get property value for given name from an object.
+
+     - parameter object:       The object that owns the property.
+     - parameter propertyName: The property name.
+
+     - returns: The property value, or nil if such a property not found.
+     */
+    static func propertyValue(_ object: LCObject, _ propertyName: String) -> LCValue? {
+        guard hasLCValue(object, propertyName) else { return nil }
+
+        return Runtime.instanceVariableValue(object, propertyName) as? LCValue
+    }
+
     static func getJSONString(_ object: LCValue) -> String {
         return getJSONString(object, depth: 0)
     }
@@ -664,7 +690,7 @@ class ObjectProfiler {
     static let propertyGetter: @convention(c) (LCObject, Selector) -> AnyObject? = {
         (object: LCObject, cmd: Selector) -> AnyObject? in
         let key = NSStringFromSelector(cmd)
-        return Runtime.instanceVariableValue(object, key) ?? object.get(key)
+        return object.get(key)
     }
 
     /**

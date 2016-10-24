@@ -374,7 +374,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
      - returns: The value for key.
      */
     open func get(_ key: String) -> LCValue? {
-        return propertyTable[key]
+        return ObjectProfiler.propertyValue(self, key) ?? propertyTable[key]
     }
 
     /**
