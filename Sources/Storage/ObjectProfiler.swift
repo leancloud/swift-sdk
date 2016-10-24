@@ -141,7 +141,7 @@ class ObjectProfiler {
 
      - returns: Concrete LCValue subclass, or nil if property type is not LCValue.
      */
-    static func getLCValue(object: LCObject, propertyName: String) -> LCValue.Type? {
+    static func getLCValue(_ object: LCObject, _ propertyName: String) -> LCValue.Type? {
         let property = class_getProperty(object_getClass(object), propertyName)
 
         if property != nil {
@@ -149,6 +149,18 @@ class ObjectProfiler {
         } else {
             return nil
         }
+    }
+
+    /**
+     Check if object has a property of type LCValue for given name.
+
+     - parameter object:       Target object.
+     - parameter propertyName: The name of property to be inspected.
+
+     - returns: true if object has a property of type LCValue for given name, false otherwise.
+     */
+    static func hasLCValue(_ object: LCObject, _ propertyName: String) -> Bool {
+        return getLCValue(object, propertyName) != nil
     }
 
     /**
@@ -586,6 +598,20 @@ class ObjectProfiler {
         return propertyName
     }
 
+    /**
+     Get property value for given name from an object.
+
+     - parameter object:       The object that owns the property.
+     - parameter propertyName: The property name.
+
+     - returns: The property value, or nil if such a property not found.
+     */
+    static func propertyValue(_ object: LCObject, _ propertyName: String) -> LCValue? {
+        guard hasLCValue(object, propertyName) else { return nil }
+
+        return Runtime.instanceVariableValue(object, propertyName) as? LCValue
+    }
+
     static func getJSONString(_ object: LCValue) -> String {
         return getJSONString(object, depth: 0)
     }
@@ -637,7 +663,7 @@ class ObjectProfiler {
                 return "{\n\(bodyIndent)\(body)\n\(lastIndent)}"
             }
         case let object as LCObject:
-            let dictionary = object.propertyTable.copy() as! LCDictionary
+            let dictionary = object.dictionary.copy() as! LCDictionary
 
             dictionary["__type"]    = LCString("Object")
             dictionary["className"] = LCString(object.actualClassName)
@@ -664,7 +690,7 @@ class ObjectProfiler {
     static let propertyGetter: @convention(c) (LCObject, Selector) -> AnyObject? = {
         (object: LCObject, cmd: Selector) -> AnyObject? in
         let key = NSStringFromSelector(cmd)
-        return Runtime.instanceVariableValue(object, key) ?? object.get(key)
+        return object.get(key)
     }
 
     /**
@@ -675,7 +701,7 @@ class ObjectProfiler {
         let key = ObjectProfiler.propertyName(cmd)
         let value = value as? LCValue
 
-        if ObjectProfiler.getLCValue(object: object, propertyName: key) == nil {
+        if ObjectProfiler.getLCValue(object, key) == nil {
             object.set(key.firstLowercaseString, value: value)
         } else {
             object.set(key, value: value)

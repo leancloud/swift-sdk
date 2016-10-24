@@ -26,9 +26,20 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
     open fileprivate(set) dynamic var updatedAt: LCDate?
 
     /**
-     The table of all properties.
+     The table of properties.
+
+     - note: This property table may not contains all properties, 
+             because when a property did set in initializer, its setter hook will not be called in Swift.
+             This property is intent for internal use.
+             For accesssing all properties, please use `dictionary` property.
      */
-    var propertyTable: LCDictionary = [:]
+    fileprivate var propertyTable: LCDictionary = [:]
+
+    /// The table of all properties.
+    lazy var dictionary: LCDictionary = {
+        self.synchronizePropertyTable()
+        return self.propertyTable
+    }()
 
     var hasObjectId: Bool {
         return objectId != nil
@@ -95,20 +106,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
     }
 
     open func encode(with aCoder: NSCoder) {
-        let propertyTable = self.propertyTable.copy() as! LCDictionary
-
-        /* We merge nonnull instance variables into property table here.
-           Because, when a property is set through dot syntax in initializer, the corresponding setter hook will not be called,
-           as a side effect, the property will not be added into property table.
-           If skip this step, the properties that set in initializer will be lost.
-         */
-        ObjectProfiler.iterateProperties(self) { (key, _) in
-            if key == "propertyTable" { return }
-
-            if let instanceVariableValue = Runtime.instanceVariableValue(self, key) as? LCValue {
-                propertyTable[key] = instanceVariableValue
-            }
-        }
+        let propertyTable = self.dictionary.copy() as! LCDictionary
 
         aCoder.encode(propertyTable, forKey: "propertyTable")
     }
@@ -134,11 +132,11 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
     }
 
     open func makeIterator() -> DictionaryIterator<String, LCValue> {
-        return propertyTable.makeIterator()
+        return dictionary.makeIterator()
     }
 
     open var jsonValue: AnyObject {
-        var result = propertyTable.jsonValue as! [String: AnyObject]
+        var result = dictionary.jsonValue as! [String: AnyObject]
 
         result["__type"]    = "Object" as AnyObject?
         result["className"] = actualClassName as AnyObject?
@@ -171,7 +169,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
     }
 
     func forEachChild(_ body: (_ child: LCValue) -> Void) {
-        propertyTable.forEachChild(body)
+        dictionary.forEachChild(body)
     }
 
     func add(_ other: LCValue) throws -> LCValue {
@@ -310,6 +308,26 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
     }
 
     /**
+     Synchronize property table.
+
+     This method will synchronize nonnull instance variables into property table.
+
+     Q: Why we need this method?
+
+     A: When a property is set through dot syntax in initializer, its corresponding setter hook will not be called,
+        it will result in that some properties will not be added into property table.
+     */
+    func synchronizePropertyTable() {
+        ObjectProfiler.iterateProperties(self) { (key, _) in
+            if key == "propertyTable" { return }
+
+            if let value = Runtime.instanceVariableValue(self, key) as? LCValue {
+                propertyTable.set(key, value)
+            }
+        }
+    }
+
+    /**
      Add an operation.
 
      - parameter name:  The operation name.
@@ -374,7 +392,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
      - returns: The value for key.
      */
     open func get(_ key: String) -> LCValue? {
-        return propertyTable[key]
+        return ObjectProfiler.propertyValue(self, key) ?? propertyTable[key]
     }
 
     /**

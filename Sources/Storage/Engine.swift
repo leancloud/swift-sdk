@@ -62,7 +62,7 @@ public final class LCEngine {
      - returns: The result of function all.
      */
     public static func call(_ function: String, parameters: LCObject) -> LCOptionalResult {
-        return call(function, parameters: parameters.propertyTable)
+        return call(function, parameters: parameters.dictionary)
     }
 
     /**
