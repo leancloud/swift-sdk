@@ -36,10 +36,10 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
     fileprivate var propertyTable: LCDictionary = [:]
 
     /// The table of all properties.
-    var dictionary: LCDictionary {
-        synchronizePropertyTable()
-        return propertyTable
-    }
+    lazy var dictionary: LCDictionary = {
+        self.synchronizePropertyTable()
+        return self.propertyTable
+    }()
 
     var hasObjectId: Bool {
         return objectId != nil
