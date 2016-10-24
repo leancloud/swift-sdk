@@ -663,7 +663,7 @@ class ObjectProfiler {
                 return "{\n\(bodyIndent)\(body)\n\(lastIndent)}"
             }
         case let object as LCObject:
-            let dictionary = object.propertyTable.copy() as! LCDictionary
+            let dictionary = object.dictionary.copy() as! LCDictionary
 
             dictionary["__type"]    = LCString("Object")
             dictionary["className"] = LCString(object.actualClassName)
