@@ -484,6 +484,11 @@ class ObjectProfiler {
      */
     static func object(jsonValue: AnyObject) throws -> LCValue {
         switch jsonValue {
+        /* Note: a bool is also a number, we must match it first. */
+        case let bool where isBoolean(bool):
+            return LCBool(bool as! Bool)
+        case let number as NSNumber:
+            return LCNumber(number.doubleValue)
         case let string as String:
             return LCString(string)
         case let array as [AnyObject]:
@@ -499,11 +504,7 @@ class ObjectProfiler {
         case let object as LCValue:
             return object
         default:
-            if isBoolean(jsonValue) {
-                return LCBool(jsonValue as! Bool)
-            } else if let number = jsonValue as? Double {
-                return LCNumber(number)
-            }
+            break
         }
 
         throw LCError(code: .invalidType, reason: "Unrecognized object.")
