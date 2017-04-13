@@ -25,7 +25,9 @@ class Runtime {
         var eachSubclass: AnyClass! = subclass
 
         while let eachSuperclass = class_getSuperclass(eachSubclass) {
-            if eachSuperclass === superclass {
+            /* Use ObjectIdentifier instead of `===` to make identity test.
+               Because some types cannot respond to `===`, like WKObject in WebKit framework. */
+            if ObjectIdentifier(eachSuperclass) == ObjectIdentifier(superclass) {
                 return true
             }
             eachSubclass = eachSuperclass
