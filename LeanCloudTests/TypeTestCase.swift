@@ -123,6 +123,9 @@ class TypeTestCase: BaseTestCase {
         let relationCopy = objectCopy.relationForKey("friend")
         XCTAssertEqual(relationCopy.value, relation.value)
 
+        /* Test mutability after unarchiving. */
+        objectCopy["foo"] = "bar" as LCString
+
         let string = LCString("foo")
         let stringCopy = archiveThenUnarchive(string)
         XCTAssertEqual(stringCopy, string)
