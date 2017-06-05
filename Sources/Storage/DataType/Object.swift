@@ -96,8 +96,8 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
         }
     }
 
-    public required init?(coder aDecoder: NSCoder) {
-        super.init()
+    public required convenience init?(coder aDecoder: NSCoder) {
+        self.init()
         propertyTable = (aDecoder.decodeObject(forKey: "propertyTable") as? LCDictionary) ?? [:]
 
         propertyTable.forEach { (key, value) in
