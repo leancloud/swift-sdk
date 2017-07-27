@@ -72,7 +72,7 @@ func ==(lhs: [LCValue], rhs: [LCValue]) -> Bool {
     return true
 }
 
-func ==<K: Equatable, V: Equatable>(lhs: [K: [K: V]], rhs: [K: [K: V]]) -> Bool {
+func ==<K, V: Equatable>(lhs: [K: [K: V]], rhs: [K: [K: V]]) -> Bool {
     guard lhs.count == rhs.count else {
         return false
     }
