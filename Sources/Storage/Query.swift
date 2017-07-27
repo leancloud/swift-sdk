@@ -379,7 +379,7 @@ final public class LCQuery: NSObject, NSCopying, NSCoding {
 
      - returns: The result of the query request.
      */
-    public func find<T: LCObject>() -> LCQueryResult<T> {
+    public func find<T>() -> LCQueryResult<T> {
         let response = RESTClient.request(.get, endpoint, parameters: parameters)
 
         if let error = response.error {
@@ -397,7 +397,7 @@ final public class LCQuery: NSObject, NSCopying, NSCoding {
 
      - parameter completion: The completion callback closure.
      */
-    public func find<T: LCObject>(_ completion: @escaping (LCQueryResult<T>) -> Void) {
+    public func find<T>(_ completion: @escaping (LCQueryResult<T>) -> Void) {
         LCQuery.asynchronize({ self.find() }) { result in
             completion(result)
         }

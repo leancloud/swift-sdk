@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name         = 'LeanCloud'
-  s.version      = '10.0.2'
+  s.version      = '10.1.0'
   s.license      = { :type => 'Apache License, Version 2.0', :file => 'LICENSE' }
   s.summary      = 'LeanCloud Swift SDK'
   s.homepage     = 'https://leancloud.cn/'
@@ -13,7 +13,7 @@ Pod::Spec.new do |s|
   s.watchos.deployment_target = '2.0'
 
   s.subspec 'Storage' do |ss|
-    ss.dependency 'Alamofire', '~> 4.2.0'
+    ss.dependency 'Alamofire', '~> 4.5'
     ss.source_files = 'Sources/Storage/**/*.swift'
   end
 end
