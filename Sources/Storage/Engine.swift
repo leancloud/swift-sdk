@@ -28,7 +28,7 @@ public final class LCEngine {
      - parameter function:   The function name.
      - parameter parameters: The parameters to be passed to remote function.
 
-     - returns: The result of function all.
+     - returns: The result of function call.
      */
     public static func call(_ function: String, parameters: LCDictionaryConvertible? = nil) -> LCOptionalResult {
         let parameters = parameters?.lcDictionary.lconValue as? [String: AnyObject]
@@ -59,7 +59,7 @@ public final class LCEngine {
      - parameter function:   The function name.
      - parameter parameters: The parameters to be passed to remote function.
 
-     - returns: The result of function all.
+     - returns: The result of function call.
      */
     public static func call(_ function: String, parameters: LCObject) -> LCOptionalResult {
         return call(function, parameters: parameters.dictionary)
