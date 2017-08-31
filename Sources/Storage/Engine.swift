@@ -28,7 +28,7 @@ public final class LCEngine {
      - parameter function:   The function name.
      - parameter parameters: The parameters to be passed to remote function.
 
-     - returns: The result of function call.
+     - returns: The result of function all.
      */
     public static func call(_ function: String, parameters: LCDictionaryConvertible? = nil) -> LCOptionalResult {
         let parameters = parameters?.lcDictionary.lconValue as? [String: AnyObject]
@@ -59,7 +59,7 @@ public final class LCEngine {
      - parameter function:   The function name.
      - parameter parameters: The parameters to be passed to remote function.
 
-     - returns: The result of function call.
+     - returns: The result of function all.
      */
     public static func call(_ function: String, parameters: LCObject) -> LCOptionalResult {
         return call(function, parameters: parameters.dictionary)
@@ -77,65 +77,6 @@ public final class LCEngine {
      */
     public static func call(_ function: String, parameters: LCObject, completion: @escaping (LCOptionalResult) -> Void) {
         asynchronize({ call(function, parameters: parameters) }) { result in
-            completion(result)
-        }
-    }
-
-    /**
-     RPC LeanEngine function with parameters.
-
-     - parameter function:   The function name.
-     - parameter parameters: The parameters to be passed to remote function.
-
-     - returns: The result of function call.
-     */
-    public static func rpc(_ function: String, parameters: LCDictionaryConvertible? = nil) -> LCOptionalResult {
-        let parameters = parameters?.lcDictionary.lconValue as? [String: AnyObject]
-        let response   = RESTClient.request(.post, "rpc/\(function)", parameters: parameters)
-
-        return response.optionalResult("result")
-    }
-
-    /**
-     RPC LeanEngine function with parameters asynchronously.
-
-     - parameter function:   The function name.
-     - parameter parameters: The parameters to be passed to remote function.
-
-     - parameter completion: The completion callback closure.
-     */
-    public static func rpc(_ function: String, parameters: LCDictionaryConvertible? = nil, completion: @escaping (LCOptionalResult) -> Void) {
-        asynchronize({ rpc(function, parameters: parameters) }) { result in
-            completion(result)
-        }
-    }
-
-    /**
-     RPC LeanEngine function with parameters.
-
-     The parameters will be serialized to JSON representation.
-
-     - parameter function:   The function name.
-     - parameter parameters: The parameters to be passed to remote function.
-
-     - returns: The result of function call.
-     */
-    public static func rpc(_ function: String, parameters: LCObject) -> LCOptionalResult {
-        return rpc(function, parameters: parameters.dictionary)
-    }
-
-    /**
-     RPC LeanEngine function with parameters asynchronously.
-
-     The parameters will be serialized to JSON representation.
-
-     - parameter function:   The function name.
-     - parameter parameters: The parameters to be passed to remote function.
-
-     - parameter completion: The completion callback closure.
-     */
-    public static func rpc(_ function: String, parameters: LCObject, completion: @escaping (LCOptionalResult) -> Void) {
-        asynchronize({ rpc(function, parameters: parameters) }) { result in
             completion(result)
         }
     }
