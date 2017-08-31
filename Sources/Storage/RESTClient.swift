@@ -220,36 +220,11 @@ class RESTClient {
     }
 
     static func log(_ request: Request) {
-        guard globalOptions.logLevel.isDebugEnabled else {
-            return
-        }
-
-        var curl = request.debugDescription
-
-        if curl.hasPrefix("$ ") {
-            curl = curl.substring(from: curl.index(curl.startIndex, offsetBy: 2))
-        }
-
-        let sessionId = UInt(bitPattern: ObjectIdentifier(request))
-        let message = "------ BEGIN LeanCloud HTTP Request\n" +
-                      "session: \(sessionId)\n" +
-                      "curl: \(curl)\n" +
-                      "------ END"
-        print(message)
+        Logger.defaultLogger.log("\n\n\(request.lcDebugDescription)\n")
     }
 
     static func log(_ request: Request, _ response: DataResponse<Any>) {
-        guard globalOptions.logLevel.isDebugEnabled else {
-            return
-        }
-
-        let body = response.value ?? ""
-        let sessionId = UInt(bitPattern: ObjectIdentifier(request))
-        let message = "------ BEGIN LeanCloud HTTP Response\n" +
-                      "session: \(sessionId)\n" +
-                      "body: \(body)\n" +
-                      "------ END"
-        print(message)
+        Logger.defaultLogger.log("\n\n\(response.lcDebugDescription(request))\n")
     }
 
     /**
@@ -292,4 +267,48 @@ class RESTClient {
     static func asynchronize<Result>(_ task: @escaping () -> Result, completion: @escaping (Result) -> Void) {
         Utility.asynchronize(task, dispatchQueue, completion)
     }
+}
+
+extension Request {
+
+    var lcDebugDescription : String {
+        var curl = debugDescription
+
+        if curl.hasPrefix("$ ") {
+            curl = curl.substring(from: curl.index(curl.startIndex, offsetBy: 2))
+        }
+
+        let taskIdentifier = task?.taskIdentifier ?? 0
+        let message = "------ BEGIN LeanCloud HTTP Request\n" +
+                      "task: \(taskIdentifier)\n" +
+                      "curl: \(curl)\n" +
+                      "------ END"
+        return message
+    }
+
+}
+
+extension DataResponse {
+
+    func lcDebugDescription(_ request : Request) -> String {
+        var body : Any
+
+        switch value {
+        case let value as [String : AnyObject]:
+            /* Print pertty JSON string. */
+            body = LCDictionary(unsafeObject: value).jsonString
+            break
+        default:
+            body = value ?? ""
+            break
+        }
+
+        let taskIdentifier = request.task?.taskIdentifier ?? 0
+        let message = "------ BEGIN LeanCloud HTTP Response\n" +
+                      "task: \(taskIdentifier)\n" +
+                      "body: \(body)\n" +
+                      "------ END"
+        return message
+    }
+
 }
