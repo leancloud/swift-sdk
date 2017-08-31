@@ -209,12 +209,47 @@ class RESTClient {
         }
 
         let request = requestManager.request(urlString, method: method, parameters: parameters, encoding: encoding, headers: headers)
+        log(request)
 
         request.responseJSON(queue: dispatchQueue) { response in
+            log(request, response)
             completionHandler(LCResponse(response))
         }
 
         return LCRequest(request)
+    }
+
+    static func log(_ request: Request) {
+        guard globalOptions.logLevel.isDebugEnabled else {
+            return
+        }
+
+        var curl = request.debugDescription
+
+        if curl.hasPrefix("$ ") {
+            curl = curl.substring(from: curl.index(curl.startIndex, offsetBy: 2))
+        }
+
+        let sessionId = UInt(bitPattern: ObjectIdentifier(request))
+        let message = "------ BEGIN LeanCloud HTTP Request\n" +
+                      "session: \(sessionId)\n" +
+                      "curl: \(curl)\n" +
+                      "------ END"
+        print(message)
+    }
+
+    static func log(_ request: Request, _ response: DataResponse<Any>) {
+        guard globalOptions.logLevel.isDebugEnabled else {
+            return
+        }
+
+        let body = response.value ?? ""
+        let sessionId = UInt(bitPattern: ObjectIdentifier(request))
+        let message = "------ BEGIN LeanCloud HTTP Response\n" +
+                      "session: \(sessionId)\n" +
+                      "body: \(body)\n" +
+                      "------ END"
+        print(message)
     }
 
     /**

@@ -48,6 +48,7 @@
 		835F5D871D7E6808004D1A0E /* Utility.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D641D7E6808004D1A0E /* Utility.swift */; };
 		835F5D881D7E6808004D1A0E /* Value.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D651D7E6808004D1A0E /* Value.swift */; };
 		8365CFA81D79849D006B856E /* TypeTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8365CFA71D79849D006B856E /* TypeTestCase.swift */; };
+		8367CFB21F57B8D100CDC922 /* ApplicationOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8367CFB11F57B8D100CDC922 /* ApplicationOptions.swift */; };
 		837E04FB1CABA694008CC3FF /* Alamofire.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 837E04EE1CABA688008CC3FF /* Alamofire.framework */; };
 		83B4DB231DB8618A00E36067 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83B4DB221DB8618A00E36067 /* Logger.swift */; };
 		83BC11D61CDD76E900D7E7A6 /* ACLTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83BC11D51CDD76E900D7E7A6 /* ACLTestCase.swift */; };
@@ -159,6 +160,7 @@
 		835F5D641D7E6808004D1A0E /* Utility.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Utility.swift; sourceTree = "<group>"; };
 		835F5D651D7E6808004D1A0E /* Value.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Value.swift; sourceTree = "<group>"; };
 		8365CFA71D79849D006B856E /* TypeTestCase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TypeTestCase.swift; sourceTree = "<group>"; };
+		8367CFB11F57B8D100CDC922 /* ApplicationOptions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ApplicationOptions.swift; sourceTree = "<group>"; };
 		837E04E31CABA688008CC3FF /* Alamofire.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Alamofire.xcodeproj; path = Alamofire/Alamofire.xcodeproj; sourceTree = "<group>"; };
 		83B4DB221DB8618A00E36067 /* Logger.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
 		83BC11D51CDD76E900D7E7A6 /* ACLTestCase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ACLTestCase.swift; sourceTree = "<group>"; };
@@ -248,6 +250,7 @@
 				835F5D561D7E6808004D1A0E /* LeanCloud.h */,
 				835F5D571D7E6808004D1A0E /* LeanCloud.swift */,
 				835F5D421D7E6808004D1A0E /* Configuration.swift */,
+				8367CFB11F57B8D100CDC922 /* ApplicationOptions.swift */,
 				835F5D651D7E6808004D1A0E /* Value.swift */,
 				835F5D551D7E6808004D1A0E /* Extension.swift */,
 				835F5D621D7E6808004D1A0E /* Runtime.swift */,
@@ -485,6 +488,7 @@
 				835F5D691D7E6808004D1A0E /* ACL.swift in Sources */,
 				835F5D6A1D7E6808004D1A0E /* Array.swift in Sources */,
 				835F5D731D7E6808004D1A0E /* Relation.swift in Sources */,
+				8367CFB21F57B8D100CDC922 /* ApplicationOptions.swift in Sources */,
 				835F5D6D1D7E6808004D1A0E /* Date.swift in Sources */,
 				835F5D881D7E6808004D1A0E /* Value.swift in Sources */,
 				835F5D6F1D7E6808004D1A0E /* GeoPoint.swift in Sources */,
