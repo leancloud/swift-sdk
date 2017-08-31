@@ -26,6 +26,10 @@ class Logger {
         _ function: String = #function,
         _ line: Int = #line)
     {
+        guard globalOptions.logLevel.isDebugEnabled else {
+            return
+        }
+
         let date = Logger.dateFormatter.string(from: Date())
         let file = NSURL(string: file)?.lastPathComponent ?? "Unknown"
 
