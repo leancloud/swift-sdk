@@ -220,6 +220,10 @@ class RESTClient {
     }
 
     static func log(_ request: Request) {
+        guard globalOptions.logLevel.isDebugEnabled else {
+            return
+        }
+
         var curl = request.debugDescription
 
         if curl.hasPrefix("$ ") {
@@ -235,6 +239,10 @@ class RESTClient {
     }
 
     static func log(_ request: Request, _ response: DataResponse<Any>) {
+        guard globalOptions.logLevel.isDebugEnabled else {
+            return
+        }
+
         let body = response.value ?? ""
         let sessionId = UInt(bitPattern: ObjectIdentifier(request))
         let message = "------ BEGIN LeanCloud HTTP Response\n" +

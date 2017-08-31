@@ -10,6 +10,8 @@ import Foundation
 
 public let Version = "10.1.0"
 
+public let globalOptions = LCApplicationOptions()
+
 /**
  Initialize LeanCloud SDK.
 
