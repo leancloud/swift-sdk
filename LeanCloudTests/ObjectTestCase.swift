@@ -136,14 +136,14 @@ class ObjectTestCase: BaseTestCase {
 
         object1.nonDynamicField = "foo"
         XCTAssertEqual(object1.nonDynamicField, "foo")
-        XCTAssertEqual(object1["nonDynamicField"] as? LCString, LCString("foo"))
+        XCTAssertNil(object1["nonDynamicField"])
         XCTAssertFalse(object1.hasDataToUpload)
 
         /* Non-dynamic property cannot record update operation by accessor assignment.
            However, you can use subscript to get things done. */
         object2["nonDynamicField"] = LCString("foo")
-        XCTAssertEqual(object2.nonDynamicField, "foo")
-        XCTAssertEqual(object2["nonDynamicField"] as? LCString, LCString("foo"))
+        XCTAssertNil(object2.nonDynamicField)
+        XCTAssertEqual(object2["nonDynamicField"] as! LCString, LCString("foo"))
         XCTAssertTrue(object2.hasDataToUpload)
     }
 

@@ -10,21 +10,21 @@ import XCTest
 @testable import LeanCloud
 
 class TestObject: LCObject {
-    dynamic var numberField: LCNumber?
-    dynamic var booleanField: LCBool?
-    dynamic var stringField: LCString?
-    dynamic var arrayField: LCArray?
-    dynamic var dictionaryField: LCDictionary?
-    dynamic var objectField: LCObject?
-    dynamic var relationField: LCRelation?
-    dynamic var geoPointField: LCGeoPoint?
-    dynamic var dataField: LCData?
-    dynamic var dateField: LCDate?
-    dynamic var nullField: LCNull?
+    @objc dynamic var numberField: LCNumber?
+    @objc dynamic var booleanField: LCBool?
+    @objc dynamic var stringField: LCString?
+    @objc dynamic var arrayField: LCArray?
+    @objc dynamic var dictionaryField: LCDictionary?
+    @objc dynamic var objectField: LCObject?
+    @objc dynamic var relationField: LCRelation?
+    @objc dynamic var geoPointField: LCGeoPoint?
+    @objc dynamic var dataField: LCData?
+    @objc dynamic var dateField: LCDate?
+    @objc dynamic var nullField: LCNull?
 
     /* The non-LCValue and non-dynamic property cannot be handled. */
-    dynamic var nonLCValueField: String?
-            var nonDynamicField: LCString?
+    @objc dynamic var nonLCValueField: String?
+    var nonDynamicField: LCString?
 }
 
 class BaseTestCase: XCTestCase {

@@ -21,13 +21,13 @@ public final class LCRole: LCObject {
      The name must be unique throughout the application.
      It will be used as key in ACL to refer the role.
      */
-    public dynamic var name: LCString?
+    @objc public dynamic var name: LCString?
 
     /// Relation of users.
-    public dynamic var users: LCRelation?
+    @objc public dynamic var users: LCRelation?
 
     /// Relation of roles.
-    public dynamic var roles: LCRelation?
+    @objc public dynamic var roles: LCRelation?
 
     public override class func objectClassName() -> String {
         return "_Role"
