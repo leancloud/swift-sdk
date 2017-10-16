@@ -8,7 +8,7 @@
 
 import Foundation
 
-public let Version = "10.1.0"
+public let Version = "11.0.0"
 
 public let globalOptions = LCApplicationOptions()
 
