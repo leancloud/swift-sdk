@@ -18,13 +18,14 @@ class Runtime {
      - returns: true or false.
      */
     static func isSubclass(_ subclass: AnyClass!, superclass: AnyClass!) -> Bool {
+        
         guard let superclass = superclass else {
             return false
         }
 
         var eachSubclass: AnyClass! = subclass
 
-        while let eachSuperclass = class_getSuperclass(eachSubclass) {
+        while let eachSuperclass: AnyClass = class_getSuperclass(eachSubclass) {
             /* Use ObjectIdentifier instead of `===` to make identity test.
                Because some types cannot respond to `===`, like WKObject in WebKit framework. */
             if ObjectIdentifier(eachSuperclass) == ObjectIdentifier(superclass) {
@@ -50,24 +51,29 @@ class Runtime {
             return result
         }
 
-        let count = objc_getClassList(nil, 0)
+        let count: Int32 = objc_getClassList(nil, 0)
 
         guard count > 0 else {
             return result
         }
+        
+        let classes = UnsafeMutablePointer<AnyClass>.allocate(
+            capacity: Int(count)
+        )
+        
+        defer {
+            classes.deallocate(capacity: Int(count))
+        }
 
-        let classes = AutoreleasingUnsafeMutablePointer<AnyClass?>(UnsafeMutablePointer<UInt8>.allocate(capacity: MemoryLayout<AnyClass>.size * Int(count)))
-
-        for i in 0..<Int(objc_getClassList(classes, count)) {
-            guard let someclass = classes[i] else {
-                continue
-            }
-
+        let buffer = AutoreleasingUnsafeMutablePointer<AnyClass>(classes)
+        
+        for i in 0..<Int(objc_getClassList(buffer, count)) {
+            let someclass: AnyClass = classes[i]
             if isSubclass(someclass, superclass: baseclass) {
                 result.append(someclass)
             }
         }
-
+        
         return result
     }
 
@@ -104,7 +110,7 @@ class Runtime {
 
             var eachSubclass: AnyClass! = aClass
 
-            while let eachSuperclass = class_getSuperclass(eachSubclass) {
+            while let eachSuperclass: AnyClass = class_getSuperclass(eachSubclass) {
                 try! toposortVisit(aClass: eachSuperclass, classes, &result, &visitStatusTable)
                 eachSubclass = eachSuperclass
             }
@@ -133,14 +139,17 @@ class Runtime {
 
         var count: UInt32 = 0
 
-        guard let properties = class_copyPropertyList(aClass, &count) else {
+        guard let properties: UnsafeMutablePointer<objc_property_t> = class_copyPropertyList(aClass, &count) else {
             return result
+        }
+        
+        defer {
+            properties.deallocate(capacity: Int(count))
         }
 
         for i in 0..<Int(count) {
-            if let property = properties[i] {
-                result.append(property)
-            }
+            let property: objc_property_t = properties[i]
+            result.append(property)
         }
 
         return result
@@ -154,11 +163,24 @@ class Runtime {
      - returns: An array of all non-computed properties of the given class.
      */
     static func nonComputedProperties(_ aClass: AnyClass) -> [objc_property_t] {
-        let properties = self.properties(aClass)
-
-        return properties.filter { (property) -> Bool in
-            property_copyAttributeValue(property, "V") != nil
+        
+        var properties: [objc_property_t] = self.properties(aClass)
+        
+        properties = properties.filter { property in
+            if let varChars: UnsafeMutablePointer<Int8> = property_copyAttributeValue(property, "V") {
+                
+                defer {
+                    let utf8Str = String(validatingUTF8: varChars)!
+                    varChars.deallocate(capacity: utf8Str.count + 1)
+                }
+                
+                return true
+            } else {
+                return false
+            }
         }
+        
+        return properties
     }
 
     /**
@@ -166,8 +188,19 @@ class Runtime {
 
      - parameter property: Inspected property.
      */
-    static func typeEncoding(_ property: objc_property_t) -> String {
-        return String(validatingUTF8: property_copyAttributeValue(property, "T"))!
+    static func typeEncoding(_ property: objc_property_t) -> String? {
+        
+        guard let typeChars: UnsafeMutablePointer<Int8> = property_copyAttributeValue(property, "T") else {
+            return nil
+        }
+        
+        let utf8Str = String(validatingUTF8: typeChars)!
+        
+        defer {
+            typeChars.deallocate(capacity: utf8Str.utf8.count + 1)
+        }
+        
+        return utf8Str
     }
 
     /**
@@ -176,7 +209,9 @@ class Runtime {
      - parameter property: Inspected property.
      */
     static func propertyName(_ property: objc_property_t) -> String {
-        return String(validatingUTF8: property_getName(property))!
+        let propChars: UnsafePointer<Int8> = property_getName(property)
+        let utf8Str = String(validatingUTF8: propChars)!
+        return utf8Str
     }
 
     /**
@@ -188,13 +223,23 @@ class Runtime {
      - returns: Instance variable correspond to the property name.
      */
     static func instanceVariable(_ aClass: AnyClass, _ propertyName: String) -> Ivar? {
-        let property = class_getProperty(aClass, propertyName)
-
-        if property != nil {
-            return class_getInstanceVariable(aClass, property_copyAttributeValue(property, "V"))
-        } else {
+        
+        guard let property: objc_property_t = class_getProperty(aClass, propertyName) else {
             return nil
         }
+        
+        guard let varChars: UnsafeMutablePointer<Int8> = property_copyAttributeValue(property, "V") else {
+            return nil
+        }
+        
+        defer {
+            let utf8Str = String(validatingUTF8: varChars)!
+            varChars.deallocate(capacity: utf8Str.count + 1)
+        }
+        
+        let ivar: Ivar? = class_getInstanceVariable(aClass, varChars)
+        
+        return ivar
     }
 
     /**
@@ -206,13 +251,20 @@ class Runtime {
      - returns: Value of instance variable correspond to the property name.
      */
     static func instanceVariableValue(_ object: AnyObject, _ propertyName: String) -> AnyObject? {
-        let instanceVariable = self.instanceVariable(object_getClass(object), propertyName)
-
-        if instanceVariable != nil {
-            return object_getIvar(object, instanceVariable) as AnyObject?
-        } else {
+        
+        let aClass: AnyClass = object_getClass(object)!
+        
+        guard let ivar: Ivar = self.instanceVariable(aClass, propertyName) else {
             return nil
         }
+
+        var ivarValue: AnyObject? = nil
+        
+        if let obj: AnyObject = (object_getIvar(object, ivar) as AnyObject?) {
+            ivarValue = obj
+        }
+        
+        return ivarValue
     }
 
     /**
@@ -223,7 +275,18 @@ class Runtime {
      - parameter value:        New property value.
      */
     static func setInstanceVariable(_ object: AnyObject, _ propertyName: String, _ value: AnyObject?) {
-        object_setIvar(object, instanceVariable(object_getClass(object), propertyName), retainedObject(value))
+        
+        guard let aClass: AnyClass = object_getClass(object) else {
+            return
+        }
+        
+        guard let ivar: Ivar = instanceVariable(aClass, propertyName) else {
+            return
+        }
+        
+        let ivarValue = retainedObject(value)
+        
+        object_setIvar(object, ivar, ivarValue)
     }
 
     /**

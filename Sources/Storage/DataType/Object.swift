@@ -17,13 +17,13 @@ import Foundation
  */
 open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
     /// Access control lists.
-    open dynamic var ACL: LCACL?
+    @objc open dynamic var ACL: LCACL?
 
     /// Object identifier.
-    open fileprivate(set) dynamic var objectId: LCString?
+    @objc open fileprivate(set) dynamic var objectId: LCString?
 
-    open fileprivate(set) dynamic var createdAt: LCDate?
-    open fileprivate(set) dynamic var updatedAt: LCDate?
+    @objc open fileprivate(set) dynamic var createdAt: LCDate?
+    @objc open fileprivate(set) dynamic var updatedAt: LCDate?
 
     /**
      The table of properties.
@@ -198,8 +198,9 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
         let className = String(validatingUTF8: class_getName(self))!
 
         /* Strip root namespace to cope with application package name's change. */
-        if let index = className.characters.index(of: ".") {
-            return className.substring(from: className.index(after: index))
+        if let index = className.index(of: ".") {
+            let startIndex: String.Index = className.index(after: index)
+            return String(className[startIndex...])
         } else {
             return className
         }
@@ -380,8 +381,16 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
      Get and set value via subscript syntax.
      */
     open subscript(key: String) -> LCValue? {
-        get { return get(key) }
-        set { set(key, value: newValue) }
+        get {
+            var lcValue: LCValue? = nil
+            if let value: LCValue = get(key) {
+                lcValue = value
+            }
+            return lcValue
+        }
+        set {
+            set(key, value: newValue)
+        }
     }
 
     /**
@@ -392,7 +401,13 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
      - returns: The value for key.
      */
     open func get(_ key: String) -> LCValue? {
-        return ObjectProfiler.propertyValue(self, key) ?? propertyTable[key]
+        var lcValue: LCValue? = nil
+        if let value: LCValue = ObjectProfiler.propertyValue(self, key) {
+            lcValue = value
+        } else if let value: LCValue = propertyTable[key] {
+            lcValue = value
+        }
+        return lcValue
     }
 
     /**

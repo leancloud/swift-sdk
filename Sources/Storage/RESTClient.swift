@@ -272,10 +272,11 @@ class RESTClient {
 extension Request {
 
     var lcDebugDescription : String {
-        var curl = debugDescription
+        var curl: String = debugDescription
 
         if curl.hasPrefix("$ ") {
-            curl = curl.substring(from: curl.index(curl.startIndex, offsetBy: 2))
+            let startIndex: String.Index = curl.index(curl.startIndex, offsetBy: 2)
+            curl = String(curl[startIndex...])
         }
 
         let taskIdentifier = task?.taskIdentifier ?? 0

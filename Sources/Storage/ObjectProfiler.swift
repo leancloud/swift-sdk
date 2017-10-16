@@ -116,15 +116,20 @@ class ObjectProfiler {
      - returns: Concrete LCValue subclass, or nil if property type is not LCValue.
      */
     static func getLCValue(_ property: objc_property_t) -> LCValue.Type? {
-        let typeEncoding = Runtime.typeEncoding(property)
 
+        guard let typeEncoding: String = Runtime.typeEncoding(property) else {
+            return nil
+        }
+        
         guard typeEncoding.hasPrefix("@\"") else {
             return nil
         }
 
-        let name = typeEncoding[typeEncoding.characters.index(typeEncoding.startIndex, offsetBy: 2)..<typeEncoding.characters.index(typeEncoding.endIndex, offsetBy: -1)]
+        let startIndex: String.Index = typeEncoding.index(typeEncoding.startIndex, offsetBy: 2)
+        let endIndex: String.Index = typeEncoding.index(typeEncoding.endIndex, offsetBy: -1)
+        let name: Substring = typeEncoding[startIndex..<endIndex]
 
-        if let subclass = objc_getClass(name) as? AnyClass {
+        if let subclass = objc_getClass(String(name)) as? AnyClass {
             if let type = subclass as? LCValue.Type {
                 return type
             }
@@ -592,9 +597,10 @@ class ObjectProfiler {
      */
     static func propertyName(_ setter: Selector) -> String {
         var propertyName = NSStringFromSelector(setter)
-
-        propertyName = propertyName.substring(from: propertyName.characters.index(propertyName.startIndex, offsetBy: 3))
-        propertyName = propertyName.substring(to: propertyName.characters.index(propertyName.endIndex, offsetBy: -1))
+        
+        let startIndex: String.Index = propertyName.index(propertyName.startIndex, offsetBy: 3)
+        let endIndex: String.Index = propertyName.index(propertyName.endIndex, offsetBy: -1)
+        propertyName = String(propertyName[startIndex..<endIndex])
 
         return propertyName
     }
@@ -608,7 +614,9 @@ class ObjectProfiler {
      - returns: The property value, or nil if such a property not found.
      */
     static func propertyValue(_ object: LCObject, _ propertyName: String) -> LCValue? {
-        guard hasLCValue(object, propertyName) else { return nil }
+        guard hasLCValue(object, propertyName) else {
+            return nil
+        }
 
         return Runtime.instanceVariableValue(object, propertyName) as? LCValue
     }

@@ -17,14 +17,14 @@ import Foundation
  */
 open class LCUser: LCObject {
     /// Username of user.
-    open dynamic var username: LCString?
+    @objc open dynamic var username: LCString?
 
     /**
      Password of user.
 
      - note: this property will not be filled in when fetched or logged in for security.
      */
-    open dynamic var password: LCString?
+    @objc open dynamic var password: LCString?
 
     /**
      Email of user.
@@ -32,10 +32,10 @@ open class LCUser: LCObject {
      If the "Enable Email Verification" application option is enabled,
      a verification email will be sent to user when user registered with an email address.
      */
-    open dynamic var email: LCString?
+    @objc open dynamic var email: LCString?
 
     /// A flag indicates whether email is verified or not.
-    open fileprivate(set) dynamic var emailVerified: LCBool?
+    @objc open fileprivate(set) dynamic var emailVerified: LCBool?
 
     /**
      Mobile phone number.
@@ -43,13 +43,13 @@ open class LCUser: LCObject {
      If the "Enable Mobile Phone Number Verification" application option is enabled,
      an sms message will be sent to user's phone when user registered with a phone number.
      */
-    open dynamic var mobilePhoneNumber: LCString?
+    @objc open dynamic var mobilePhoneNumber: LCString?
 
     /// A flag indicates whether mobile phone is verified or not.
-    open fileprivate(set) dynamic var mobilePhoneVerified: LCBool?
+    @objc open fileprivate(set) dynamic var mobilePhoneVerified: LCBool?
 
     /// Session token of user authenticated by server.
-    open fileprivate(set) dynamic var sessionToken: LCString?
+    @objc open fileprivate(set) dynamic var sessionToken: LCString?
 
     /// Current authenticated user.
     open static var current: LCUser? = nil
