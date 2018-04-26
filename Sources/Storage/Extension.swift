@@ -53,7 +53,7 @@ func -<T: LCValue>(lhs: [T], rhs: [T]) -> [T] {
 }
 
 func *(lhs: String, rhs: Int) -> String {
-    return "".padding(toLength: rhs * lhs.characters.count, withPad: lhs, startingAt: 0)
+    return "".padding(toLength: rhs * lhs.count, withPad: lhs, startingAt: 0)
 }
 
 func ==(lhs: [LCValue], rhs: [LCValue]) -> Bool {
