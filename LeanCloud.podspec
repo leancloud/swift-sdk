@@ -13,7 +13,7 @@ Pod::Spec.new do |s|
   s.watchos.deployment_target = '2.0'
 
   s.subspec 'Storage' do |ss|
-    ss.dependency 'Alamofire', '~> 4.6'
+    ss.dependency 'Alamofire', '~> 4.7'
     ss.source_files = 'Sources/Storage/**/*.swift'
   end
 end
