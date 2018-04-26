@@ -62,7 +62,7 @@ class Runtime {
         )
         
         defer {
-            classes.deallocate(capacity: Int(count))
+            classes.deallocate()
         }
 
         let buffer = AutoreleasingUnsafeMutablePointer<AnyClass>(classes)
@@ -144,7 +144,7 @@ class Runtime {
         }
         
         defer {
-            properties.deallocate(capacity: Int(count))
+            properties.deallocate()
         }
 
         for i in 0..<Int(count) {
@@ -171,7 +171,7 @@ class Runtime {
                 
                 defer {
                     let utf8Str = String(validatingUTF8: varChars)!
-                    varChars.deallocate(capacity: utf8Str.count + 1)
+                    varChars.deallocate()
                 }
                 
                 return true
@@ -197,7 +197,7 @@ class Runtime {
         let utf8Str = String(validatingUTF8: typeChars)!
         
         defer {
-            typeChars.deallocate(capacity: utf8Str.utf8.count + 1)
+            typeChars.deallocate()
         }
         
         return utf8Str
@@ -234,7 +234,7 @@ class Runtime {
         
         defer {
             let utf8Str = String(validatingUTF8: varChars)!
-            varChars.deallocate(capacity: utf8Str.count + 1)
+            varChars.deallocate()
         }
         
         let ivar: Ivar? = class_getInstanceVariable(aClass, varChars)
