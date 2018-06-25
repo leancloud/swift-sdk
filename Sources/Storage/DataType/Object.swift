@@ -209,7 +209,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
     /**
      Register current object class manually.
      */
-    open static func register() {
+    public static func register() {
         ObjectProfiler.registerClass(self)
     }
 
@@ -616,7 +616,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
 
      - returns: The result of deletion request.
      */
-    open static func delete(_ objects: [LCObject]) -> LCBooleanResult {
+    public static func delete(_ objects: [LCObject]) -> LCBooleanResult {
         return LCBooleanResult(response: ObjectUpdater.delete(objects))
     }
 
@@ -625,7 +625,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
 
      - parameter completion: The completion callback closure.
      */
-    open static func delete(_ objects: [LCObject], completion: @escaping (LCBooleanResult) -> Void) {
+    public static func delete(_ objects: [LCObject], completion: @escaping (LCBooleanResult) -> Void) {
         asynchronize({ delete(objects) }) { result in
             completion(result)
         }
@@ -658,7 +658,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
 
      - returns: The result of fetching request.
      */
-    open static func fetch(_ objects: [LCObject]) -> LCBooleanResult {
+    public static func fetch(_ objects: [LCObject]) -> LCBooleanResult {
         return LCBooleanResult(response: ObjectUpdater.fetch(objects))
     }
 
@@ -667,7 +667,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
 
      - parameter completion: The completion callback closure.
      */
-    open static func fetch(_ objects: [LCObject], completion: @escaping (LCBooleanResult) -> Void) {
+    public static func fetch(_ objects: [LCObject], completion: @escaping (LCBooleanResult) -> Void) {
         asynchronize({ fetch(objects) }) { result in
             completion(result)
         }

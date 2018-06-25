@@ -20,6 +20,6 @@ public enum LCLogLevel : Int {
 
 public final class LCApplicationOptions {
 
-    open var logLevel : LCLogLevel = .off
+    public var logLevel : LCLogLevel = .off
 
 }

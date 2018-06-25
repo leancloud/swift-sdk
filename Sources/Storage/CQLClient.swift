@@ -95,7 +95,7 @@ open class LCCQLClient {
 
      - returns: The result of CQL statement.
      */
-    open static func execute(_ cql: String, parameters: LCArrayConvertible? = nil) -> LCCQLResult {
+    public static func execute(_ cql: String, parameters: LCArrayConvertible? = nil) -> LCCQLResult {
         let parameters = self.parameters(cql, parameters: parameters)
         let response   = RESTClient.request(.get, endpoint, parameters: parameters)
 
@@ -109,7 +109,7 @@ open class LCCQLClient {
      - parameter parameters: The parameters for placeholders in CQL statement.
      - parameter completion: The completion callback closure.
      */
-    open static func execute(_ cql: String, parameters: LCArrayConvertible? = nil, completion: @escaping (_ result: LCCQLResult) -> Void) {
+    public static func execute(_ cql: String, parameters: LCArrayConvertible? = nil, completion: @escaping (_ result: LCCQLResult) -> Void) {
         asynchronize({ execute(cql, parameters: parameters) }) { result in
             completion(result)
         }
