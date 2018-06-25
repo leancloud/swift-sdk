@@ -21,10 +21,6 @@ class TestObject: LCObject {
     @objc dynamic var dataField: LCData?
     @objc dynamic var dateField: LCDate?
     @objc dynamic var nullField: LCNull?
-
-    /* The non-LCValue and non-dynamic property cannot be handled. */
-    @objc dynamic var nonLCValueField: String?
-    var nonDynamicField: LCString?
 }
 
 class BaseTestCase: XCTestCase {
