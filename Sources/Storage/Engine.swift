@@ -32,7 +32,7 @@ public final class LCEngine {
      */
     public static func call(_ function: String, parameters: LCDictionaryConvertible? = nil) -> LCOptionalResult {
         let parameters = parameters?.lcDictionary.lconValue as? [String: AnyObject]
-        let response   = RESTClient.request(.post, "call/\(function)", parameters: parameters)
+        let response   = HTTPClient.request(.post, "call/\(function)", parameters: parameters)
 
         return response.optionalResult("result")
     }

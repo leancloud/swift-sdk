@@ -69,7 +69,7 @@ class ObjectUpdater {
             "requests": requests.map { request in request.jsonValue() }
         ]
 
-        let response = RESTClient.request(.post, "batch/save", parameters: parameters as [String: AnyObject])
+        let response = HTTPClient.request(.post, "batch/save", parameters: parameters as [String: AnyObject])
 
         if response.isSuccess {
             updateObjects(objects, response)
@@ -191,11 +191,11 @@ class ObjectUpdater {
      - returns: The response of request.
      */
     static func delete(_ object: LCObject) -> LCResponse {
-        guard let endpoint = RESTClient.eigenEndpoint(object) else {
+        guard let endpoint = HTTPClient.eigenEndpoint(object) else {
             return LCResponse(LCError(code: .notFound, reason: "Object not found."))
         }
 
-        return RESTClient.request(.delete, endpoint, parameters: nil)
+        return HTTPClient.request(.delete, endpoint, parameters: nil)
     }
 
     /**
@@ -215,7 +215,7 @@ class ObjectUpdater {
             BatchRequest(object: object, method: .delete).jsonValue()
         }
 
-        response = RESTClient.request(.post, "batch", parameters: ["requests": requests as AnyObject])
+        response = HTTPClient.request(.post, "batch", parameters: ["requests": requests as AnyObject])
 
         return response
     }
@@ -298,7 +298,7 @@ class ObjectUpdater {
             BatchRequest(object: object, method: .get).jsonValue()
         }
 
-        response = RESTClient.request(.post, "batch", parameters: ["requests": requests as AnyObject])
+        response = HTTPClient.request(.post, "batch", parameters: ["requests": requests as AnyObject])
 
         response = handleFetchedResponse(response, objects)
 
@@ -311,11 +311,11 @@ class ObjectUpdater {
      - returns: The response of request.
      */
     static func fetch(_ object: LCObject) -> LCResponse {
-        guard let endpoint = RESTClient.eigenEndpoint(object) else {
+        guard let endpoint = HTTPClient.eigenEndpoint(object) else {
             return LCResponse(LCError(code: .notFound, reason: "Object not found."))
         }
 
-        let response = RESTClient.request(.get, endpoint, parameters: nil)
+        let response = HTTPClient.request(.get, endpoint, parameters: nil)
 
         guard response.isSuccess else {
             return response

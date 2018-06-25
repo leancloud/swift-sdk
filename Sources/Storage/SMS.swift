@@ -27,7 +27,7 @@ public final class LCSMS {
 
         parameters["mobilePhoneNumber"] = LCString(mobilePhoneNumber)
 
-        let response = RESTClient.request(.post, "requestSmsCode", parameters: parameters.lconValue as? [String: AnyObject])
+        let response = HTTPClient.request(.post, "requestSmsCode", parameters: parameters.lconValue as? [String: AnyObject])
 
         return LCBooleanResult(response: response)
     }
@@ -58,7 +58,7 @@ public final class LCSMS {
      - parameter completion:        The completion callback closure.
      */
     public static func requestShortMessage(mobilePhoneNumber: String, templateName: String, variables: LCDictionaryConvertible? = nil, completion: @escaping (LCBooleanResult) -> Void) {
-        RESTClient.asynchronize({ self.requestShortMessage(mobilePhoneNumber: mobilePhoneNumber, templateName: templateName, variables: variables) }) { result in
+        HTTPClient.asynchronize({ self.requestShortMessage(mobilePhoneNumber: mobilePhoneNumber, templateName: templateName, variables: variables) }) { result in
             completion(result)
         }
     }
@@ -99,7 +99,7 @@ public final class LCSMS {
      - parameter completion:        The completion callback closure.
      */
     public static func requestVerificationCode(mobilePhoneNumber: String, applicationName: String? = nil, operation: String? = nil, timeToLive: UInt? = nil, completion: @escaping (LCBooleanResult) -> Void) {
-        RESTClient.asynchronize({ self.requestVerificationCode(mobilePhoneNumber: mobilePhoneNumber) }) { result in
+        HTTPClient.asynchronize({ self.requestVerificationCode(mobilePhoneNumber: mobilePhoneNumber) }) { result in
             completion(result)
         }
     }
@@ -124,7 +124,7 @@ public final class LCSMS {
      - parameter completion:        The completion callback closure.
      */
     public static func requestVoiceVerificationCode(mobilePhoneNumber: String, completion: @escaping (LCBooleanResult) -> Void) {
-        RESTClient.asynchronize({ self.requestVoiceVerificationCode(mobilePhoneNumber: mobilePhoneNumber) }) { result in
+        HTTPClient.asynchronize({ self.requestVoiceVerificationCode(mobilePhoneNumber: mobilePhoneNumber) }) { result in
             completion(result)
         }
     }
@@ -139,7 +139,7 @@ public final class LCSMS {
      */
     public static func verifyMobilePhoneNumber(_ mobilePhoneNumber: String, verificationCode: String) -> LCBooleanResult {
         let endpoint = "verifySmsCode/\(verificationCode)?mobilePhoneNumber=\(mobilePhoneNumber)"
-        let response = RESTClient.request(.post, endpoint)
+        let response = HTTPClient.request(.post, endpoint)
 
         return LCBooleanResult(response: response)
     }
@@ -152,7 +152,7 @@ public final class LCSMS {
      - parameter completion:        The completion callback closure.
      */
     public static func verifyMobilePhoneNumber(_ mobilePhoneNumber: String, verificationCode: String, completion: @escaping (LCBooleanResult) -> Void) {
-        RESTClient.asynchronize({ self.verifyMobilePhoneNumber(mobilePhoneNumber, verificationCode: verificationCode) }) { result in
+        HTTPClient.asynchronize({ self.verifyMobilePhoneNumber(mobilePhoneNumber, verificationCode: verificationCode) }) { result in
             completion(result)
         }
     }

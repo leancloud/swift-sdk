@@ -135,7 +135,7 @@ final public class LCQuery: NSObject, NSCopying, NSCoding {
     }
 
     var endpoint: String {
-        return RESTClient.endpoint(objectClassName)
+        return HTTPClient.endpoint(objectClassName)
     }
 
     /**
@@ -380,7 +380,7 @@ final public class LCQuery: NSObject, NSCopying, NSCoding {
      - returns: The result of the query request.
      */
     public func find<T>() -> LCQueryResult<T> {
-        let response = RESTClient.request(.get, endpoint, parameters: parameters)
+        let response = HTTPClient.request(.get, endpoint, parameters: parameters)
 
         if let error = response.error {
             return .failure(error: error)
@@ -478,7 +478,7 @@ final public class LCQuery: NSObject, NSCopying, NSCoding {
         parameters["count"] = 1 as AnyObject?
         parameters["limit"] = 0 as AnyObject?
 
-        let response = RESTClient.request(.get, endpoint, parameters: parameters)
+        let response = HTTPClient.request(.get, endpoint, parameters: parameters)
         let result = LCCountResult(response: response)
 
         return result

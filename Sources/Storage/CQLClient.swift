@@ -97,7 +97,7 @@ open class LCCQLClient {
      */
     public static func execute(_ cql: String, parameters: LCArrayConvertible? = nil) -> LCCQLResult {
         let parameters = self.parameters(cql, parameters: parameters)
-        let response   = RESTClient.request(.get, endpoint, parameters: parameters)
+        let response   = HTTPClient.request(.get, endpoint, parameters: parameters)
 
         return LCCQLResult(response: response)
     }

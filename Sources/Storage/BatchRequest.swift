@@ -10,10 +10,10 @@ import Foundation
 
 class BatchRequest {
     let object: LCObject
-    let method: RESTClient.Method?
+    let method: HTTPClient.Method?
     let operationTable: OperationTable?
 
-    init(object: LCObject, method: RESTClient.Method? = nil, operationTable: OperationTable? = nil) {
+    init(object: LCObject, method: HTTPClient.Method? = nil, operationTable: OperationTable? = nil) {
         self.object = object
         self.method = method
         self.operationTable = operationTable
@@ -23,19 +23,19 @@ class BatchRequest {
         return !object.hasObjectId
     }
 
-    var actualMethod: RESTClient.Method {
+    var actualMethod: HTTPClient.Method {
         return method ?? (isNewborn ? .post : .put)
     }
 
     var path: String {
         var path: String
-        let apiVersion = RESTClient.apiVersion
+        let apiVersion = HTTPClient.apiVersion
 
         switch actualMethod {
         case .get, .put, .delete:
-            path = RESTClient.eigenEndpoint(object)!
+            path = HTTPClient.eigenEndpoint(object)!
         case .post:
-            path = RESTClient.endpoint(object)
+            path = HTTPClient.endpoint(object)
         }
 
         return "/\(apiVersion)/\(path)"

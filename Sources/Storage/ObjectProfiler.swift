@@ -440,7 +440,7 @@ class ObjectProfiler {
 
      - returns: An LCValue object, or nil if object can not be decoded.
      */
-    static func object(dictionary: [String: AnyObject], dataType: RESTClient.DataType) -> LCValue? {
+    static func object(dictionary: [String: AnyObject], dataType: HTTPClient.DataType) -> LCValue? {
         switch dataType {
         case .object, .pointer:
             let className = dictionary["className"] as! String
@@ -468,7 +468,7 @@ class ObjectProfiler {
         var result: LCValue!
 
         if let type = dictionary["__type"] as? String {
-            if let dataType = RESTClient.DataType(rawValue: type) {
+            if let dataType = HTTPClient.DataType(rawValue: type) {
                 result = object(dictionary: dictionary, dataType: dataType)
             }
         }

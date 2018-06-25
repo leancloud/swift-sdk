@@ -1,5 +1,5 @@
 //
-//  RESTClient.swift
+//  HTTPClient.swift
 //  LeanCloud
 //
 //  Created by Tang Tianyong on 3/30/16.
@@ -14,7 +14,7 @@ import Alamofire
 
  This class manages requests for LeanCloud REST API.
  */
-class RESTClient {
+class HTTPClient {
     /// HTTP Method.
     enum Method: String {
         case get
@@ -60,7 +60,7 @@ class RESTClient {
     static let defaultTimeoutInterval: TimeInterval = 10
 
     /// REST client shared instance.
-    static let sharedInstance = RESTClient()
+    static let sharedInstance = HTTPClient()
 
     /// Request dispatch queue.
     static let dispatchQueue = DispatchQueue(label: "LeanCloud.REST", attributes: .concurrent)
