@@ -57,7 +57,7 @@ class RESTClient {
     static let apiVersion = "1.1"
 
     /// Default timeout interval of each request.
-    static let defaultTimeoutInterval: TimeInterval = 10
+    static let defaultTimeoutInterval: TimeInterval = NSURLRequest().timeoutInterval
 
     /// REST client shared instance.
     static let sharedInstance = RESTClient()
