@@ -13,7 +13,18 @@ import Foundation
 
  You can use this class to send short message to mobile phone.
  */
-public final class LCSMS {
+public final class LCSMSClient {
+    /// Application
+    public let application: LCApplication
+
+    private lazy var httpClient: HTTPClient = {
+        return HTTPClient(application: application)
+    }()
+
+    init(application: LCApplication = .current ?? .shared) {
+        self.application = application
+    }
+
     /**
      Request a short message.
 
@@ -22,12 +33,12 @@ public final class LCSMS {
 
      - returns: The result of short message request.
      */
-    static func requestShortMessage(mobilePhoneNumber: String, parameters: LCDictionaryConvertible?) -> LCBooleanResult {
+    func requestShortMessage(mobilePhoneNumber: String, parameters: LCDictionaryConvertible?) -> LCBooleanResult {
         let parameters = parameters?.lcDictionary ?? LCDictionary()
 
         parameters["mobilePhoneNumber"] = LCString(mobilePhoneNumber)
 
-        let response = HTTPClient.request(.post, "requestSmsCode", parameters: parameters.lconValue as? [String: AnyObject])
+        let response = httpClient.request(.post, "requestSmsCode", parameters: parameters.lconValue as? [String: AnyObject])
 
         return LCBooleanResult(response: response)
     }
@@ -41,7 +52,7 @@ public final class LCSMS {
 
      - returns: The result of short message request.
      */
-    public static func requestShortMessage(mobilePhoneNumber: String, templateName: String, variables: LCDictionaryConvertible? = nil) -> LCBooleanResult {
+    public func requestShortMessage(mobilePhoneNumber: String, templateName: String, variables: LCDictionaryConvertible? = nil) -> LCBooleanResult {
         let parameters = variables?.lcDictionary ?? LCDictionary()
 
         parameters["template"] = LCString(templateName)
@@ -57,7 +68,7 @@ public final class LCSMS {
      - parameter variables:         The variables used to substitute placeholders in template.
      - parameter completion:        The completion callback closure.
      */
-    public static func requestShortMessage(mobilePhoneNumber: String, templateName: String, variables: LCDictionaryConvertible? = nil, completion: @escaping (LCBooleanResult) -> Void) {
+    public func requestShortMessage(mobilePhoneNumber: String, templateName: String, variables: LCDictionaryConvertible? = nil, completion: @escaping (LCBooleanResult) -> Void) {
         HTTPClient.asynchronize({ self.requestShortMessage(mobilePhoneNumber: mobilePhoneNumber, templateName: templateName, variables: variables) }) { result in
             completion(result)
         }
@@ -73,7 +84,7 @@ public final class LCSMS {
 
      - returns: The result of verification code request.
      */
-    public static func requestVerificationCode(mobilePhoneNumber: String, applicationName: String? = nil, operation: String? = nil, timeToLive: UInt? = nil) -> LCBooleanResult {
+    public func requestVerificationCode(mobilePhoneNumber: String, applicationName: String? = nil, operation: String? = nil, timeToLive: UInt? = nil) -> LCBooleanResult {
         var parameters: [String: AnyObject] = [:]
 
         if let operation = operation {
@@ -98,7 +109,7 @@ public final class LCSMS {
      - parameter timeToLive:        The time to live of short message, in minutes. Defaults to 10 minutes.
      - parameter completion:        The completion callback closure.
      */
-    public static func requestVerificationCode(mobilePhoneNumber: String, applicationName: String? = nil, operation: String? = nil, timeToLive: UInt? = nil, completion: @escaping (LCBooleanResult) -> Void) {
+    public func requestVerificationCode(mobilePhoneNumber: String, applicationName: String? = nil, operation: String? = nil, timeToLive: UInt? = nil, completion: @escaping (LCBooleanResult) -> Void) {
         HTTPClient.asynchronize({ self.requestVerificationCode(mobilePhoneNumber: mobilePhoneNumber) }) { result in
             completion(result)
         }
@@ -111,7 +122,7 @@ public final class LCSMS {
 
      - returns: The result of verification code request.
      */
-    public static func requestVoiceVerificationCode(mobilePhoneNumber: String) -> LCBooleanResult {
+    public func requestVoiceVerificationCode(mobilePhoneNumber: String) -> LCBooleanResult {
         let parameters = ["smsType": "voice"]
 
         return requestShortMessage(mobilePhoneNumber: mobilePhoneNumber, parameters: parameters)
@@ -123,7 +134,7 @@ public final class LCSMS {
      - parameter mobilePhoneNumber: The mobile phone number where verification code will be sent to.
      - parameter completion:        The completion callback closure.
      */
-    public static func requestVoiceVerificationCode(mobilePhoneNumber: String, completion: @escaping (LCBooleanResult) -> Void) {
+    public func requestVoiceVerificationCode(mobilePhoneNumber: String, completion: @escaping (LCBooleanResult) -> Void) {
         HTTPClient.asynchronize({ self.requestVoiceVerificationCode(mobilePhoneNumber: mobilePhoneNumber) }) { result in
             completion(result)
         }
@@ -137,9 +148,9 @@ public final class LCSMS {
 
      - returns: The result of verification request.
      */
-    public static func verifyMobilePhoneNumber(_ mobilePhoneNumber: String, verificationCode: String) -> LCBooleanResult {
+    public func verifyMobilePhoneNumber(_ mobilePhoneNumber: String, verificationCode: String) -> LCBooleanResult {
         let endpoint = "verifySmsCode/\(verificationCode)?mobilePhoneNumber=\(mobilePhoneNumber)"
-        let response = HTTPClient.request(.post, endpoint)
+        let response = httpClient.request(.post, endpoint)
 
         return LCBooleanResult(response: response)
     }
@@ -151,7 +162,7 @@ public final class LCSMS {
      - parameter verificationCode:  The verification code.
      - parameter completion:        The completion callback closure.
      */
-    public static func verifyMobilePhoneNumber(_ mobilePhoneNumber: String, verificationCode: String, completion: @escaping (LCBooleanResult) -> Void) {
+    public func verifyMobilePhoneNumber(_ mobilePhoneNumber: String, verificationCode: String, completion: @escaping (LCBooleanResult) -> Void) {
         HTTPClient.asynchronize({ self.verifyMobilePhoneNumber(mobilePhoneNumber, verificationCode: verificationCode) }) { result in
             completion(result)
         }

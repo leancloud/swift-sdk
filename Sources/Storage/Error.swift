@@ -61,4 +61,8 @@ public struct LCError: Error {
             break
         }
     }
+
+    func raise() {
+        try! { throw self }()
+    }
 }

@@ -17,7 +17,7 @@ public final class LCArray: NSObject, LCValue, LCValueExtension, Collection, Exp
     public typealias Index = Int
     public typealias Element = LCValue
 
-    public fileprivate(set) var value: [Element] = []
+    public private(set) var value: [Element] = []
 
     public override init() {
         super.init()
@@ -32,10 +32,10 @@ public final class LCArray: NSObject, LCValue, LCValueExtension, Collection, Exp
         self.init(elements)
     }
 
-    public convenience init(unsafeObject: [AnyObject]) {
+    public convenience init(unsafeObject: [AnyObject], application: LCApplication = .current ?? .shared) {
         self.init()
         value = unsafeObject.map { element in
-            try! ObjectProfiler.object(jsonValue: element)
+            try! ObjectProfiler.object(jsonValue: element, application: application)
         }
     }
 

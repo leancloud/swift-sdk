@@ -8,13 +8,13 @@
 
 /* Begin PBXBuildFile section */
 		11E2248720E0C5DB004EDC67 /* Application.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11E2248620E0C5DB004EDC67 /* Application.swift */; };
+		11E2249D20E381E9004EDC67 /* ApplicationTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11E2249C20E381E9004EDC67 /* ApplicationTestCase.swift */; };
 		8334561C1CE589E500D42725 /* EngineTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8334561B1CE589E500D42725 /* EngineTestCase.swift */; };
 		8342FCC61C7B13A700C3CF15 /* LeanCloud.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8342FCBB1C7B13A700C3CF15 /* LeanCloud.framework */; };
 		8342FCCB1C7B13A700C3CF15 /* BaseTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8342FCCA1C7B13A700C3CF15 /* BaseTestCase.swift */; };
 		834EA7151D2A139A00108DDC /* UserTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 834EA7141D2A139A00108DDC /* UserTestCase.swift */; };
 		8352B5231D2BAAE600531785 /* RelationTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8352B5221D2BAAE600531785 /* RelationTestCase.swift */; };
 		835F5D661D7E6808004D1A0E /* BatchRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D411D7E6808004D1A0E /* BatchRequest.swift */; };
-		835F5D671D7E6808004D1A0E /* Configuration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D421D7E6808004D1A0E /* Configuration.swift */; };
 		835F5D681D7E6808004D1A0E /* CQLClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D431D7E6808004D1A0E /* CQLClient.swift */; };
 		835F5D691D7E6808004D1A0E /* ACL.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D451D7E6808004D1A0E /* ACL.swift */; };
 		835F5D6A1D7E6808004D1A0E /* Array.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D461D7E6808004D1A0E /* Array.swift */; };
@@ -45,7 +45,7 @@
 		835F5D831D7E6808004D1A0E /* HTTPClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D601D7E6808004D1A0E /* HTTPClient.swift */; };
 		835F5D841D7E6808004D1A0E /* Result.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D611D7E6808004D1A0E /* Result.swift */; };
 		835F5D851D7E6808004D1A0E /* Runtime.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D621D7E6808004D1A0E /* Runtime.swift */; };
-		835F5D861D7E6808004D1A0E /* SMS.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D631D7E6808004D1A0E /* SMS.swift */; };
+		835F5D861D7E6808004D1A0E /* SMSClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D631D7E6808004D1A0E /* SMSClient.swift */; };
 		835F5D871D7E6808004D1A0E /* Utility.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D641D7E6808004D1A0E /* Utility.swift */; };
 		835F5D881D7E6808004D1A0E /* Value.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D651D7E6808004D1A0E /* Value.swift */; };
 		8365CFA81D79849D006B856E /* TypeTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8365CFA71D79849D006B856E /* TypeTestCase.swift */; };
@@ -118,6 +118,7 @@
 
 /* Begin PBXFileReference section */
 		11E2248620E0C5DB004EDC67 /* Application.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Application.swift; sourceTree = "<group>"; };
+		11E2249C20E381E9004EDC67 /* ApplicationTestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationTestCase.swift; sourceTree = "<group>"; };
 		8334561B1CE589E500D42725 /* EngineTestCase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EngineTestCase.swift; sourceTree = "<group>"; };
 		8342FCBB1C7B13A700C3CF15 /* LeanCloud.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = LeanCloud.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		8342FCC01C7B13A700C3CF15 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -127,7 +128,6 @@
 		834EA7141D2A139A00108DDC /* UserTestCase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UserTestCase.swift; sourceTree = "<group>"; };
 		8352B5221D2BAAE600531785 /* RelationTestCase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RelationTestCase.swift; sourceTree = "<group>"; };
 		835F5D411D7E6808004D1A0E /* BatchRequest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BatchRequest.swift; sourceTree = "<group>"; };
-		835F5D421D7E6808004D1A0E /* Configuration.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Configuration.swift; sourceTree = "<group>"; };
 		835F5D431D7E6808004D1A0E /* CQLClient.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CQLClient.swift; sourceTree = "<group>"; };
 		835F5D451D7E6808004D1A0E /* ACL.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ACL.swift; sourceTree = "<group>"; };
 		835F5D461D7E6808004D1A0E /* Array.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Array.swift; sourceTree = "<group>"; };
@@ -158,7 +158,7 @@
 		835F5D601D7E6808004D1A0E /* HTTPClient.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HTTPClient.swift; sourceTree = "<group>"; };
 		835F5D611D7E6808004D1A0E /* Result.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Result.swift; sourceTree = "<group>"; };
 		835F5D621D7E6808004D1A0E /* Runtime.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Runtime.swift; sourceTree = "<group>"; };
-		835F5D631D7E6808004D1A0E /* SMS.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SMS.swift; sourceTree = "<group>"; };
+		835F5D631D7E6808004D1A0E /* SMSClient.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SMSClient.swift; sourceTree = "<group>"; };
 		835F5D641D7E6808004D1A0E /* Utility.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Utility.swift; sourceTree = "<group>"; };
 		835F5D651D7E6808004D1A0E /* Value.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Value.swift; sourceTree = "<group>"; };
 		8365CFA71D79849D006B856E /* TypeTestCase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TypeTestCase.swift; sourceTree = "<group>"; };
@@ -228,6 +228,7 @@
 				8334561B1CE589E500D42725 /* EngineTestCase.swift */,
 				83BC11D51CDD76E900D7E7A6 /* ACLTestCase.swift */,
 				83FAF0921CC4D1E400A84063 /* ObjectTestCase.swift */,
+				11E2249C20E381E9004EDC67 /* ApplicationTestCase.swift */,
 				83D0DE6E1CC7B3FF00FC204E /* QueryTestCase.swift */,
 				8352B5221D2BAAE600531785 /* RelationTestCase.swift */,
 				834EA7141D2A139A00108DDC /* UserTestCase.swift */,
@@ -252,7 +253,6 @@
 				835F5D561D7E6808004D1A0E /* LeanCloud.h */,
 				835F5D571D7E6808004D1A0E /* LeanCloud.swift */,
 				11E2248620E0C5DB004EDC67 /* Application.swift */,
-				835F5D421D7E6808004D1A0E /* Configuration.swift */,
 				8367CFB11F57B8D100CDC922 /* ApplicationOptions.swift */,
 				835F5D651D7E6808004D1A0E /* Value.swift */,
 				835F5D551D7E6808004D1A0E /* Extension.swift */,
@@ -271,7 +271,7 @@
 				835F5D5D1D7E6808004D1A0E /* Query.swift */,
 				835F5D431D7E6808004D1A0E /* CQLClient.swift */,
 				835F5D531D7E6808004D1A0E /* Engine.swift */,
-				835F5D631D7E6808004D1A0E /* SMS.swift */,
+				835F5D631D7E6808004D1A0E /* SMSClient.swift */,
 			);
 			path = Storage;
 			sourceTree = "<group>";
@@ -496,7 +496,6 @@
 				835F5D881D7E6808004D1A0E /* Value.swift in Sources */,
 				835F5D6F1D7E6808004D1A0E /* GeoPoint.swift in Sources */,
 				835F5D841D7E6808004D1A0E /* Result.swift in Sources */,
-				835F5D671D7E6808004D1A0E /* Configuration.swift in Sources */,
 				835F5D771D7E6808004D1A0E /* Engine.swift in Sources */,
 				835F5D761D7E6808004D1A0E /* User.swift in Sources */,
 				835F5D701D7E6808004D1A0E /* Null.swift in Sources */,
@@ -514,7 +513,7 @@
 				835F5D7D1D7E6808004D1A0E /* ObjectProfiler.swift in Sources */,
 				835F5D821D7E6808004D1A0E /* Response.swift in Sources */,
 				83B4DB231DB8618A00E36067 /* Logger.swift in Sources */,
-				835F5D861D7E6808004D1A0E /* SMS.swift in Sources */,
+				835F5D861D7E6808004D1A0E /* SMSClient.swift in Sources */,
 				835F5D7E1D7E6808004D1A0E /* ObjectUpdater.swift in Sources */,
 				835F5D831D7E6808004D1A0E /* HTTPClient.swift in Sources */,
 				11E2248720E0C5DB004EDC67 /* Application.swift in Sources */,
@@ -536,6 +535,7 @@
 				8342FCCB1C7B13A700C3CF15 /* BaseTestCase.swift in Sources */,
 				8352B5231D2BAAE600531785 /* RelationTestCase.swift in Sources */,
 				83D0DE6F1CC7B3FF00FC204E /* QueryTestCase.swift in Sources */,
+				11E2249D20E381E9004EDC67 /* ApplicationTestCase.swift in Sources */,
 				83BC11D61CDD76E900D7E7A6 /* ACLTestCase.swift in Sources */,
 				8334561C1CE589E500D42725 /* EngineTestCase.swift in Sources */,
 				8365CFA81D79849D006B856E /* TypeTestCase.swift in Sources */,

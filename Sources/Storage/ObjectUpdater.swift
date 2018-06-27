@@ -14,6 +14,17 @@ import Foundation
  This class can be used to create, update and delete object.
  */
 class ObjectUpdater {
+    /// HTTP Client
+    let httpClient: HTTPClient
+
+    var application: LCApplication {
+        return httpClient.application
+    }
+
+    init(httpClient: HTTPClient) {
+        self.httpClient = httpClient
+    }
+
     /**
      Get batch requests from a set of objects.
 
@@ -21,7 +32,7 @@ class ObjectUpdater {
 
      - returns: An array of batch requests.
      */
-    fileprivate static func batchRequests(_ objects: Set<LCObject>) -> [BatchRequest] {
+    private func batchRequests(_ objects: Set<LCObject>) -> [BatchRequest] {
         var requests: [BatchRequest] = []
         let toposort = ObjectProfiler.toposort(objects)
 
@@ -40,7 +51,7 @@ class ObjectUpdater {
      - parameter objects:  A set of object to update.
      - parameter response: The response of batch request.
      */
-    static func updateObjects(_ objects: Set<LCObject>, _ response: LCResponse) {
+    func updateObjects(_ objects: Set<LCObject>, _ response: LCResponse) {
         let value = response.value
 
         guard let dictionary = value as? BatchResponse else {
@@ -53,7 +64,7 @@ class ObjectUpdater {
             }
 
             filtered.forEach { object in
-                ObjectProfiler.updateObject(object, value)
+                ObjectProfiler.updateObject(object, value, application: application)
             }
         }
     }
@@ -64,12 +75,12 @@ class ObjectUpdater {
      - parameter requests: A list of batch requests.
      - returns: The response of request.
      */
-    fileprivate static func sendBatchRequests(_ requests: [BatchRequest], _ objects: Set<LCObject>) -> LCResponse {
+    private func sendBatchRequests(_ requests: [BatchRequest], _ objects: Set<LCObject>) -> LCResponse {
         let parameters = [
             "requests": requests.map { request in request.jsonValue() }
         ]
 
-        let response = HTTPClient.request(.post, "batch/save", parameters: parameters as [String: AnyObject])
+        let response = httpClient.request(.post, "batch/save", parameters: parameters as [String: AnyObject])
 
         if response.isSuccess {
             updateObjects(objects, response)
@@ -87,7 +98,7 @@ class ObjectUpdater {
 
      - parameter objects: A set of objects to validate.
      */
-    fileprivate static func validateObjectId(_ objects: Set<LCObject>) throws {
+    private func validateObjectId(_ objects: Set<LCObject>) throws {
         try objects.forEach { object in
             if object.objectId == nil {
                 throw LCError(code: .notFound, reason: "Object ID not found.", userInfo: nil)
@@ -102,7 +113,7 @@ class ObjectUpdater {
 
      - returns: The response of request.
      */
-    fileprivate static func saveIndependentObjects(_ objects: Set<LCObject>) -> LCResponse {
+    private func saveIndependentObjects(_ objects: Set<LCObject>) -> LCResponse {
         var family: Set<LCObject> = []
 
         objects.forEach { object in
@@ -131,7 +142,7 @@ class ObjectUpdater {
      - parameter object: The ancestor object.
      - returns: The response of request.
      */
-    fileprivate static func saveNewbornOrphans(_ object: LCObject) -> LCResponse {
+    private func saveNewbornOrphans(_ object: LCObject) -> LCResponse {
         var response = LCResponse()
 
         repeat {
@@ -167,7 +178,7 @@ class ObjectUpdater {
 
      - returns: The response of request.
      */
-    static func save(_ object: LCObject) -> LCResponse {
+    func save(_ object: LCObject) -> LCResponse {
         object.validateBeforeSaving()
 
         var response = saveNewbornOrphans(object)
@@ -190,12 +201,40 @@ class ObjectUpdater {
 
      - returns: The response of request.
      */
-    static func delete(_ object: LCObject) -> LCResponse {
+    func delete(_ object: LCObject) -> LCResponse {
         guard let endpoint = HTTPClient.eigenEndpoint(object) else {
             return LCResponse(LCError(code: .notFound, reason: "Object not found."))
         }
 
-        return HTTPClient.request(.delete, endpoint, parameters: nil)
+        return httpClient.request(.delete, endpoint, parameters: nil)
+    }
+
+    /*
+     Separate objects by application.
+     */
+    private static func separate(objects: [LCObject], iterator: (LCApplication, [LCObject]) -> Void) {
+        var map: [ObjectIdentifier: NSMutableOrderedSet] = [:]
+
+        objects.forEach { object in
+            let key = ObjectIdentifier(object.application)
+
+            if let set = map[key] {
+                set.add(object)
+            } else {
+                map[key] = NSMutableOrderedSet(object: object)
+            }
+        }
+
+        map.forEach { (_, set) in
+            guard
+                let objects = set.array as? [LCObject],
+                let object = objects.first
+            else {
+                return
+            }
+
+            iterator(object.application, objects)
+        }
     }
 
     /**
@@ -206,16 +245,25 @@ class ObjectUpdater {
      - returns: The response of deletion request.
      */
     static func delete<T: LCObject>(_ objects: [T]) -> LCResponse {
-        var response = LCResponse()
-
-        /* If no objects, do nothing. */
-        guard !objects.isEmpty else { return response }
-
-        let requests = Set<T>(objects).map { object in
-            BatchRequest(object: object, method: .delete).jsonValue()
+        if objects.isEmpty {
+            return LCResponse()
         }
 
-        response = HTTPClient.request(.post, "batch", parameters: ["requests": requests as AnyObject])
+        var subresponses: [LCResponse] = []
+
+        separate(objects: objects) { (application, objects) in
+            let requests = objects.map { object in
+                BatchRequest(object: object, method: .delete).jsonValue()
+            }
+
+            let httpClient = HTTPClient(application: application)
+            let parameters = ["requests": requests as AnyObject]
+            let response = httpClient.request(.post, "batch", parameters: parameters)
+
+            subresponses.append(response)
+        }
+
+        let response = LCResponse(subresponses)
 
         return response
     }
@@ -228,7 +276,7 @@ class ObjectUpdater {
 
      - returns: The error response, or nil if error not found.
      */
-    static func handleFetchedResult(_ result: AnyObject?, _ objects: [LCObject]) -> LCResponse? {
+    static func handleFetchedResult(_ result: AnyObject?, _ objects: [LCObject], _ application: LCApplication) -> LCResponse? {
         let dictionary = (result as? [String: AnyObject]) ?? [:]
 
         guard let objectId = dictionary["objectId"] as? String else {
@@ -240,7 +288,7 @@ class ObjectUpdater {
         }
 
         matched.forEach { object in
-            ObjectProfiler.updateObject(object, dictionary)
+            ObjectProfiler.updateObject(object, dictionary, application: application)
             object.resetOperation()
         }
 
@@ -255,7 +303,7 @@ class ObjectUpdater {
 
      - returns: The handled response.
      */
-    static func handleFetchedResponse(_ response: LCResponse, _ objects: [LCObject]) -> LCResponse {
+    static func handleFetchedResponse(_ response: LCResponse, _ objects: [LCObject], _ application: LCApplication) -> LCResponse {
         guard response.isSuccess else {
             return response
         }
@@ -266,7 +314,7 @@ class ObjectUpdater {
         var response = response
 
         for result in results {
-            if let errorResponse = handleFetchedResult(result["success"], objects) {
+            if let errorResponse = handleFetchedResult(result["success"], objects, application) {
                 response = errorResponse
             }
         }
@@ -282,10 +330,9 @@ class ObjectUpdater {
      - returns: The response of fetching request.
      */
     static func fetch(_ objects: [LCObject]) -> LCResponse {
-        var response = LCResponse()
-
-        /* If no object, do nothing. */
-        guard !objects.isEmpty else { return response }
+        if objects.isEmpty {
+            return LCResponse()
+        }
 
         /* If any object has no object ID, return not found error. */
         for object in objects {
@@ -294,13 +341,22 @@ class ObjectUpdater {
             }
         }
 
-        let requests = Set(objects).map { object in
-            BatchRequest(object: object, method: .get).jsonValue()
+        var subresponses: [LCResponse] = []
+
+        separate(objects: objects) { (application, objects) in
+            let requests = objects.map { object in
+                BatchRequest(object: object, method: .get).jsonValue()
+            }
+
+            let httpClient = HTTPClient(application: application)
+            let parameters = ["requests": requests as AnyObject]
+            let originalResponse = httpClient.request(.post, "batch", parameters: parameters)
+            let response = handleFetchedResponse(originalResponse, objects, application)
+
+            subresponses.append(response)
         }
 
-        response = HTTPClient.request(.post, "batch", parameters: ["requests": requests as AnyObject])
-
-        response = handleFetchedResponse(response, objects)
+        let response = LCResponse(subresponses)
 
         return response
     }
@@ -310,12 +366,12 @@ class ObjectUpdater {
 
      - returns: The response of request.
      */
-    static func fetch(_ object: LCObject) -> LCResponse {
+    func fetch(_ object: LCObject) -> LCResponse {
         guard let endpoint = HTTPClient.eigenEndpoint(object) else {
             return LCResponse(LCError(code: .notFound, reason: "Object not found."))
         }
 
-        let response = HTTPClient.request(.get, endpoint, parameters: nil)
+        let response = httpClient.request(.get, endpoint, parameters: nil)
 
         guard response.isSuccess else {
             return response
@@ -327,7 +383,7 @@ class ObjectUpdater {
             return LCResponse(LCError(code: .objectNotFound, reason: "Object not found."))
         }
 
-        ObjectProfiler.updateObject(object, dictionary)
+        ObjectProfiler.updateObject(object, dictionary, application: application)
 
         object.resetOperation()
 

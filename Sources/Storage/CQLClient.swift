@@ -11,38 +11,35 @@ import Foundation
 /**
  A type represents the result value of CQL execution.
  */
-open class LCCQLValue {
-    let response: LCResponse
+public final class LCCQLValue {
+    let count: Int
+
+    let objects: [LCObject]
 
     init(response: LCResponse) {
-        self.response = response
-    }
+        var objects: [LCObject] = []
 
-    var results: [[String: AnyObject]] {
-        return (response.results as? [[String: AnyObject]]) ?? []
-    }
-
-    var className: String {
-        return (response["className"] as? String) ?? LCObject.objectClassName()
-    }
-
-    /**
-     Get objects for object query.
-     */
-    open var objects: [LCObject] {
-        let results   = self.results
-        let className = self.className
-
-        return results.map { dictionary in
-            ObjectProfiler.object(dictionary: dictionary, className: className)
+        if
+            let application = response.application,
+            let results = response["results"] as? [[String: AnyObject]]
+        {
+            let className = (response["className"] as? String) ?? LCObject.objectClassName()
+            do {
+                objects = try results.map { dictionary in
+                    try ObjectProfiler.object(dictionary: dictionary, className: className, application: application)
+                }
+            } catch {
+                objects = []
+            }
         }
-    }
 
-    /**
-     Get count value for count query.
-     */
-    open var count: Int {
-        return response.count
+        self.objects = objects
+
+        if let count = response["count"] as? Int {
+            self.count = count
+        } else {
+            self.count = objects.count
+        }
     }
 }
 
@@ -51,11 +48,22 @@ open class LCCQLValue {
 
  CQLClient allow you to use CQL (Cloud Query Language) to make CRUD for object.
  */
-open class LCCQLClient {
-    static let endpoint = "cloudQuery"
+public final class LCCQLClient {
+    /// Application
+    public let application: LCApplication
+
+    private lazy var httpClient: HTTPClient = {
+        return HTTPClient(application: application)
+    }()
+
+    init(application: LCApplication = .current ?? .shared) {
+        self.application = application
+    }
+
+    let endpoint = "cloudQuery"
 
     /// The dispatch queue for asynchronous CQL execution task.
-    static let backgroundQueue = DispatchQueue(label: "LeanCloud.CQLClient", attributes: .concurrent)
+    let backgroundQueue = DispatchQueue(label: "LeanCloud.CQLClient", attributes: .concurrent)
 
     /**
      Asynchronize task into background queue.
@@ -63,7 +71,7 @@ open class LCCQLClient {
      - parameter task:       The task to be performed.
      - parameter completion: The completion closure to be called on main thread after task finished.
      */
-    static func asynchronize(_ task: @escaping () -> LCCQLResult, completion: @escaping (LCCQLResult) -> Void) {
+    func asynchronize(_ task: @escaping () -> LCCQLResult, completion: @escaping (LCCQLResult) -> Void) {
         Utility.asynchronize(task, backgroundQueue, completion)
     }
 
@@ -75,7 +83,7 @@ open class LCCQLClient {
 
      - returns: The parameters for CQL execution.
      */
-    static func parameters(_ cql: String, parameters: LCArrayConvertible?) -> [String: AnyObject] {
+    func parameters(_ cql: String, parameters: LCArrayConvertible?) -> [String: AnyObject] {
         var result = ["cql": cql]
 
         if let parameters = parameters?.lcArray {
@@ -95,9 +103,9 @@ open class LCCQLClient {
 
      - returns: The result of CQL statement.
      */
-    public static func execute(_ cql: String, parameters: LCArrayConvertible? = nil) -> LCCQLResult {
+    public func execute(_ cql: String, parameters: LCArrayConvertible? = nil) -> LCCQLResult {
         let parameters = self.parameters(cql, parameters: parameters)
-        let response   = HTTPClient.request(.get, endpoint, parameters: parameters)
+        let response   = httpClient.request(.get, endpoint, parameters: parameters)
 
         return LCCQLResult(response: response)
     }
@@ -109,8 +117,8 @@ open class LCCQLClient {
      - parameter parameters: The parameters for placeholders in CQL statement.
      - parameter completion: The completion callback closure.
      */
-    public static func execute(_ cql: String, parameters: LCArrayConvertible? = nil, completion: @escaping (_ result: LCCQLResult) -> Void) {
-        asynchronize({ execute(cql, parameters: parameters) }) { result in
+    public func execute(_ cql: String, parameters: LCArrayConvertible? = nil, completion: @escaping (_ result: LCCQLResult) -> Void) {
+        asynchronize({ self.execute(cql, parameters: parameters) }) { result in
             completion(result)
         }
     }

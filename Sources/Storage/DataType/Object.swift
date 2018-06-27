@@ -20,10 +20,10 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
     @objc open dynamic var ACL: LCACL?
 
     /// Object identifier.
-    @objc open fileprivate(set) dynamic var objectId: LCString?
+    @objc open private(set) dynamic var objectId: LCString?
 
-    @objc open fileprivate(set) dynamic var createdAt: LCDate?
-    @objc open fileprivate(set) dynamic var updatedAt: LCDate?
+    @objc open private(set) dynamic var createdAt: LCDate?
+    @objc open private(set) dynamic var updatedAt: LCDate?
 
     /**
      The table of properties.
@@ -33,7 +33,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
              This property is intent for internal use.
              For accesssing all properties, please use `dictionary` property.
      */
-    fileprivate var propertyTable: LCDictionary = [:]
+    private var propertyTable: LCDictionary = [:]
 
     /// The table of all properties.
     lazy var dictionary: LCDictionary = {
@@ -62,7 +62,19 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
         return hasObjectId ? (!operationHub.isEmpty) : true
     }
 
+    public private(set) var application: LCApplication
+
+    private(set) lazy var httpClient: HTTPClient = {
+        return HTTPClient(application: application)
+    }()
+
+    private(set) lazy var updater: ObjectUpdater = {
+        return ObjectUpdater(httpClient: httpClient)
+    }()
+
     public override required init() {
+        application = .current ?? .shared
+
         super.init()
         operationHub = OperationHub(self)
 
@@ -71,29 +83,39 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
         }
     }
 
-    public convenience init(objectId: LCStringConvertible) {
+    public convenience init(application: LCApplication = .current ?? .shared) {
+        self.init()
+        self.application = application
+    }
+
+    public convenience init(objectId: LCStringConvertible, application: LCApplication = .current ?? .shared) {
         self.init()
         self.objectId = objectId.lcString
+        self.application = application
     }
 
-    public convenience init(className: LCStringConvertible) {
+    public convenience init(className: LCStringConvertible, application: LCApplication = .current ?? .shared) {
         self.init()
         propertyTable["className"] = className.lcString
+        self.application = application
     }
 
-    public convenience init(className: LCStringConvertible, objectId: LCStringConvertible) {
+    public convenience init(className: LCStringConvertible, objectId: LCStringConvertible, application: LCApplication = .current ?? .shared) {
         self.init()
         propertyTable["className"] = className.lcString
         self.objectId = objectId.lcString
+        self.application = application
     }
 
-    convenience init(dictionary: LCDictionaryConvertible) {
+    convenience init(dictionary: LCDictionaryConvertible, application: LCApplication = .current ?? .shared) {
         self.init()
         propertyTable = dictionary.lcDictionary
 
         propertyTable.forEach { (key, value) in
             Runtime.setInstanceVariable(self, key, value)
         }
+
+        self.application = application
     }
 
     public required convenience init?(coder aDecoder: NSCoder) {
@@ -103,6 +125,18 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
         propertyTable.forEach { (key, value) in
             Runtime.setInstanceVariable(self, key, value)
         }
+
+        guard let application = LCApplication.current else {
+            let reason = """
+            Application not found.
+            A decoded LCObject must be bound to an application explictly.
+            Please try to use `perform` method of LCApplication to create a context and decode object in that context.
+            """
+            LCError(code: .notFound, reason: reason).raise()
+            return nil
+        }
+
+        self.application = application
     }
 
     open func encode(with aCoder: NSCoder) {
@@ -336,6 +370,13 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
      - parameter value: The operation value.
      */
     func addOperation(_ name: Operation.Name, _ key: String, _ value: LCValue? = nil) {
+        if let object = value as? LCObject {
+            guard object.application === application else {
+                LCError(code: .inconsistency, reason: "Cannot establish a relationship between objects in different applications.").raise()
+                return
+            }
+        }
+
         let operation = Operation(name: name, key: key, value: value)
 
         updateProperty(operation)
@@ -595,7 +636,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
      - returns: The result of saving request.
      */
     open func save() -> LCBooleanResult {
-        return LCBooleanResult(response: ObjectUpdater.save(self))
+        return LCBooleanResult(response: updater.save(self))
     }
 
     /**
@@ -637,7 +678,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
      - returns: The result of deletion request.
      */
     open func delete() -> LCBooleanResult {
-        return LCBooleanResult(response: ObjectUpdater.delete(self))
+        return LCBooleanResult(response: updater.delete(self))
     }
 
     /**
@@ -679,7 +720,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
      - returns: The result of fetching request.
      */
     open func fetch() -> LCBooleanResult {
-        return LCBooleanResult(response: ObjectUpdater.fetch(self))
+        return LCBooleanResult(response: updater.fetch(self))
     }
 
     /**

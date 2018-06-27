@@ -14,7 +14,7 @@ import Foundation
  It is a wrapper of `Swift.String` type, used to store a string value.
  */
 public final class LCString: NSObject, LCValue, LCValueExtension, ExpressibleByStringLiteral {
-    public fileprivate(set) var value: String = ""
+    public private(set) var value: String = ""
 
     public typealias UnicodeScalarLiteralType = Character
     public typealias ExtendedGraphemeClusterLiteralType = StringLiteralType
