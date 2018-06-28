@@ -67,7 +67,7 @@ public final class LCApplication {
 
     }
 
-    public static let shared = LCApplication()
+    public static let `default` = LCApplication()
 
     public var identity: Identity!
 

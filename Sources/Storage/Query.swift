@@ -149,7 +149,7 @@ final public class LCQuery: NSObject, NSCopying, NSCoding {
 
      - parameter objectClassName: The class name to query.
      */
-    public init(className: String, application: LCApplication = .current ?? .shared) {
+    public init(className: String, application: LCApplication = .current ?? .default) {
         self.objectClassName = className
         self.application = application
     }

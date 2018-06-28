@@ -73,7 +73,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
     }()
 
     public override required init() {
-        application = .current ?? .shared
+        application = .current ?? .default
 
         super.init()
         operationHub = OperationHub(self)
@@ -83,31 +83,31 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
         }
     }
 
-    public convenience init(application: LCApplication = .current ?? .shared) {
+    public convenience init(application: LCApplication = .current ?? .default) {
         self.init()
         self.application = application
     }
 
-    public convenience init(objectId: LCStringConvertible, application: LCApplication = .current ?? .shared) {
+    public convenience init(objectId: LCStringConvertible, application: LCApplication = .current ?? .default) {
         self.init()
         self.objectId = objectId.lcString
         self.application = application
     }
 
-    public convenience init(className: LCStringConvertible, application: LCApplication = .current ?? .shared) {
+    public convenience init(className: LCStringConvertible, application: LCApplication = .current ?? .default) {
         self.init()
         propertyTable["className"] = className.lcString
         self.application = application
     }
 
-    public convenience init(className: LCStringConvertible, objectId: LCStringConvertible, application: LCApplication = .current ?? .shared) {
+    public convenience init(className: LCStringConvertible, objectId: LCStringConvertible, application: LCApplication = .current ?? .default) {
         self.init()
         propertyTable["className"] = className.lcString
         self.objectId = objectId.lcString
         self.application = application
     }
 
-    convenience init(dictionary: LCDictionaryConvertible, application: LCApplication = .current ?? .shared) {
+    convenience init(dictionary: LCDictionaryConvertible, application: LCApplication = .current ?? .default) {
         self.init()
         propertyTable = dictionary.lcDictionary
 

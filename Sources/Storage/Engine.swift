@@ -16,7 +16,7 @@ public final class LCEngine {
         return HTTPClient(application: application)
     }()
 
-    init(application: LCApplication = .current ?? .shared) {
+    init(application: LCApplication = .current ?? .default) {
         self.application = application
     }
 

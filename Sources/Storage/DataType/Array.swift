@@ -32,7 +32,7 @@ public final class LCArray: NSObject, LCValue, LCValueExtension, Collection, Exp
         self.init(elements)
     }
 
-    public convenience init(unsafeObject: [AnyObject], application: LCApplication = .current ?? .shared) {
+    public convenience init(unsafeObject: [AnyObject], application: LCApplication = .current ?? .default) {
         self.init()
         value = unsafeObject.map { element in
             try! ObjectProfiler.object(jsonValue: element, application: application)

@@ -539,7 +539,7 @@ class QueryTestCase: BaseTestCase {
         query.whereKey("stringField", .matchedQuery(matchedQuery))
 
         let queryCopy = query.copy() as! LCQuery
-        let queryArchivement = LCApplication.shared.perform {
+        let queryArchivement = LCApplication.default.perform {
             NSKeyedUnarchiver.unarchiveObject(with: NSKeyedArchiver.archivedData(withRootObject: query)) as! LCQuery
         }
 

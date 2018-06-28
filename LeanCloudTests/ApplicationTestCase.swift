@@ -20,7 +20,7 @@ class ApplicationTestCase: BaseTestCase {
     }
 
     func testMultipleApplications() {
-        let application1 = LCApplication.shared
+        let application1 = LCApplication.default
         let application2 = LCApplication()
 
         application1.logLevel = .all
@@ -35,7 +35,7 @@ class ApplicationTestCase: BaseTestCase {
         let object = TestObject()
 
         /* By default, object will be bound to shared application. */
-        XCTAssertTrue(object.application === LCApplication.shared)
+        XCTAssertTrue(object.application === LCApplication.default)
 
         let object1 = TestObject(application: application1)
         let object2 = TestObject(application: application2)

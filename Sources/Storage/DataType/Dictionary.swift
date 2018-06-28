@@ -35,7 +35,7 @@ public final class LCDictionary: NSObject, LCValue, LCValueExtension, Collection
         self.init(Dictionary<Key, Value>(elements: elements))
     }
 
-    public convenience init(unsafeObject: [Key: AnyObject], application: LCApplication = .current ?? .shared) {
+    public convenience init(unsafeObject: [Key: AnyObject], application: LCApplication = .current ?? .default) {
         self.init()
         value = unsafeObject.mapValue { value in
             try! ObjectProfiler.object(jsonValue: value, application: application)
