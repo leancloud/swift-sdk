@@ -28,25 +28,6 @@ public final class LCApplication {
     }
 
     /**
-     Application identity.
-     */
-    public struct Identity {
-
-        public let ID: String
-
-        public let key: String
-
-        public let region: Region
-
-        public init(ID: String, key: String, region: Region) {
-            self.ID = ID
-            self.key = key
-            self.region = region
-        }
-
-    }
-
-    /**
      Application log level.
 
      We assume that log levels are ordered.
@@ -58,23 +39,28 @@ public final class LCApplication {
         case debug
         case all
 
-        public static func < (
-            lhs: LCApplication.LogLevel,
-            rhs: LCApplication.LogLevel) -> Bool
-        {
+        public static func < (lhs: LogLevel, rhs: LogLevel) -> Bool {
             return lhs.rawValue < rhs.rawValue
         }
 
     }
 
-    public static let `default` = LCApplication()
+    public let ID: String
 
-    public var identity: Identity!
+    public let key: String
+
+    public let region: Region
 
     public var logLevel: LogLevel = .off
 
-    public init() {
+    public static var `default`: LCApplication!
+
+    public init(ID: String, key: String, region: Region) {
         type(of: self).initialization
+
+        self.ID = ID
+        self.key = key
+        self.region = region
     }
 
     private static let initialization: Void = {

@@ -84,7 +84,7 @@ class HTTPClient {
     /// Signature of each request.
     var signature: String {
         let timestamp = String(format: "%.0f", 1000 * Date().timeIntervalSince1970)
-        let hash = (timestamp + application.identity.key).md5String.lowercased()
+        let hash = (timestamp + application.key).md5String.lowercased()
 
         return "\(hash),\(timestamp)"
     }
@@ -92,7 +92,7 @@ class HTTPClient {
     /// Common REST request headers.
     var commonHeaders: [String: String] {
         var headers: [String: String] = [
-            HeaderFieldName.id:        application.identity.ID,
+            HeaderFieldName.id:        application.ID,
             HeaderFieldName.signature: self.signature,
             HeaderFieldName.userAgent: self.userAgent,
             HeaderFieldName.accept:    "application/json"
@@ -107,7 +107,7 @@ class HTTPClient {
 
     /// REST host for current service region.
     var host: String {
-        switch application.identity.region {
+        switch application.region {
         case .cn: return "api.leancloud.cn"
         case .us: return "us-api.leancloud.cn"
         }

@@ -20,17 +20,14 @@ class ApplicationTestCase: BaseTestCase {
     }
 
     func testMultipleApplications() {
-        let application1 = LCApplication.default
-        let application2 = LCApplication()
-
-        application1.logLevel = .all
-        application2.logLevel = .all
-
-        /* App name: "SDK Dev" */
-        application2.identity = LCApplication.Identity(
+        let application1 = LCApplication.default!
+        let application2 = LCApplication(
             ID: "uay57kigwe0b6f5n0e1d4z4xhydsml3dor24bzwvzr57wdap",
             key: "kfgz7jjfsk55r5a8a3y4ttd3je1ko11bkibcikonk32oozww",
             region: .cn)
+
+        application1.logLevel = .all
+        application2.logLevel = .all
 
         let object = TestObject()
 

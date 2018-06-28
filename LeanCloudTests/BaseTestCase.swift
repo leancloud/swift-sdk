@@ -28,7 +28,7 @@ class BaseTestCase: XCTestCase {
     override func setUp() {
         super.setUp()
         /* App name: "iOS SDK UnitTest" */
-        LCApplication.default.identity = LCApplication.Identity(
+        LCApplication.default = LCApplication(
             ID: "nq0awk3lh1dpmbkziz54377mryii8ny4xvp6njoygle5nlyg",
             key: "6vdnmdkdi4fva9i06lt50s4mcsfhppjpzm3zf5zjc9ty4pdz",
             region: .cn)
