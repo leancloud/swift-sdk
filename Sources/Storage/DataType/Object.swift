@@ -83,10 +83,11 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
                 return
             }
 
+            try! object.validateProperty(newValue)
+
             Runtime.setInstanceVariable(object, key, newValue)
 
             if let newValue = newValue as? LCValueExtension {
-                try! object.validateProperty(newValue)
                 newValue.set(key: key, parent: object)
             }
             if let oldValue = oldValue as? LCValueExtension {
@@ -95,11 +96,20 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
         }
     }
 
-    private func validateProperty(_ property: LCValueExtension) throws {
-        let descendants = try property.getDescendants()
+    private func validateProperty(_ property: LCValue?) throws {
+        guard let property = property else {
+            return
+        }
 
-        try descendants.forEach { value in
-            if let object = value as? LCObject {
+        var objects = [property]
+
+        if let property = property as? LCValueExtension {
+            let descendants = try property.getDescendants()
+            objects.append(contentsOf: descendants)
+        }
+
+        try objects.forEach { object in
+            if let object = object as? LCObject {
                 guard object.application === application else {
                     throw LCError(code: .inconsistency, reason: "Cannot establish a relationship between objects in different applications.")
                 }
