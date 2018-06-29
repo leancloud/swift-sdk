@@ -51,9 +51,6 @@ open class LCUser: LCObject {
     /// Session token of user authenticated by server.
     @objc open private(set) dynamic var sessionToken: LCString?
 
-    /// Current authenticated user.
-    public static var current: LCUser? = nil
-
     public final override class func objectClassName() -> String {
         return "_User"
     }
@@ -180,7 +177,7 @@ open class LCUser: LCObject {
         let result     = objectResult(response, application: application) as LCObjectResult<User>
 
         if case let .success(user) = result {
-            LCUser.current = user
+            application.currentUser = user
         }
 
         return result
@@ -211,7 +208,7 @@ open class LCUser: LCObject {
         let result     = objectResult(response, application: application) as LCObjectResult<User>
 
         if case let .success(user) = result {
-            LCUser.current = user
+            application.currentUser = user
         }
 
         return result
@@ -236,7 +233,7 @@ open class LCUser: LCObject {
         let result     = objectResult(response, application: application) as LCObjectResult<User>
 
         if case let .success(user) = result {
-            LCUser.current = user
+            application.currentUser = user
         }
 
         return result
@@ -283,8 +280,8 @@ open class LCUser: LCObject {
     /**
      Log out current user.
      */
-    public static func logOut() {
-        current = nil
+    public static func logOut(application: LCApplication = .current ?? .default) {
+        application.currentUser = nil
     }
 
     /**

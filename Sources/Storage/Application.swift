@@ -53,6 +53,9 @@ public final class LCApplication {
 
     public var logLevel: LogLevel = .off
 
+    /// Current authenticated user.
+    public var currentUser: LCUser? = nil
+
     public static var `default`: LCApplication!
 
     public init(ID: String, key: String, region: Region) {

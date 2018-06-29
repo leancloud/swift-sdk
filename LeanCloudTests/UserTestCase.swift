@@ -32,9 +32,9 @@ class UserTestCase: BaseTestCase {
 
         XCTAssertTrue(user.signUp().isSuccess)
         XCTAssertTrue(LCUser.logIn(username: username, password: password).isSuccess)
-        XCTAssertNotNil(LCUser.current)
+        XCTAssertNotNil(LCApplication.default.currentUser)
 
-        let current = LCUser.current!
+        let current = LCApplication.default.currentUser!
         let sessionToken = current.sessionToken!.value
         let updatedAt = current.updatedAt!
 

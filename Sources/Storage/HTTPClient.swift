@@ -98,7 +98,7 @@ class HTTPClient {
             HeaderFieldName.accept:    "application/json"
         ]
 
-        if let sessionToken = LCUser.current?.sessionToken {
+        if let sessionToken = application.currentUser?.sessionToken {
             headers[HeaderFieldName.session] = sessionToken.value
         }
 
