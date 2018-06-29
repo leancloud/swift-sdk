@@ -307,7 +307,7 @@ class ObjectProfiler {
                 result.append(object)
             }
         case 1: /* Visiting */
-            throw LCError(code: .inconsistency, reason: "Circular reference.", userInfo: nil)
+            throw LCError(code: .inconsistency, reason: "Circular reference.")
         default: /* Visited */
             break
         }
@@ -367,7 +367,7 @@ class ObjectProfiler {
             }
             visitStatusTable[key] = 2
         case 1: /* Visiting */
-            throw LCError(code: .inconsistency, reason: "Circular reference.", userInfo: nil)
+            throw LCError(code: .inconsistency, reason: "Circular reference.")
         default: /* Visited */
             break
         }

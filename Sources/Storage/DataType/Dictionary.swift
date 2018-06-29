@@ -20,7 +20,7 @@ public final class LCDictionary: NSObject, LCValue, LCValueExtension, Collection
 
     public private(set) var value: [Key: Value] = [:]
 
-    var elementDidChange: ((Key, Value?) -> Void)?
+    var elementDidChange: ((Key, Value?, Value?) -> Void)?
 
     public override init() {
         super.init()
@@ -87,8 +87,9 @@ public final class LCDictionary: NSObject, LCValue, LCValueExtension, Collection
     public subscript(key: Key) -> Value? {
         get { return value[key] }
         set {
+            let oldValue = value[key]
             value[key] = newValue
-            elementDidChange?(key, newValue)
+            elementDidChange?(key, newValue, oldValue)
         }
     }
 
@@ -116,8 +117,8 @@ public final class LCDictionary: NSObject, LCValue, LCValueExtension, Collection
         return self.init([:])
     }
 
-    func forEachChild(_ body: (_ child: LCValue) -> Void) {
-        forEach { body($1) }
+    func forEachChild(_ body: (_ child: LCValue) throws -> Void) rethrows {
+        try forEach { try body($1) }
     }
 
     func add(_ other: LCValue) throws -> LCValue {

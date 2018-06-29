@@ -78,8 +78,32 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
         super.init()
         operationHub = OperationHub(self)
 
-        propertyTable.elementDidChange = { (key, value) in
-            Runtime.setInstanceVariable(self, key, value)
+        propertyTable.elementDidChange = { [weak self] (key, newValue, oldValue) in
+            guard let object = self else {
+                return
+            }
+
+            Runtime.setInstanceVariable(object, key, newValue)
+
+            if let newValue = newValue as? LCValueExtension {
+                try! object.validateProperty(newValue)
+                newValue.set(key: key, parent: object)
+            }
+            if let oldValue = oldValue as? LCValueExtension {
+                oldValue.set(key: key, parent: nil)
+            }
+        }
+    }
+
+    private func validateProperty(_ property: LCValueExtension) throws {
+        let descendants = try property.getDescendants()
+
+        try descendants.forEach { value in
+            if let object = value as? LCObject {
+                guard object.application === application else {
+                    throw LCError(code: .inconsistency, reason: "Cannot establish a relationship between objects in different applications.")
+                }
+            }
         }
     }
 
@@ -202,8 +226,8 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
         return self.init()
     }
 
-    func forEachChild(_ body: (_ child: LCValue) -> Void) {
-        dictionary.forEachChild(body)
+    func forEachChild(_ body: (_ child: LCValue) throws -> Void) rethrows {
+        try dictionary.forEachChild(body)
     }
 
     func add(_ other: LCValue) throws -> LCValue {
@@ -370,13 +394,6 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
      - parameter value: The operation value.
      */
     func addOperation(_ name: Operation.Name, _ key: String, _ value: LCValue? = nil) {
-        if let object = value as? LCObject {
-            guard object.application === application else {
-                LCError(code: .inconsistency, reason: "Cannot establish a relationship between objects in different applications.").raise()
-                return
-            }
-        }
-
         let operation = Operation(name: name, key: key, value: value)
 
         updateProperty(operation)

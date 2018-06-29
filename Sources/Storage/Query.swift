@@ -155,7 +155,7 @@ final public class LCQuery: NSObject, NSCopying, NSCoding {
     }
 
     public func copy(with zone: NSZone?) -> Any {
-        let query = LCQuery(className: objectClassName)
+        let query = LCQuery(className: objectClassName, application: application)
 
         query.includedKeys  = includedKeys
         query.selectedKeys  = selectedKeys
@@ -323,7 +323,7 @@ final public class LCQuery: NSObject, NSCopying, NSCoding {
 
         try validateClassName(query)
 
-        let result = LCQuery(className: objectClassName)
+        let result = LCQuery(className: objectClassName, application: application)
 
         result.constraintDictionary["$and"] = [self.constraintDictionary, query.constraintDictionary] as AnyObject
 
@@ -346,7 +346,7 @@ final public class LCQuery: NSObject, NSCopying, NSCoding {
 
         try validateClassName(query)
 
-        let result = LCQuery(className: objectClassName)
+        let result = LCQuery(className: objectClassName, application: application)
 
         result.constraintDictionary["$or"] = [self.constraintDictionary, query.constraintDictionary] as AnyObject
 

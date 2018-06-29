@@ -104,7 +104,7 @@ public final class LCData: NSObject, LCValue, LCValueExtension {
         return self.init()
     }
 
-    func forEachChild(_ body: (_ child: LCValue) -> Void) {
+    func forEachChild(_ body: (_ child: LCValue) throws -> Void) rethrows {
         /* Nothing to do. */
     }
 

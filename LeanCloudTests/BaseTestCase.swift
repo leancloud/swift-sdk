@@ -27,6 +27,9 @@ class BaseTestCase: XCTestCase {
     
     override func setUp() {
         super.setUp()
+
+        continueAfterFailure = false
+
         /* App name: "iOS SDK UnitTest" */
         LCApplication.default = LCApplication(
             ID: "nq0awk3lh1dpmbkziz54377mryii8ny4xvp6njoygle5nlyg",

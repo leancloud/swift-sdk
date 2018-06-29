@@ -121,7 +121,7 @@ class Runtime {
                 result.append(aClass)
             }
         case 1: /* Visiting */
-            throw LCError(code: .inconsistency, reason: "Circular reference.", userInfo: nil)
+            throw LCError(code: .inconsistency, reason: "Circular reference.")
         default: /* Visited */
             break
         }

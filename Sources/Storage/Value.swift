@@ -173,7 +173,23 @@ protocol LCValueExtension {
 
      - parameter body: The iterator closure.
      */
-    func forEachChild(_ body: (_ child: LCValue) -> Void)
+    func forEachChild(_ body: (_ child: LCValue) throws -> Void) rethrows
+
+    /**
+     Iterate all descendant by a closure by DFS.
+
+     NOTE: It will not handle the circular reference at all.
+
+     - parameter body: The iterator closure.
+     */
+    func forEachDescendant(_ body: (_ descendant: LCValue) throws -> Void) rethrows
+
+    /**
+     Get descendants of current object.
+
+     NOTE: It will throw an exception if there is a circular reference
+     */
+    func getDescendants() throws -> [LCValue]
 
     // MARK: Arithmetic
 
@@ -207,6 +223,49 @@ protocol LCValueExtension {
      - returns: The difference result.
      */
     func differ(_ other: LCValue) throws -> LCValue
+
+    /*
+     Set parent object.
+
+     This method will be called when an LCValue is set to be a property of an LCObject.
+     */
+    func set(key: String, parent: LCObject?)
+}
+
+extension LCValueExtension {
+
+    func set(key: String, parent: LCObject?) {
+        /* Nop */
+    }
+
+    func forEachDescendant(_ body: (_ descendant: LCValue) throws -> Void) rethrows {
+        try forEachChild { child in
+            try body(child)
+            if let child = child as? LCValueExtension {
+                try child.forEachDescendant(body)
+            }
+        }
+    }
+
+    func getDescendants() throws -> [LCValue] {
+        var descendants = [LCValue]()
+        var identifiers = Set<ObjectIdentifier>()
+
+        try forEachDescendant { descendant in
+            let identifier = ObjectIdentifier(descendant)
+
+            if identifiers.contains(identifier) {
+                throw LCError(code: .inconsistency, reason: "Circular reference.")
+            } else {
+                identifiers.insert(identifier)
+            }
+
+            descendants.append(descendant)
+        }
+
+        return descendants
+    }
+
 }
 
 /**

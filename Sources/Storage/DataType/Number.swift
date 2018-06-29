@@ -73,7 +73,7 @@ public final class LCNumber: NSObject, LCValue, LCValueExtension, ExpressibleByF
         return LCNumber()
     }
 
-    func forEachChild(_ body: (_ child: LCValue) -> Void) {
+    func forEachChild(_ body: (_ child: LCValue) throws -> Void) rethrows {
         /* Nothing to do. */
     }
 
