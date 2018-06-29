@@ -20,10 +20,10 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
     @objc open dynamic var ACL: LCACL?
 
     /// Object identifier.
-    @objc open fileprivate(set) dynamic var objectId: LCString?
+    @objc open private(set) dynamic var objectId: LCString?
 
-    @objc open fileprivate(set) dynamic var createdAt: LCDate?
-    @objc open fileprivate(set) dynamic var updatedAt: LCDate?
+    @objc open private(set) dynamic var createdAt: LCDate?
+    @objc open private(set) dynamic var updatedAt: LCDate?
 
     /**
      The table of properties.
@@ -33,7 +33,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
              This property is intent for internal use.
              For accesssing all properties, please use `dictionary` property.
      */
-    fileprivate var propertyTable: LCDictionary = [:]
+    private var propertyTable: LCDictionary = [:]
 
     /// The table of all properties.
     lazy var dictionary: LCDictionary = {
@@ -62,38 +62,94 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
         return hasObjectId ? (!operationHub.isEmpty) : true
     }
 
+    public private(set) var application: LCApplication
+
+    private(set) lazy var httpClient: HTTPClient = {
+        return HTTPClient(application: application)
+    }()
+
+    private(set) lazy var updater: ObjectUpdater = {
+        return ObjectUpdater(httpClient: httpClient)
+    }()
+
     public override required init() {
+        application = .current ?? .default
+
         super.init()
         operationHub = OperationHub(self)
 
-        propertyTable.elementDidChange = { (key, value) in
-            Runtime.setInstanceVariable(self, key, value)
+        propertyTable.elementDidChange = { [weak self] (key, newValue, oldValue) in
+            guard let object = self else {
+                return
+            }
+
+            try! object.validateProperty(newValue)
+
+            Runtime.setInstanceVariable(object, key, newValue)
+
+            if let newValue = newValue as? LCValueExtension {
+                newValue.set(key: key, parent: object)
+            }
+            if let oldValue = oldValue as? LCValueExtension {
+                oldValue.set(key: key, parent: nil)
+            }
         }
     }
 
-    public convenience init(objectId: LCStringConvertible) {
+    private func validateProperty(_ property: LCValue?) throws {
+        guard let property = property else {
+            return
+        }
+
+        var objects = [property]
+
+        if let property = property as? LCValueExtension {
+            let descendants = try property.getDescendants()
+            objects.append(contentsOf: descendants)
+        }
+
+        try objects.forEach { object in
+            if let object = object as? LCObject {
+                guard object.application === application else {
+                    throw LCError(code: .inconsistency, reason: "Cannot establish a relationship between objects in different applications.")
+                }
+            }
+        }
+    }
+
+    public convenience init(application: LCApplication = .current ?? .default) {
+        self.init()
+        self.application = application
+    }
+
+    public convenience init(objectId: LCStringConvertible, application: LCApplication = .current ?? .default) {
         self.init()
         self.objectId = objectId.lcString
+        self.application = application
     }
 
-    public convenience init(className: LCStringConvertible) {
+    public convenience init(className: LCStringConvertible, application: LCApplication = .current ?? .default) {
         self.init()
         propertyTable["className"] = className.lcString
+        self.application = application
     }
 
-    public convenience init(className: LCStringConvertible, objectId: LCStringConvertible) {
+    public convenience init(className: LCStringConvertible, objectId: LCStringConvertible, application: LCApplication = .current ?? .default) {
         self.init()
         propertyTable["className"] = className.lcString
         self.objectId = objectId.lcString
+        self.application = application
     }
 
-    convenience init(dictionary: LCDictionaryConvertible) {
+    convenience init(dictionary: LCDictionaryConvertible, application: LCApplication = .current ?? .default) {
         self.init()
         propertyTable = dictionary.lcDictionary
 
         propertyTable.forEach { (key, value) in
             Runtime.setInstanceVariable(self, key, value)
         }
+
+        self.application = application
     }
 
     public required convenience init?(coder aDecoder: NSCoder) {
@@ -103,6 +159,18 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
         propertyTable.forEach { (key, value) in
             Runtime.setInstanceVariable(self, key, value)
         }
+
+        guard let application = LCApplication.current else {
+            let reason = """
+            Application not found.
+            A decoded LCObject must be bound to an application explictly.
+            Please try to use `perform` method of LCApplication to create a context and decode object in that context.
+            """
+            LCError(code: .notFound, reason: reason).raise()
+            return nil
+        }
+
+        self.application = application
     }
 
     open func encode(with aCoder: NSCoder) {
@@ -168,8 +236,8 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
         return self.init()
     }
 
-    func forEachChild(_ body: (_ child: LCValue) -> Void) {
-        dictionary.forEachChild(body)
+    func forEachChild(_ body: (_ child: LCValue) throws -> Void) rethrows {
+        try dictionary.forEachChild(body)
     }
 
     func add(_ other: LCValue) throws -> LCValue {
@@ -209,7 +277,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
     /**
      Register current object class manually.
      */
-    open static func register() {
+    public static func register() {
         ObjectProfiler.registerClass(self)
     }
 
@@ -595,7 +663,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
      - returns: The result of saving request.
      */
     open func save() -> LCBooleanResult {
-        return LCBooleanResult(response: ObjectUpdater.save(self))
+        return LCBooleanResult(response: updater.save(self))
     }
 
     /**
@@ -616,7 +684,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
 
      - returns: The result of deletion request.
      */
-    open static func delete(_ objects: [LCObject]) -> LCBooleanResult {
+    public static func delete(_ objects: [LCObject]) -> LCBooleanResult {
         return LCBooleanResult(response: ObjectUpdater.delete(objects))
     }
 
@@ -625,7 +693,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
 
      - parameter completion: The completion callback closure.
      */
-    open static func delete(_ objects: [LCObject], completion: @escaping (LCBooleanResult) -> Void) {
+    public static func delete(_ objects: [LCObject], completion: @escaping (LCBooleanResult) -> Void) {
         asynchronize({ delete(objects) }) { result in
             completion(result)
         }
@@ -637,7 +705,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
      - returns: The result of deletion request.
      */
     open func delete() -> LCBooleanResult {
-        return LCBooleanResult(response: ObjectUpdater.delete(self))
+        return LCBooleanResult(response: updater.delete(self))
     }
 
     /**
@@ -658,7 +726,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
 
      - returns: The result of fetching request.
      */
-    open static func fetch(_ objects: [LCObject]) -> LCBooleanResult {
+    public static func fetch(_ objects: [LCObject]) -> LCBooleanResult {
         return LCBooleanResult(response: ObjectUpdater.fetch(objects))
     }
 
@@ -667,7 +735,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
 
      - parameter completion: The completion callback closure.
      */
-    open static func fetch(_ objects: [LCObject], completion: @escaping (LCBooleanResult) -> Void) {
+    public static func fetch(_ objects: [LCObject], completion: @escaping (LCBooleanResult) -> Void) {
         asynchronize({ fetch(objects) }) { result in
             completion(result)
         }
@@ -679,7 +747,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
      - returns: The result of fetching request.
      */
     open func fetch() -> LCBooleanResult {
-        return LCBooleanResult(response: ObjectUpdater.fetch(self))
+        return LCBooleanResult(response: updater.fetch(self))
     }
 
     /**

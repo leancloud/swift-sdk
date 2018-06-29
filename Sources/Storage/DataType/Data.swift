@@ -14,7 +14,7 @@ import Foundation
  This type can be used to represent a byte buffers.
  */
 public final class LCData: NSObject, LCValue, LCValueExtension {
-    public fileprivate(set) var value: Data = Data()
+    public private(set) var value: Data = Data()
 
     var base64EncodedString: String {
         return value.base64EncodedString(options: NSData.Base64EncodingOptions(rawValue: 0))
@@ -45,10 +45,10 @@ public final class LCData: NSObject, LCValue, LCValueExtension {
         guard let type = dictionary["__type"] as? String else {
             return nil
         }
-        guard let dataType = RESTClient.DataType(rawValue: type) else {
+        guard let dataType = HTTPClient.DataType(rawValue: type) else {
             return nil
         }
-        guard case dataType = RESTClient.DataType.bytes else {
+        guard case dataType = HTTPClient.DataType.bytes else {
             return nil
         }
         guard let base64EncodedString = dictionary["base64"] as? String else {
@@ -104,7 +104,7 @@ public final class LCData: NSObject, LCValue, LCValueExtension {
         return self.init()
     }
 
-    func forEachChild(_ body: (_ child: LCValue) -> Void) {
+    func forEachChild(_ body: (_ child: LCValue) throws -> Void) rethrows {
         /* Nothing to do. */
     }
 

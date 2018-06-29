@@ -14,7 +14,7 @@ import Foundation
  It is a wrapper of `Swift.Bool` type, used to store a boolean value.
  */
 public final class LCBool: NSObject, LCValue, LCValueExtension, ExpressibleByBooleanLiteral {
-    public fileprivate(set) var value: Bool = false
+    public private(set) var value: Bool = false
 
     public override init() {
         super.init()
@@ -69,7 +69,7 @@ public final class LCBool: NSObject, LCValue, LCValueExtension, ExpressibleByBoo
         return LCBool()
     }
 
-    func forEachChild(_ body: (_ child: LCValue) -> Void) {
+    func forEachChild(_ body: (_ child: LCValue) throws -> Void) rethrows {
         /* Nothing to do. */
     }
 

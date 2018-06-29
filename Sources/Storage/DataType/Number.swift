@@ -14,7 +14,7 @@ import Foundation
  It is a wrapper of `Swift.Double` type, used to store a number value.
  */
 public final class LCNumber: NSObject, LCValue, LCValueExtension, ExpressibleByFloatLiteral, ExpressibleByIntegerLiteral {
-    public fileprivate(set) var value: Double = 0
+    public private(set) var value: Double = 0
 
     public override init() {
         super.init()
@@ -73,7 +73,7 @@ public final class LCNumber: NSObject, LCValue, LCValueExtension, ExpressibleByF
         return LCNumber()
     }
 
-    func forEachChild(_ body: (_ child: LCValue) -> Void) {
+    func forEachChild(_ body: (_ child: LCValue) throws -> Void) rethrows {
         /* Nothing to do. */
     }
 

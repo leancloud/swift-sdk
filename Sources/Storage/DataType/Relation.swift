@@ -48,10 +48,10 @@ public final class LCRelation: NSObject, LCValue, LCValueExtension, Sequence {
         guard let type = dictionary["__type"] as? String else {
             return nil
         }
-        guard let dataType = RESTClient.DataType(rawValue: type) else {
+        guard let dataType = HTTPClient.DataType(rawValue: type) else {
             return nil
         }
-        guard case dataType = RESTClient.DataType.relation else {
+        guard case dataType = HTTPClient.DataType.relation else {
             return nil
         }
 
@@ -81,6 +81,11 @@ public final class LCRelation: NSObject, LCValue, LCValueExtension, Sequence {
         } else {
             return false
         }
+    }
+
+    func set(key: String, parent: LCObject?) {
+        self.key = key
+        self.parent = parent
     }
 
     public func makeIterator() -> IndexingIterator<[Element]> {
@@ -115,8 +120,8 @@ public final class LCRelation: NSObject, LCValue, LCValueExtension, Sequence {
         return self.init()
     }
 
-    func forEachChild(_ body: (_ child: LCValue) -> Void) {
-        value.forEach { body($0) }
+    func forEachChild(_ body: (_ child: LCValue) throws -> Void) rethrows {
+        try value.forEach { try body($0) }
     }
 
     func add(_ other: LCValue) throws -> LCValue {
@@ -184,18 +189,23 @@ public final class LCRelation: NSObject, LCValue, LCValueExtension, Sequence {
     /**
      Get query of current relation.
      */
-    public var query: LCQuery {
-        var query: LCQuery!
+    public var query: LCQuery? {
+        guard
+            let key = self.key,
+            let parent = self.parent
+        else {
+            return nil
+        }
 
-        let key = self.key!
-        let parent = self.parent!
+        var query: LCQuery
+        let application = parent.application
 
         /* If class name already known, use it.
            Otherwise, use class name redirection. */
-        if let objectClassName = objectClassName {
-            query = LCQuery(className: objectClassName)
+        if let className = effectiveObjectClassName {
+            query = LCQuery(className: className, application: application)
         } else {
-            query = LCQuery(className: parent.actualClassName)
+            query = LCQuery(className: parent.actualClassName, application: application)
             query.extraParameters = [
                 "redirectClassNameForKey": key as AnyObject
             ]

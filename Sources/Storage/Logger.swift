@@ -9,7 +9,12 @@
 import Foundation
 
 class Logger {
-    static let defaultLogger = Logger()
+    /// Application
+    let application: LCApplication
+
+    init(application: LCApplication) {
+        self.application = application
+    }
 
     static let dateFormatter: DateFormatter = {
         let dateFormatter = DateFormatter()
@@ -20,13 +25,14 @@ class Logger {
         return dateFormatter
     }()
 
-    public func log<T>(
+    func log<T>(
         _ value: @autoclosure () -> T,
-        _ file: String = #file,
-        _ function: String = #function,
-        _ line: Int = #line)
+        _ level: LCApplication.LogLevel,
+        _ file: String,
+        _ function: String,
+        _ line: Int)
     {
-        guard globalOptions.logLevel.isDebugEnabled else {
+        guard application.logLevel >= level else {
             return
         }
 
@@ -34,5 +40,23 @@ class Logger {
         let file = NSURL(string: file)?.lastPathComponent ?? "Unknown"
 
         print("[LeanCloud \(date) \(file) #\(line) \(function)]:", value())
+    }
+
+    func debug<T>(
+        _ value: @autoclosure () -> T,
+        _ file: String = #file,
+        _ function: String = #function,
+        _ line: Int = #line)
+    {
+        log(value(), .debug, file, function, line)
+    }
+
+    func error<T>(
+        _ value: @autoclosure () -> T,
+        _ file: String = #file,
+        _ function: String = #function,
+        _ line: Int = #line)
+    {
+        log(value(), .error, file, function, line)
     }
 }

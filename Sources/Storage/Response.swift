@@ -12,8 +12,12 @@ import Alamofire
 open class LCResponse {
     /// Internal error.
     /// It will override alamofire's response error.
-    fileprivate var internalError: LCError?
-    fileprivate var alamofireResponse: Alamofire.DataResponse<Any>?
+    private var internalError: LCError?
+    private var alamofireResponse: Alamofire.DataResponse<Any>?
+
+    var application: LCApplication?
+
+    private var subresponses: [LCResponse] = []
 
     init() {}
 
@@ -21,8 +25,13 @@ open class LCResponse {
         internalError = error
     }
 
-    init(_ alamofireResponse: Alamofire.DataResponse<Any>?) {
+    init(_ alamofireResponse: Alamofire.DataResponse<Any>?, _ application: LCApplication) {
         self.alamofireResponse = alamofireResponse
+        self.application = application
+    }
+
+    init(_ subresponses: [LCResponse]) {
+        self.subresponses = subresponses
     }
 
     var value: AnyObject? {
@@ -32,18 +41,23 @@ open class LCResponse {
     var error: LCError? {
         var result: LCError?
 
-        /* There are 3 kinds of errors:
+        /* There are 2 kinds of error:
            1. Internal error.
-           2. Network error.
-           3. Business error. */
+           2. Network error. */
 
         if let error = internalError {
             result = error
         } else if let response = alamofireResponse {
             if let error = response.result.error {
                 result = LCError(error: error)
-            } else {
-                result = ObjectProfiler.error(jsonValue: value)
+            }
+        } else {
+            for response in subresponses {
+                /* Find the first error by DFS. */
+                if let error = response.error {
+                    result = error
+                    break
+                }
             }
         }
 

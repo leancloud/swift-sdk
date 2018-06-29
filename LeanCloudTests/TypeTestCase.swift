@@ -117,7 +117,9 @@ class TypeTestCase: BaseTestCase {
         let object = LCObject(objectId: "1234567890")
         let friend = LCObject(objectId: "0987654321")
         object.insertRelation("friend", object: friend)
-        let objectCopy = archiveThenUnarchive(object)
+        let objectCopy = LCApplication.default.perform {
+            archiveThenUnarchive(object)
+        }
         XCTAssertEqual(objectCopy, object)
         let relation = object.relationForKey("friend")
         let relationCopy = objectCopy.relationForKey("friend")

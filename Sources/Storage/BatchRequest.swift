@@ -10,10 +10,10 @@ import Foundation
 
 class BatchRequest {
     let object: LCObject
-    let method: RESTClient.Method?
+    let method: HTTPClient.Method?
     let operationTable: OperationTable?
 
-    init(object: LCObject, method: RESTClient.Method? = nil, operationTable: OperationTable? = nil) {
+    init(object: LCObject, method: HTTPClient.Method? = nil, operationTable: OperationTable? = nil) {
         self.object = object
         self.method = method
         self.operationTable = operationTable
@@ -23,19 +23,19 @@ class BatchRequest {
         return !object.hasObjectId
     }
 
-    var actualMethod: RESTClient.Method {
+    var actualMethod: HTTPClient.Method {
         return method ?? (isNewborn ? .post : .put)
     }
 
     var path: String {
         var path: String
-        let apiVersion = RESTClient.apiVersion
+        let apiVersion = HTTPClient.apiVersion
 
         switch actualMethod {
         case .get, .put, .delete:
-            path = RESTClient.eigenEndpoint(object)!
+            path = HTTPClient.eigenEndpoint(object)!
         case .post:
-            path = RESTClient.endpoint(object)
+            path = HTTPClient.endpoint(object)
         }
 
         return "/\(apiVersion)/\(path)"
@@ -128,7 +128,7 @@ class BatchRequestBuilder {
 
      - returns: The operation table list.
      */
-    fileprivate static func initialOperationTableList(_ object: LCObject) -> OperationTableList {
+    private static func initialOperationTableList(_ object: LCObject) -> OperationTableList {
         var operationTable: OperationTable = [:]
 
         /* Collect all non-null properties. */
@@ -154,7 +154,7 @@ class BatchRequestBuilder {
 
      - returns: A list of operation tables.
      */
-    fileprivate static func operationTableList(_ object: LCObject) -> OperationTableList {
+    private static func operationTableList(_ object: LCObject) -> OperationTableList {
         if object.hasObjectId {
             return object.operationHub.operationTableList()
         } else {

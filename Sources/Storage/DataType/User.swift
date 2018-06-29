@@ -35,7 +35,7 @@ open class LCUser: LCObject {
     @objc open dynamic var email: LCString?
 
     /// A flag indicates whether email is verified or not.
-    @objc open fileprivate(set) dynamic var emailVerified: LCBool?
+    @objc open private(set) dynamic var emailVerified: LCBool?
 
     /**
      Mobile phone number.
@@ -46,13 +46,10 @@ open class LCUser: LCObject {
     @objc open dynamic var mobilePhoneNumber: LCString?
 
     /// A flag indicates whether mobile phone is verified or not.
-    @objc open fileprivate(set) dynamic var mobilePhoneVerified: LCBool?
+    @objc open private(set) dynamic var mobilePhoneVerified: LCBool?
 
     /// Session token of user authenticated by server.
-    @objc open fileprivate(set) dynamic var sessionToken: LCString?
-
-    /// Current authenticated user.
-    open static var current: LCUser? = nil
+    @objc open private(set) dynamic var sessionToken: LCString?
 
     public final override class func objectClassName() -> String {
         return "_User"
@@ -73,7 +70,7 @@ open class LCUser: LCObject {
      - parameter completion: The completion callback closure.
      */
     open func signUp(_ completion: @escaping (LCBooleanResult) -> Void) {
-        RESTClient.asynchronize({ self.signUp() }) { result in
+        HTTPClient.asynchronize({ self.signUp() }) { result in
             completion(result)
         }
     }
@@ -86,11 +83,12 @@ open class LCUser: LCObject {
 
      - returns: The result of login request.
      */
-    open static func logIn<User: LCUser>(username: String, password: String) -> LCObjectResult<User> {
-        return logIn(parameters: [
+    public static func logIn<User: LCUser>(username: String, password: String, application: LCApplication = .current ?? .default) -> LCObjectResult<User> {
+        let parameters = [
             "username": username as AnyObject,
             "password": password as AnyObject
-        ])
+        ]
+        return logIn(parameters: parameters, application: application)
     }
 
     /**
@@ -100,8 +98,8 @@ open class LCUser: LCObject {
      - parameter password:   The password.
      - parameter completion: The completion callback closure.
      */
-    open static func logIn<User: LCUser>(username: String, password: String, completion: @escaping (LCObjectResult<User>) -> Void) {
-        RESTClient.asynchronize({ self.logIn(username: username, password: password) }) { result in
+    public static func logIn<User: LCUser>(username: String, password: String, application: LCApplication = .current ?? .default, completion: @escaping (LCObjectResult<User>) -> Void) {
+        HTTPClient.asynchronize({ self.logIn(username: username, password: password, application: application) }) { result in
             completion(result)
         }
     }
@@ -114,11 +112,12 @@ open class LCUser: LCObject {
 
      - returns: The result of login request.
      */
-    open static func logIn<User: LCUser>(mobilePhoneNumber: String, password: String) -> LCObjectResult<User> {
-        return logIn(parameters: [
+    public static func logIn<User: LCUser>(mobilePhoneNumber: String, password: String, application: LCApplication = .current ?? .default) -> LCObjectResult<User> {
+        let parameters = [
             "mobilePhoneNumber": mobilePhoneNumber as AnyObject,
             "password": password as AnyObject
-        ])
+        ]
+        return logIn(parameters: parameters, application: application)
     }
 
     /**
@@ -128,8 +127,8 @@ open class LCUser: LCObject {
      - parameter password:          The password.
      - parameter completion:        The completion callback closure.
      */
-    open static func logIn<User: LCUser>(mobilePhoneNumber: String, password: String, completion: @escaping (LCObjectResult<User>) -> Void) {
-        RESTClient.asynchronize({ self.logIn(mobilePhoneNumber: mobilePhoneNumber, password: password) }) { result in
+    public static func logIn<User: LCUser>(mobilePhoneNumber: String, password: String, application: LCApplication = .current ?? .default, completion: @escaping (LCObjectResult<User>) -> Void) {
+        HTTPClient.asynchronize({ self.logIn(mobilePhoneNumber: mobilePhoneNumber, password: password, application: application) }) { result in
             completion(result)
         }
     }
@@ -142,11 +141,12 @@ open class LCUser: LCObject {
 
      - returns: The result of login request.
      */
-    open static func logIn<User: LCUser>(mobilePhoneNumber: String, verificationCode: String) -> LCObjectResult<User> {
-        return logIn(parameters: [
+    public static func logIn<User: LCUser>(mobilePhoneNumber: String, verificationCode: String, application: LCApplication = .current ?? .default) -> LCObjectResult<User> {
+        let parameters = [
             "mobilePhoneNumber": mobilePhoneNumber as AnyObject,
             "smsCode": verificationCode as AnyObject
-        ])
+        ]
+        return logIn(parameters: parameters, application: application)
     }
 
     /**
@@ -156,8 +156,8 @@ open class LCUser: LCObject {
      - parameter verificationCode:  The verification code.
      - parameter completion:        The completion callback closure.
      */
-    open static func logIn<User: LCUser>(mobilePhoneNumber: String, verificationCode: String, completion: @escaping (LCObjectResult<User>) -> Void) {
-        RESTClient.asynchronize({ self.logIn(mobilePhoneNumber: mobilePhoneNumber, verificationCode: verificationCode) }) { result in
+    public static func logIn<User: LCUser>(mobilePhoneNumber: String, verificationCode: String, application: LCApplication = .current ?? .default, completion: @escaping (LCObjectResult<User>) -> Void) {
+        HTTPClient.asynchronize({ self.logIn(mobilePhoneNumber: mobilePhoneNumber, verificationCode: verificationCode, application: application) }) { result in
             completion(result)
         }
     }
@@ -169,14 +169,15 @@ open class LCUser: LCObject {
 
      - returns: The result of login request.
      */
-    open static func logIn<User: LCUser>(sessionToken: String) -> LCObjectResult<User> {
+    public static func logIn<User: LCUser>(sessionToken: String, application: LCApplication = .current ?? .default) -> LCObjectResult<User> {
         let parameters = ["session_token": sessionToken]
-        let endpoint   = RESTClient.endpoint(objectClassName())
-        let response   = RESTClient.request(.get, "\(endpoint)/me", parameters: parameters as [String: AnyObject])
-        let result     = objectResult(response) as LCObjectResult<User>
+        let endpoint   = HTTPClient.endpoint(objectClassName())
+        let httpClient = HTTPClient(application: application)
+        let response   = httpClient.request(.get, "\(endpoint)/me", parameters: parameters as [String: AnyObject])
+        let result     = objectResult(response, application: application) as LCObjectResult<User>
 
         if case let .success(user) = result {
-            LCUser.current = user
+            application.currentUser = user
         }
 
         return result
@@ -188,8 +189,8 @@ open class LCUser: LCObject {
      - parameter sessionToken: The session token.
      - parameter completion:   The completion callback closure.
      */
-    open static func logIn<User: LCUser>(sessionToken: String, completion: @escaping (LCObjectResult<User>) -> Void) {
-        RESTClient.asynchronize({ self.logIn(sessionToken: sessionToken) }) { result in
+    public static func logIn<User: LCUser>(sessionToken: String, application: LCApplication = .current ?? .default, completion: @escaping (LCObjectResult<User>) -> Void) {
+        HTTPClient.asynchronize({ self.logIn(sessionToken: sessionToken, application: application) }) { result in
             completion(result)
         }
     }
@@ -201,12 +202,13 @@ open class LCUser: LCObject {
 
      - returns: The result of login request.
      */
-    static func logIn<User: LCUser>(parameters: [String: AnyObject]) -> LCObjectResult<User> {
-        let response = RESTClient.request(.post, "login", parameters: parameters)
-        let result   = objectResult(response) as LCObjectResult<User>
+    static func logIn<User: LCUser>(parameters: [String: AnyObject], application: LCApplication = .current ?? .default) -> LCObjectResult<User> {
+        let httpClient = HTTPClient(application: application)
+        let response   = httpClient.request(.post, "login", parameters: parameters)
+        let result     = objectResult(response, application: application) as LCObjectResult<User>
 
         if case let .success(user) = result {
-            LCUser.current = user
+            application.currentUser = user
         }
 
         return result
@@ -220,17 +222,18 @@ open class LCUser: LCObject {
      - parameter mobilePhoneNumber: The mobile phone number.
      - parameter verificationCode:  The verification code.
      */
-    open static func signUpOrLogIn<User: LCUser>(mobilePhoneNumber: String, verificationCode: String) -> LCObjectResult<User> {
+    public static func signUpOrLogIn<User: LCUser>(mobilePhoneNumber: String, verificationCode: String, application: LCApplication = .current ?? .default) -> LCObjectResult<User> {
         let parameters = [
             "mobilePhoneNumber": mobilePhoneNumber,
             "smsCode": verificationCode
         ]
 
-        let response = RESTClient.request(.post, "usersByMobilePhone", parameters: parameters as [String: AnyObject])
-        let result   = objectResult(response) as LCObjectResult<User>
+        let httpClient = HTTPClient(application: application)
+        let response   = httpClient.request(.post, "usersByMobilePhone", parameters: parameters as [String: AnyObject])
+        let result     = objectResult(response, application: application) as LCObjectResult<User>
 
         if case let .success(user) = result {
-            LCUser.current = user
+            application.currentUser = user
         }
 
         return result
@@ -243,8 +246,8 @@ open class LCUser: LCObject {
      - parameter verificationCode:  The verification code.
      - parameter completion:        The completion callback closure.
      */
-    open static func signUpOrLogIn<User: LCUser>(mobilePhoneNumber: String, verificationCode: String, completion: @escaping (LCObjectResult<User>) -> Void) {
-        RESTClient.asynchronize({ self.signUpOrLogIn(mobilePhoneNumber: mobilePhoneNumber, verificationCode: verificationCode) }) { result in
+    public static func signUpOrLogIn<User: LCUser>(mobilePhoneNumber: String, verificationCode: String, application: LCApplication = .current ?? .default, completion: @escaping (LCObjectResult<User>) -> Void) {
+        HTTPClient.asynchronize({ self.signUpOrLogIn(mobilePhoneNumber: mobilePhoneNumber, verificationCode: verificationCode, application: application) }) { result in
             completion(result)
         }
     }
@@ -256,7 +259,7 @@ open class LCUser: LCObject {
 
      - returns: The user object result of reponse.
      */
-    static func objectResult<User: LCUser>(_ response: LCResponse) -> LCObjectResult<User> {
+    static func objectResult<User: LCUser>(_ response: LCResponse, application: LCApplication) -> LCObjectResult<User> {
         if let error = response.error {
             return .failure(error: error)
         }
@@ -266,10 +269,10 @@ open class LCUser: LCObject {
         }
 
         /* Patch response data to fulfill object format. */
-        dictionary["__type"]    = RESTClient.DataType.object.rawValue as AnyObject?
+        dictionary["__type"]    = HTTPClient.DataType.object.rawValue as AnyObject?
         dictionary["className"] = LCUser.objectClassName() as AnyObject?
 
-        let user = try! ObjectProfiler.object(jsonValue: dictionary as AnyObject) as! User
+        let user = try! ObjectProfiler.object(jsonValue: dictionary as AnyObject, application: application) as! User
 
         return .success(object: user)
     }
@@ -277,8 +280,8 @@ open class LCUser: LCObject {
     /**
      Log out current user.
      */
-    open static func logOut() {
-        current = nil
+    public static func logOut(application: LCApplication = .current ?? .default) {
+        application.currentUser = nil
     }
 
     /**
@@ -288,9 +291,10 @@ open class LCUser: LCObject {
 
      - returns: The result of verification request.
      */
-    open static func requestVerificationMail(email: String) -> LCBooleanResult {
+    public static func requestVerificationMail(email: String, application: LCApplication = .current ?? .default) -> LCBooleanResult {
         let parameters = ["email": email]
-        let response   = RESTClient.request(.post, "requestEmailVerify", parameters: parameters as [String: AnyObject])
+        let httpClient = HTTPClient(application: application)
+        let response   = httpClient.request(.post, "requestEmailVerify", parameters: parameters as [String: AnyObject])
         return LCBooleanResult(response: response)
     }
 
@@ -300,8 +304,8 @@ open class LCUser: LCObject {
      - parameter email:      The email address to where the mail will be sent.
      - parameter completion: The completion callback closure.
      */
-    open static func requestVerificationMail(email: String, completion: @escaping (LCBooleanResult) -> Void) {
-        RESTClient.asynchronize({ self.requestVerificationMail(email: email) }) { result in
+    public static func requestVerificationMail(email: String, application: LCApplication = .current ?? .default, completion: @escaping (LCBooleanResult) -> Void) {
+        HTTPClient.asynchronize({ self.requestVerificationMail(email: email, application: application) }) { result in
             completion(result)
         }
     }
@@ -313,9 +317,10 @@ open class LCUser: LCObject {
 
      - returns: The result of request.
      */
-    open static func requestVerificationCode(mobilePhoneNumber: String) -> LCBooleanResult {
+    public static func requestVerificationCode(mobilePhoneNumber: String, application: LCApplication = .current ?? .default) -> LCBooleanResult {
         let parameters = ["mobilePhoneNumber": mobilePhoneNumber]
-        let response   = RESTClient.request(.post, "requestMobilePhoneVerify", parameters: parameters as [String: AnyObject])
+        let httpClient = HTTPClient(application: application)
+        let response   = httpClient.request(.post, "requestMobilePhoneVerify", parameters: parameters as [String: AnyObject])
         return LCBooleanResult(response: response)
     }
 
@@ -325,8 +330,8 @@ open class LCUser: LCObject {
      - parameter mobilePhoneNumber: The mobile phone number where the verification code will be sent to.
      - parameter completion:        The completion callback closure.
      */
-    open static func requestVerificationCode(mobilePhoneNumber: String, completion: @escaping (LCBooleanResult) -> Void) {
-        RESTClient.asynchronize({ self.requestVerificationCode(mobilePhoneNumber: mobilePhoneNumber) }) { result in
+    public static func requestVerificationCode(mobilePhoneNumber: String, application: LCApplication = .current ?? .default, completion: @escaping (LCBooleanResult) -> Void) {
+        HTTPClient.asynchronize({ self.requestVerificationCode(mobilePhoneNumber: mobilePhoneNumber, application: application) }) { result in
             completion(result)
         }
     }
@@ -339,9 +344,10 @@ open class LCUser: LCObject {
 
      - returns: The result of verification request.
      */
-    open static func verifyMobilePhoneNumber(_ mobilePhoneNumber: String, verificationCode: String) -> LCBooleanResult {
+    public static func verifyMobilePhoneNumber(_ mobilePhoneNumber: String, verificationCode: String, application: LCApplication = .current ?? .default) -> LCBooleanResult {
         let parameters = ["mobilePhoneNumber": mobilePhoneNumber]
-        let response   = RESTClient.request(.get, "verifyMobilePhone/\(verificationCode)", parameters: parameters as [String: AnyObject])
+        let httpClient = HTTPClient(application: application)
+        let response   = httpClient.request(.get, "verifyMobilePhone/\(verificationCode)", parameters: parameters as [String: AnyObject])
         return LCBooleanResult(response: response)
     }
 
@@ -352,8 +358,8 @@ open class LCUser: LCObject {
      - parameter verificationCode:  The verification code.
      - parameter completion:        The completion callback closure.
      */
-    open static func verifyMobilePhoneNumber(_ mobilePhoneNumber: String, verificationCode: String, completion: @escaping (LCBooleanResult) -> Void) {
-        RESTClient.asynchronize({ self.verifyMobilePhoneNumber(mobilePhoneNumber, verificationCode: verificationCode) }) { result in
+    public static func verifyMobilePhoneNumber(_ mobilePhoneNumber: String, verificationCode: String, application: LCApplication = .current ?? .default, completion: @escaping (LCBooleanResult) -> Void) {
+        HTTPClient.asynchronize({ self.verifyMobilePhoneNumber(mobilePhoneNumber, verificationCode: verificationCode, application: application) }) { result in
             completion(result)
         }
     }
@@ -365,9 +371,10 @@ open class LCUser: LCObject {
 
      - returns: The result of request.
      */
-    open static func requestLoginVerificationCode(mobilePhoneNumber: String) -> LCBooleanResult {
+    public static func requestLoginVerificationCode(mobilePhoneNumber: String, application: LCApplication = .current ?? .default) -> LCBooleanResult {
         let parameters = ["mobilePhoneNumber": mobilePhoneNumber]
-        let response = RESTClient.request(.post, "requestLoginSmsCode", parameters: parameters as [String: AnyObject])
+        let httpClient = HTTPClient(application: application)
+        let response   = httpClient.request(.post, "requestLoginSmsCode", parameters: parameters as [String: AnyObject])
         return LCBooleanResult(response: response)
     }
 
@@ -377,8 +384,8 @@ open class LCUser: LCObject {
      - parameter mobilePhoneNumber: The mobile phone number where the verification code message will be sent to.
      - parameter completion:        The completion callback closure.
      */
-    open static func requestLoginVerificationCode(mobilePhoneNumber: String, completion: @escaping (LCBooleanResult) -> Void) {
-        RESTClient.asynchronize({ self.requestLoginVerificationCode(mobilePhoneNumber: mobilePhoneNumber) }) { result in
+    public static func requestLoginVerificationCode(mobilePhoneNumber: String, application: LCApplication = .current ?? .default, completion: @escaping (LCBooleanResult) -> Void) {
+        HTTPClient.asynchronize({ self.requestLoginVerificationCode(mobilePhoneNumber: mobilePhoneNumber, application: application) }) { result in
             completion(result)
         }
     }
@@ -390,9 +397,10 @@ open class LCUser: LCObject {
 
      - returns: The result of request.
      */
-    open static func requestPasswordReset(email: String) -> LCBooleanResult {
+    public static func requestPasswordReset(email: String, application: LCApplication = .current ?? .default) -> LCBooleanResult {
         let parameters = ["email": email]
-        let response   = RESTClient.request(.post, "requestPasswordReset", parameters: parameters as [String: AnyObject])
+        let httpClient = HTTPClient(application: application)
+        let response   = httpClient.request(.post, "requestPasswordReset", parameters: parameters as [String: AnyObject])
         return LCBooleanResult(response: response)
     }
 
@@ -402,8 +410,8 @@ open class LCUser: LCObject {
      - parameter email:      The email address where the password reset email will be sent to.
      - parameter completion: The completion callback closure.
      */
-    open static func requestPasswordReset(email: String, completion: @escaping (LCBooleanResult) -> Void) {
-        RESTClient.asynchronize({ self.requestPasswordReset(email: email) }) { result in
+    public static func requestPasswordReset(email: String, application: LCApplication = .current ?? .default, completion: @escaping (LCBooleanResult) -> Void) {
+        HTTPClient.asynchronize({ self.requestPasswordReset(email: email, application: application) }) { result in
             completion(result)
         }
     }
@@ -415,9 +423,10 @@ open class LCUser: LCObject {
 
      - returns: The result of request.
      */
-    open static func requestPasswordReset(mobilePhoneNumber: String) -> LCBooleanResult {
+    public static func requestPasswordReset(mobilePhoneNumber: String, application: LCApplication = .current ?? .default) -> LCBooleanResult {
         let parameters = ["mobilePhoneNumber": mobilePhoneNumber]
-        let response   = RESTClient.request(.post, "requestPasswordResetBySmsCode", parameters: parameters as [String: AnyObject])
+        let httpClient = HTTPClient(application: application)
+        let response   = httpClient.request(.post, "requestPasswordResetBySmsCode", parameters: parameters as [String: AnyObject])
         return LCBooleanResult(response: response)
     }
 
@@ -427,8 +436,8 @@ open class LCUser: LCObject {
      - parameter mobilePhoneNumber: The mobile phone number where the password reset verification code will be sent to.
      - parameter completion:        The completion callback closure.
      */
-    open static func requestPasswordReset(mobilePhoneNumber: String, completion: @escaping (LCBooleanResult) -> Void) {
-        RESTClient.asynchronize({ self.requestPasswordReset(mobilePhoneNumber: mobilePhoneNumber) }) { result in
+    public static func requestPasswordReset(mobilePhoneNumber: String, application: LCApplication = .current ?? .default, completion: @escaping (LCBooleanResult) -> Void) {
+        HTTPClient.asynchronize({ self.requestPasswordReset(mobilePhoneNumber: mobilePhoneNumber, application: application) }) { result in
             completion(result)
         }
     }
@@ -447,12 +456,13 @@ open class LCUser: LCObject {
 
      - returns: The result of reset request.
      */
-    open static func resetPassword(mobilePhoneNumber: String, verificationCode: String, newPassword: String) -> LCBooleanResult {
+    public static func resetPassword(mobilePhoneNumber: String, verificationCode: String, newPassword: String, application: LCApplication = .current ?? .default) -> LCBooleanResult {
         let parameters = [
             "mobilePhoneNumber": mobilePhoneNumber,
             "password": newPassword
         ]
-        let response = RESTClient.request(.put, "resetPasswordBySmsCode/\(verificationCode)", parameters: parameters as [String: AnyObject])
+        let httpClient = HTTPClient(application: application)
+        let response   = httpClient.request(.put, "resetPasswordBySmsCode/\(verificationCode)", parameters: parameters as [String: AnyObject])
         return LCBooleanResult(response: response)
     }
 
@@ -464,8 +474,8 @@ open class LCUser: LCObject {
      - parameter newPassword:       The new password.
      - parameter completion:        The completion callback closure.
      */
-    open static func resetPassword(mobilePhoneNumber: String, verificationCode: String, newPassword: String, completion: @escaping (LCBooleanResult) -> Void) {
-        RESTClient.asynchronize({ self.resetPassword(mobilePhoneNumber: mobilePhoneNumber, verificationCode: verificationCode, newPassword: newPassword) }) { result in
+    public static func resetPassword(mobilePhoneNumber: String, verificationCode: String, newPassword: String, application: LCApplication = .current ?? .default, completion: @escaping (LCBooleanResult) -> Void) {
+        HTTPClient.asynchronize({ self.resetPassword(mobilePhoneNumber: mobilePhoneNumber, verificationCode: verificationCode, newPassword: newPassword, application: application) }) { result in
             completion(result)
         }
     }
@@ -479,7 +489,7 @@ open class LCUser: LCObject {
      - returns: The result of update request.
      */
     open func updatePassword(oldPassword: String, newPassword: String) -> LCBooleanResult {
-        guard let endpoint = RESTClient.eigenEndpoint(self) else {
+        guard let endpoint = HTTPClient.eigenEndpoint(self) else {
             return .failure(error: LCError(code: .notFound, reason: "User not found."))
         }
         guard let sessionToken = sessionToken else {
@@ -490,14 +500,14 @@ open class LCUser: LCObject {
             "old_password": oldPassword,
             "new_password": newPassword
         ]
-        let headers  = [RESTClient.HeaderFieldName.session: sessionToken.value]
-        let response = RESTClient.request(.put, endpoint + "/updatePassword", parameters: parameters as [String: AnyObject], headers: headers)
+        let headers  = [HTTPClient.HeaderFieldName.session: sessionToken.value]
+        let response = httpClient.request(.put, endpoint + "/updatePassword", parameters: parameters as [String: AnyObject], headers: headers)
 
         if let error = response.error {
             return .failure(error: error)
         } else {
             if let dictionary = response.value as? [String: AnyObject] {
-                ObjectProfiler.updateObject(self, dictionary)
+                ObjectProfiler.updateObject(self, dictionary, application: application)
             }
             return .success
         }
@@ -511,7 +521,7 @@ open class LCUser: LCObject {
      - parameter completion:  The completion callback closure.
      */
     open func updatePassword(oldPassword: String, newPassword: String, completion: @escaping (LCBooleanResult) -> Void) {
-        RESTClient.asynchronize({ self.updatePassword(oldPassword: oldPassword, newPassword: newPassword) }) { result in
+        HTTPClient.asynchronize({ self.updatePassword(oldPassword: oldPassword, newPassword: newPassword) }) { result in
             completion(result)
         }
     }

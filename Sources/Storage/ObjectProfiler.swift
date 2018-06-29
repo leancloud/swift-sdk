@@ -281,11 +281,11 @@ class ObjectProfiler {
         return result
     }
 
-    fileprivate static func toposortStart(_ objects: Set<LCObject>, _ result: inout [LCObject], _ visitStatusTable: inout [UInt: Int]) {
+    private static func toposortStart(_ objects: Set<LCObject>, _ result: inout [LCObject], _ visitStatusTable: inout [UInt: Int]) {
         objects.forEach { try! toposortVisit($0, objects, &result, &visitStatusTable) }
     }
 
-    fileprivate static func toposortVisit(_ value: LCValue, _ objects: Set<LCObject>, _ result: inout [LCObject], _ visitStatusTable: inout [UInt: Int]) throws {
+    private static func toposortVisit(_ value: LCValue, _ objects: Set<LCObject>, _ result: inout [LCObject], _ visitStatusTable: inout [UInt: Int]) throws {
         guard let object = value as? LCObject else {
             (value as! LCValueExtension).forEachChild { child in
                 try! toposortVisit(child, objects, &result, &visitStatusTable)
@@ -307,7 +307,7 @@ class ObjectProfiler {
                 result.append(object)
             }
         case 1: /* Visiting */
-            throw LCError(code: .inconsistency, reason: "Circular reference.", userInfo: nil)
+            throw LCError(code: .inconsistency, reason: "Circular reference.")
         default: /* Visited */
             break
         }
@@ -328,7 +328,7 @@ class ObjectProfiler {
         return result
     }
 
-    fileprivate static func familyVisit(_ value: LCValue, result: inout Set<LCObject>) {
+    private static func familyVisit(_ value: LCValue, result: inout Set<LCObject>) {
         (value as! LCValueExtension).forEachChild { child in
             familyVisit(child, result: &result)
         }
@@ -356,7 +356,7 @@ class ObjectProfiler {
      - parameter object: The object to validate.
      - parameter visitStatusTable: The object visit status table.
      */
-    fileprivate static func validateCircularReference(_ object: LCValue, visitStatusTable: inout [UInt: Int]) throws {
+    private static func validateCircularReference(_ object: LCValue, visitStatusTable: inout [UInt: Int]) throws {
         let key = UInt(bitPattern: ObjectIdentifier(object))
 
         switch visitStatusTable[key] ?? 0 {
@@ -367,7 +367,7 @@ class ObjectProfiler {
             }
             visitStatusTable[key] = 2
         case 1: /* Visiting */
-            throw LCError(code: .inconsistency, reason: "Circular reference.", userInfo: nil)
+            throw LCError(code: .inconsistency, reason: "Circular reference.")
         default: /* Visited */
             break
         }
@@ -380,7 +380,7 @@ class ObjectProfiler {
 
      - returns: true if value is a boolean, false otherwise.
      */
-    fileprivate static func isBoolean(_ jsonValue: AnyObject) -> Bool {
+    private static func isBoolean(_ jsonValue: AnyObject) -> Bool {
         switch String(describing: type(of: jsonValue)) {
         case "__NSCFBoolean", "Bool": return true
         default: return false
@@ -405,11 +405,11 @@ class ObjectProfiler {
 
      - returns: An LCObject object for class name.
      */
-    static func object(className: String) -> LCObject {
+    static func object(className: String, application: LCApplication) -> LCObject {
         if let objectClass = objectClass(className) {
-            return objectClass.init()
+            return application.perform { objectClass.init() }
         } else {
-            return LCObject(className: className)
+            return LCObject(className: className, application: application)
         }
     }
 
@@ -421,9 +421,9 @@ class ObjectProfiler {
 
      - returns: An LCObject object.
      */
-    static func object(dictionary: [String: AnyObject], className: String) -> LCObject {
-        let result = object(className: className)
-        let keyValues = dictionary.mapValue { try! object(jsonValue: $0) }
+    static func object(dictionary: [String: AnyObject], className: String, application: LCApplication) throws -> LCObject {
+        let result = object(className: className, application: application)
+        let keyValues = try dictionary.mapValue { try object(jsonValue: $0, application: application) }
 
         keyValues.forEach { (key, value) in
             result.update(key, value)
@@ -440,12 +440,16 @@ class ObjectProfiler {
 
      - returns: An LCValue object, or nil if object can not be decoded.
      */
-    static func object(dictionary: [String: AnyObject], dataType: RESTClient.DataType) -> LCValue? {
+    static func object(dictionary: [String: AnyObject], dataType: HTTPClient.DataType, application: LCApplication?) throws -> LCValue? {
         switch dataType {
         case .object, .pointer:
-            let className = dictionary["className"] as! String
-
-            return object(dictionary: dictionary, className: className)
+            guard let className = dictionary["className"] as? String else {
+                return nil
+            }
+            guard let application = application else {
+                throw LCError(code: .notFound, reason: "Application not found.")
+            }
+            return try object(dictionary: dictionary, className: className, application: application)
         case .relation:
             return LCRelation(dictionary: dictionary)
         case .geoPoint:
@@ -464,17 +468,21 @@ class ObjectProfiler {
 
      - returns: An LCValue object.
      */
-    fileprivate static func object(dictionary: [String: AnyObject]) -> LCValue {
-        var result: LCValue!
+    private static func object(dictionary: [String: AnyObject], application: LCApplication?) throws -> LCValue {
+        var result: LCValue
+        var object: LCValue?
 
-        if let type = dictionary["__type"] as? String {
-            if let dataType = RESTClient.DataType(rawValue: type) {
-                result = object(dictionary: dictionary, dataType: dataType)
-            }
+        if
+            let type = dictionary["__type"] as? String,
+            let dataType = HTTPClient.DataType(rawValue: type)
+        {
+            object = try self.object(dictionary: dictionary, dataType: dataType, application: application)
         }
 
-        if result == nil {
-            result = LCDictionary(dictionary.mapValue { try! object(jsonValue: $0) })
+        if let object = object {
+            result = object
+        } else {
+            result = LCDictionary(try dictionary.mapValue { try self.object(jsonValue: $0, application: application) })
         }
 
         return result
@@ -487,7 +495,7 @@ class ObjectProfiler {
 
      - returns: An LCValue object of the corresponding JSON value.
      */
-    static func object(jsonValue: AnyObject) throws -> LCValue {
+    static func object(jsonValue: AnyObject, application: LCApplication? = nil) throws -> LCValue {
         switch jsonValue {
         /* Note: a bool is also a number, we must match it first. */
         case let bool where isBoolean(bool):
@@ -497,9 +505,9 @@ class ObjectProfiler {
         case let string as String:
             return LCString(string)
         case let array as [AnyObject]:
-            return LCArray(array.map { try! object(jsonValue: $0) })
+            return try LCArray(array.map { try object(jsonValue: $0, application: application) })
         case let dictionary as [String: AnyObject]:
-            return object(dictionary: dictionary)
+            return try object(dictionary: dictionary, application: application)
         case let data as Data:
             return LCData(data)
         case let date as Date:
@@ -538,53 +546,14 @@ class ObjectProfiler {
     }
 
     /**
-     Find an error in JSON value.
-
-     - parameter jsonValue: The JSON value from which to find the error.
-
-     - returns: An error object, or nil if error not found.
-     */
-    static func error(jsonValue: AnyObject?) -> LCError? {
-        var result: LCError?
-
-        switch jsonValue {
-        case let array as [AnyObject]:
-            for element in array {
-                if let error = self.error(jsonValue: element) {
-                    result = error
-                    break
-                }
-            }
-        case let dictionary as [String: AnyObject]:
-            let code  = dictionary["code"]  as? Int
-            let error = dictionary["error"] as? String
-
-            if code != nil || error != nil {
-                result = LCError(dictionary: dictionary)
-            } else {
-                for (_, value) in dictionary {
-                    if let error = self.error(jsonValue: value) {
-                        result = error
-                        break
-                    }
-                }
-            }
-        default:
-            break
-        }
-
-        return result
-    }
-
-    /**
      Update object with a dictionary.
 
      - parameter object:     The object to be updated.
      - parameter dictionary: A dictionary of key-value pairs.
      */
-    static func updateObject(_ object: LCObject, _ dictionary: [String: AnyObject]) {
+    static func updateObject(_ object: LCObject, _ dictionary: [String: AnyObject], application: LCApplication) {
         dictionary.forEach { (key, value) in
-            object.update(key, try! self.object(jsonValue: value))
+            object.update(key, try! self.object(jsonValue: value, application: application))
         }
     }
 

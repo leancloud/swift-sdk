@@ -1,5 +1,5 @@
 //
-//  RESTClient.swift
+//  HTTPClient.swift
 //  LeanCloud
 //
 //  Created by Tang Tianyong on 3/30/16.
@@ -14,7 +14,7 @@ import Alamofire
 
  This class manages requests for LeanCloud REST API.
  */
-class RESTClient {
+class HTTPClient {
     /// HTTP Method.
     enum Method: String {
         case get
@@ -53,46 +53,52 @@ class RESTClient {
         static let accept     = "Accept"
     }
 
+    let application: LCApplication
+
+    private lazy var logger: Logger = {
+        return Logger(application: application)
+    }()
+
     /// REST API version.
     static let apiVersion = "1.1"
 
     /// Default timeout interval of each request.
-    static let defaultTimeoutInterval: TimeInterval = 10
+    let defaultTimeoutInterval: TimeInterval = HTTPClient.defaultTimeoutInterval
 
-    /// REST client shared instance.
-    static let sharedInstance = RESTClient()
+    /// Default timeout interval of each request.
+    static let defaultTimeoutInterval: TimeInterval = NSURLRequest().timeoutInterval
 
     /// Request dispatch queue.
-    static let dispatchQueue = DispatchQueue(label: "LeanCloud.REST", attributes: .concurrent)
+    static let dispatchQueue = DispatchQueue(label: "LeanCloud.REST", qos: .userInteractive, attributes: .concurrent)
 
     /// Shared session manager.
-    static var requestManager: Alamofire.SessionManager = {
+    lazy var requestManager: Alamofire.SessionManager = {
         let configuration = URLSessionConfiguration.default
         configuration.timeoutIntervalForRequest = defaultTimeoutInterval
         return SessionManager(configuration: configuration)
     }()
 
     /// User agent of SDK.
-    static let userAgent = "LeanCloud-Swift-SDK/\(Version)"
+    let userAgent = "LeanCloud-Swift-SDK/\(Version)"
 
     /// Signature of each request.
-    static var signature: String {
+    var signature: String {
         let timestamp = String(format: "%.0f", 1000 * Date().timeIntervalSince1970)
-        let hash = (timestamp + Configuration.sharedInstance.applicationKey).md5String.lowercased()
+        let hash = (timestamp + application.key).md5String.lowercased()
 
         return "\(hash),\(timestamp)"
     }
 
     /// Common REST request headers.
-    static var commonHeaders: [String: String] {
+    var commonHeaders: [String: String] {
         var headers: [String: String] = [
-            HeaderFieldName.id:        Configuration.sharedInstance.applicationID,
+            HeaderFieldName.id:        application.ID,
             HeaderFieldName.signature: self.signature,
             HeaderFieldName.userAgent: self.userAgent,
             HeaderFieldName.accept:    "application/json"
         ]
 
-        if let sessionToken = LCUser.current?.sessionToken {
+        if let sessionToken = application.currentUser?.sessionToken {
             headers[HeaderFieldName.session] = sessionToken.value
         }
 
@@ -100,11 +106,15 @@ class RESTClient {
     }
 
     /// REST host for current service region.
-    static var host: String {
-        switch Configuration.sharedInstance.serviceRegion {
+    var host: String {
+        switch application.region {
         case .cn: return "api.leancloud.cn"
         case .us: return "us-api.leancloud.cn"
         }
+    }
+
+    init(application: LCApplication) {
+        self.application = application
     }
 
     /**
@@ -158,8 +168,8 @@ class RESTClient {
 
      - returns: An absolute REST API URL string.
      */
-    static func absoluteURLString(_ endpoint: String) -> String {
-        return "https://\(self.host)/\(self.apiVersion)/\(endpoint)"
+    func absoluteURLString(_ endpoint: String) -> String {
+        return "https://\(self.host)/\(HTTPClient.apiVersion)/\(endpoint)"
     }
 
     /**
@@ -171,7 +181,7 @@ class RESTClient {
 
      - returns: The merged headers.
      */
-    static func mergeCommonHeaders(_ headers: [String: String]?) -> [String: String] {
+    func mergeCommonHeaders(_ headers: [String: String]?) -> [String: String] {
         var result = commonHeaders
 
         headers?.forEach { (key, value) in result[key] = value }
@@ -190,7 +200,7 @@ class RESTClient {
 
      - returns: A request object.
      */
-    static func request(
+    func request(
         _ method: Method,
         _ endpoint: String,
         parameters: [String: AnyObject]? = nil,
@@ -208,23 +218,23 @@ class RESTClient {
         default:   encoding = JSONEncoding.default
         }
 
-        let request = requestManager.request(urlString, method: method, parameters: parameters, encoding: encoding, headers: headers)
+        let request = requestManager.request(urlString, method: method, parameters: parameters, encoding: encoding, headers: headers).validate()
         log(request)
 
-        request.responseJSON(queue: dispatchQueue) { response in
-            log(request, response)
-            completionHandler(LCResponse(response))
+        request.responseJSON(queue: HTTPClient.dispatchQueue) { response in
+            self.log(request, response)
+            completionHandler(LCResponse(response, self.application))
         }
 
         return LCRequest(request)
     }
 
-    static func log(_ request: Request) {
-        Logger.defaultLogger.log("\n\n\(request.lcDebugDescription)\n")
+    func log(_ request: Request) {
+        logger.debug("\n\n\(request.lcDebugDescription)\n")
     }
 
-    static func log(_ request: Request, _ response: DataResponse<Any>) {
-        Logger.defaultLogger.log("\n\n\(response.lcDebugDescription(request))\n")
+    func log(_ request: Request, _ response: DataResponse<Any>) {
+        logger.debug("\n\n\(response.lcDebugDescription(request))\n")
     }
 
     /**
@@ -237,7 +247,7 @@ class RESTClient {
 
      - returns: A response object.
      */
-    static func request(
+    func request(
         _ method: Method,
         _ endpoint: String,
         parameters: [String: AnyObject]? = nil,

@@ -95,13 +95,13 @@ class Runtime {
         return result
     }
 
-    fileprivate static func toposortStart(classes: [AnyClass], _ result: inout [AnyClass], _ visitStatusTable: inout [UInt: Int]) {
+    private static func toposortStart(classes: [AnyClass], _ result: inout [AnyClass], _ visitStatusTable: inout [UInt: Int]) {
         classes.forEach { aClass in
             try! toposortVisit(aClass: aClass, classes, &result, &visitStatusTable)
         }
     }
 
-    fileprivate static func toposortVisit(aClass: AnyClass, _ classes: [AnyClass], _ result: inout [AnyClass], _ visitStatusTable: inout [UInt: Int]) throws {
+    private static func toposortVisit(aClass: AnyClass, _ classes: [AnyClass], _ result: inout [AnyClass], _ visitStatusTable: inout [UInt: Int]) throws {
         let key = UInt(bitPattern: ObjectIdentifier(aClass))
 
         switch visitStatusTable[key] ?? 0 {
@@ -121,7 +121,7 @@ class Runtime {
                 result.append(aClass)
             }
         case 1: /* Visiting */
-            throw LCError(code: .inconsistency, reason: "Circular reference.", userInfo: nil)
+            throw LCError(code: .inconsistency, reason: "Circular reference.")
         default: /* Visited */
             break
         }

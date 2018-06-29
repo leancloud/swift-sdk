@@ -18,9 +18,9 @@ public final class LCDictionary: NSObject, LCValue, LCValueExtension, Collection
     public typealias Value = LCValue
     public typealias Index = DictionaryIndex<Key, Value>
 
-    public fileprivate(set) var value: [Key: Value] = [:]
+    public private(set) var value: [Key: Value] = [:]
 
-    var elementDidChange: ((Key, Value?) -> Void)?
+    var elementDidChange: ((Key, Value?, Value?) -> Void)?
 
     public override init() {
         super.init()
@@ -35,10 +35,10 @@ public final class LCDictionary: NSObject, LCValue, LCValueExtension, Collection
         self.init(Dictionary<Key, Value>(elements: elements))
     }
 
-    public convenience init(unsafeObject: [Key: AnyObject]) {
+    public convenience init(unsafeObject: [Key: AnyObject], application: LCApplication = .current ?? .default) {
         self.init()
         value = unsafeObject.mapValue { value in
-            try! ObjectProfiler.object(jsonValue: value)
+            try! ObjectProfiler.object(jsonValue: value, application: application)
         }
     }
 
@@ -87,8 +87,9 @@ public final class LCDictionary: NSObject, LCValue, LCValueExtension, Collection
     public subscript(key: Key) -> Value? {
         get { return value[key] }
         set {
+            let oldValue = value[key]
             value[key] = newValue
-            elementDidChange?(key, newValue)
+            elementDidChange?(key, newValue, oldValue)
         }
     }
 
@@ -116,8 +117,8 @@ public final class LCDictionary: NSObject, LCValue, LCValueExtension, Collection
         return self.init([:])
     }
 
-    func forEachChild(_ body: (_ child: LCValue) -> Void) {
-        forEach { body($1) }
+    func forEachChild(_ body: (_ child: LCValue) throws -> Void) rethrows {
+        try forEach { try body($1) }
     }
 
     func add(_ other: LCValue) throws -> LCValue {

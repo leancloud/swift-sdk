@@ -9,8 +9,19 @@
 import Foundation
 
 public final class LCEngine {
+    /// Application
+    public let application: LCApplication
+
+    private lazy var httpClient: HTTPClient = {
+        return HTTPClient(application: application)
+    }()
+
+    init(application: LCApplication = .current ?? .default) {
+        self.application = application
+    }
+
     /// The dispatch queue for network request task.
-    static let backgroundQueue = DispatchQueue(label: "LeanCloud.Engine", attributes: .concurrent)
+    let backgroundQueue = DispatchQueue(label: "LeanCloud.Engine", attributes: .concurrent)
 
     /**
      Asynchronize task into background queue.
@@ -18,7 +29,7 @@ public final class LCEngine {
      - parameter task:       The task to be performed.
      - parameter completion: The completion closure to be called on main thread after task finished.
      */
-    static func asynchronize<Result>(_ task: @escaping () -> Result, completion: @escaping (Result) -> Void) {
+    func asynchronize<Result>(_ task: @escaping () -> Result, completion: @escaping (Result) -> Void) {
         Utility.asynchronize(task, backgroundQueue, completion)
     }
 
@@ -30,9 +41,9 @@ public final class LCEngine {
 
      - returns: The result of function call.
      */
-    public static func call(_ function: String, parameters: LCDictionaryConvertible? = nil) -> LCOptionalResult {
+    public func call(_ function: String, parameters: LCDictionaryConvertible? = nil) -> LCOptionalResult {
         let parameters = parameters?.lcDictionary.lconValue as? [String: AnyObject]
-        let response   = RESTClient.request(.post, "call/\(function)", parameters: parameters)
+        let response   = httpClient.request(.post, "call/\(function)", parameters: parameters)
 
         return response.optionalResult("result")
     }
@@ -45,8 +56,8 @@ public final class LCEngine {
 
      - parameter completion: The completion callback closure.
      */
-    public static func call(_ function: String, parameters: LCDictionaryConvertible? = nil, completion: @escaping (LCOptionalResult) -> Void) {
-        asynchronize({ call(function, parameters: parameters) }) { result in
+    public func call(_ function: String, parameters: LCDictionaryConvertible? = nil, completion: @escaping (LCOptionalResult) -> Void) {
+        asynchronize({ self.call(function, parameters: parameters) }) { result in
             completion(result)
         }
     }
@@ -61,7 +72,7 @@ public final class LCEngine {
 
      - returns: The result of function call.
      */
-    public static func call(_ function: String, parameters: LCObject) -> LCOptionalResult {
+    public func call(_ function: String, parameters: LCObject) -> LCOptionalResult {
         return call(function, parameters: parameters.dictionary)
     }
 
@@ -75,8 +86,8 @@ public final class LCEngine {
 
      - parameter completion: The completion callback closure.
      */
-    public static func call(_ function: String, parameters: LCObject, completion: @escaping (LCOptionalResult) -> Void) {
-        asynchronize({ call(function, parameters: parameters) }) { result in
+    public func call(_ function: String, parameters: LCObject, completion: @escaping (LCOptionalResult) -> Void) {
+        asynchronize({ self.call(function, parameters: parameters) }) { result in
             completion(result)
         }
     }

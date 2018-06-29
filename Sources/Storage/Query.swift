@@ -22,25 +22,25 @@ final public class LCQuery: NSObject, NSCopying, NSCoding {
     public var skip: Int?
 
     /// Included keys.
-    fileprivate var includedKeys: Set<String> = []
+    private var includedKeys: Set<String> = []
 
     /// Selected keys.
-    fileprivate var selectedKeys: Set<String> = []
+    private var selectedKeys: Set<String> = []
 
     /// Equality table.
-    fileprivate var equalityTable: [String: LCValue] = [:]
+    private var equalityTable: [String: LCValue] = [:]
 
     /// Equality key-value pairs.
-    fileprivate var equalityPairs: [[String: LCValue]] {
+    private var equalityPairs: [[String: LCValue]] {
         return equalityTable.map { [$0: $1] }
     }
 
     /// Ordered keys.
-    fileprivate var orderedKeys: String?
+    private var orderedKeys: String?
 
     /// Dictionary of constraints indexed by key.
     /// Note that it may contains LCValue or Query value.
-    fileprivate var constraintDictionary: [String: AnyObject] = [:]
+    private var constraintDictionary: [String: AnyObject] = [:]
 
     /// Extra parameters for query request.
     var extraParameters: [String: AnyObject]?
@@ -80,7 +80,7 @@ final public class LCQuery: NSObject, NSCopying, NSCoding {
     }
 
     /// Parameters for query request.
-    fileprivate var parameters: [String: AnyObject] {
+    private var parameters: [String: AnyObject] {
         var parameters = lconValue
 
         /* Encode where field to string. */
@@ -135,20 +135,27 @@ final public class LCQuery: NSObject, NSCopying, NSCoding {
     }
 
     var endpoint: String {
-        return RESTClient.endpoint(objectClassName)
+        return HTTPClient.endpoint(objectClassName)
     }
+
+    public let application: LCApplication
+
+    private lazy var httpClient: HTTPClient = {
+        return HTTPClient(application: application)
+    }()
 
     /**
      Construct query with class name.
 
      - parameter objectClassName: The class name to query.
      */
-    public init(className: String) {
+    public init(className: String, application: LCApplication = .current ?? .default) {
         self.objectClassName = className
+        self.application = application
     }
 
     public func copy(with zone: NSZone?) -> Any {
-        let query = LCQuery(className: objectClassName)
+        let query = LCQuery(className: objectClassName, application: application)
 
         query.includedKeys  = includedKeys
         query.selectedKeys  = selectedKeys
@@ -170,6 +177,18 @@ final public class LCQuery: NSObject, NSCopying, NSCoding {
         extraParameters = aDecoder.decodeObject(forKey: "extraParameters") as? [String: AnyObject]
         limit = aDecoder.decodeObject(forKey: "limit") as? Int
         skip  = aDecoder.decodeObject(forKey: "skip") as? Int
+
+        guard let application = LCApplication.current else {
+            let reason = """
+            Application not found.
+            A decoded LCQuery must be bound to an application explictly.
+            Please try to use `perform` method of LCApplication to create a context and decode query in that context.
+            """
+            LCError(code: .notFound, reason: reason).raise()
+            return nil
+        }
+
+        self.application = application
     }
 
     public func encode(with aCoder: NSCoder) {
@@ -297,10 +316,14 @@ final public class LCQuery: NSObject, NSCopying, NSCoding {
 
      - returns: The logic AND of two queries.
      */
-    public func and(_ query: LCQuery) -> LCQuery {
-        try! validateClassName(query)
+    public func and(_ query: LCQuery) throws -> LCQuery {
+        guard query.application === application else {
+            throw LCError(code: .inconsistency, reason: "Cannot combine two queries in different applications.")
+        }
 
-        let result = LCQuery(className: objectClassName)
+        try validateClassName(query)
+
+        let result = LCQuery(className: objectClassName, application: application)
 
         result.constraintDictionary["$and"] = [self.constraintDictionary, query.constraintDictionary] as AnyObject
 
@@ -316,10 +339,14 @@ final public class LCQuery: NSObject, NSCopying, NSCoding {
 
      - returns: The logic OR of two queries.
      */
-    public func or(_ query: LCQuery) -> LCQuery {
-        try! validateClassName(query)
+    public func or(_ query: LCQuery) throws -> LCQuery {
+        guard query.application === application else {
+            throw LCError(code: .inconsistency, reason: "Cannot combine two queries in different applications.")
+        }
 
-        let result = LCQuery(className: objectClassName)
+        try validateClassName(query)
+
+        let result = LCQuery(className: objectClassName, application: application)
 
         result.constraintDictionary["$or"] = [self.constraintDictionary, query.constraintDictionary] as AnyObject
 
@@ -354,10 +381,10 @@ final public class LCQuery: NSObject, NSCopying, NSCoding {
      */
     func processResults<T: LCObject>(_ results: [AnyObject], className: String?) -> [T] {
         return results.map { dictionary in
-            let object = ObjectProfiler.object(className: className ?? self.objectClassName) as! T
+            let object = ObjectProfiler.object(className: className ?? self.objectClassName, application: application) as! T
 
             if let dictionary = dictionary as? [String: AnyObject] {
-                ObjectProfiler.updateObject(object, dictionary)
+                ObjectProfiler.updateObject(object, dictionary, application: application)
             }
 
             return object
@@ -380,7 +407,7 @@ final public class LCQuery: NSObject, NSCopying, NSCoding {
      - returns: The result of the query request.
      */
     public func find<T>() -> LCQueryResult<T> {
-        let response = RESTClient.request(.get, endpoint, parameters: parameters)
+        let response = httpClient.request(.get, endpoint, parameters: parameters)
 
         if let error = response.error {
             return .failure(error: error)
@@ -478,7 +505,7 @@ final public class LCQuery: NSObject, NSCopying, NSCoding {
         parameters["count"] = 1 as AnyObject?
         parameters["limit"] = 0 as AnyObject?
 
-        let response = RESTClient.request(.get, endpoint, parameters: parameters)
+        let response = httpClient.request(.get, endpoint, parameters: parameters)
         let result = LCCountResult(response: response)
 
         return result

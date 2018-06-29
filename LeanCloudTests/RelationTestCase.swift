@@ -24,7 +24,7 @@ class RelationTestCase: BaseTestCase {
     func testQuery() {
         let object = sharedObject
         let friend = sharedFriend
-        let query  = object.relationForKey("relationField").query
+        let query  = object.relationForKey("relationField").query!
         let result = query.find()
 
         XCTAssertTrue(result.isSuccess)
@@ -39,7 +39,7 @@ class RelationTestCase: BaseTestCase {
         XCTAssertTrue(object.save().isSuccess)
 
         let shadow = LCObject(objectId: object.objectId!.value)
-        let query = shadow.relationForKey("relationField").query
+        let query = shadow.relationForKey("relationField").query!
 
         XCTAssertEqual(query.objectClassName, object.actualClassName)
         XCTAssertNotEqual(query.objectClassName, friend.actualClassName)
@@ -54,7 +54,7 @@ class RelationTestCase: BaseTestCase {
         let object = LCObject()
         let child  = TestObject()
         let friend = object.relationForKey("relationField")
-        let query  = friend.query
+        let query  = friend.query!
 
         friend.insert(child)
         XCTAssertTrue(object.save().isSuccess)
