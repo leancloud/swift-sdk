@@ -68,15 +68,12 @@ class ObjectProfiler {
              subclass will be registered for the class name.
      */
     static func registerClasses() {
-        var classes = [LCObject.self]
-        let subclasses = Runtime.subclasses(LCObject.self) as! [LCObject.Type]
+        /* Only register builtin classes. */
+        let builtinClasses = [LCObject.self, LCRole.self, LCUser.self]
 
-        classes.append(contentsOf: subclasses)
-
-        /* Sort classes to make sure subclass will be registered after superclass. */
-        classes = Runtime.toposort(classes: classes) as! [LCObject.Type]
-
-        classes.forEach { registerClass($0) }
+        builtinClasses.forEach { type in
+            type.register()
+        }
     }
 
     /**

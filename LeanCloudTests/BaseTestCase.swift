@@ -31,6 +31,9 @@ class BaseTestCase: XCTestCase {
     
     override func setUp() {
         super.setUp()
+
+        TestObject.register()
+
         /* App name is "iOS SDK UnitTest". */
         LeanCloud.initialize(
             applicationID:  "nq0awk3lh1dpmbkziz54377mryii8ny4xvp6njoygle5nlyg",
