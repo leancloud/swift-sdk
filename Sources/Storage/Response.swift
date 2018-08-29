@@ -9,7 +9,7 @@
 import Foundation
 import Alamofire
 
-open class LCResponse {
+public final class LCResponse {
     /// Internal error.
     /// It will override alamofire's response error.
     fileprivate var internalError: LCError?
@@ -50,14 +50,14 @@ open class LCResponse {
         return result
     }
 
-    open subscript(key: String) -> AnyObject? {
+    public subscript(key: String) -> AnyObject? {
         return value?[key] as AnyObject?
     }
 
     /**
      A boolean property indicates whether response is OK or not.
      */
-    open var isSuccess: Bool {
+    public var isSuccess: Bool {
         return error == nil
     }
 }

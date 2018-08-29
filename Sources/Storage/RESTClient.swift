@@ -57,7 +57,7 @@ class RESTClient {
     static let apiVersion = "1.1"
 
     /// Default timeout interval of each request.
-    static let defaultTimeoutInterval: TimeInterval = 10
+    static let defaultTimeoutInterval: TimeInterval = NSURLRequest().timeoutInterval
 
     /// REST client shared instance.
     static let sharedInstance = RESTClient()
@@ -73,12 +73,12 @@ class RESTClient {
     }()
 
     /// User agent of SDK.
-    static let userAgent = "LeanCloud-Swift-SDK/\(Version)"
+    static let userAgent = "LeanCloud-Swift-SDK/\(version)"
 
     /// Signature of each request.
     static var signature: String {
         let timestamp = String(format: "%.0f", 1000 * Date().timeIntervalSince1970)
-        let hash = (timestamp + Configuration.sharedInstance.applicationKey).md5String.lowercased()
+        let hash = (timestamp + LCApplication.default.key).md5String.lowercased()
 
         return "\(hash),\(timestamp)"
     }
@@ -86,7 +86,7 @@ class RESTClient {
     /// Common REST request headers.
     static var commonHeaders: [String: String] {
         var headers: [String: String] = [
-            HeaderFieldName.id:        Configuration.sharedInstance.applicationID,
+            HeaderFieldName.id:        LCApplication.default.id,
             HeaderFieldName.signature: self.signature,
             HeaderFieldName.userAgent: self.userAgent,
             HeaderFieldName.accept:    "application/json"
@@ -101,7 +101,7 @@ class RESTClient {
 
     /// REST host for current service region.
     static var host: String {
-        switch Configuration.sharedInstance.serviceRegion {
+        switch LCApplication.default.region {
         case .cn: return "api.leancloud.cn"
         case .us: return "us-api.leancloud.cn"
         }
@@ -220,11 +220,11 @@ class RESTClient {
     }
 
     static func log(_ request: Request) {
-        Logger.defaultLogger.log("\n\n\(request.lcDebugDescription)\n")
+        Logger.shared.debug("\n\n\(request.lcDebugDescription)\n")
     }
 
     static func log(_ request: Request, _ response: DataResponse<Any>) {
-        Logger.defaultLogger.log("\n\n\(response.lcDebugDescription(request))\n")
+        Logger.shared.debug("\n\n\(response.lcDebugDescription(request))\n")
     }
 
     /**

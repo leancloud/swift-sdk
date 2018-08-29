@@ -8,30 +8,4 @@
 
 import Foundation
 
-public let Version = "11.0.1"
-
-public let globalOptions = LCApplicationOptions()
-
-/**
- Initialize LeanCloud SDK.
-
- - parameter applicationID:  Application ID.
- - parameter applicationKey: Application key.
- */
-public func initialize(applicationID: String, applicationKey: String) {
-    let configure = Configuration.sharedInstance
-
-    configure.applicationID  = applicationID
-    configure.applicationKey = applicationKey
-
-    ObjectProfiler.registerClasses()
-}
-
-/**
- Set service region.
-
- - parameter serviceRegion: The service region.
- */
-public func setServiceRegion(_ serviceRegion: LCServiceRegion) {
-    Configuration.sharedInstance.serviceRegion = serviceRegion
-}
+public let version = "11.0.1"

@@ -13,7 +13,7 @@ import Foundation
 
  You can use this class to send short message to mobile phone.
  */
-public final class LCSMS {
+public final class LCSMSClient {
     /**
      Request a short message.
 

@@ -21,10 +21,6 @@ class TestObject: LCObject {
     @objc dynamic var dataField: LCData?
     @objc dynamic var dateField: LCDate?
     @objc dynamic var nullField: LCNull?
-
-    /* The non-LCValue and non-dynamic property cannot be handled. */
-    @objc dynamic var nonLCValueField: String?
-    var nonDynamicField: LCString?
 }
 
 class BaseTestCase: XCTestCase {
@@ -34,11 +30,10 @@ class BaseTestCase: XCTestCase {
 
         TestObject.register()
 
-        /* App name is "iOS SDK UnitTest". */
-        LeanCloud.initialize(
-            applicationID:  "nq0awk3lh1dpmbkziz54377mryii8ny4xvp6njoygle5nlyg",
-            applicationKey: "6vdnmdkdi4fva9i06lt50s4mcsfhppjpzm3zf5zjc9ty4pdz"
-        )
+        LCApplication.default.logLevel = .debug
+        LCApplication.default.set(
+            id: "nq0awk3lh1dpmbkziz54377mryii8ny4xvp6njoygle5nlyg",
+            key: "6vdnmdkdi4fva9i06lt50s4mcsfhppjpzm3zf5zjc9ty4pdz")
     }
     
     override func tearDown() {

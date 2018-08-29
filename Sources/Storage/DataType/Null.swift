@@ -15,7 +15,7 @@ import Foundation
 
  - note: This type is not a singleton type, because Swift does not support singleton well currently.
  */
-open class LCNull: NSObject, LCValue, LCValueExtension {
+public final class LCNull: NSObject, LCValue, LCValueExtension {
     public override init() {
         super.init()
     }
@@ -24,23 +24,23 @@ open class LCNull: NSObject, LCValue, LCValueExtension {
         /* Nothing to decode. */
     }
 
-    open func encode(with aCoder: NSCoder) {
+    public func encode(with aCoder: NSCoder) {
         /* Nothing to encode. */
     }
 
-    open func copy(with zone: NSZone?) -> Any {
+    public func copy(with zone: NSZone?) -> Any {
         return LCNull()
     }
 
-    open override func isEqual(_ object: Any?) -> Bool {
+    public override func isEqual(_ object: Any?) -> Bool {
         return object is LCNull
     }
 
-    open var jsonValue: AnyObject {
+    public var jsonValue: AnyObject {
         return NSNull()
     }
 
-    open var jsonString: String {
+    public var jsonString: String {
         return ObjectProfiler.getJSONString(self)
     }
 
