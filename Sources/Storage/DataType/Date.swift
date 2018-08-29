@@ -14,7 +14,7 @@ import Foundation
  This type used to represent a point in UTC time.
  */
 public final class LCDate: NSObject, LCValue, LCValueExtension {
-    public fileprivate(set) var value: Date = Date()
+    public private(set) var value: Date = Date()
 
     static let dateFormatter: DateFormatter = {
         let formatter = DateFormatter()

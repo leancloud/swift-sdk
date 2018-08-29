@@ -12,8 +12,8 @@ import Alamofire
 public final class LCResponse {
     /// Internal error.
     /// It will override alamofire's response error.
-    fileprivate var internalError: LCError?
-    fileprivate var alamofireResponse: Alamofire.DataResponse<Any>?
+    private var internalError: LCError?
+    private var alamofireResponse: Alamofire.DataResponse<Any>?
 
     init() {}
 

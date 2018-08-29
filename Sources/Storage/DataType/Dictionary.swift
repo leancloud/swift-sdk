@@ -18,7 +18,7 @@ public final class LCDictionary: NSObject, LCValue, LCValueExtension, Collection
     public typealias Value = LCValue
     public typealias Index = DictionaryIndex<Key, Value>
 
-    public fileprivate(set) var value: [Key: Value] = [:]
+    public private(set) var value: [Key: Value] = [:]
 
     var elementDidChange: ((Key, Value?) -> Void)?
 

@@ -35,7 +35,7 @@ open class LCUser: LCObject {
     @objc open dynamic var email: LCString?
 
     /// A flag indicates whether email is verified or not.
-    @objc open fileprivate(set) dynamic var emailVerified: LCBool?
+    @objc open private(set) dynamic var emailVerified: LCBool?
 
     /**
      Mobile phone number.
@@ -46,10 +46,10 @@ open class LCUser: LCObject {
     @objc open dynamic var mobilePhoneNumber: LCString?
 
     /// A flag indicates whether mobile phone is verified or not.
-    @objc open fileprivate(set) dynamic var mobilePhoneVerified: LCBool?
+    @objc open private(set) dynamic var mobilePhoneVerified: LCBool?
 
     /// Session token of user authenticated by server.
-    @objc open fileprivate(set) dynamic var sessionToken: LCString?
+    @objc open private(set) dynamic var sessionToken: LCString?
 
     /// Current authenticated user.
     public static var current: LCUser? = nil

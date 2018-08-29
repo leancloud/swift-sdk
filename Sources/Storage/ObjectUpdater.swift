@@ -21,7 +21,7 @@ class ObjectUpdater {
 
      - returns: An array of batch requests.
      */
-    fileprivate static func batchRequests(_ objects: Set<LCObject>) -> [BatchRequest] {
+    private static func batchRequests(_ objects: Set<LCObject>) -> [BatchRequest] {
         var requests: [BatchRequest] = []
         let toposort = ObjectProfiler.toposort(objects)
 
@@ -64,7 +64,7 @@ class ObjectUpdater {
      - parameter requests: A list of batch requests.
      - returns: The response of request.
      */
-    fileprivate static func sendBatchRequests(_ requests: [BatchRequest], _ objects: Set<LCObject>) -> LCResponse {
+    private static func sendBatchRequests(_ requests: [BatchRequest], _ objects: Set<LCObject>) -> LCResponse {
         let parameters = [
             "requests": requests.map { request in request.jsonValue() }
         ]
@@ -87,7 +87,7 @@ class ObjectUpdater {
 
      - parameter objects: A set of objects to validate.
      */
-    fileprivate static func validateObjectId(_ objects: Set<LCObject>) throws {
+    private static func validateObjectId(_ objects: Set<LCObject>) throws {
         try objects.forEach { object in
             if object.objectId == nil {
                 throw LCError(code: .notFound, reason: "Object ID not found.", userInfo: nil)
@@ -102,7 +102,7 @@ class ObjectUpdater {
 
      - returns: The response of request.
      */
-    fileprivate static func saveIndependentObjects(_ objects: Set<LCObject>) -> LCResponse {
+    private static func saveIndependentObjects(_ objects: Set<LCObject>) -> LCResponse {
         var family: Set<LCObject> = []
 
         objects.forEach { object in
@@ -131,7 +131,7 @@ class ObjectUpdater {
      - parameter object: The ancestor object.
      - returns: The response of request.
      */
-    fileprivate static func saveNewbornOrphans(_ object: LCObject) -> LCResponse {
+    private static func saveNewbornOrphans(_ object: LCObject) -> LCResponse {
         var response = LCResponse()
 
         repeat {

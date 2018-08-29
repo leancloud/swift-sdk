@@ -17,7 +17,7 @@ public final class LCArray: NSObject, LCValue, LCValueExtension, Collection, Exp
     public typealias Index = Int
     public typealias Element = LCValue
 
-    public fileprivate(set) var value: [Element] = []
+    public private(set) var value: [Element] = []
 
     public override init() {
         super.init()

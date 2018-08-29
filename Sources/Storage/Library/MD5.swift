@@ -46,23 +46,23 @@ class MD5 {
     typealias Byte = UInt8
     typealias Word = UInt32
 
-    fileprivate static func F(_ b: Word, _ c: Word, _ d: Word) -> Word {
+    private static func F(_ b: Word, _ c: Word, _ d: Word) -> Word {
         return (b & c) | ((~b) & d)
     }
 
-    fileprivate static func G(_ b: Word, _ c: Word, _ d: Word) -> Word {
+    private static func G(_ b: Word, _ c: Word, _ d: Word) -> Word {
         return (b & d) | (c & (~d))
     }
 
-    fileprivate static func H(_ b: Word, _ c: Word, _ d: Word) -> Word {
+    private static func H(_ b: Word, _ c: Word, _ d: Word) -> Word {
         return b ^ c ^ d
     }
 
-    fileprivate static func I(_ b: Word, _ c: Word, _ d: Word) -> Word {
+    private static func I(_ b: Word, _ c: Word, _ d: Word) -> Word {
         return c ^ (b | (~d))
     }
 
-    fileprivate static func rotateLeft(_ x: Word, by: Word) -> Word {
+    private static func rotateLeft(_ x: Word, by: Word) -> Word {
         return ((x << by) & 0xFFFFFFFF) | (x >> (32 - by))
     }
 

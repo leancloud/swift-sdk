@@ -22,25 +22,25 @@ final public class LCQuery: NSObject, NSCopying, NSCoding {
     public var skip: Int?
 
     /// Included keys.
-    fileprivate var includedKeys: Set<String> = []
+    private var includedKeys: Set<String> = []
 
     /// Selected keys.
-    fileprivate var selectedKeys: Set<String> = []
+    private var selectedKeys: Set<String> = []
 
     /// Equality table.
-    fileprivate var equalityTable: [String: LCValue] = [:]
+    private var equalityTable: [String: LCValue] = [:]
 
     /// Equality key-value pairs.
-    fileprivate var equalityPairs: [[String: LCValue]] {
+    private var equalityPairs: [[String: LCValue]] {
         return equalityTable.map { [$0: $1] }
     }
 
     /// Ordered keys.
-    fileprivate var orderedKeys: String?
+    private var orderedKeys: String?
 
     /// Dictionary of constraints indexed by key.
     /// Note that it may contains LCValue or Query value.
-    fileprivate var constraintDictionary: [String: AnyObject] = [:]
+    private var constraintDictionary: [String: AnyObject] = [:]
 
     /// Extra parameters for query request.
     var extraParameters: [String: AnyObject]?
@@ -80,7 +80,7 @@ final public class LCQuery: NSObject, NSCopying, NSCoding {
     }
 
     /// Parameters for query request.
-    fileprivate var parameters: [String: AnyObject] {
+    private var parameters: [String: AnyObject] {
         var parameters = lconValue
 
         /* Encode where field to string. */

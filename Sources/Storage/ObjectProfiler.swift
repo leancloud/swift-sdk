@@ -278,11 +278,11 @@ class ObjectProfiler {
         return result
     }
 
-    fileprivate static func toposortStart(_ objects: Set<LCObject>, _ result: inout [LCObject], _ visitStatusTable: inout [UInt: Int]) {
+    private static func toposortStart(_ objects: Set<LCObject>, _ result: inout [LCObject], _ visitStatusTable: inout [UInt: Int]) {
         objects.forEach { try! toposortVisit($0, objects, &result, &visitStatusTable) }
     }
 
-    fileprivate static func toposortVisit(_ value: LCValue, _ objects: Set<LCObject>, _ result: inout [LCObject], _ visitStatusTable: inout [UInt: Int]) throws {
+    private static func toposortVisit(_ value: LCValue, _ objects: Set<LCObject>, _ result: inout [LCObject], _ visitStatusTable: inout [UInt: Int]) throws {
         guard let object = value as? LCObject else {
             (value as! LCValueExtension).forEachChild { child in
                 try! toposortVisit(child, objects, &result, &visitStatusTable)
@@ -325,7 +325,7 @@ class ObjectProfiler {
         return result
     }
 
-    fileprivate static func familyVisit(_ value: LCValue, result: inout Set<LCObject>) {
+    private static func familyVisit(_ value: LCValue, result: inout Set<LCObject>) {
         (value as! LCValueExtension).forEachChild { child in
             familyVisit(child, result: &result)
         }
@@ -353,7 +353,7 @@ class ObjectProfiler {
      - parameter object: The object to validate.
      - parameter visitStatusTable: The object visit status table.
      */
-    fileprivate static func validateCircularReference(_ object: LCValue, visitStatusTable: inout [UInt: Int]) throws {
+    private static func validateCircularReference(_ object: LCValue, visitStatusTable: inout [UInt: Int]) throws {
         let key = UInt(bitPattern: ObjectIdentifier(object))
 
         switch visitStatusTable[key] ?? 0 {
@@ -377,7 +377,7 @@ class ObjectProfiler {
 
      - returns: true if value is a boolean, false otherwise.
      */
-    fileprivate static func isBoolean(_ jsonValue: AnyObject) -> Bool {
+    private static func isBoolean(_ jsonValue: AnyObject) -> Bool {
         switch String(describing: type(of: jsonValue)) {
         case "__NSCFBoolean", "Bool": return true
         default: return false
@@ -461,7 +461,7 @@ class ObjectProfiler {
 
      - returns: An LCValue object.
      */
-    fileprivate static func object(dictionary: [String: AnyObject]) -> LCValue {
+    private static func object(dictionary: [String: AnyObject]) -> LCValue {
         var result: LCValue!
 
         if let type = dictionary["__type"] as? String {

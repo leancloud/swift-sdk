@@ -20,10 +20,10 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
     @objc open dynamic var ACL: LCACL?
 
     /// Object identifier.
-    @objc open fileprivate(set) dynamic var objectId: LCString?
+    @objc open private(set) dynamic var objectId: LCString?
 
-    @objc open fileprivate(set) dynamic var createdAt: LCDate?
-    @objc open fileprivate(set) dynamic var updatedAt: LCDate?
+    @objc open private(set) dynamic var createdAt: LCDate?
+    @objc open private(set) dynamic var updatedAt: LCDate?
 
     /**
      The table of properties.
@@ -33,7 +33,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
              This property is intent for internal use.
              For accesssing all properties, please use `dictionary` property.
      */
-    fileprivate var propertyTable: LCDictionary = [:]
+    private var propertyTable: LCDictionary = [:]
 
     /// The table of all properties.
     lazy var dictionary: LCDictionary = {

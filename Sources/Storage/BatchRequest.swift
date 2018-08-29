@@ -128,7 +128,7 @@ class BatchRequestBuilder {
 
      - returns: The operation table list.
      */
-    fileprivate static func initialOperationTableList(_ object: LCObject) -> OperationTableList {
+    private static func initialOperationTableList(_ object: LCObject) -> OperationTableList {
         var operationTable: OperationTable = [:]
 
         /* Collect all non-null properties. */
@@ -154,7 +154,7 @@ class BatchRequestBuilder {
 
      - returns: A list of operation tables.
      */
-    fileprivate static func operationTableList(_ object: LCObject) -> OperationTableList {
+    private static func operationTableList(_ object: LCObject) -> OperationTableList {
         if object.hasObjectId {
             return object.operationHub.operationTableList()
         } else {
