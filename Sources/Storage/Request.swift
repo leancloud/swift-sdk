@@ -15,4 +15,16 @@ public final class LCRequest {
     init(_ alamofireRequest: Alamofire.Request) {
         self.alamofireRequest = alamofireRequest
     }
+
+    public func resume() {
+        alamofireRequest.resume()
+    }
+
+    public func suspend() {
+        alamofireRequest.suspend()
+    }
+
+    public func cancel() {
+        alamofireRequest.cancel()
+    }
 }
