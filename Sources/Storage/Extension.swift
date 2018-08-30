@@ -181,3 +181,53 @@ extension Collection {
         return result
     }
 }
+
+/**
+ Dispatch task in main queue asynchronously.
+
+ - parameter task: The task to be dispatched.
+ */
+func mainQueueAsync(task: @escaping () -> Void) {
+    DispatchQueue.main.async {
+        task()
+    }
+}
+
+/**
+ Dispatch task in main queue synchronously.
+
+ - parameter task: The task to be dispatched.
+ */
+func mainQueueSync<T>(task: () throws -> T) rethrows -> T {
+    if Thread.isMainThread {
+        return try task()
+    } else {
+        return try DispatchQueue.main.sync {
+            try task()
+        }
+    }
+}
+
+/**
+ Wait an asynchronous task to be done.
+
+ - parameter task: The task to be done.
+
+ - note: When task finish it's job, it must call `fulfill` to provide expected result.
+ */
+func expect<T>(task: @escaping (_ fulfill: @escaping (T) -> Void) -> Void) -> T {
+    var result: T!
+
+    let dispatchGroup = DispatchGroup()
+
+    dispatchGroup.enter()
+
+    task { value in
+        result = value
+        dispatchGroup.leave()
+    }
+
+    dispatchGroup.wait()
+
+    return result
+}
