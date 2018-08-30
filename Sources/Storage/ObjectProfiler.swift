@@ -461,7 +461,7 @@ class ObjectProfiler {
 
      - returns: An LCValue object.
      */
-    private static func object(dictionary: [String: AnyObject]) -> LCValue {
+    private static func object(dictionary: [String: AnyObject]) throws -> LCValue {
         var result: LCValue!
 
         if let type = dictionary["__type"] as? String {
@@ -471,7 +471,7 @@ class ObjectProfiler {
         }
 
         if result == nil {
-            result = LCDictionary(dictionary.mapValue { try! object(jsonValue: $0) })
+            result = LCDictionary(try dictionary.mapValue { try object(jsonValue: $0) })
         }
 
         return result
@@ -494,9 +494,9 @@ class ObjectProfiler {
         case let string as String:
             return LCString(string)
         case let array as [AnyObject]:
-            return LCArray(array.map { try! object(jsonValue: $0) })
+            return LCArray(try array.map { try object(jsonValue: $0) })
         case let dictionary as [String: AnyObject]:
-            return object(dictionary: dictionary)
+            return try object(dictionary: dictionary)
         case let data as Data:
             return LCData(data)
         case let date as Date:

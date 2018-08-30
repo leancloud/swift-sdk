@@ -56,6 +56,44 @@ public enum LCObjectResult<T: LCValue>: LCResultType {
     case success(object: T)
     case failure(error: LCError)
 
+    init(response: LCResponse) {
+        if let error = response.error {
+            self = .failure(error: error)
+            return
+        }
+        guard var jsonValue = response.value else {
+            self = .failure(error: LCError(code: .notFound, reason: "Response data not found."))
+            return
+        }
+
+        var value: LCValue
+
+        do {
+            /* Add missing meta data for object. */
+            if
+                let objectClass = T.self as? LCObject.Type,
+                var dictionary = jsonValue as? [String: Any]
+            {
+                dictionary["__type"]    = RESTClient.DataType.object.rawValue
+                dictionary["className"] = objectClass.objectClassName()
+
+                jsonValue = dictionary as AnyObject
+            }
+
+            value = try ObjectProfiler.object(jsonValue: jsonValue)
+        } catch let error {
+            self = .failure(error: LCError(error: error))
+            return
+        }
+
+        guard let object = value as? T else {
+            self = .failure(error: LCError(code: .invalidType, reason: "Invalid response data type."))
+            return
+        }
+
+        self = .success(object: object)
+    }
+
     public var error: LCError? {
         switch self {
         case .success:
