@@ -99,8 +99,8 @@ public final class LCArray: NSObject, LCValue, LCValueExtension, Collection, Exp
         return self.init([])
     }
 
-    func forEachChild(_ body: (_ child: LCValue) -> Void) {
-        forEach { element in body(element) }
+    func forEachChild(_ body: (_ child: LCValue) throws -> Void) rethrows {
+        try forEach { element in try body(element) }
     }
 
     func add(_ other: LCValue) throws -> LCValue {

@@ -80,7 +80,7 @@ public final class LCString: NSObject, LCValue, LCValueExtension, ExpressibleByS
         return self.init()
     }
 
-    func forEachChild(_ body: (_ child: LCValue) -> Void) {
+    func forEachChild(_ body: (_ child: LCValue) throws -> Void) rethrows {
         /* Nothing to do. */
     }
 

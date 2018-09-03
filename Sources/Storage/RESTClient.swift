@@ -213,18 +213,46 @@ class RESTClient {
         default:   encoding = JSONEncoding.default
         }
 
-        let request = requestManager.request(urlString, method: method, parameters: parameters, encoding: encoding, headers: headers)
+        let request = requestManager.request(urlString, method: method, parameters: parameters, encoding: encoding, headers: headers).validate()
         log(request: request)
 
-        request.responseJSON(queue: requestDispatchQueue) { response in
+        request.responseJSON(queue: completionDispatchQueue) { response in
             log(response: response, request: request)
-
-            completionDispatchQueue.async {
-                completionHandler(LCResponse(response))
-            }
+            completionHandler(LCResponse(response: response))
         }
 
-        return LCRequest(request)
+        return LCSingleRequest(request: request)
+    }
+
+    /**
+     Create request for error.
+
+     - parameter error:                     The error object.
+     - parameter completionDispatchQueue:   The dispatch queue in which the completion handler will be called. By default, it's a concurrent queue.
+     - parameter completionHandler:         The completion callback closure.
+
+     - returns: A request object.
+     */
+    static func request(
+        error: Error,
+        completionDispatchQueue: DispatchQueue = defaultCompletionDispatchQueue,
+        completionHandler: @escaping (LCBooleanResult) -> Void) -> LCRequest
+    {
+        return request(object: error, completionDispatchQueue: completionDispatchQueue) { error in
+            completionHandler(.failure(error: error))
+        }
+    }
+
+    static func request<T>(
+        object: T,
+        completionDispatchQueue: DispatchQueue = defaultCompletionDispatchQueue,
+        completionHandler: @escaping (T) -> Void) -> LCRequest
+    {
+        completionDispatchQueue.async {
+            completionHandler(object)
+        }
+
+        return LCSingleRequest(request: nil)
     }
 
     static func log(response: DataResponse<Any>, request: Request) {

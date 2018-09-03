@@ -69,7 +69,7 @@ public final class LCBool: NSObject, LCValue, LCValueExtension, ExpressibleByBoo
         return LCBool()
     }
 
-    func forEachChild(_ body: (_ child: LCValue) -> Void) {
+    func forEachChild(_ body: (_ child: LCValue) throws -> Void) rethrows {
         /* Nothing to do. */
     }
 

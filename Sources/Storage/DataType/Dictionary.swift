@@ -116,8 +116,8 @@ public final class LCDictionary: NSObject, LCValue, LCValueExtension, Collection
         return self.init([:])
     }
 
-    func forEachChild(_ body: (_ child: LCValue) -> Void) {
-        forEach { body($1) }
+    func forEachChild(_ body: (_ child: LCValue) throws -> Void) rethrows {
+        try forEach { (_, element) in try body(element) }
     }
 
     func add(_ other: LCValue) throws -> LCValue {

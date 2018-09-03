@@ -27,18 +27,21 @@ class BatchRequest {
         return method ?? (isNewborn ? .post : .put)
     }
 
-    var path: String {
-        var path: String
+    func getVersionedPath() throws -> String {
+        var endpoint: String
         let apiVersion = RESTClient.apiVersion
 
         switch actualMethod {
         case .get, .put, .delete:
-            path = RESTClient.eigenEndpoint(object)!
+            guard let anEndpoint = RESTClient.eigenEndpoint(object) else {
+                throw LCError(code: .notFound, reason: "Cannot access object before save.")
+            }
+            endpoint = anEndpoint
         case .post:
-            path = RESTClient.endpoint(object)
+            endpoint = RESTClient.endpoint(object)
         }
 
-        return "/\(apiVersion)/\(path)"
+        return "/\(apiVersion)/\(endpoint)"
     }
 
     var body: AnyObject {
@@ -82,7 +85,8 @@ class BatchRequest {
         return body as AnyObject
     }
 
-    func jsonValue() -> AnyObject {
+    func jsonValue() throws -> AnyObject {
+        let path = try getVersionedPath()
         let method = actualMethod
 
         var request: [String: AnyObject] = [

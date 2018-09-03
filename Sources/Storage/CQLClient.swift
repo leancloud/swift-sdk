@@ -23,7 +23,7 @@ public final class LCCQLValue {
     }
 
     var className: String {
-        return (response["className"] as? String) ?? LCObject.objectClassName()
+        return response["className"] ?? LCObject.objectClassName()
     }
 
     /**
@@ -33,8 +33,14 @@ public final class LCCQLValue {
         let results   = self.results
         let className = self.className
 
-        return results.map { dictionary in
-            ObjectProfiler.object(dictionary: dictionary, className: className)
+        do {
+            let objects = try results.map { dictionary in
+                try ObjectProfiler.object(dictionary: dictionary, className: className)
+            }
+
+            return objects
+        } catch {
+            return []
         }
     }
 
