@@ -30,11 +30,11 @@ public final class LCEngine {
 
      - returns: The result of function call.
      */
-    public static func call(_ function: String, parameters: LCDictionaryConvertible? = nil) -> LCOptionalResult {
+    public static func call(_ function: String, parameters: LCDictionaryConvertible? = nil) -> LCValueOptionalResult {
         let parameters = parameters?.lcDictionary.lconValue as? [String: AnyObject]
         let response   = RESTClient.request(.post, "call/\(function)", parameters: parameters)
 
-        return response.optionalResult("result")
+        return LCValueOptionalResult(response: response, keyPath: "result")
     }
 
     /**
@@ -45,7 +45,7 @@ public final class LCEngine {
 
      - parameter completion: The completion callback closure.
      */
-    public static func call(_ function: String, parameters: LCDictionaryConvertible? = nil, completion: @escaping (LCOptionalResult) -> Void) {
+    public static func call(_ function: String, parameters: LCDictionaryConvertible? = nil, completion: @escaping (LCValueOptionalResult) -> Void) {
         asynchronize({ call(function, parameters: parameters) }) { result in
             completion(result)
         }
@@ -61,7 +61,7 @@ public final class LCEngine {
 
      - returns: The result of function call.
      */
-    public static func call(_ function: String, parameters: LCObject) -> LCOptionalResult {
+    public static func call(_ function: String, parameters: LCObject) -> LCValueOptionalResult {
         return call(function, parameters: parameters.dictionary)
     }
 
@@ -75,7 +75,7 @@ public final class LCEngine {
 
      - parameter completion: The completion callback closure.
      */
-    public static func call(_ function: String, parameters: LCObject, completion: @escaping (LCOptionalResult) -> Void) {
+    public static func call(_ function: String, parameters: LCObject, completion: @escaping (LCValueOptionalResult) -> Void) {
         asynchronize({ call(function, parameters: parameters) }) { result in
             completion(result)
         }

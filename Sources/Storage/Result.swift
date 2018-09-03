@@ -9,7 +9,7 @@
 import Foundation
 
 public protocol LCResultType {
-    var error: LCError? { get }
+    var error: Error? { get }
     var isSuccess: Bool { get }
     var isFailure: Bool { get }
 }
@@ -22,9 +22,9 @@ extension LCResultType {
 
 public enum LCBooleanResult: LCResultType {
     case success
-    case failure(error: LCError)
+    case failure(error: Error)
 
-    public var error: LCError? {
+    public var error: Error? {
         switch self {
         case .success:
             return nil
@@ -52,11 +52,49 @@ public enum LCBooleanResult: LCResultType {
 /**
  Result type for object request.
  */
-public enum LCObjectResult<T: LCValue>: LCResultType {
+public enum LCValueResult<T: LCValue>: LCResultType {
     case success(object: T)
-    case failure(error: LCError)
+    case failure(error: Error)
 
-    public var error: LCError? {
+    init(response: LCResponse) {
+        if let error = response.error {
+            self = .failure(error: error)
+            return
+        }
+        guard var jsonValue = response.value else {
+            self = .failure(error: LCError(code: .notFound, reason: "Response data not found."))
+            return
+        }
+
+        var value: LCValue
+
+        do {
+            /* Add missing meta data for object. */
+            if
+                let objectClass = T.self as? LCObject.Type,
+                var dictionary = jsonValue as? [String: Any]
+            {
+                dictionary["__type"]    = RESTClient.DataType.object.rawValue
+                dictionary["className"] = objectClass.objectClassName()
+
+                jsonValue = dictionary as AnyObject
+            }
+
+            value = try ObjectProfiler.object(jsonValue: jsonValue)
+        } catch let error {
+            self = .failure(error: error)
+            return
+        }
+
+        guard let object = value as? T else {
+            self = .failure(error: LCError(code: .invalidType, reason: "Invalid response data type."))
+            return
+        }
+
+        self = .success(object: object)
+    }
+
+    public var error: Error? {
         switch self {
         case .success:
             return nil
@@ -85,11 +123,24 @@ public enum LCObjectResult<T: LCValue>: LCResultType {
 /**
  Result type for optional request.
  */
-public enum LCOptionalResult: LCResultType {
+public enum LCValueOptionalResult: LCResultType {
     case success(object: LCValue?)
-    case failure(error: LCError)
+    case failure(error: Error)
 
-    public var error: LCError? {
+    init(response: LCResponse, keyPath: String) {
+        if let error = response.error {
+            self = .failure(error: error)
+            return
+        }
+
+        if let jsonValue: AnyObject = response[keyPath] {
+            self = .success(object: try? ObjectProfiler.object(jsonValue: jsonValue))
+        } else {
+            self = .success(object: nil)
+        }
+    }
+
+    public var error: Error? {
         switch self {
         case .success:
             return nil
@@ -117,9 +168,9 @@ public enum LCOptionalResult: LCResultType {
 
 public enum LCQueryResult<T: LCObject>: LCResultType {
     case success(objects: [T])
-    case failure(error: LCError)
+    case failure(error: Error)
 
-    public var error: LCError? {
+    public var error: Error? {
         switch self {
         case .success:
             return nil
@@ -147,9 +198,17 @@ public enum LCQueryResult<T: LCObject>: LCResultType {
 
 public enum LCCountResult: LCResultType {
     case success(count: Int)
-    case failure(error: LCError)
+    case failure(error: Error)
 
-    public var error: LCError? {
+    init(response: LCResponse) {
+        if let error = response.error {
+            self = .failure(error: error)
+        } else {
+            self = .success(count: response.count)
+        }
+    }
+
+    public var error: Error? {
         switch self {
         case .success:
             return nil
@@ -165,14 +224,6 @@ public enum LCCountResult: LCResultType {
         }
     }
 
-    init(response: LCResponse) {
-        if let error = response.error {
-            self = .failure(error: error)
-        } else {
-            self = .success(count: response.count)
-        }
-    }
-
     public var intValue: Int {
         switch self {
         case let .success(count):
@@ -185,9 +236,17 @@ public enum LCCountResult: LCResultType {
 
 public enum LCCQLResult: LCResultType {
     case success(value: LCCQLValue)
-    case failure(error: LCError)
+    case failure(error: Error)
 
-    public var error: LCError? {
+    init(response: LCResponse) {
+        if let error = response.error {
+            self = .failure(error: error)
+        } else {
+            self = .success(value: LCCQLValue(response: response))
+        }
+    }
+
+    public var error: Error? {
         switch self {
         case .success:
             return nil
@@ -219,67 +278,5 @@ public enum LCCQLResult: LCResultType {
         case .failure:
             return 0
         }
-    }
-
-    init(response: LCResponse) {
-        if let error = response.error {
-            self = .failure(error: error)
-        } else {
-            self = .success(value: LCCQLValue(response: response))
-        }
-    }
-}
-
-extension LCResponse {
-    /**
-     Get object result of response.
-
-     - returns: `.Success` if response has no error and response data has valid type, `.Failure` otherwise.
-     */
-    func objectResult<T: LCValue>() -> LCObjectResult<T> {
-        if let error = error {
-            return .failure(error: error)
-        }
-
-        guard let value = value else {
-            return .failure(error: LCError(code: .notFound, reason: "Response data not found."))
-        }
-
-        let any = try! ObjectProfiler.object(jsonValue: value)
-
-        guard let object = any as? T else {
-            return .failure(error: LCError(code: .invalidType, reason: "Invalid response data type.", userInfo: ["response": value, "object": any]))
-        }
-
-        return .success(object: object)
-    }
-
-    /**
-     Get engine result of response.
-
-     - returns: `.Success` if response has no error, `.Failure` otherwise.
-     */
-    func optionalResult(_ keyPath: String? = nil) -> LCOptionalResult {
-        if let error = error {
-            return .failure(error: error)
-        }
-
-        guard let value = value else {
-            return .success(object: nil)
-        }
-
-        var optionalValue: AnyObject? = value
-
-        if let keyPath = keyPath {
-            optionalValue = value.value(forKeyPath: keyPath) as AnyObject?
-        }
-
-        guard let someValue = optionalValue else {
-            return .success(object: nil)
-        }
-
-        let object = try! ObjectProfiler.object(jsonValue: someValue)
-
-        return .success(object: object)
     }
 }

@@ -27,18 +27,21 @@ class BatchRequest {
         return method ?? (isNewborn ? .post : .put)
     }
 
-    var path: String {
-        var path: String
+    func getVersionedPath() throws -> String {
+        var endpoint: String
         let apiVersion = RESTClient.apiVersion
 
         switch actualMethod {
         case .get, .put, .delete:
-            path = RESTClient.eigenEndpoint(object)!
+            guard let anEndpoint = RESTClient.eigenEndpoint(object) else {
+                throw LCError(code: .notFound, reason: "Cannot access object before save.")
+            }
+            endpoint = anEndpoint
         case .post:
-            path = RESTClient.endpoint(object)
+            endpoint = RESTClient.endpoint(object)
         }
 
-        return "/\(apiVersion)/\(path)"
+        return "/\(apiVersion)/\(endpoint)"
     }
 
     var body: AnyObject {
@@ -82,7 +85,8 @@ class BatchRequest {
         return body as AnyObject
     }
 
-    func jsonValue() -> AnyObject {
+    func jsonValue() throws -> AnyObject {
+        let path = try getVersionedPath()
         let method = actualMethod
 
         var request: [String: AnyObject] = [
@@ -128,7 +132,7 @@ class BatchRequestBuilder {
 
      - returns: The operation table list.
      */
-    fileprivate static func initialOperationTableList(_ object: LCObject) -> OperationTableList {
+    private static func initialOperationTableList(_ object: LCObject) -> OperationTableList {
         var operationTable: OperationTable = [:]
 
         /* Collect all non-null properties. */
@@ -154,7 +158,7 @@ class BatchRequestBuilder {
 
      - returns: A list of operation tables.
      */
-    fileprivate static func operationTableList(_ object: LCObject) -> OperationTableList {
+    private static func operationTableList(_ object: LCObject) -> OperationTableList {
         if object.hasObjectId {
             return object.operationHub.operationTableList()
         } else {

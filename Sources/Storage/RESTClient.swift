@@ -63,7 +63,10 @@ class RESTClient {
     static let sharedInstance = RESTClient()
 
     /// Request dispatch queue.
-    static let dispatchQueue = DispatchQueue(label: "LeanCloud.REST", attributes: .concurrent)
+    static let requestDispatchQueue = DispatchQueue(label: "LeanCloud.RESTClient.Request", attributes: .concurrent)
+
+    /// Default completion dispatch queue.
+    static let defaultCompletionDispatchQueue = DispatchQueue(label: "LeanCloud.RESTClient.Completion", attributes: .concurrent)
 
     /// Shared session manager.
     static var requestManager: Alamofire.SessionManager = {
@@ -182,19 +185,21 @@ class RESTClient {
     /**
      Creates a request to REST API and sends it asynchronously.
 
-     - parameter method:            The HTTP Method.
-     - parameter endpoint:          The REST API endpoint.
-     - parameter parameters:        The request parameters.
-     - parameter headers:           The request headers.
-     - parameter completionHandler: The completion callback closure.
+     - parameter method:                    The HTTP Method.
+     - parameter endpoint:                  The REST API endpoint.
+     - parameter parameters:                The request parameters.
+     - parameter headers:                   The request headers.
+     - parameter completionDispatchQueue:   The dispatch queue in which the completion handler will be called. By default, it's a concurrent queue.
+     - parameter completionHandler:         The completion callback closure.
 
      - returns: A request object.
      */
     static func request(
         _ method: Method,
         _ endpoint: String,
-        parameters: [String: AnyObject]? = nil,
+        parameters: [String: Any]? = nil,
         headers: [String: String]? = nil,
+        completionDispatchQueue: DispatchQueue = defaultCompletionDispatchQueue,
         completionHandler: @escaping (LCResponse) -> Void)
         -> LCRequest
     {
@@ -208,23 +213,54 @@ class RESTClient {
         default:   encoding = JSONEncoding.default
         }
 
-        let request = requestManager.request(urlString, method: method, parameters: parameters, encoding: encoding, headers: headers)
-        log(request)
+        let request = requestManager.request(urlString, method: method, parameters: parameters, encoding: encoding, headers: headers).validate()
+        log(request: request)
 
-        request.responseJSON(queue: dispatchQueue) { response in
-            log(request, response)
-            completionHandler(LCResponse(response))
+        request.responseJSON(queue: completionDispatchQueue) { response in
+            log(response: response, request: request)
+            completionHandler(LCResponse(response: response))
         }
 
-        return LCRequest(request)
+        return LCSingleRequest(request: request)
     }
 
-    static func log(_ request: Request) {
-        Logger.shared.debug("\n\n\(request.lcDebugDescription)\n")
+    /**
+     Create request for error.
+
+     - parameter error:                     The error object.
+     - parameter completionDispatchQueue:   The dispatch queue in which the completion handler will be called. By default, it's a concurrent queue.
+     - parameter completionHandler:         The completion callback closure.
+
+     - returns: A request object.
+     */
+    static func request(
+        error: Error,
+        completionDispatchQueue: DispatchQueue = defaultCompletionDispatchQueue,
+        completionHandler: @escaping (LCBooleanResult) -> Void) -> LCRequest
+    {
+        return request(object: error, completionDispatchQueue: completionDispatchQueue) { error in
+            completionHandler(.failure(error: error))
+        }
     }
 
-    static func log(_ request: Request, _ response: DataResponse<Any>) {
+    static func request<T>(
+        object: T,
+        completionDispatchQueue: DispatchQueue = defaultCompletionDispatchQueue,
+        completionHandler: @escaping (T) -> Void) -> LCRequest
+    {
+        completionDispatchQueue.async {
+            completionHandler(object)
+        }
+
+        return LCSingleRequest(request: nil)
+    }
+
+    static func log(response: DataResponse<Any>, request: Request) {
         Logger.shared.debug("\n\n\(response.lcDebugDescription(request))\n")
+    }
+
+    static func log(request: Request) {
+        Logger.shared.debug("\n\n\(request.lcDebugDescription)\n")
     }
 
     /**
@@ -265,7 +301,7 @@ class RESTClient {
      - parameter completion: The completion closure to be called on main thread after task finished.
      */
     static func asynchronize<Result>(_ task: @escaping () -> Result, completion: @escaping (Result) -> Void) {
-        Utility.asynchronize(task, dispatchQueue, completion)
+        Utility.asynchronize(task, requestDispatchQueue, completion)
     }
 }
 

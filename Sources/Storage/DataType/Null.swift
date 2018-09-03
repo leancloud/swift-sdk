@@ -56,7 +56,7 @@ public final class LCNull: NSObject, LCValue, LCValueExtension {
         return LCNull()
     }
 
-    func forEachChild(_ body: (_ child: LCValue) -> Void) {
+    func forEachChild(_ body: (_ child: LCValue) throws -> Void) rethrows {
         /* Nothing to do. */
     }
 

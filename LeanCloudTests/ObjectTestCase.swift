@@ -30,6 +30,105 @@ class ObjectTestCase: BaseTestCase {
         XCTAssertNotNil(object.objectId)
     }
 
+    func testCircularReference() {
+        let object1 = TestObject()
+        let object2 = TestObject()
+
+        object1.objectField = object2
+        object2.objectField = object1
+
+        let result = object1.save()
+
+        XCTAssertFalse(result.isSuccess)
+        XCTAssertEqual(result.error?._code, LCError.InternalErrorCode.inconsistency.rawValue)
+    }
+
+    func testFindRoots() {
+        let object1 = TestObject()
+        let object2 = TestObject()
+        let object3 = TestObject()
+
+        XCTAssertEqual(
+            Set((try? ObjectProfiler.findRoots([object1, object2, object3])) ?? []),
+            Set([object1, object2, object3]))
+
+        object2.objectField = object3
+
+        XCTAssertEqual(
+            Set((try? ObjectProfiler.findRoots([object1, object2, object3])) ?? []),
+            Set([object1, object2]))
+
+        object1.objectField = object2
+
+        XCTAssertEqual(
+            Set((try? ObjectProfiler.findRoots([object1, object2, object3])) ?? []),
+            Set([object1]))
+
+        object2.objectField = object1 /* Circular reference */
+
+        do {
+            _ = try ObjectProfiler.findRoots([object1, object2, object3])
+        } catch let error {
+            let errorCode = LCError.InternalErrorCode(rawValue: error._code)
+            XCTAssertEqual(errorCode, .inconsistency)
+        }
+    }
+
+    func testSaveNewbornOrphans() {
+        let object = TestObject()
+        let newbornOrphan1 = TestObject()
+        let newbornOrphan2 = TestObject()
+        let newbornOrphan3 = TestObject()
+        let newbornOrphan4 = TestObject()
+        let newbornOrphan5 = TestObject()
+
+        object.arrayField = [newbornOrphan1]
+
+        object.dictionaryField = [
+            "object": newbornOrphan2,
+            "objectArray": LCArray([newbornOrphan3])
+        ]
+
+        newbornOrphan3.arrayField = [newbornOrphan5]
+
+        object.insertRelation("relationField", object: newbornOrphan4)
+
+        XCTAssertTrue(object.save().isSuccess)
+
+        XCTAssertNotNil(newbornOrphan1.objectId)
+        XCTAssertNotNil(newbornOrphan2.objectId)
+        XCTAssertNotNil(newbornOrphan3.objectId)
+        XCTAssertNotNil(newbornOrphan4.objectId)
+        XCTAssertNotNil(newbornOrphan5.objectId)
+    }
+
+    func testBatchSave() {
+        let object1 = TestObject()
+        let object2 = TestObject()
+
+        XCTAssertTrue(LCObject.save([object1, object2]).isSuccess)
+
+        XCTAssertNotNil(object1.objectId)
+        XCTAssertNotNil(object2.objectId)
+
+        let object3 = TestObject()
+        let object4 = TestObject()
+
+        let newbornOrphan1 = TestObject()
+        let newbornOrphan2 = TestObject()
+
+        newbornOrphan1.arrayField = [newbornOrphan2]
+
+        object4.arrayField = [newbornOrphan1]
+
+        XCTAssertTrue(LCObject.save([object3, object4]).isSuccess)
+
+        XCTAssertNotNil(object3.objectId)
+        XCTAssertNotNil(object4.objectId)
+        XCTAssertNotNil(newbornOrphan1.objectId)
+        XCTAssertNotNil(newbornOrphan2.objectId)
+    }
+
     func testPrimitiveProperty() {
         let object = TestObject()
 
@@ -133,7 +232,7 @@ class ObjectTestCase: BaseTestCase {
 
         let result = object.fetch()
         XCTAssertTrue(result.isFailure)
-        XCTAssertEqual(LCError.InternalErrorCode(rawValue: result.error!.code), .notFound)
+        XCTAssertEqual(LCError.InternalErrorCode(rawValue: result.error!._code), .notFound)
     }
 
     func testFetchNotFound() {
@@ -141,7 +240,7 @@ class ObjectTestCase: BaseTestCase {
 
         let result = object.fetch()
         XCTAssertTrue(result.isFailure)
-        XCTAssertEqual(LCError.ServerErrorCode(rawValue: result.error!.code), .objectNotFound)
+        XCTAssertEqual(LCError.ServerErrorCode(rawValue: result.error!._code), .objectNotFound)
     }
 
     func testFetchObjects() {
@@ -150,8 +249,8 @@ class ObjectTestCase: BaseTestCase {
         let notFound = TestObject(objectId: "000")
         let newborn  = TestObject()
 
-        XCTAssertEqual(LCError.InternalErrorCode(rawValue: LCObject.fetch([object, newborn]).error!.code), .notFound)
-        XCTAssertEqual(LCError.ServerErrorCode(rawValue: LCObject.fetch([object, notFound]).error!.code), .objectNotFound)
+        XCTAssertEqual(LCError.InternalErrorCode(rawValue: LCObject.fetch([object, newborn]).error!._code), .notFound)
+        XCTAssertEqual(LCError.ServerErrorCode(rawValue: LCObject.fetch([object, notFound]).error!._code), .objectNotFound)
         XCTAssertTrue(LCObject.fetch([object, child]).isSuccess)
     }
 
@@ -170,7 +269,7 @@ class ObjectTestCase: BaseTestCase {
         XCTAssertTrue(object2.save().isSuccess)
 
         let shadow1 = TestObject(objectId: object1.objectId!)
-        let shadow2 = TestObject(objectId: object1.objectId!)
+        let shadow2 = TestObject(objectId: object2.objectId!)
 
         shadow1.stringField = "bar"
         shadow2.stringField = "bar"

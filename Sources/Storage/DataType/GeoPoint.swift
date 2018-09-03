@@ -14,8 +14,8 @@ import Foundation
  This type can be used to represent a 2D location with latitude and longitude.
  */
 public final class LCGeoPoint: NSObject, LCValue, LCValueExtension {
-    public fileprivate(set) var latitude: Double = 0
-    public fileprivate(set) var longitude: Double = 0
+    public private(set) var latitude: Double = 0
+    public private(set) var longitude: Double = 0
 
     public enum Unit: String {
         case mile = "Miles"
@@ -110,7 +110,7 @@ public final class LCGeoPoint: NSObject, LCValue, LCValueExtension {
         return self.init()
     }
 
-    func forEachChild(_ body: (_ child: LCValue) -> Void) {
+    func forEachChild(_ body: (_ child: LCValue) throws -> Void) rethrows {
         /* Nothing to do. */
     }
 

@@ -173,7 +173,7 @@ protocol LCValueExtension {
 
      - parameter body: The iterator closure.
      */
-    func forEachChild(_ body: (_ child: LCValue) -> Void)
+    func forEachChild(_ body: (_ child: LCValue) throws -> Void) rethrows
 
     // MARK: Arithmetic
 

@@ -115,8 +115,8 @@ public final class LCRelation: NSObject, LCValue, LCValueExtension, Sequence {
         return self.init()
     }
 
-    func forEachChild(_ body: (_ child: LCValue) -> Void) {
-        value.forEach { body($0) }
+    func forEachChild(_ body: (_ child: LCValue) throws -> Void) rethrows {
+        try value.forEach { element in try body(element) }
     }
 
     func add(_ other: LCValue) throws -> LCValue {

@@ -18,7 +18,7 @@ public final class LCDictionary: NSObject, LCValue, LCValueExtension, Collection
     public typealias Value = LCValue
     public typealias Index = DictionaryIndex<Key, Value>
 
-    public fileprivate(set) var value: [Key: Value] = [:]
+    public private(set) var value: [Key: Value] = [:]
 
     var elementDidChange: ((Key, Value?) -> Void)?
 
@@ -116,8 +116,8 @@ public final class LCDictionary: NSObject, LCValue, LCValueExtension, Collection
         return self.init([:])
     }
 
-    func forEachChild(_ body: (_ child: LCValue) -> Void) {
-        forEach { body($1) }
+    func forEachChild(_ body: (_ child: LCValue) throws -> Void) rethrows {
+        try forEach { (_, element) in try body(element) }
     }
 
     func add(_ other: LCValue) throws -> LCValue {

@@ -20,10 +20,10 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
     @objc open dynamic var ACL: LCACL?
 
     /// Object identifier.
-    @objc open fileprivate(set) dynamic var objectId: LCString?
+    @objc open private(set) dynamic var objectId: LCString?
 
-    @objc open fileprivate(set) dynamic var createdAt: LCDate?
-    @objc open fileprivate(set) dynamic var updatedAt: LCDate?
+    @objc open private(set) dynamic var createdAt: LCDate?
+    @objc open private(set) dynamic var updatedAt: LCDate?
 
     /**
      The table of properties.
@@ -33,7 +33,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
              This property is intent for internal use.
              For accesssing all properties, please use `dictionary` property.
      */
-    fileprivate var propertyTable: LCDictionary = [:]
+    private var propertyTable: LCDictionary = [:]
 
     /// The table of all properties.
     lazy var dictionary: LCDictionary = {
@@ -168,8 +168,8 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
         return self.init()
     }
 
-    func forEachChild(_ body: (_ child: LCValue) -> Void) {
-        dictionary.forEachChild(body)
+    func forEachChild(_ body: (_ child: LCValue) throws -> Void) rethrows {
+        try dictionary.forEachChild(body)
     }
 
     func add(_ other: LCValue) throws -> LCValue {
@@ -557,9 +557,8 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
 
      Subclass can override this method to add custom validation logic.
      */
-    func validateBeforeSaving() {
+    func validateBeforeSaving() throws {
         /* Validate circular reference. */
-        ObjectProfiler.validateCircularReference(self)
     }
 
     /**
@@ -589,25 +588,65 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
         Utility.asynchronize(task, backgroundQueue, completion)
     }
 
+    // MARK: Save object
+
+    /**
+     Save a batch of objects in one request synchronously.
+
+     - parameter objects: An array of objects to be saved.
+
+     - returns: The result of deletion request.
+     */
+    public static func save(_ objects: [LCObject]) -> LCBooleanResult {
+        return expect { fulfill in
+            save(objects, completionInBackground: { result in
+                fulfill(result)
+            })
+        }
+    }
+
+    /**
+     Save a batch of objects in one request asynchronously.
+
+     - parameter objects: An array of objects to be saved.
+     - parameter completion: The completion callback closure.
+
+     - returns: The request of saving.
+     */
+    public static func save(_ objects: [LCObject], completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
+        return save(objects, completionInBackground: { result in
+            mainQueueAsync {
+                completion(result)
+            }
+        })
+    }
+
+    @discardableResult
+    static func save(_ objects: [LCObject], completionInBackground completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
+        return ObjectUpdater.save(objects, completionInBackground: completion)
+    }
+
     /**
      Save object and its all descendant objects synchronously.
 
      - returns: The result of saving request.
      */
     open func save() -> LCBooleanResult {
-        return LCBooleanResult(response: ObjectUpdater.save(self))
+        return type(of: self).save([self])
     }
 
     /**
      Save object and its all descendant objects asynchronously.
 
      - parameter completion: The completion callback closure.
+
+     - returns: The request of saving.
      */
-    open func save(_ completion: @escaping (LCBooleanResult) -> Void) {
-        asynchronize({ self.save() }) { result in
-            completion(result)
-        }
+    open func save(_ completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
+        return type(of: self).save([self], completion: completion)
     }
+
+    // MARK: Delete object
 
     /**
      Delete a batch of objects in one request synchronously.
@@ -617,18 +656,32 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
      - returns: The result of deletion request.
      */
     public static func delete(_ objects: [LCObject]) -> LCBooleanResult {
-        return LCBooleanResult(response: ObjectUpdater.delete(objects))
+        return expect { fulfill in
+            delete(objects, completionInBackground: { result in
+                fulfill(result)
+            })
+        }
     }
 
     /**
      Delete a batch of objects in one request asynchronously.
 
+     - parameter objects: An array of objects to be deleted.
      - parameter completion: The completion callback closure.
+
+     - returns: The request of deletion.
      */
-    public static func delete(_ objects: [LCObject], completion: @escaping (LCBooleanResult) -> Void) {
-        asynchronize({ delete(objects) }) { result in
-            completion(result)
-        }
+    public static func delete(_ objects: [LCObject], completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
+        return delete(objects, completionInBackground: { result in
+            mainQueueAsync {
+                completion(result)
+            }
+        })
+    }
+
+    @discardableResult
+    private static func delete(_ objects: [LCObject], completionInBackground completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
+        return ObjectUpdater.delete(objects, completionInBackground: completion)
     }
 
     /**
@@ -637,19 +690,21 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
      - returns: The result of deletion request.
      */
     open func delete() -> LCBooleanResult {
-        return LCBooleanResult(response: ObjectUpdater.delete(self))
+        return type(of: self).delete([self])
     }
 
     /**
      Delete current object asynchronously.
 
      - parameter completion: The completion callback closure.
+
+     - returns: The request of deletion.
      */
-    open func delete(_ completion: @escaping (LCBooleanResult) -> Void) {
-        asynchronize({ self.delete() }) { result in
-            completion(result)
-        }
+    open func delete(_ completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
+        return type(of: self).delete([self], completion: completion)
     }
+
+    // MARK: Fetch object
 
     /**
      Fetch a batch of objects in one request synchronously.
@@ -659,18 +714,32 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
      - returns: The result of fetching request.
      */
     public static func fetch(_ objects: [LCObject]) -> LCBooleanResult {
-        return LCBooleanResult(response: ObjectUpdater.fetch(objects))
+        return expect { fulfill in
+            fetch(objects, completionInBackground: { result in
+                fulfill(result)
+            })
+        }
     }
 
     /**
      Fetch a batch of objects in one request asynchronously.
 
      - parameter completion: The completion callback closure.
+     - parameter objects: An array of objects to be fetched.
+
+     - returns: The request of fetching.
      */
-    public static func fetch(_ objects: [LCObject], completion: @escaping (LCBooleanResult) -> Void) {
-        asynchronize({ fetch(objects) }) { result in
-            completion(result)
-        }
+    public static func fetch(_ objects: [LCObject], completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
+        return fetch(objects, completionInBackground: { result in
+            mainQueueAsync {
+                completion(result)
+            }
+        })
+    }
+
+    @discardableResult
+    private static func fetch(_ objects: [LCObject], completionInBackground completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
+        return ObjectUpdater.fetch(objects, completionInBackground: completion)
     }
 
     /**
@@ -679,7 +748,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
      - returns: The result of fetching request.
      */
     open func fetch() -> LCBooleanResult {
-        return LCBooleanResult(response: ObjectUpdater.fetch(self))
+        return type(of: self).fetch([self])
     }
 
     /**
@@ -687,9 +756,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
 
      - parameter completion: The completion callback closure.
      */
-    open func fetch(_ completion: @escaping (LCBooleanResult) -> Void) {
-        asynchronize({ self.fetch() }) { result in
-            completion(result)
-        }
+    open func fetch(_ completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
+        return type(of: self).fetch([self], completion: completion)
     }
 }

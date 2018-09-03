@@ -10,7 +10,7 @@ import Foundation
 import Alamofire
 
 public struct LCError: Error {
-    public typealias UserInfo = [AnyHashable: Any]
+    public typealias UserInfo = [String: Any]
 
     public var code: Int = 0
     public var reason: String?
@@ -48,17 +48,28 @@ public struct LCError: Error {
         reason = dictionary["error"] as? String
         userInfo = dictionary
     }
+}
 
-    init(error: Error) {
-        underlyingError = error
+extension LCError: LocalizedError {
 
-        switch error {
-        case let error as NSError:
-            code = error.code
-            reason = error.localizedFailureReason
-            userInfo = error.userInfo
-        default:
-            break
-        }
+    public var failureReason: String? {
+        return reason
     }
+
+}
+
+extension LCError: CustomNSError {
+
+    public static var errorDomain: String {
+        return String(describing: self)
+    }
+
+    public var errorUserInfo: [String : Any] {
+        return userInfo ?? [:]
+    }
+
+    public var errorCode: Int {
+        return code
+    }
+
 }
