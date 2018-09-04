@@ -184,9 +184,6 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
         throw LCError(code: .invalidType, reason: "Object cannot be differed.")
     }
 
-    /// The dispatch queue for network request task.
-    static let backgroundQueue = DispatchQueue(label: "LeanCloud.Object", attributes: .concurrent)
-
     /**
      Set class name of current type.
 
@@ -566,26 +563,6 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
      */
     func resetOperation() {
         operationHub.reset()
-    }
-
-    /**
-     Asynchronize task into background queue.
-
-     - parameter task:       The task to be performed.
-     - parameter completion: The completion closure to be called on main thread after task finished.
-     */
-    func asynchronize<Result>(_ task: @escaping () -> Result, completion: @escaping (Result) -> Void) {
-        LCObject.asynchronize(task, completion: completion)
-    }
-
-    /**
-     Asynchronize task into background queue.
-
-     - parameter task:       The task to be performed.
-     - parameter completion: The completion closure to be called on main thread after task finished.
-     */
-    static func asynchronize<Result>(_ task: @escaping () -> Result, completion: @escaping (Result) -> Void) {
-        Utility.asynchronize(task, backgroundQueue, completion)
     }
 
     // MARK: Save object
