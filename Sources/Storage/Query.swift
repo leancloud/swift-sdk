@@ -91,9 +91,6 @@ final public class LCQuery: NSObject, NSCopying, NSCoding {
         return parameters
     }
 
-    /// The dispatch queue for network request task.
-    static let backgroundQueue = DispatchQueue(label: "LeanCloud.Query", attributes: .concurrent)
-
     /**
      Constraint for key.
      */
@@ -365,30 +362,15 @@ final public class LCQuery: NSObject, NSCopying, NSCoding {
     }
 
     /**
-     Asynchronize task into background queue.
-
-     - parameter task:       The task to be performed.
-     - parameter completion: The completion closure to be called on main thread after task finished.
-     */
-    static func asynchronize<Result>(_ task: @escaping () -> Result, completion: @escaping (Result) -> Void) {
-        Utility.asynchronize(task, backgroundQueue, completion)
-    }
-
-    /**
      Query objects synchronously.
 
      - returns: The result of the query request.
      */
     public func find<T>() -> LCQueryResult<T> {
-        let response = RESTClient.request(.get, endpoint, parameters: parameters)
-
-        if let error = response.error {
-            return .failure(error: error)
-        } else {
-            let className = response.value?["className"] as? String
-            let objects: [T] = processResults(response.results, className: className)
-
-            return .success(objects: objects)
+        return expect { fulfill in
+            self.find(completionInBackground: { result in
+                fulfill(result)
+            })
         }
     }
 
@@ -396,10 +378,28 @@ final public class LCQuery: NSObject, NSCopying, NSCoding {
      Query objects asynchronously.
 
      - parameter completion: The completion callback closure.
+
+     - returns: A request of query.
      */
-    public func find<T>(_ completion: @escaping (LCQueryResult<T>) -> Void) {
-        LCQuery.asynchronize({ self.find() }) { result in
-            completion(result)
+    public func find<T>(_ completion: @escaping (LCQueryResult<T>) -> Void) -> LCRequest {
+        return find(completionInBackground: { result in
+            mainQueueAsync {
+                completion(result)
+            }
+        })
+    }
+
+    @discardableResult
+    private func find<T>(completionInBackground completion: @escaping (LCQueryResult<T>) -> Void) -> LCRequest {
+        return RESTClient.request(.get, endpoint, parameters: parameters) { response in
+            if let error = response.error {
+                completion(.failure(error: error))
+            } else {
+                let className = response.value?["className"] as? String
+                let objects: [T] = self.processResults(response.results, className: className)
+
+                completion(.success(objects: objects))
+            }
         }
     }
 
@@ -411,21 +411,10 @@ final public class LCQuery: NSObject, NSCopying, NSCoding {
      - returns: The object result of query.
      */
     public func getFirst<T: LCObject>() -> LCValueResult<T> {
-        let query = copy() as! LCQuery
-
-        query.limit = 1
-
-        let result: LCQueryResult<T> = query.find()
-
-        switch result {
-        case let .success(objects):
-            guard let object = objects.first else {
-                return .failure(error: LCError(code: .notFound, reason: "Object not found."))
-            }
-
-            return .success(object: object)
-        case let .failure(error):
-            return .failure(error: error)
+        return expect { fulfill in
+            self.getFirst(completionInBackground: { result in
+                fulfill(result)
+            })
         }
     }
 
@@ -434,10 +423,33 @@ final public class LCQuery: NSObject, NSCopying, NSCoding {
 
      - parameter completion: The completion callback closure.
      */
-    public func getFirst<T: LCObject>(_ completion: @escaping (LCValueResult<T>) -> Void) {
-        LCQuery.asynchronize({ self.getFirst() }) { result in
-            completion(result)
-        }
+    public func getFirst<T: LCObject>(_ completion: @escaping (LCValueResult<T>) -> Void) -> LCRequest {
+        return getFirst(completionInBackground: { result in
+            mainQueueAsync {
+                completion(result)
+            }
+        })
+    }
+
+    @discardableResult
+    private func getFirst<T: LCObject>(completionInBackground completion: @escaping (LCValueResult<T>) -> Void) -> LCRequest {
+        let query = copy() as! LCQuery
+
+        query.limit = 1
+
+        return query.find(completionInBackground: { (result: LCQueryResult<T>) in
+            switch result {
+            case let .success(objects):
+                if let object = objects.first {
+                    completion(.success(object: object))
+                } else {
+                    let error = LCError(code: .objectNotFound, reason: "Object not found.")
+                    completion(.failure(error: error))
+                }
+            case let .failure(error):
+                completion(.failure(error: error))
+            }
+        })
     }
 
     /**
@@ -448,11 +460,11 @@ final public class LCQuery: NSObject, NSCopying, NSCoding {
      - returns: The object result of query.
      */
     public func get<T: LCObject>(_ objectId: LCStringConvertible) -> LCValueResult<T> {
-        let query = copy() as! LCQuery
-
-        query.whereKey("objectId", .equalTo(objectId.lcString))
-
-        return query.getFirst()
+        return expect { fulfill in
+            self.get(objectId, completionInBackground: { result in
+                fulfill(result)
+            })
+        }
     }
 
     /**
@@ -461,10 +473,23 @@ final public class LCQuery: NSObject, NSCopying, NSCoding {
      - parameter objectId:   The object ID.
      - parameter completion: The completion callback closure.
      */
-    public func get<T: LCObject>(_ objectId: LCStringConvertible, completion: @escaping (LCValueResult<T>) -> Void) {
-        LCQuery.asynchronize({ self.get(objectId) }) { result in
-            completion(result)
-        }
+    public func get<T: LCObject>(_ objectId: LCStringConvertible, completion: @escaping (LCValueResult<T>) -> Void) -> LCRequest {
+        return get(objectId, completionInBackground: { result in
+            mainQueueAsync {
+                completion(result)
+            }
+        })
+    }
+
+    @discardableResult
+    private func get<T: LCObject>(_ objectId: LCStringConvertible, completionInBackground completion: @escaping (LCValueResult<T>) -> Void) -> LCRequest {
+        let query = copy() as! LCQuery
+
+        query.whereKey("objectId", .equalTo(objectId))
+
+        let request = query.getFirst(completionInBackground: completion)
+
+        return request
     }
 
     /**
@@ -473,15 +498,11 @@ final public class LCQuery: NSObject, NSCopying, NSCoding {
      - returns: The result of the count request.
      */
     public func count() -> LCCountResult {
-        var parameters = self.parameters
-
-        parameters["count"] = 1 as AnyObject?
-        parameters["limit"] = 0 as AnyObject?
-
-        let response = RESTClient.request(.get, endpoint, parameters: parameters)
-        let result = LCCountResult(response: response)
-
-        return result
+        return expect { fulfill in
+            self.count(completionInBackground: { result in
+                fulfill(result)
+            })
+        }
     }
 
     /**
@@ -489,9 +510,26 @@ final public class LCQuery: NSObject, NSCopying, NSCoding {
 
      - parameter completion: The completion callback closure.
      */
-    public func count(_ completion: @escaping (LCCountResult) -> Void) {
-        LCQuery.asynchronize({ self.count() }) { result in
+    public func count(_ completion: @escaping (LCCountResult) -> Void) -> LCRequest {
+        return count(completionInBackground: { result in
+            mainQueueAsync {
+                completion(result)
+            }
+        })
+    }
+
+    @discardableResult
+    private func count(completionInBackground completion: @escaping (LCCountResult) -> Void) -> LCRequest {
+        var parameters = self.parameters
+
+        parameters["count"] = 1 as AnyObject?
+        parameters["limit"] = 0 as AnyObject?
+
+        let request = RESTClient.request(.get, endpoint, parameters: parameters) { response in
+            let result = LCCountResult(response: response)
             completion(result)
         }
+
+        return request
     }
 }
