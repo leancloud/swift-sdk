@@ -26,4 +26,47 @@ class APITestCase: BaseTestCase {
         XCTAssertEqual("+8610000000".urlQueryEncoded, "%2B8610000000")
     }
 
+    func testCancelSingleRequest() {
+        let dispatchGroup = DispatchGroup()
+
+        dispatchGroup.enter()
+
+        let request = RESTClient.request(.get, "ping") { response in
+            XCTAssertEqual(response.error?._code, NSURLErrorCancelled)
+            dispatchGroup.leave()
+        }
+
+        request.cancel() /* Cancel request immediately. */
+
+        dispatchGroup.wait()
+    }
+
+    var newbornOrphanObservation: NSKeyValueObservation?
+
+    func testCancelSequenceRequest() {
+        let object = TestObject()
+
+        let newbornOrphan1 = TestObject()
+        let newbornOrphan2 = TestObject()
+
+        newbornOrphan1.arrayField = [newbornOrphan2]
+
+        object.arrayField = [newbornOrphan1]
+
+        var result: LCBooleanResult?
+
+        let request = object.save { aResult in
+            result = aResult
+        }
+
+        newbornOrphanObservation = newbornOrphan2.observe(\.objectId) { (_, change) in
+            request.cancel()
+        }
+
+        busywait { result != nil }
+
+        XCTAssertFalse(result!.isSuccess)
+        XCTAssertEqual(result!.error?._code, NSURLErrorCancelled)
+    }
+
 }

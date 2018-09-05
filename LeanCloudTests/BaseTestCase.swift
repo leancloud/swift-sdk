@@ -40,5 +40,12 @@ class BaseTestCase: XCTestCase {
         // Put teardown code here. This method is called after the invocation of each test method in the class.
         super.tearDown()
     }
-    
+
+    func busywait(interval: TimeInterval = 0.1, untilTrue: () -> Bool) -> Void {
+        while !untilTrue() {
+            let due = Date(timeIntervalSinceNow: interval)
+            RunLoop.current.run(mode: .defaultRunLoopMode, before: due)
+        }
+    }
+
 }
