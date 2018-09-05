@@ -62,9 +62,6 @@ class RESTClient {
     /// REST client shared instance.
     static let sharedInstance = RESTClient()
 
-    /// Request dispatch queue.
-    static let requestDispatchQueue = DispatchQueue(label: "LeanCloud.RESTClient.Request", attributes: .concurrent)
-
     /// Default completion dispatch queue.
     static let defaultCompletionDispatchQueue = DispatchQueue(label: "LeanCloud.RESTClient.Completion", attributes: .concurrent)
 
@@ -292,16 +289,6 @@ class RESTClient {
         _ = semaphore.wait(timeout: DispatchTime.distantFuture)
 
         return result
-    }
-
-    /**
-     Asynchronize task into request dispatch queue.
-
-     - parameter task:       The task to be asynchronized.
-     - parameter completion: The completion closure to be called on main thread after task finished.
-     */
-    static func asynchronize<Result>(_ task: @escaping () -> Result, completion: @escaping (Result) -> Void) {
-        Utility.asynchronize(task, requestDispatchQueue, completion)
     }
 }
 
