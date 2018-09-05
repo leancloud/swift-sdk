@@ -22,14 +22,33 @@ public final class LCSMSClient {
 
      - returns: The result of short message request.
      */
-    static func requestShortMessage(mobilePhoneNumber: String, parameters: LCDictionaryConvertible?) -> LCBooleanResult {
+    private static func requestShortMessage(mobilePhoneNumber: String, parameters: LCDictionaryConvertible?) -> LCBooleanResult {
+        return expect { fulfill in
+            requestShortMessage(mobilePhoneNumber: mobilePhoneNumber, parameters: parameters, completionInBackground: { result in
+                fulfill(result)
+            })
+        }
+    }
+
+    @discardableResult
+    private static func requestShortMessage(mobilePhoneNumber: String, parameters: LCDictionaryConvertible?, completionInBackground completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
         let parameters = parameters?.lcDictionary ?? LCDictionary()
 
         parameters["mobilePhoneNumber"] = LCString(mobilePhoneNumber)
 
-        let response = RESTClient.request(.post, "requestSmsCode", parameters: parameters.lconValue as? [String: AnyObject])
+        let request = RESTClient.request(.post, "requestSmsCode", parameters: parameters.lconValue as? [String: AnyObject]) { response in
+            completion(LCBooleanResult(response: response))
+        }
 
-        return LCBooleanResult(response: response)
+        return request
+    }
+
+    private static func createRequestParameters(templateName: String, variables: LCDictionaryConvertible? = nil) -> LCDictionary {
+        let parameters = variables?.lcDictionary ?? LCDictionary()
+
+        parameters["template"] = templateName.lcString /* template is a reserved name. */
+
+        return parameters
     }
 
     /**
@@ -42,11 +61,13 @@ public final class LCSMSClient {
      - returns: The result of short message request.
      */
     public static func requestShortMessage(mobilePhoneNumber: String, templateName: String, variables: LCDictionaryConvertible? = nil) -> LCBooleanResult {
-        let parameters = variables?.lcDictionary ?? LCDictionary()
+        let parameters = createRequestParameters(templateName: templateName, variables: variables)
 
-        parameters["template"] = LCString(templateName)
-
-        return requestShortMessage(mobilePhoneNumber: mobilePhoneNumber, parameters: parameters)
+        return expect { fulfill in
+            requestShortMessage(mobilePhoneNumber: mobilePhoneNumber, parameters: parameters, completionInBackground: { result in
+                fulfill(result)
+            })
+        }
     }
 
     /**
@@ -57,10 +78,14 @@ public final class LCSMSClient {
      - parameter variables:         The variables used to substitute placeholders in template.
      - parameter completion:        The completion callback closure.
      */
-    public static func requestShortMessage(mobilePhoneNumber: String, templateName: String, variables: LCDictionaryConvertible? = nil, completion: @escaping (LCBooleanResult) -> Void) {
-        RESTClient.asynchronize({ self.requestShortMessage(mobilePhoneNumber: mobilePhoneNumber, templateName: templateName, variables: variables) }) { result in
-            completion(result)
-        }
+    public static func requestShortMessage(mobilePhoneNumber: String, templateName: String, variables: LCDictionaryConvertible? = nil, completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
+        let parameters = createRequestParameters(templateName: templateName, variables: variables)
+
+        return requestShortMessage(mobilePhoneNumber: mobilePhoneNumber, parameters: parameters, completionInBackground: { result in
+            mainQueueAsync {
+                completion(result)
+            }
+        })
     }
 
     /**
@@ -74,19 +99,11 @@ public final class LCSMSClient {
      - returns: The result of verification code request.
      */
     public static func requestVerificationCode(mobilePhoneNumber: String, applicationName: String? = nil, operation: String? = nil, timeToLive: UInt? = nil) -> LCBooleanResult {
-        var parameters: [String: AnyObject] = [:]
-
-        if let operation = operation {
-            parameters["op"] = operation as AnyObject?
+        return expect { fulfill in
+            requestVerificationCode(mobilePhoneNumber: mobilePhoneNumber, applicationName: applicationName, operation: operation, timeToLive: timeToLive, completionInBackground: { result in
+                fulfill(result)
+            })
         }
-        if let applicationName = applicationName {
-            parameters["name"] = applicationName as AnyObject?
-        }
-        if let timeToLive = timeToLive {
-            parameters["ttl"] = timeToLive as AnyObject?
-        }
-
-        return requestShortMessage(mobilePhoneNumber: mobilePhoneNumber, parameters: parameters)
     }
 
     /**
@@ -98,10 +115,33 @@ public final class LCSMSClient {
      - parameter timeToLive:        The time to live of short message, in minutes. Defaults to 10 minutes.
      - parameter completion:        The completion callback closure.
      */
-    public static func requestVerificationCode(mobilePhoneNumber: String, applicationName: String? = nil, operation: String? = nil, timeToLive: UInt? = nil, completion: @escaping (LCBooleanResult) -> Void) {
-        RESTClient.asynchronize({ self.requestVerificationCode(mobilePhoneNumber: mobilePhoneNumber) }) { result in
-            completion(result)
+    public static func requestVerificationCode(mobilePhoneNumber: String, applicationName: String? = nil, operation: String? = nil, timeToLive: UInt? = nil, completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
+        return requestVerificationCode(mobilePhoneNumber: mobilePhoneNumber, applicationName: applicationName, operation: operation, timeToLive: timeToLive, completionInBackground: { result in
+            mainQueueAsync {
+                completion(result)
+            }
+        })
+    }
+
+    @discardableResult
+    private static func requestVerificationCode(mobilePhoneNumber: String, applicationName: String? = nil, operation: String? = nil, timeToLive: UInt? = nil, completionInBackground completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
+        var parameters: [String: Any] = [:]
+
+        if let operation = operation {
+            parameters["op"] = operation
         }
+        if let applicationName = applicationName {
+            parameters["name"] = applicationName
+        }
+        if let timeToLive = timeToLive {
+            parameters["ttl"] = timeToLive
+        }
+
+        return requestShortMessage(mobilePhoneNumber: mobilePhoneNumber, parameters: parameters, completionInBackground: { result in
+            mainQueueAsync {
+                completion(result)
+            }
+        })
     }
 
     /**
@@ -112,9 +152,11 @@ public final class LCSMSClient {
      - returns: The result of verification code request.
      */
     public static func requestVoiceVerificationCode(mobilePhoneNumber: String) -> LCBooleanResult {
-        let parameters = ["smsType": "voice"]
-
-        return requestShortMessage(mobilePhoneNumber: mobilePhoneNumber, parameters: parameters)
+        return expect { fulfill in
+            requestVoiceVerificationCode(mobilePhoneNumber: mobilePhoneNumber, completionInBackground: { result in
+                fulfill(result)
+            })
+        }
     }
 
     /**
@@ -123,10 +165,23 @@ public final class LCSMSClient {
      - parameter mobilePhoneNumber: The mobile phone number where verification code will be sent to.
      - parameter completion:        The completion callback closure.
      */
-    public static func requestVoiceVerificationCode(mobilePhoneNumber: String, completion: @escaping (LCBooleanResult) -> Void) {
-        RESTClient.asynchronize({ self.requestVoiceVerificationCode(mobilePhoneNumber: mobilePhoneNumber) }) { result in
-            completion(result)
-        }
+    public static func requestVoiceVerificationCode(mobilePhoneNumber: String, completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
+        return requestVoiceVerificationCode(mobilePhoneNumber: mobilePhoneNumber, completionInBackground: { result in
+            mainQueueAsync {
+                completion(result)
+            }
+        })
+    }
+
+    @discardableResult
+    private static func requestVoiceVerificationCode(mobilePhoneNumber: String, completionInBackground completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
+        let parameters = ["smsType": "voice"]
+
+        return requestShortMessage(mobilePhoneNumber: mobilePhoneNumber, parameters: parameters, completionInBackground: { result in
+            mainQueueAsync {
+                completion(result)
+            }
+        })
     }
 
     /**
@@ -138,10 +193,11 @@ public final class LCSMSClient {
      - returns: The result of verification request.
      */
     public static func verifyMobilePhoneNumber(_ mobilePhoneNumber: String, verificationCode: String) -> LCBooleanResult {
-        let endpoint = "verifySmsCode/\(verificationCode)?mobilePhoneNumber=\(mobilePhoneNumber)"
-        let response = RESTClient.request(.post, endpoint)
-
-        return LCBooleanResult(response: response)
+        return expect { fulfill in
+            verifyMobilePhoneNumber(mobilePhoneNumber, verificationCode: verificationCode, completionInBackground: { result in
+                fulfill(result)
+            })
+        }
     }
 
     /**
@@ -151,9 +207,24 @@ public final class LCSMSClient {
      - parameter verificationCode:  The verification code.
      - parameter completion:        The completion callback closure.
      */
-    public static func verifyMobilePhoneNumber(_ mobilePhoneNumber: String, verificationCode: String, completion: @escaping (LCBooleanResult) -> Void) {
-        RESTClient.asynchronize({ self.verifyMobilePhoneNumber(mobilePhoneNumber, verificationCode: verificationCode) }) { result in
-            completion(result)
+    public static func verifyMobilePhoneNumber(_ mobilePhoneNumber: String, verificationCode: String, completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
+        return verifyMobilePhoneNumber(mobilePhoneNumber, verificationCode: verificationCode, completionInBackground: { result in
+            mainQueueAsync {
+                completion(result)
+            }
+        })
+    }
+
+    @discardableResult
+    private static func verifyMobilePhoneNumber(_ mobilePhoneNumber: String, verificationCode: String, completionInBackground completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
+        let verificationCode = verificationCode.urlPathEncoded
+        let mobilePhoneNumber = mobilePhoneNumber.urlQueryEncoded
+        let endpoint = "verifySmsCode/\(verificationCode)?mobilePhoneNumber=\(mobilePhoneNumber)"
+
+        let request = RESTClient.request(.post, endpoint) { response in
+            completion(LCBooleanResult(response: response))
         }
+
+        return request
     }
 }
