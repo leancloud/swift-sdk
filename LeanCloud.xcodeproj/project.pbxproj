@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1178D10F213F7B9600429131 /* APITestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1178D10E213F7B9600429131 /* APITestCase.swift */; };
 		11CD228B213545A1007E270A /* Application.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11CD228A213545A1007E270A /* Application.swift */; };
 		8334561C1CE589E500D42725 /* EngineTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8334561B1CE589E500D42725 /* EngineTestCase.swift */; };
 		8342FCC61C7B13A700C3CF15 /* LeanCloud.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8342FCBB1C7B13A700C3CF15 /* LeanCloud.framework */; };
@@ -115,6 +116,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		1178D10E213F7B9600429131 /* APITestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APITestCase.swift; sourceTree = "<group>"; };
 		11CD228A213545A1007E270A /* Application.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Application.swift; sourceTree = "<group>"; };
 		8334561B1CE589E500D42725 /* EngineTestCase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EngineTestCase.swift; sourceTree = "<group>"; };
 		8342FCBB1C7B13A700C3CF15 /* LeanCloud.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = LeanCloud.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -219,6 +221,7 @@
 			isa = PBXGroup;
 			children = (
 				83D5923D1CD88846007177C5 /* BridgingHeader.h */,
+				1178D10E213F7B9600429131 /* APITestCase.swift */,
 				8365CFA71D79849D006B856E /* TypeTestCase.swift */,
 				8342FCCA1C7B13A700C3CF15 /* BaseTestCase.swift */,
 				8334561B1CE589E500D42725 /* EngineTestCase.swift */,
@@ -529,6 +532,7 @@
 				8352B5231D2BAAE600531785 /* RelationTestCase.swift in Sources */,
 				83D0DE6F1CC7B3FF00FC204E /* QueryTestCase.swift in Sources */,
 				83BC11D61CDD76E900D7E7A6 /* ACLTestCase.swift in Sources */,
+				1178D10F213F7B9600429131 /* APITestCase.swift in Sources */,
 				8334561C1CE589E500D42725 /* EngineTestCase.swift in Sources */,
 				8365CFA81D79849D006B856E /* TypeTestCase.swift in Sources */,
 			);

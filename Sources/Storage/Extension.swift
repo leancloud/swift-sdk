@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import Alamofire
 
 precedencegroup UniqueAdd {
     associativity: left
@@ -158,6 +159,14 @@ extension String {
 
     var doubleQuoteEscapedString: String {
         return replacingOccurrences(of: "\"", with: "\\\"")
+    }
+
+    var urlPathEncoded: String {
+        return addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
+    }
+
+    var urlQueryEncoded: String {
+        return URLEncoding.queryString.escape(self)
     }
 }
 
