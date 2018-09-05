@@ -259,37 +259,6 @@ class RESTClient {
     static func log(request: Request) {
         Logger.shared.debug("\n\n\(request.lcDebugDescription)\n")
     }
-
-    /**
-     Creates a request to REST API and sends it synchronously.
-
-     - parameter method:     The HTTP Method.
-     - parameter endpoint:   The REST API endpoint.
-     - parameter parameters: The request parameters.
-     - parameter headers:    The request headers.
-
-     - returns: A response object.
-     */
-    static func request(
-        _ method: Method,
-        _ endpoint: String,
-        parameters: [String: AnyObject]? = nil,
-        headers: [String: String]? = nil)
-        -> LCResponse
-    {
-        var result: LCResponse!
-
-        let semaphore = DispatchSemaphore(value: 0)
-
-        _ = request(method, endpoint, parameters: parameters, headers: headers) { response in
-            result = response
-            semaphore.signal()
-        }
-
-        _ = semaphore.wait(timeout: DispatchTime.distantFuture)
-
-        return result
-    }
 }
 
 extension Request {
