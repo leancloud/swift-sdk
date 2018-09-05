@@ -74,12 +74,12 @@ class ObjectUpdater {
         do {
             requests = try createSaveBatchRequests(objects: objects)
         } catch let error {
-            return RESTClient.request(error: error, completionHandler: completion)
+            return RESTClient.default.request(error: error, completionHandler: completion)
         }
 
         let parameters = ["requests": requests]
 
-        let request = RESTClient.request(.post, "batch/save", parameters: parameters) { response in
+        let request = RESTClient.default.request(.post, "batch/save", parameters: parameters) { response in
             let result = LCBooleanResult(response: response)
 
             switch result {
@@ -128,7 +128,7 @@ class ObjectUpdater {
         let newbornOrphans = ObjectProfiler.deepestNewbornOrphans(objects)
 
         if newbornOrphans.isEmpty {
-            return RESTClient.request(object: .success) { result in
+            return RESTClient.default.request(object: .success) { result in
                 completion(result)
             }
         } else {
@@ -182,7 +182,7 @@ class ObjectUpdater {
 
             try ObjectProfiler.validateCircularReference(objects)
         } catch let error {
-            return RESTClient.request(
+            return RESTClient.default.request(
                 error: error,
                 completionHandler: completion)
         }
@@ -214,7 +214,7 @@ class ObjectUpdater {
      */
     static func delete(_ objects: [LCObject], completionInBackground completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
         if objects.isEmpty {
-            return RESTClient.request(object: .success) { result in
+            return RESTClient.default.request(object: .success) { result in
                 completion(result)
             }
         } else {
@@ -225,12 +225,12 @@ class ObjectUpdater {
                     try BatchRequest(object: object, method: .delete).jsonValue()
                 }
             } catch let error {
-                return RESTClient.request(error: error, completionHandler: completion)
+                return RESTClient.default.request(error: error, completionHandler: completion)
             }
 
             let parameters = ["requests": requests]
 
-            return RESTClient.request(.post, "batch", parameters: parameters) { response in
+            return RESTClient.default.request(.post, "batch", parameters: parameters) { response in
                 completion(LCBooleanResult(response: response))
             }
         }
@@ -308,7 +308,7 @@ class ObjectUpdater {
      */
     static func fetch(_ objects: [LCObject], completionInBackground completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
         if objects.isEmpty {
-            return RESTClient.request(object: .success) { result in
+            return RESTClient.default.request(object: .success) { result in
                 completion(result)
             }
         } else {
@@ -319,12 +319,12 @@ class ObjectUpdater {
                     try BatchRequest(object: object, method: .get).jsonValue()
                 }
             } catch let error {
-                return RESTClient.request(error: error, completionHandler: completion)
+                return RESTClient.default.request(error: error, completionHandler: completion)
             }
 
             let parameters = ["requests": requests]
 
-            return RESTClient.request(.post, "batch", parameters: parameters) { response in
+            return RESTClient.default.request(.post, "batch", parameters: parameters) { response in
                 var result = LCBooleanResult(response: response)
 
                 switch result {

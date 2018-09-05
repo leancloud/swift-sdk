@@ -53,42 +53,65 @@ class RESTClient {
         static let accept     = "Accept"
     }
 
-    /// REST API version.
-    static let apiVersion = "1.1"
+    /**
+     RESTClient configuration.
+     */
+    struct Configuration {
 
-    /// Default timeout interval of each request.
-    static let defaultTimeoutInterval: TimeInterval = NSURLRequest().timeoutInterval
+        let apiVersion: String
 
-    /// REST client shared instance.
-    static let sharedInstance = RESTClient()
+        /// Default timeout interval for request. If not given, defaults to 60 seconds.
+        let defaultTimeoutInterval: TimeInterval?
 
-    /// Default completion dispatch queue.
-    static let defaultCompletionDispatchQueue = DispatchQueue(label: "LeanCloud.RESTClient.Completion", attributes: .concurrent)
+        let userAgent: String
 
-    /// Shared session manager.
-    static var requestManager: Alamofire.SessionManager = {
-        let configuration = URLSessionConfiguration.default
-        configuration.timeoutIntervalForRequest = defaultTimeoutInterval
-        return SessionManager(configuration: configuration)
+        static let `default` = Configuration(
+            apiVersion: "1.1",
+            defaultTimeoutInterval: nil,
+            userAgent: "LeanCloud-Swift-SDK/\(LeanCloud.version)")
+
+    }
+
+    static let `default` = RESTClient(application: .default, configuration: .default)
+
+    let application: LCApplication
+
+    let configuration: Configuration
+
+    init(application: LCApplication, configuration: Configuration) {
+        self.application = application
+        self.configuration = configuration
+    }
+
+    lazy var sessionManager: SessionManager = {
+        let sessionConfiguration = URLSessionConfiguration.default
+
+        if let defaultTimeoutInterval = configuration.defaultTimeoutInterval {
+            sessionConfiguration.timeoutIntervalForRequest = defaultTimeoutInterval
+        }
+
+        let sessionManager = SessionManager(configuration: sessionConfiguration)
+
+        return sessionManager
     }()
 
-    /// User agent of SDK.
-    static let userAgent = "LeanCloud-Swift-SDK/\(version)"
+    /// Default completion dispatch queue.
+    let defaultCompletionDispatchQueue = DispatchQueue(label: "LeanCloud.RESTClient.Completion", attributes: .concurrent)
 
-    /// Signature of each request.
-    static var signature: String {
+    /// Create a signature for request.
+    func createRequestSignature() -> String {
         let timestamp = String(format: "%.0f", 1000 * Date().timeIntervalSince1970)
-        let hash = (timestamp + LCApplication.default.key).md5String.lowercased()
+        let hash = (timestamp + application.key).md5String.lowercased()
 
         return "\(hash),\(timestamp)"
     }
 
     /// Common REST request headers.
-    static var commonHeaders: [String: String] {
+    func createCommonHeaders() -> [String: String] {
         var headers: [String: String] = [
-            HeaderFieldName.id:        LCApplication.default.id,
-            HeaderFieldName.signature: self.signature,
-            HeaderFieldName.userAgent: self.userAgent,
+            HeaderFieldName.id:        application.id,
+            HeaderFieldName.signature: createRequestSignature(),
+            HeaderFieldName.userAgent: configuration.userAgent,
             HeaderFieldName.accept:    "application/json"
         ]
 
@@ -100,47 +123,21 @@ class RESTClient {
     }
 
     /// REST host for current service region.
-    static var host: String {
-        switch LCApplication.default.region {
+    var host: String {
+        switch application.region {
         case .cn: return "api.leancloud.cn"
         case .us: return "us-api.leancloud.cn"
         }
     }
 
     /**
-     Get endpoint of object.
+     Get endpoint of class name.
 
-     - parameter object: The object from which you want to get the endpoint.
+     - parameter className: The object class name.
 
-     - returns: The endpoint of object.
+     - returns: The endpoint of class name.
      */
-    static func endpoint(_ object: LCObject) -> String {
-        return endpoint(object.actualClassName)
-    }
-
-    /**
-     Get eigen endpoint of object.
-
-     - parameter object: The object from which you want to get the eigen endpoint.
-
-     - returns: The eigen endpoint of object.
-     */
-    static func eigenEndpoint(_ object: LCObject) -> String? {
-        guard let objectId = object.objectId else {
-            return nil
-        }
-
-        return "\(endpoint(object))/\(objectId.value)"
-    }
-
-    /**
-     Get endpoint for class name.
-
-     - parameter className: The class name.
-
-     - returns: The endpoint for class name.
-     */
-    static func endpoint(_ className: String) -> String {
+    func getClassEndpoint(className: String) -> String {
         switch className {
         case LCUser.objectClassName():
             return "users"
@@ -152,14 +149,68 @@ class RESTClient {
     }
 
     /**
+     Get class endpoint of object.
+
+     - parameter object: The object from which you want to get the endpoint.
+
+     - returns: The class endpoint of object.
+     */
+    func getClassEndpoint(object: LCObject) -> String {
+        return getClassEndpoint(className: object.actualClassName)
+    }
+
+    /**
+     Get endpoint for object.
+
+     - parameter object: The object which the request will access.
+
+     - returns: The endpoint for object.
+     */
+    func getObjectEndpoint(object: LCObject) -> String? {
+        guard let objectId = object.objectId else {
+            return nil
+        }
+
+        let classEndpoint = getClassEndpoint(object: object)
+
+        return "\(classEndpoint)/\(objectId.value)"
+    }
+
+    /**
+     Get versioned path for object and method.
+
+     - parameter object: The object which the request will access.
+     - parameter method: The HTTP method.
+
+     - returns: A path with API version.
+     */
+    func getBatchRequestPath(object: LCObject, method: Method) throws -> String {
+        var endpoint: String
+
+        switch method {
+        case .get, .put, .delete:
+            guard let objectEndpoint = getObjectEndpoint(object: object) else {
+                throw LCError(code: .notFound, reason: "Cannot access object before save.")
+            }
+            endpoint = objectEndpoint
+        case .post:
+            endpoint = getClassEndpoint(object: object)
+        }
+
+        let apiVersion = configuration.apiVersion
+
+        return "/\(apiVersion)/\(endpoint)"
+    }
+
+    /**
      Get absolute REST API URL string for endpoint.
 
      - parameter endpoint: The REST API endpoint.
 
      - returns: An absolute REST API URL string.
      */
-    static func absoluteURLString(_ endpoint: String) -> String {
-        return "https://\(self.host)/\(self.apiVersion)/\(endpoint)"
+    func absoluteURLString(_ endpoint: String) -> String {
+        return "https://\(self.host)/\(configuration.apiVersion)/\(endpoint)"
     }
 
     /**
@@ -171,8 +222,8 @@ class RESTClient {
 
      - returns: The merged headers.
      */
-    static func mergeCommonHeaders(_ headers: [String: String]?) -> [String: String] {
-        var result = commonHeaders
+    func mergeCommonHeaders(_ headers: [String: String]?) -> [String: String] {
+        var result = createCommonHeaders()
 
         headers?.forEach { (key, value) in result[key] = value }
 
@@ -191,12 +242,12 @@ class RESTClient {
 
      - returns: A request object.
      */
-    static func request(
+    func request(
         _ method: Method,
         _ endpoint: String,
         parameters: [String: Any]? = nil,
         headers: [String: String]? = nil,
-        completionDispatchQueue: DispatchQueue = defaultCompletionDispatchQueue,
+        completionDispatchQueue: DispatchQueue? = nil,
         completionHandler: @escaping (LCResponse) -> Void)
         -> LCRequest
     {
@@ -210,11 +261,13 @@ class RESTClient {
         default:   encoding = JSONEncoding.default
         }
 
-        let request = requestManager.request(urlString, method: method, parameters: parameters, encoding: encoding, headers: headers).validate()
+        let request = sessionManager.request(urlString, method: method, parameters: parameters, encoding: encoding, headers: headers).validate()
         log(request: request)
 
+        let completionDispatchQueue = completionDispatchQueue ?? defaultCompletionDispatchQueue
+
         request.responseJSON(queue: completionDispatchQueue) { response in
-            log(response: response, request: request)
+            self.log(response: response, request: request)
             completionHandler(LCResponse(response: response))
         }
 
@@ -230,9 +283,9 @@ class RESTClient {
 
      - returns: A request object.
      */
-    static func request(
+    func request(
         error: Error,
-        completionDispatchQueue: DispatchQueue = defaultCompletionDispatchQueue,
+        completionDispatchQueue: DispatchQueue? = nil,
         completionHandler: @escaping (LCBooleanResult) -> Void) -> LCRequest
     {
         return request(object: error, completionDispatchQueue: completionDispatchQueue) { error in
@@ -240,11 +293,13 @@ class RESTClient {
         }
     }
 
-    static func request<T>(
+    func request<T>(
         object: T,
-        completionDispatchQueue: DispatchQueue = defaultCompletionDispatchQueue,
+        completionDispatchQueue: DispatchQueue? = nil,
         completionHandler: @escaping (T) -> Void) -> LCRequest
     {
+        let completionDispatchQueue = completionDispatchQueue ?? defaultCompletionDispatchQueue
+
         completionDispatchQueue.async {
             completionHandler(object)
         }
@@ -252,11 +307,11 @@ class RESTClient {
         return LCSingleRequest(request: nil)
     }
 
-    static func log(response: DataResponse<Any>, request: Request) {
+    func log(response: DataResponse<Any>, request: Request) {
         Logger.shared.debug("\n\n\(response.lcDebugDescription(request))\n")
     }
 
-    static func log(request: Request) {
+    func log(request: Request) {
         Logger.shared.debug("\n\n\(request.lcDebugDescription)\n")
     }
 }

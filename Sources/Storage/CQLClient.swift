@@ -114,7 +114,7 @@ public final class LCCQLClient {
     @discardableResult
     private static func execute(_ cql: String, parameters: LCArrayConvertible? = nil, completionInBackground completion: @escaping (LCCQLResult) -> Void) -> LCRequest {
         let parameters = self.parameters(cql, parameters: parameters)
-        let request = RESTClient.request(.get, endpoint, parameters: parameters) { response in
+        let request = RESTClient.default.request(.get, endpoint, parameters: parameters) { response in
             let result = LCCQLResult(response: response)
             completion(result)
         }
