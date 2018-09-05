@@ -74,7 +74,7 @@ public enum LCValueResult<T: LCValue>: LCResultType {
                 let objectClass = T.self as? LCObject.Type,
                 var dictionary = jsonValue as? [String: Any]
             {
-                dictionary["__type"]    = RESTClient.DataType.object.rawValue
+                dictionary["__type"]    = HTTPClient.DataType.object.rawValue
                 dictionary["className"] = objectClass.objectClassName()
 
                 jsonValue = dictionary as AnyObject

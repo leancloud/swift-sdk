@@ -1,5 +1,5 @@
 //
-//  RESTClient.swift
+//  HTTPClient.swift
 //  LeanCloud
 //
 //  Created by Tang Tianyong on 3/30/16.
@@ -14,7 +14,7 @@ import Alamofire
 
  This class manages requests for LeanCloud REST API.
  */
-class RESTClient {
+class HTTPClient {
     /// HTTP Method.
     enum Method: String {
         case get
@@ -54,7 +54,7 @@ class RESTClient {
     }
 
     /**
-     RESTClient configuration.
+     HTTPClient configuration.
      */
     struct Configuration {
 
@@ -72,7 +72,7 @@ class RESTClient {
 
     }
 
-    static let `default` = RESTClient(application: .default, configuration: .default)
+    static let `default` = HTTPClient(application: .default, configuration: .default)
 
     let application: LCApplication
 
@@ -96,7 +96,7 @@ class RESTClient {
     }()
 
     /// Default completion dispatch queue.
-    let defaultCompletionDispatchQueue = DispatchQueue(label: "LeanCloud.RESTClient.Completion", attributes: .concurrent)
+    let defaultCompletionDispatchQueue = DispatchQueue(label: "LeanCloud.HTTPClient.Completion", attributes: .concurrent)
 
     /// Create a signature for request.
     func createRequestSignature() -> String {

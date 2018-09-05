@@ -48,10 +48,10 @@ public final class LCRelation: NSObject, LCValue, LCValueExtension, Sequence {
         guard let type = dictionary["__type"] as? String else {
             return nil
         }
-        guard let dataType = RESTClient.DataType(rawValue: type) else {
+        guard let dataType = HTTPClient.DataType(rawValue: type) else {
             return nil
         }
-        guard case dataType = RESTClient.DataType.relation else {
+        guard case dataType = HTTPClient.DataType.relation else {
             return nil
         }
 

@@ -236,7 +236,7 @@ open class LCUser: LCObject {
      */
     @discardableResult
     private static func logIn<User: LCUser>(parameters: [String: Any], completionInBackground completion: @escaping (LCValueResult<User>) -> Void) -> LCRequest {
-        let request = RESTClient.default.request(.post, "login", parameters: parameters) { response in
+        let request = HTTPClient.default.request(.post, "login", parameters: parameters) { response in
             let result = LCValueResult<User>(response: response)
 
             switch result {
@@ -292,12 +292,12 @@ open class LCUser: LCObject {
     @discardableResult
     private static func logIn<User: LCUser>(sessionToken: String, completionInBackground completion: @escaping (LCValueResult<User>) -> Void) -> LCRequest {
         let className = objectClassName()
-        let classEndpoint = RESTClient.default.getClassEndpoint(className: className)
+        let classEndpoint = HTTPClient.default.getClassEndpoint(className: className)
 
         let endpoint = "\(classEndpoint)/me"
         let parameters = ["session_token": sessionToken]
 
-        let request = RESTClient.default.request(.get, endpoint, parameters: parameters) { response in
+        let request = HTTPClient.default.request(.get, endpoint, parameters: parameters) { response in
             let result = LCValueResult<User>(response: response)
 
             switch result {
@@ -353,7 +353,7 @@ open class LCUser: LCObject {
             "mobilePhoneNumber": mobilePhoneNumber
         ]
 
-        let request = RESTClient.default.request(.post, "usersByMobilePhone", parameters: parameters) { response in
+        let request = HTTPClient.default.request(.post, "usersByMobilePhone", parameters: parameters) { response in
             let result = LCValueResult<User>(response: response)
 
             switch result {
@@ -410,7 +410,7 @@ open class LCUser: LCObject {
     @discardableResult
     private static func requestVerificationMail(email: String, completionInBackground completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
         let parameters = ["email": email]
-        let request = RESTClient.default.request(.post, "requestEmailVerify", parameters: parameters) { response in
+        let request = HTTPClient.default.request(.post, "requestEmailVerify", parameters: parameters) { response in
             completion(LCBooleanResult(response: response))
         }
         return request
@@ -450,7 +450,7 @@ open class LCUser: LCObject {
     @discardableResult
     private static func requestVerificationCode(mobilePhoneNumber: String, completionInBackground completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
         let parameters = ["mobilePhoneNumber": mobilePhoneNumber]
-        let request = RESTClient.default.request(.post, "requestMobilePhoneVerify", parameters: parameters) { response in
+        let request = HTTPClient.default.request(.post, "requestMobilePhoneVerify", parameters: parameters) { response in
             completion(LCBooleanResult(response: response))
         }
         return request
@@ -492,7 +492,7 @@ open class LCUser: LCObject {
     @discardableResult
     private static func verifyMobilePhoneNumber(_ mobilePhoneNumber: String, verificationCode: String, completionInBackground completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
         let parameters = ["mobilePhoneNumber": mobilePhoneNumber]
-        let request = RESTClient.default.request(.get, "verifyMobilePhone/\(verificationCode)", parameters: parameters) { response in
+        let request = HTTPClient.default.request(.get, "verifyMobilePhone/\(verificationCode)", parameters: parameters) { response in
             completion(LCBooleanResult(response: response))
         }
         return request
@@ -532,7 +532,7 @@ open class LCUser: LCObject {
     @discardableResult
     private static func requestLoginVerificationCode(mobilePhoneNumber: String, completionInBackground completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
         let parameters = ["mobilePhoneNumber": mobilePhoneNumber]
-        let request = RESTClient.default.request(.post, "requestLoginSmsCode", parameters: parameters) { response in
+        let request = HTTPClient.default.request(.post, "requestLoginSmsCode", parameters: parameters) { response in
             completion(LCBooleanResult(response: response))
         }
 
@@ -573,7 +573,7 @@ open class LCUser: LCObject {
     @discardableResult
     private static func requestPasswordReset(email: String, completionInBackground completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
         let parameters = ["email": email]
-        let request = RESTClient.default.request(.post, "requestPasswordReset", parameters: parameters) { response in
+        let request = HTTPClient.default.request(.post, "requestPasswordReset", parameters: parameters) { response in
             completion(LCBooleanResult(response: response))
         }
 
@@ -614,7 +614,7 @@ open class LCUser: LCObject {
     @discardableResult
     private static func requestPasswordReset(mobilePhoneNumber: String, completionInBackground completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
         let parameters = ["mobilePhoneNumber": mobilePhoneNumber]
-        let request = RESTClient.default.request(.post, "requestPasswordResetBySmsCode", parameters: parameters) { response in
+        let request = HTTPClient.default.request(.post, "requestPasswordResetBySmsCode", parameters: parameters) { response in
             completion(LCBooleanResult(response: response))
         }
 
@@ -667,7 +667,7 @@ open class LCUser: LCObject {
             "password": newPassword,
             "mobilePhoneNumber": mobilePhoneNumber
         ]
-        let request = RESTClient.default.request(.put, "resetPasswordBySmsCode/\(verificationCode)", parameters: parameters) { response in
+        let request = HTTPClient.default.request(.put, "resetPasswordBySmsCode/\(verificationCode)", parameters: parameters) { response in
             completion(LCBooleanResult(response: response))
         }
 
@@ -709,13 +709,13 @@ open class LCUser: LCObject {
 
     @discardableResult
     private func updatePassword(oldPassword: String, newPassword: String, completionInBackground completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
-        guard let endpoint = RESTClient.default.getObjectEndpoint(object: self) else {
-            return RESTClient.default.request(
+        guard let endpoint = HTTPClient.default.getObjectEndpoint(object: self) else {
+            return HTTPClient.default.request(
                 error: LCError(code: .notFound, reason: "User not found."),
                 completionHandler: completion)
         }
         guard let sessionToken = sessionToken else {
-            return RESTClient.default.request(
+            return HTTPClient.default.request(
                 error: LCError(code: .notFound, reason: "Session token not found."),
                 completionHandler: completion)
         }
@@ -724,9 +724,9 @@ open class LCUser: LCObject {
             "old_password": oldPassword,
             "new_password": newPassword
         ]
-        let headers = [RESTClient.HeaderFieldName.session: sessionToken.value]
+        let headers = [HTTPClient.HeaderFieldName.session: sessionToken.value]
 
-        let request = RESTClient.default.request(.put, "\(endpoint)/updatePassword", parameters: parameters, headers: headers) { response in
+        let request = HTTPClient.default.request(.put, "\(endpoint)/updatePassword", parameters: parameters, headers: headers) { response in
             if let error = response.error {
                 completion(.failure(error: error))
             } else {

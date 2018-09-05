@@ -56,10 +56,10 @@ public final class LCDate: NSObject, LCValue, LCValueExtension {
         guard let type = dictionary["__type"] as? String else {
             return nil
         }
-        guard let dataType = RESTClient.DataType(rawValue: type) else {
+        guard let dataType = HTTPClient.DataType(rawValue: type) else {
             return nil
         }
-        guard case dataType = RESTClient.DataType.date else {
+        guard case dataType = HTTPClient.DataType.date else {
             return nil
         }
         guard let ISOString = dictionary["iso"] as? String else {

@@ -42,7 +42,7 @@
 		835F5D801D7E6808004D1A0E /* Query.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D5D1D7E6808004D1A0E /* Query.swift */; };
 		835F5D811D7E6808004D1A0E /* Request.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D5E1D7E6808004D1A0E /* Request.swift */; };
 		835F5D821D7E6808004D1A0E /* Response.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D5F1D7E6808004D1A0E /* Response.swift */; };
-		835F5D831D7E6808004D1A0E /* RESTClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D601D7E6808004D1A0E /* RESTClient.swift */; };
+		835F5D831D7E6808004D1A0E /* HTTPClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D601D7E6808004D1A0E /* HTTPClient.swift */; };
 		835F5D841D7E6808004D1A0E /* Result.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D611D7E6808004D1A0E /* Result.swift */; };
 		835F5D851D7E6808004D1A0E /* Runtime.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D621D7E6808004D1A0E /* Runtime.swift */; };
 		835F5D861D7E6808004D1A0E /* SMSClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D631D7E6808004D1A0E /* SMSClient.swift */; };
@@ -154,7 +154,7 @@
 		835F5D5D1D7E6808004D1A0E /* Query.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Query.swift; sourceTree = "<group>"; };
 		835F5D5E1D7E6808004D1A0E /* Request.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Request.swift; sourceTree = "<group>"; };
 		835F5D5F1D7E6808004D1A0E /* Response.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Response.swift; sourceTree = "<group>"; };
-		835F5D601D7E6808004D1A0E /* RESTClient.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RESTClient.swift; sourceTree = "<group>"; };
+		835F5D601D7E6808004D1A0E /* HTTPClient.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HTTPClient.swift; sourceTree = "<group>"; };
 		835F5D611D7E6808004D1A0E /* Result.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Result.swift; sourceTree = "<group>"; };
 		835F5D621D7E6808004D1A0E /* Runtime.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Runtime.swift; sourceTree = "<group>"; };
 		835F5D631D7E6808004D1A0E /* SMSClient.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SMSClient.swift; sourceTree = "<group>"; };
@@ -256,7 +256,7 @@
 				835F5D621D7E6808004D1A0E /* Runtime.swift */,
 				835F5D641D7E6808004D1A0E /* Utility.swift */,
 				83B4DB221DB8618A00E36067 /* Logger.swift */,
-				835F5D601D7E6808004D1A0E /* RESTClient.swift */,
+				835F5D601D7E6808004D1A0E /* HTTPClient.swift */,
 				835F5D5C1D7E6808004D1A0E /* Operation.swift */,
 				835F5D5A1D7E6808004D1A0E /* ObjectProfiler.swift */,
 				835F5D5B1D7E6808004D1A0E /* ObjectUpdater.swift */,
@@ -512,7 +512,7 @@
 				83B4DB231DB8618A00E36067 /* Logger.swift in Sources */,
 				835F5D861D7E6808004D1A0E /* SMSClient.swift in Sources */,
 				835F5D7E1D7E6808004D1A0E /* ObjectUpdater.swift in Sources */,
-				835F5D831D7E6808004D1A0E /* RESTClient.swift in Sources */,
+				835F5D831D7E6808004D1A0E /* HTTPClient.swift in Sources */,
 				835F5D801D7E6808004D1A0E /* Query.swift in Sources */,
 				835F5D6B1D7E6808004D1A0E /* Bool.swift in Sources */,
 				835F5D751D7E6808004D1A0E /* String.swift in Sources */,

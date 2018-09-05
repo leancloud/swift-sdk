@@ -31,7 +31,7 @@ class APITestCase: BaseTestCase {
 
         dispatchGroup.enter()
 
-        let request = RESTClient.default.request(.get, "ping") { response in
+        let request = HTTPClient.default.request(.get, "ping") { response in
             XCTAssertEqual(response.error?._code, NSURLErrorCancelled)
             dispatchGroup.leave()
         }

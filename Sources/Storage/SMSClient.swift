@@ -36,7 +36,7 @@ public final class LCSMSClient {
 
         parameters["mobilePhoneNumber"] = LCString(mobilePhoneNumber)
 
-        let request = RESTClient.default.request(.post, "requestSmsCode", parameters: parameters.lconValue as? [String: AnyObject]) { response in
+        let request = HTTPClient.default.request(.post, "requestSmsCode", parameters: parameters.lconValue as? [String: AnyObject]) { response in
             completion(LCBooleanResult(response: response))
         }
 
@@ -221,7 +221,7 @@ public final class LCSMSClient {
         let mobilePhoneNumber = mobilePhoneNumber.urlQueryEncoded
         let endpoint = "verifySmsCode/\(verificationCode)?mobilePhoneNumber=\(mobilePhoneNumber)"
 
-        let request = RESTClient.default.request(.post, endpoint) { response in
+        let request = HTTPClient.default.request(.post, endpoint) { response in
             completion(LCBooleanResult(response: response))
         }
 
