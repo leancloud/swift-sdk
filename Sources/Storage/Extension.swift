@@ -168,6 +168,14 @@ extension String {
     var urlQueryEncoded: String {
         return URLEncoding.queryString.escape(self)
     }
+
+    func appendingPathComponent(_ component: String) -> String {
+        return (self as NSString).appendingPathComponent(component)
+    }
+
+    func prefix(upTo end: Int) -> String {
+        return String(prefix(upTo: index(startIndex, offsetBy: end)))
+    }
 }
 
 extension Collection {
@@ -189,6 +197,22 @@ extension Collection {
 
         return result
     }
+}
+
+/**
+ Synchronize on an object and do something.
+
+ - parameter object: The object locked on.
+ - parameter body: Something you want to do.
+
+ - returns: Result of body.
+ */
+func synchronize<T>(on object: Any, body: () throws -> T) rethrows -> T {
+    objc_sync_enter(object)
+
+    defer { objc_sync_exit(object) }
+
+    return try body()
 }
 
 /**

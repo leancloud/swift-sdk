@@ -45,4 +45,13 @@ class Logger {
     {
         log(.debug, value, file, function, line)
     }
+
+    func error<T>(
+        _ value: @autoclosure () -> T,
+        _ file: String = #file,
+        _ function: String = #function,
+        _ line: Int = #line)
+    {
+        log(.error, value, file, function, line)
+    }
 }

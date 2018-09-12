@@ -58,17 +58,14 @@ class HTTPClient {
      */
     struct Configuration {
 
-        let apiVersion: String
+        let userAgent: String
 
         /// Default timeout interval for request. If not given, defaults to 60 seconds.
         let defaultTimeoutInterval: TimeInterval?
 
-        let userAgent: String
-
         static let `default` = Configuration(
-            apiVersion: "1.1",
-            defaultTimeoutInterval: nil,
-            userAgent: "LeanCloud-Swift-SDK/\(LeanCloud.version)")
+            userAgent: "LeanCloud-Swift-SDK/\(LeanCloud.version)",
+            defaultTimeoutInterval: nil)
 
     }
 
@@ -82,6 +79,8 @@ class HTTPClient {
         self.application = application
         self.configuration = configuration
     }
+
+    lazy var router = HTTPRouter(application: application, configuration: .default)
 
     lazy var sessionManager: SessionManager = {
         let sessionConfiguration = URLSessionConfiguration.default
@@ -120,14 +119,6 @@ class HTTPClient {
         }
 
         return headers
-    }
-
-    /// REST host for current service region.
-    var host: String {
-        switch application.region {
-        case .cn: return "api.leancloud.cn"
-        case .us: return "us-api.leancloud.cn"
-        }
     }
 
     /**
@@ -185,32 +176,19 @@ class HTTPClient {
      - returns: A path with API version.
      */
     func getBatchRequestPath(object: LCObject, method: Method) throws -> String {
-        var endpoint: String
+        var path: String
 
         switch method {
         case .get, .put, .delete:
             guard let objectEndpoint = getObjectEndpoint(object: object) else {
                 throw LCError(code: .notFound, reason: "Cannot access object before save.")
             }
-            endpoint = objectEndpoint
+            path = objectEndpoint
         case .post:
-            endpoint = getClassEndpoint(object: object)
+            path = getClassEndpoint(object: object)
         }
 
-        let apiVersion = configuration.apiVersion
-
-        return "/\(apiVersion)/\(endpoint)"
-    }
-
-    /**
-     Get absolute REST API URL string for endpoint.
-
-     - parameter endpoint: The REST API endpoint.
-
-     - returns: An absolute REST API URL string.
-     */
-    func absoluteURLString(_ endpoint: String) -> String {
-        return "https://\(self.host)/\(configuration.apiVersion)/\(endpoint)"
+        return router.batchRequestPath(for: path)
     }
 
     /**
@@ -234,7 +212,7 @@ class HTTPClient {
      Creates a request to REST API and sends it asynchronously.
 
      - parameter method:                    The HTTP Method.
-     - parameter endpoint:                  The REST API endpoint.
+     - parameter path:                      The REST API path.
      - parameter parameters:                The request parameters.
      - parameter headers:                   The request headers.
      - parameter completionDispatchQueue:   The dispatch queue in which the completion handler will be called. By default, it's a concurrent queue.
@@ -244,7 +222,65 @@ class HTTPClient {
      */
     func request(
         _ method: Method,
-        _ endpoint: String,
+        _ path: String,
+        parameters: [String: Any]? = nil,
+        headers: [String: String]? = nil,
+        completionDispatchQueue: DispatchQueue? = nil,
+        completionHandler: @escaping (LCResponse) -> Void)
+        -> LCRequest
+    {
+        let completionDispatchQueue = (
+            completionDispatchQueue ??
+            defaultCompletionDispatchQueue)
+
+        guard let url = router.route(path: path) else {
+            let error = LCError(code: .notFound, reason: "URL not found.")
+
+            let response = LCResponse(response: DataResponse<Any>(
+                request: nil, response: nil, data: nil, result: .failure(error)))
+
+            completionDispatchQueue.sync {
+                completionHandler(response)
+            }
+
+            return LCSingleRequest(request: nil)
+        }
+
+        let method    = method.alamofireMethod
+        let headers   = mergeCommonHeaders(headers)
+        var encoding: ParameterEncoding
+
+        switch method {
+        case .get: encoding = URLEncoding.default
+        default:   encoding = JSONEncoding.default
+        }
+
+        let request = sessionManager.request(url, method: method, parameters: parameters, encoding: encoding, headers: headers).validate()
+        log(request: request)
+
+        request.responseJSON(queue: completionDispatchQueue) { response in
+            self.log(response: response, request: request)
+            completionHandler(LCResponse(response: response))
+        }
+
+        return LCSingleRequest(request: request)
+    }
+
+    /**
+     Creates a request to REST API and sends it asynchronously.
+
+     - parameter url:                       The absolute URL.
+     - parameter method:                    The HTTP Method.
+     - parameter parameters:                The request parameters.
+     - parameter headers:                   The request headers.
+     - parameter completionDispatchQueue:   The dispatch queue in which the completion handler will be called. By default, it's a concurrent queue.
+     - parameter completionHandler:         The completion callback closure.
+
+     - returns: A request object.
+     */
+    func request(
+        url: URL,
+        method: Method,
         parameters: [String: Any]? = nil,
         headers: [String: String]? = nil,
         completionDispatchQueue: DispatchQueue? = nil,
@@ -252,7 +288,6 @@ class HTTPClient {
         -> LCRequest
     {
         let method    = method.alamofireMethod
-        let urlString = absoluteURLString(endpoint)
         let headers   = mergeCommonHeaders(headers)
         var encoding: ParameterEncoding!
 
@@ -261,7 +296,7 @@ class HTTPClient {
         default:   encoding = JSONEncoding.default
         }
 
-        let request = sessionManager.request(urlString, method: method, parameters: parameters, encoding: encoding, headers: headers).validate()
+        let request = sessionManager.request(url, method: method, parameters: parameters, encoding: encoding, headers: headers).validate()
         log(request: request)
 
         let completionDispatchQueue = completionDispatchQueue ?? defaultCompletionDispatchQueue
@@ -287,6 +322,25 @@ class HTTPClient {
         error: Error,
         completionDispatchQueue: DispatchQueue? = nil,
         completionHandler: @escaping (LCBooleanResult) -> Void) -> LCRequest
+    {
+        return request(object: error, completionDispatchQueue: completionDispatchQueue) { error in
+            completionHandler(.failure(error: error))
+        }
+    }
+
+    /**
+     Create request for error.
+
+     - parameter error:                     The error object.
+     - parameter completionDispatchQueue:   The dispatch queue in which the completion handler will be called. By default, it's a concurrent queue.
+     - parameter completionHandler:         The completion callback closure.
+
+     - returns: A request object.
+     */
+    func request<T>(
+        error: Error,
+        completionDispatchQueue: DispatchQueue? = nil,
+        completionHandler: @escaping (LCValueResult<T>) -> Void) -> LCRequest
     {
         return request(object: error, completionDispatchQueue: completionDispatchQueue) { error in
             completionHandler(.failure(error: error))

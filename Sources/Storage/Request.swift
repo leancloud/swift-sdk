@@ -12,7 +12,7 @@ import Alamofire
 /**
  This type represents HTTP request.
  */
-public class LCRequest {
+public class LCRequest: NSObject {
 
     /**
      Request states.
@@ -30,6 +30,11 @@ public class LCRequest {
     var state: State = .resumed
 
     private let lock = NSRecursiveLock()
+
+    /* Override initializer to make it internal. */
+    override init() {
+        /* Nop */
+    }
 
     func perform(body: () -> Void) {
         lock.lock()

@@ -92,6 +92,17 @@ public final class LCDictionary: NSObject, LCValue, LCValueExtension, Collection
         }
     }
 
+    /**
+     Removes the given key and its associated value from dictionary.
+
+     - parameter key: The key to remove along with its associated value.
+
+     - returns: The value that was removed, or `nil` if the key was not found.
+     */
+    public func removeValue(forKey key: Key) -> Value? {
+        return value.removeValue(forKey: key)
+    }
+
     func set(_ key: String, _ value: LCValue?) {
         self.value[key] = value
     }
