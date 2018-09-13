@@ -23,7 +23,39 @@ public final class LCApplication {
     enum Region {
 
         case cn
+        case ce
         case us
+
+        private enum Suffix: String {
+
+            case cn = "-gzGzoHsz"
+            case ce = "-9Nh9j0Va"
+            case us = "-MdYXbMMI"
+
+        }
+
+        init(id: String) {
+            if id.hasSuffix(Suffix.cn.rawValue) {
+                self = .cn
+            } else if id.hasSuffix(Suffix.ce.rawValue) {
+                self = .ce
+            } else if id.hasSuffix(Suffix.us.rawValue) {
+                self = .us
+            } else { /* Old application of cn region may have no suffix. */
+                self = .cn
+            }
+        }
+
+        var domain: String {
+            switch self {
+            case .cn:
+                return "lncld.net"
+            case .ce:
+                return "lncldapi.com"
+            case .us:
+                return "lncldglobal.com"
+            }
+        }
 
     }
 
@@ -36,6 +68,7 @@ public final class LCApplication {
 
         case off
         case debug
+        case error
         case all
 
         public static func < (lhs: LogLevel, rhs: LogLevel) -> Bool {
@@ -52,7 +85,7 @@ public final class LCApplication {
 
     /// Application region.
     var region: Region {
-        return id.hasSuffix("-MdYXbMMI") ? .us : .cn
+        return Region(id: id)
     }
 
     /// Application log level.
@@ -65,8 +98,26 @@ public final class LCApplication {
      */
     public static let `default` = LCApplication()
 
-    private init() {
+    /**
+     Create an application.
+
+     - note: We make initializer internal before multi-applicaiton is supported.
+     */
+    init() {
         type(of: self).initialization
+    }
+
+    /**
+     Create an application with id and key.
+
+     - parameter id: Application ID.
+     - parameter key: Application key.
+
+     - note: We make initializer internal before multi-applicaiton is supported.
+     */
+    init(id: String, key: String) {
+        self.id = id
+        self.key = key
     }
 
     private static let initialization: Void = {

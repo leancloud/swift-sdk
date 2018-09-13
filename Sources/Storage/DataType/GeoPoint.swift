@@ -47,10 +47,10 @@ public final class LCGeoPoint: NSObject, LCValue, LCValueExtension {
         guard let type = dictionary["__type"] as? String else {
             return nil
         }
-        guard let dataType = RESTClient.DataType(rawValue: type) else {
+        guard let dataType = HTTPClient.DataType(rawValue: type) else {
             return nil
         }
-        guard case dataType = RESTClient.DataType.geoPoint else {
+        guard case dataType = HTTPClient.DataType.geoPoint else {
             return nil
         }
         guard let latitude = dictionary["latitude"] as? Double else {

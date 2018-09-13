@@ -10,10 +10,10 @@ import Foundation
 
 class BatchRequest {
     let object: LCObject
-    let method: RESTClient.Method?
+    let method: HTTPClient.Method?
     let operationTable: OperationTable?
 
-    init(object: LCObject, method: RESTClient.Method? = nil, operationTable: OperationTable? = nil) {
+    init(object: LCObject, method: HTTPClient.Method? = nil, operationTable: OperationTable? = nil) {
         self.object = object
         self.method = method
         self.operationTable = operationTable
@@ -23,25 +23,8 @@ class BatchRequest {
         return !object.hasObjectId
     }
 
-    var actualMethod: RESTClient.Method {
+    var actualMethod: HTTPClient.Method {
         return method ?? (isNewborn ? .post : .put)
-    }
-
-    func getVersionedPath() throws -> String {
-        var endpoint: String
-        let apiVersion = RESTClient.apiVersion
-
-        switch actualMethod {
-        case .get, .put, .delete:
-            guard let anEndpoint = RESTClient.eigenEndpoint(object) else {
-                throw LCError(code: .notFound, reason: "Cannot access object before save.")
-            }
-            endpoint = anEndpoint
-        case .post:
-            endpoint = RESTClient.endpoint(object)
-        }
-
-        return "/\(apiVersion)/\(endpoint)"
     }
 
     var body: AnyObject {
@@ -86,8 +69,8 @@ class BatchRequest {
     }
 
     func jsonValue() throws -> AnyObject {
-        let path = try getVersionedPath()
         let method = actualMethod
+        let path = try HTTPClient.default.getBatchRequestPath(object: object, method: method)
 
         var request: [String: AnyObject] = [
             "path": path as AnyObject,

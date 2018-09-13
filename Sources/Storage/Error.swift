@@ -50,6 +50,14 @@ public struct LCError: Error {
     }
 }
 
+extension LCError {
+
+    static let appRouterUrlNotFound = LCError(code: .inconsistency, reason: "App router URL not found.")
+
+    static let applicationNotInitialized = LCError(code: .inconsistency, reason: "Application not initialized.")
+
+}
+
 extension LCError: LocalizedError {
 
     public var failureReason: String? {

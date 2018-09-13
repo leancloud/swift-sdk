@@ -7,7 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		116A682621427442004141A5 /* RouterTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 116A682521427442004141A5 /* RouterTestCase.swift */; };
 		1178D10F213F7B9600429131 /* APITestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1178D10E213F7B9600429131 /* APITestCase.swift */; };
+		1178D132214019F800429131 /* HTTPRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1178D131214019F800429131 /* HTTPRouter.swift */; };
 		11CD228B213545A1007E270A /* Application.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11CD228A213545A1007E270A /* Application.swift */; };
 		8334561C1CE589E500D42725 /* EngineTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8334561B1CE589E500D42725 /* EngineTestCase.swift */; };
 		8342FCC61C7B13A700C3CF15 /* LeanCloud.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8342FCBB1C7B13A700C3CF15 /* LeanCloud.framework */; };
@@ -42,7 +44,7 @@
 		835F5D801D7E6808004D1A0E /* Query.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D5D1D7E6808004D1A0E /* Query.swift */; };
 		835F5D811D7E6808004D1A0E /* Request.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D5E1D7E6808004D1A0E /* Request.swift */; };
 		835F5D821D7E6808004D1A0E /* Response.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D5F1D7E6808004D1A0E /* Response.swift */; };
-		835F5D831D7E6808004D1A0E /* RESTClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D601D7E6808004D1A0E /* RESTClient.swift */; };
+		835F5D831D7E6808004D1A0E /* HTTPClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D601D7E6808004D1A0E /* HTTPClient.swift */; };
 		835F5D841D7E6808004D1A0E /* Result.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D611D7E6808004D1A0E /* Result.swift */; };
 		835F5D851D7E6808004D1A0E /* Runtime.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D621D7E6808004D1A0E /* Runtime.swift */; };
 		835F5D861D7E6808004D1A0E /* SMSClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D631D7E6808004D1A0E /* SMSClient.swift */; };
@@ -116,7 +118,9 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		116A682521427442004141A5 /* RouterTestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RouterTestCase.swift; sourceTree = "<group>"; };
 		1178D10E213F7B9600429131 /* APITestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APITestCase.swift; sourceTree = "<group>"; };
+		1178D131214019F800429131 /* HTTPRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HTTPRouter.swift; sourceTree = "<group>"; };
 		11CD228A213545A1007E270A /* Application.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Application.swift; sourceTree = "<group>"; };
 		8334561B1CE589E500D42725 /* EngineTestCase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EngineTestCase.swift; sourceTree = "<group>"; };
 		8342FCBB1C7B13A700C3CF15 /* LeanCloud.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = LeanCloud.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -154,7 +158,7 @@
 		835F5D5D1D7E6808004D1A0E /* Query.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Query.swift; sourceTree = "<group>"; };
 		835F5D5E1D7E6808004D1A0E /* Request.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Request.swift; sourceTree = "<group>"; };
 		835F5D5F1D7E6808004D1A0E /* Response.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Response.swift; sourceTree = "<group>"; };
-		835F5D601D7E6808004D1A0E /* RESTClient.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RESTClient.swift; sourceTree = "<group>"; };
+		835F5D601D7E6808004D1A0E /* HTTPClient.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HTTPClient.swift; sourceTree = "<group>"; };
 		835F5D611D7E6808004D1A0E /* Result.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Result.swift; sourceTree = "<group>"; };
 		835F5D621D7E6808004D1A0E /* Runtime.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Runtime.swift; sourceTree = "<group>"; };
 		835F5D631D7E6808004D1A0E /* SMSClient.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SMSClient.swift; sourceTree = "<group>"; };
@@ -222,6 +226,7 @@
 			children = (
 				83D5923D1CD88846007177C5 /* BridgingHeader.h */,
 				1178D10E213F7B9600429131 /* APITestCase.swift */,
+				116A682521427442004141A5 /* RouterTestCase.swift */,
 				8365CFA71D79849D006B856E /* TypeTestCase.swift */,
 				8342FCCA1C7B13A700C3CF15 /* BaseTestCase.swift */,
 				8334561B1CE589E500D42725 /* EngineTestCase.swift */,
@@ -256,7 +261,8 @@
 				835F5D621D7E6808004D1A0E /* Runtime.swift */,
 				835F5D641D7E6808004D1A0E /* Utility.swift */,
 				83B4DB221DB8618A00E36067 /* Logger.swift */,
-				835F5D601D7E6808004D1A0E /* RESTClient.swift */,
+				835F5D601D7E6808004D1A0E /* HTTPClient.swift */,
+				1178D131214019F800429131 /* HTTPRouter.swift */,
 				835F5D5C1D7E6808004D1A0E /* Operation.swift */,
 				835F5D5A1D7E6808004D1A0E /* ObjectProfiler.swift */,
 				835F5D5B1D7E6808004D1A0E /* ObjectUpdater.swift */,
@@ -504,6 +510,7 @@
 				835F5D661D7E6808004D1A0E /* BatchRequest.swift in Sources */,
 				835F5D851D7E6808004D1A0E /* Runtime.swift in Sources */,
 				835F5D721D7E6808004D1A0E /* Object.swift in Sources */,
+				1178D132214019F800429131 /* HTTPRouter.swift in Sources */,
 				835F5D811D7E6808004D1A0E /* Request.swift in Sources */,
 				835F5D681D7E6808004D1A0E /* CQLClient.swift in Sources */,
 				835F5D791D7E6808004D1A0E /* Extension.swift in Sources */,
@@ -512,7 +519,7 @@
 				83B4DB231DB8618A00E36067 /* Logger.swift in Sources */,
 				835F5D861D7E6808004D1A0E /* SMSClient.swift in Sources */,
 				835F5D7E1D7E6808004D1A0E /* ObjectUpdater.swift in Sources */,
-				835F5D831D7E6808004D1A0E /* RESTClient.swift in Sources */,
+				835F5D831D7E6808004D1A0E /* HTTPClient.swift in Sources */,
 				835F5D801D7E6808004D1A0E /* Query.swift in Sources */,
 				835F5D6B1D7E6808004D1A0E /* Bool.swift in Sources */,
 				835F5D751D7E6808004D1A0E /* String.swift in Sources */,
@@ -534,6 +541,7 @@
 				83BC11D61CDD76E900D7E7A6 /* ACLTestCase.swift in Sources */,
 				1178D10F213F7B9600429131 /* APITestCase.swift in Sources */,
 				8334561C1CE589E500D42725 /* EngineTestCase.swift in Sources */,
+				116A682621427442004141A5 /* RouterTestCase.swift in Sources */,
 				8365CFA81D79849D006B856E /* TypeTestCase.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

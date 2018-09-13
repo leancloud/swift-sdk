@@ -44,7 +44,7 @@ public final class LCEngine {
     @discardableResult
     private static func call(_ function: String, parameters: LCDictionaryConvertible? = nil, completionInBackground completion: @escaping (LCValueOptionalResult) -> Void) -> LCRequest {
         let parameters = parameters?.lcDictionary.lconValue as? [String: AnyObject]
-        let request = RESTClient.request(.post, "call/\(function)", parameters: parameters) { response in
+        let request = HTTPClient.default.request(.post, "call/\(function)", parameters: parameters) { response in
             let result = LCValueOptionalResult(response: response, keyPath: "result")
             completion(result)
         }
