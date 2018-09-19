@@ -28,36 +28,18 @@ class HTTPRouter {
             return "\(rawValue)_server"
         }
 
-    }
-
-    struct Cache {
-
-        let ttl: TimeInterval
-
-        let start: TimeInterval
-
-        var isExpired: Bool {
-            let now = ProcessInfo.processInfo.systemUptime
-            let elapsed = now - start
-
-            return elapsed > ttl
-        }
-
-        let dictionary: LCDictionary
-
-        init(dictionary: LCDictionary) throws {
-            /* A valid router table must have ttl. */
-            guard let ttl = dictionary.removeValue(forKey: "ttl") as? LCNumber else {
-                throw LCError(code: .malformedData, reason: "Malformed router table.")
+        init?(key: String) {
+            guard key.hasSuffix("_server") else {
+                return nil
             }
 
-            self.dictionary = dictionary
-            self.start = ProcessInfo.processInfo.systemUptime
-            self.ttl = ttl.value
-        }
+            let prefix = String(key.dropLast(7))
 
-        func host(module: Module) -> String? {
-            return dictionary[module.key]?.rawValue as? String
+            if let module = Module(rawValue: prefix) {
+                self = module
+            } else {
+                return nil
+            }
         }
 
     }
@@ -93,7 +75,7 @@ class HTTPRouter {
     private var appRouterCompletions: [(LCBooleanResult) -> Void] = []
 
     /// App router cache.
-    private var appRouterCache: Cache?
+    private lazy var appRouterCache = AppRouterCache(application: application)
 
     /// RTM router path.
     private let rtmRouterPath = "v1/route"
@@ -244,6 +226,32 @@ class HTTPRouter {
     }
 
     /**
+     Cache app router.
+
+     - parameter dictionary: The raw dictionary returned by app router.
+     */
+    func cacheAppRouter(_ dictionary: LCDictionary) throws {
+        guard let ttl = dictionary.removeValue(forKey: "ttl") as? LCNumber else {
+            throw LCError(code: .malformedData, reason: "Malformed router table.")
+        }
+
+        var hostTable: [Module: String] = [:]
+
+        dictionary.forEach { (key, value) in
+            if
+                let module = Module(key: key),
+                let host = value.stringValue
+            {
+                hostTable[module] = host
+            }
+        }
+
+        let expirationDate = Date(timeIntervalSinceNow: ttl.value)
+
+        try appRouterCache.cacheHostTable(hostTable, expirationDate: expirationDate)
+    }
+
+    /**
      Handle app router request.
 
      It will call and clear app router completions.
@@ -257,7 +265,7 @@ class HTTPRouter {
             switch result {
             case .success(let object):
                 do {
-                    appRouterCache = try Cache(dictionary: object)
+                    try cacheAppRouter(object)
                 } catch let error {
                     booleanResult = .failure(error: error)
                 }
@@ -333,24 +341,15 @@ class HTTPRouter {
      */
     func cachedUrl(path: String, module: Module) -> URL? {
         return synchronize(on: self) {
-            guard let cache = appRouterCache else {
+            do {
+                guard let host = try appRouterCache.fetchHost(module: module) else {
+                    return nil
+                }
+                return absoluteUrl(host: host, path: path)
+            } catch let error {
+                Logger.shared.error(error)
                 return nil
             }
-
-            guard !cache.isExpired else {
-                /* We can safely clear expired cache. */
-                appRouterCache = nil
-                return nil
-            }
-
-            guard let host = cache.host(module: module) else {
-                /* We keep cache temporarily if one host not found. */
-                return nil
-            }
-
-            let url = absoluteUrl(host: host, path: path)
-
-            return url
         }
     }
 

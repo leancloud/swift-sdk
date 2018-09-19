@@ -10,6 +10,10 @@
 		116A682621427442004141A5 /* RouterTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 116A682521427442004141A5 /* RouterTestCase.swift */; };
 		1178D10F213F7B9600429131 /* APITestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1178D10E213F7B9600429131 /* APITestCase.swift */; };
 		1178D132214019F800429131 /* HTTPRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1178D131214019F800429131 /* HTTPRouter.swift */; };
+		11A166CD214F57360094AF13 /* LocalStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A166CC214F57360094AF13 /* LocalStorage.swift */; };
+		11A166DE214F5E440094AF13 /* PersistentController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A166DD214F5E440094AF13 /* PersistentController.swift */; };
+		11A166E221509F020094AF13 /* AppRouterCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A166E121509F020094AF13 /* AppRouterCache.swift */; };
+		11A166E82150A39F0094AF13 /* AppRouterCache.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 11A166E62150A39F0094AF13 /* AppRouterCache.xcdatamodeld */; };
 		11CD228B213545A1007E270A /* Application.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11CD228A213545A1007E270A /* Application.swift */; };
 		8334561C1CE589E500D42725 /* EngineTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8334561B1CE589E500D42725 /* EngineTestCase.swift */; };
 		8342FCC61C7B13A700C3CF15 /* LeanCloud.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8342FCBB1C7B13A700C3CF15 /* LeanCloud.framework */; };
@@ -121,6 +125,10 @@
 		116A682521427442004141A5 /* RouterTestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RouterTestCase.swift; sourceTree = "<group>"; };
 		1178D10E213F7B9600429131 /* APITestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APITestCase.swift; sourceTree = "<group>"; };
 		1178D131214019F800429131 /* HTTPRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HTTPRouter.swift; sourceTree = "<group>"; };
+		11A166CC214F57360094AF13 /* LocalStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalStorage.swift; sourceTree = "<group>"; };
+		11A166DD214F5E440094AF13 /* PersistentController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistentController.swift; sourceTree = "<group>"; };
+		11A166E121509F020094AF13 /* AppRouterCache.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppRouterCache.swift; sourceTree = "<group>"; };
+		11A166E72150A39F0094AF13 /* AppRouterCache.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = AppRouterCache.xcdatamodel; sourceTree = "<group>"; };
 		11CD228A213545A1007E270A /* Application.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Application.swift; sourceTree = "<group>"; };
 		8334561B1CE589E500D42725 /* EngineTestCase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EngineTestCase.swift; sourceTree = "<group>"; };
 		8342FCBB1C7B13A700C3CF15 /* LeanCloud.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = LeanCloud.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -193,6 +201,15 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		11A166CB214F56F00094AF13 /* LocalStorage */ = {
+			isa = PBXGroup;
+			children = (
+				11A166CC214F57360094AF13 /* LocalStorage.swift */,
+				11A166DD214F5E440094AF13 /* PersistentController.swift */,
+			);
+			path = LocalStorage;
+			sourceTree = "<group>";
+		};
 		8342FCB11C7B13A600C3CF15 = {
 			isa = PBXGroup;
 			children = (
@@ -244,6 +261,7 @@
 			isa = PBXGroup;
 			children = (
 				835F5D401D7E6808004D1A0E /* Storage */,
+				11A166CB214F56F00094AF13 /* LocalStorage */,
 			);
 			path = Sources;
 			sourceTree = "<group>";
@@ -263,6 +281,8 @@
 				83B4DB221DB8618A00E36067 /* Logger.swift */,
 				835F5D601D7E6808004D1A0E /* HTTPClient.swift */,
 				1178D131214019F800429131 /* HTTPRouter.swift */,
+				11A166E121509F020094AF13 /* AppRouterCache.swift */,
+				11A166E62150A39F0094AF13 /* AppRouterCache.xcdatamodeld */,
 				835F5D5C1D7E6808004D1A0E /* Operation.swift */,
 				835F5D5A1D7E6808004D1A0E /* ObjectProfiler.swift */,
 				835F5D5B1D7E6808004D1A0E /* ObjectUpdater.swift */,
@@ -496,6 +516,7 @@
 				835F5D6A1D7E6808004D1A0E /* Array.swift in Sources */,
 				835F5D731D7E6808004D1A0E /* Relation.swift in Sources */,
 				835F5D6D1D7E6808004D1A0E /* Date.swift in Sources */,
+				11A166DE214F5E440094AF13 /* PersistentController.swift in Sources */,
 				835F5D881D7E6808004D1A0E /* Value.swift in Sources */,
 				835F5D6F1D7E6808004D1A0E /* GeoPoint.swift in Sources */,
 				835F5D841D7E6808004D1A0E /* Result.swift in Sources */,
@@ -507,12 +528,14 @@
 				835F5D711D7E6808004D1A0E /* Number.swift in Sources */,
 				835F5D871D7E6808004D1A0E /* Utility.swift in Sources */,
 				835F5D7F1D7E6808004D1A0E /* Operation.swift in Sources */,
+				11A166CD214F57360094AF13 /* LocalStorage.swift in Sources */,
 				835F5D661D7E6808004D1A0E /* BatchRequest.swift in Sources */,
 				835F5D851D7E6808004D1A0E /* Runtime.swift in Sources */,
 				835F5D721D7E6808004D1A0E /* Object.swift in Sources */,
 				1178D132214019F800429131 /* HTTPRouter.swift in Sources */,
 				835F5D811D7E6808004D1A0E /* Request.swift in Sources */,
 				835F5D681D7E6808004D1A0E /* CQLClient.swift in Sources */,
+				11A166E82150A39F0094AF13 /* AppRouterCache.xcdatamodeld in Sources */,
 				835F5D791D7E6808004D1A0E /* Extension.swift in Sources */,
 				835F5D7D1D7E6808004D1A0E /* ObjectProfiler.swift in Sources */,
 				835F5D821D7E6808004D1A0E /* Response.swift in Sources */,
@@ -525,6 +548,7 @@
 				835F5D751D7E6808004D1A0E /* String.swift in Sources */,
 				835F5D7B1D7E6808004D1A0E /* LeanCloud.swift in Sources */,
 				835F5D741D7E6808004D1A0E /* Role.swift in Sources */,
+				11A166E221509F020094AF13 /* AppRouterCache.swift in Sources */,
 				835F5D781D7E6808004D1A0E /* Error.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -678,7 +702,7 @@
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
 				INFOPLIST_FILE = LeanCloud/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
-				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 10;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = cn.leancloud.LeanCloud;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -700,7 +724,7 @@
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
 				INFOPLIST_FILE = LeanCloud/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
-				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 10;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = cn.leancloud.LeanCloud;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -715,6 +739,7 @@
 			buildSettings = {
 				DEVELOPMENT_TEAM = "";
 				INFOPLIST_FILE = LeanCloudTests/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = cn.leancloud.LeanCloudTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -729,6 +754,7 @@
 			buildSettings = {
 				DEVELOPMENT_TEAM = "";
 				INFOPLIST_FILE = LeanCloudTests/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = cn.leancloud.LeanCloudTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -769,6 +795,19 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCVersionGroup section */
+		11A166E62150A39F0094AF13 /* AppRouterCache.xcdatamodeld */ = {
+			isa = XCVersionGroup;
+			children = (
+				11A166E72150A39F0094AF13 /* AppRouterCache.xcdatamodel */,
+			);
+			currentVersion = 11A166E72150A39F0094AF13 /* AppRouterCache.xcdatamodel */;
+			path = AppRouterCache.xcdatamodeld;
+			sourceTree = "<group>";
+			versionGroupType = wrapper.xcdatamodel;
+		};
+/* End XCVersionGroup section */
 	};
 	rootObject = 8342FCB21C7B13A600C3CF15 /* Project object */;
 }

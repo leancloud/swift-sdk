@@ -77,19 +77,20 @@ class RouterTestCase: BaseTestCase {
     }
 
     func testCacheExpiration() {
-        let dictionary = LCDictionary(unsafeObject: [
-            "ttl" : 0.3 as AnyObject
-        ])
+        let host = "s5vdi3ie.api.lncld.net"
+        let appRouterCache = AppRouterCache(application: cnApplication)
 
-        let cache = try! HTTPRouter.Cache(dictionary: dictionary)
+        do {
+            try appRouterCache.cacheHostTable([.api: host], expirationDate: Date(timeIntervalSinceNow: 0.3))
+        } catch let error {
+            XCTFail(error.localizedDescription)
+        }
 
-        Thread.sleep(forTimeInterval: 0.2)
+        XCTAssertEqual(try appRouterCache.fetchHost(module: .api), host)
+        XCTAssertEqual(try appRouterCache.fetchHost(module: .push), nil)
 
-        XCTAssertFalse(cache.isExpired)
-
-        Thread.sleep(forTimeInterval: 0.2)
-
-        XCTAssertTrue(cache.isExpired)
+        Thread.sleep(forTimeInterval: 0.3)
+        XCTAssertEqual(try appRouterCache.fetchHost(module: .api), nil)
     }
 
     func testAppRouterThrottle() {
