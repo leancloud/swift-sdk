@@ -156,8 +156,11 @@ final class LCFile: LCObject {
         completion: @escaping (LCBooleanResult) -> Void) -> LCRequest
     {
         if let _ = objectId {
-            // If objectId exists, file has already been saved. We do not save it repeatedly.
-            return httpClient.request(object: LCBooleanResult.success) { result in
+            let error = LCError(
+                code: .inconsistency,
+                reason: "Cannot update file after it has been saved.")
+
+            return httpClient.request(error: error) { result in
                 completion(result)
             }
         }
