@@ -60,6 +60,7 @@ final class AppRouterCache: LocalStorage, LocalStorageProtocol {
             /* If router table expires, clear cache. */
             guard let expirationDate = appRouterTable.expirationDate, Date() < expirationDate else {
                 try deleteAllObjects(type: AppRouterTable.self)
+                try save()
                 return nil
             }
 
