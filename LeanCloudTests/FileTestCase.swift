@@ -88,5 +88,27 @@ class FileTestCase: BaseTestCase {
         XCTAssertEqual(shadow.name, "image.png")
         XCTAssertEqual(shadow.mimeType, "image/png")
     }
+
+    func testFilePointer() {
+        let file = LCFile(url: "https://example.com/image.png")
+
+        XCTAssertTrue(file.save().isSuccess)
+        XCTAssertNotNil(file.objectId)
+
+        let object = TestObject()
+
+        object.fileField = file
+
+        XCTAssertTrue(object.save().isSuccess)
+        XCTAssertNotNil(object.objectId)
+
+        let shadow = TestObject(objectId: object.objectId!)
+
+        XCTAssertNil(shadow.fileField)
+        XCTAssertTrue(shadow.fetch().isSuccess)
+        XCTAssertNotNil(shadow.fileField)
+
+        XCTAssertEqual(shadow.fileField, file)
+    }
     
 }
