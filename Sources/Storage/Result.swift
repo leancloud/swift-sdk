@@ -49,6 +49,27 @@ public enum LCBooleanResult: LCResultType {
     }
 }
 
+enum LCGenericResult<T>: LCResultType {
+    case success(value: T)
+    case failure(error: Error)
+
+    public var error: Error? {
+        switch self {
+        case .success:
+            return nil
+        case let .failure(error):
+            return error
+        }
+    }
+
+    public var isSuccess: Bool {
+        switch self {
+        case .success: return true
+        case .failure: return false
+        }
+    }
+}
+
 /**
  Result type for object request.
  */

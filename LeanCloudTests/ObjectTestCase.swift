@@ -43,37 +43,6 @@ class ObjectTestCase: BaseTestCase {
         XCTAssertEqual(result.error?._code, LCError.InternalErrorCode.inconsistency.rawValue)
     }
 
-    func testFindRoots() {
-        let object1 = TestObject()
-        let object2 = TestObject()
-        let object3 = TestObject()
-
-        XCTAssertEqual(
-            Set((try? ObjectProfiler.findRoots([object1, object2, object3])) ?? []),
-            Set([object1, object2, object3]))
-
-        object2.objectField = object3
-
-        XCTAssertEqual(
-            Set((try? ObjectProfiler.findRoots([object1, object2, object3])) ?? []),
-            Set([object1, object2]))
-
-        object1.objectField = object2
-
-        XCTAssertEqual(
-            Set((try? ObjectProfiler.findRoots([object1, object2, object3])) ?? []),
-            Set([object1]))
-
-        object2.objectField = object1 /* Circular reference */
-
-        do {
-            _ = try ObjectProfiler.findRoots([object1, object2, object3])
-        } catch let error {
-            let errorCode = LCError.InternalErrorCode(rawValue: error._code)
-            XCTAssertEqual(errorCode, .inconsistency)
-        }
-    }
-
     func testSaveNewbornOrphans() {
         let object = TestObject()
         let newbornOrphan1 = TestObject()

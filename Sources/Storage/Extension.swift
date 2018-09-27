@@ -178,25 +178,12 @@ extension String {
     }
 }
 
-extension Collection {
-    func unique(_ equal: (_ a: Iterator.Element, _ b: Iterator.Element) -> Bool) -> [Iterator.Element] {
-        var result: [Iterator.Element] = []
+extension Sequence {
 
-        for candidate in self {
-            var existed = false
-            for element in result {
-                if equal(candidate, element) {
-                    existed = true
-                    break
-                }
-            }
-            if !existed {
-                result.append(candidate)
-            }
-        }
-
-        return result
+    var unique: [Element] {
+        return NSOrderedSet(array: Array(self)).array as? [Element] ?? []
     }
+
 }
 
 /**

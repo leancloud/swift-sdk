@@ -386,7 +386,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
             return lcValue
         }
         set {
-            set(key, value: newValue)
+            set(key, lcValue: newValue)
         }
     }
 
@@ -413,7 +413,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
      - parameter key:   The key for which to set the value.
      - parameter value: The new value.
      */
-    func set(_ key: String, value: LCValue?) {
+    func set(_ key: String, lcValue value: LCValue?) {
         if let value = value {
             addOperation(.set, key, value)
         } else {
@@ -430,7 +430,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
      - parameter value: The new value.
      */
     open func set(_ key: String, value: LCValueConvertible?) {
-        set(key, value: value?.lcValue)
+        set(key, lcValue: value?.lcValue)
     }
 
     /**
@@ -559,9 +559,9 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
     }
 
     /**
-     Reset operations, make object unmodified.
+     Discard changes by removing all change operations.
      */
-    func resetOperation() {
+    func discardChanges() {
         operationHub.reset()
     }
 

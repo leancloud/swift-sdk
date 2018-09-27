@@ -31,6 +31,16 @@ public final class LCDictionary: NSObject, LCValue, LCValueExtension, Collection
         self.value = value
     }
 
+    /**
+     Create copy of dictionary.
+
+     - parameter dictionary: The dictionary to be copied.
+     */
+    public convenience init(_ dictionary: LCDictionary) {
+        self.init()
+        self.value = dictionary.value
+    }
+
     public convenience required init(dictionaryLiteral elements: (Key, Value)...) {
         self.init(Dictionary<Key, Value>(elements: elements))
     }
@@ -99,6 +109,7 @@ public final class LCDictionary: NSObject, LCValue, LCValueExtension, Collection
 
      - returns: The value that was removed, or `nil` if the key was not found.
      */
+    @discardableResult
     public func removeValue(forKey key: Key) -> Value? {
         return value.removeValue(forKey: key)
     }

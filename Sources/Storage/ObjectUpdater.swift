@@ -19,10 +19,10 @@ class ObjectUpdater {
     /**
      Update objects with response of batch request.
 
-     - parameter objects:  A set of object to update.
+     - parameter objects:  An array of object to update.
      - parameter response: The response of batch request.
      */
-    static func updateObjects(_ objects: Set<LCObject>, _ response: LCResponse) {
+    static func updateObjects(_ objects: [LCObject], _ response: LCResponse) {
         let value = response.value
 
         guard let dictionary = value as? BatchResponse else {
@@ -41,13 +41,13 @@ class ObjectUpdater {
     }
 
     /**
-     Get batch requests from a set of objects.
+     Get batch requests for an array of objects.
 
-     - parameter objects: A set of objects.
+     - parameter objects: An array of objects.
 
      - returns: An array of batch requests.
      */
-    private static func createSaveBatchRequests(objects: Set<LCObject>) throws -> [Any] {
+    private static func createSaveBatchRequests(objects: [LCObject]) throws -> [Any] {
         var requests: [BatchRequest] = []
         let toposort = try ObjectProfiler.toposort(objects)
 
@@ -68,7 +68,7 @@ class ObjectUpdater {
      - parameter requests: A list of batch requests.
      - returns: The response of request.
      */
-    private static func saveInOneBatchRequest(_ objects: Set<LCObject>, completionInBackground completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
+    private static func saveInOneBatchRequest(_ objects: [LCObject], completionInBackground completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
         var requests: [Any]
 
         do {
@@ -87,7 +87,7 @@ class ObjectUpdater {
                 updateObjects(objects, response)
 
                 objects.forEach { object in
-                    object.resetOperation()
+                    object.discardChanges()
                 }
             case .failure:
                 break
@@ -107,10 +107,12 @@ class ObjectUpdater {
      - returns: The response of request.
      */
     private static func saveIndependentObjects(_ objects: [LCObject], completionInBackground completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
-        let family = ObjectProfiler.family(objects)
-        let request = saveInOneBatchRequest(family, completionInBackground: completion)
-
-        return request
+        do {
+            let family = try ObjectProfiler.family(objects)
+            return saveInOneBatchRequest(family, completionInBackground: completion)
+        } catch let error {
+            return HTTPClient.default.request(error: error, completionHandler: completion)
+        }
     }
 
     /**
@@ -132,7 +134,7 @@ class ObjectUpdater {
                 completion(result)
             }
         } else {
-            let sequenceRequest = LCSequenceRequest(request: nil)
+            let sequenceRequest = LCSequenceRequest()
 
             let request = saveIndependentObjects(newbornOrphans, completionInBackground: { result in
                 switch result {
@@ -173,26 +175,26 @@ class ObjectUpdater {
      - returns: The response of request.
      */
     static func save(_ objects: [LCObject], completionInBackground completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
-        let objects = Array(Set(objects))
+        var family: [LCObject]
+        let objects = objects.unique
 
         do {
-            try objects.forEach { object in
+            family = try ObjectProfiler.family(objects)
+
+            try family.forEach { object in
                 try object.validateBeforeSaving()
             }
-
-            try ObjectProfiler.validateCircularReference(objects)
         } catch let error {
             return HTTPClient.default.request(
                 error: error,
                 completionHandler: completion)
         }
 
-        let sequenceRequest = LCSequenceRequest(request: nil)
+        let sequenceRequest = LCSequenceRequest()
 
         let request = saveNewbornOrphans(objects, completionInBackground: { result in
             switch result {
             case .success:
-                let family = ObjectProfiler.family(objects)
                 let request = saveInOneBatchRequest(family, completionInBackground: completion)
                 sequenceRequest.setCurrentRequest(request)
             case .failure:
@@ -221,7 +223,7 @@ class ObjectUpdater {
             var requests: [Any]
 
             do {
-                requests = try Set(objects).map { object in
+                requests = try objects.unique.map { object in
                     try BatchRequest(object: object, method: .delete).jsonValue()
                 }
             } catch let error {
@@ -259,7 +261,7 @@ class ObjectUpdater {
 
         matchedObjects.forEach { object in
             ObjectProfiler.updateObject(object, dictionary as [String : AnyObject])
-            object.resetOperation()
+            object.discardChanges()
         }
 
         return .success
@@ -315,7 +317,7 @@ class ObjectUpdater {
             var requests: [Any]
 
             do {
-                requests = try Set(objects).map { object in
+                requests = try objects.unique.map { object in
                     try BatchRequest(object: object, method: .get).jsonValue()
                 }
             } catch let error {
