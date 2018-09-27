@@ -41,6 +41,7 @@ class HTTPClient {
         case geoPoint = "GeoPoint"
         case bytes    = "Bytes"
         case date     = "Date"
+        case file     = "File"
     }
 
     /// Header field name.

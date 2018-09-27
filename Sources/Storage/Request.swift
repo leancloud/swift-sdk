@@ -117,10 +117,6 @@ class LCSequenceRequest: LCRequest {
 
     private(set) var request: LCRequest?
 
-    init(request: LCRequest?) {
-        self.request = request
-    }
-
     func setCurrentRequest(_ request: LCRequest) {
         perform {
             self.request = request
@@ -134,6 +130,12 @@ class LCSequenceRequest: LCRequest {
                 request.cancel()
             }
         }
+    }
+
+    func setCurrentRequest(_ request: Request) {
+        let request = LCSingleRequest(request: request)
+
+        setCurrentRequest(request)
     }
 
     override func resume() {

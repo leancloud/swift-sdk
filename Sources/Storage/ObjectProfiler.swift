@@ -8,6 +8,14 @@
 
 import Foundation
 
+extension LCError {
+
+    static let circularReference = LCError(
+        code: .inconsistency,
+        reason: "Circular reference.")
+
+}
+
 class ObjectProfiler {
     /// Registered object class table indexed by class name.
     static var objectClassTable: [String: LCObject.Type] = [:]
@@ -69,7 +77,7 @@ class ObjectProfiler {
      */
     static func registerClasses() {
         /* Only register builtin classes. */
-        let builtinClasses = [LCObject.self, LCRole.self, LCUser.self]
+        let builtinClasses = [LCObject.self, LCRole.self, LCUser.self, LCFile.self]
 
         builtinClasses.forEach { type in
             type.register()
@@ -271,138 +279,116 @@ class ObjectProfiler {
         return result
     }
 
+    private enum VisitState: Int {
+
+        case unvisited
+        case visiting
+        case visited
+
+    }
+
     /**
-     Create toposort for a set of objects.
+     Get toposort of objects.
 
-     - parameter objects: A set of objects need to be sorted.
+     - parameter objects: An array of objects need to be sorted.
 
-     - returns: An array of objects ordered by toposort.
+     - returns: An toposort of objects.
      */
-    static func toposort(_ objects: Set<LCObject>) throws -> [LCObject] {
+    static func toposort(_ objects: [LCObject]) throws -> [LCObject] {
         var result: [LCObject] = []
-        var visitStatusTable: [Int: Int] = [:]
-        try toposortStart(objects, &result, &visitStatusTable)
-        return result
+        var visitStateTable: [Int: VisitState] = [:]
+
+        try toposortStart(objects.unique, &result, &visitStateTable)
+
+        return result.unique
     }
 
-    private static func toposortStart(_ objects: Set<LCObject>, _ result: inout [LCObject], _ visitStatusTable: inout [Int: Int]) throws {
-        try objects.forEach { try toposortVisit($0, objects, &result, &visitStatusTable) }
+    private static func toposortStart(_ objects: [LCObject], _ result: inout [LCObject], _ visitStateTable: inout [Int: VisitState]) throws {
+        try objects.forEach { object in
+            try toposortVisit(object, objects, &result, &visitStateTable)
+        }
     }
 
-    private static func toposortVisit(_ value: LCValue, _ objects: Set<LCObject>, _ result: inout [LCObject], _ visitStatusTable: inout [Int: Int]) throws {
+    private static func toposortVisit(_ value: LCValue, _ objects: [LCObject], _ result: inout [LCObject], _ visitStateTable: inout [Int: VisitState]) throws {
+        guard let value = value as? LCValueExtension else {
+            return
+        }
+
         guard let object = value as? LCObject else {
-            try (value as! LCValueExtension).forEachChild { child in
-                try toposortVisit(child, objects, &result, &visitStatusTable)
+            try value.forEachChild { child in
+                try toposortVisit(child, objects, &result, &visitStateTable)
             }
             return
         }
 
         let key = ObjectIdentifier(object).hashValue
+        let visitState = visitStateTable[key] ?? .unvisited
 
-        switch visitStatusTable[key] ?? 0 {
-        case 0: /* Unvisited */
-            visitStatusTable[key] = 1
+        switch visitState {
+        case .unvisited:
+            visitStateTable[key] = .visiting
             try object.forEachChild { child in
-                try toposortVisit(child, objects, &result, &visitStatusTable)
+                try toposortVisit(child, objects, &result, &visitStateTable)
             }
-            visitStatusTable[key] = 2
+            visitStateTable[key] = .visited
 
             if objects.contains(object) {
                 result.append(object)
             }
-        case 1: /* Visiting */
-            throw LCError(code: .inconsistency, reason: "Circular reference.", userInfo: nil)
-        default: /* Visited */
+        case .visiting:
+            throw LCError.circularReference
+        case .visited:
             break
         }
     }
 
-    static func findRoots<T: Sequence>(_ objects: T) throws -> [LCObject] where T.Element: LCObject {
-        let set = Set(objects)
-
-        var resultTable: [LCObject: Bool] = [:]
-        var visitStatusTable: [LCObject: Int] = [:]
-
-        objects.forEach { object in
-            resultTable[object] = true
-        }
-
-        try findRootsStart(set, &resultTable, &visitStatusTable)
-
-        let roots = resultTable.filter { $1 }.map { $0.key }
-
-        return roots
-    }
-
-    static func findRootsStart(_ objects: Set<LCObject>, _ resultTable: inout [LCObject: Bool], _ visitStatusTable: inout [LCObject: Int]) throws {
-        try objects.forEach { object in
-            try findRootsVisit(object, nil, objects, &resultTable, &visitStatusTable)
-        }
-    }
-
-    private static func findRootsVisit(_ value: LCValue, _ parent: LCObject?, _ objects: Set<LCObject>, _ resultTable: inout [LCObject: Bool], _ visitStatusTable: inout [LCObject: Int]) throws {
-        if let object = value as? LCObject {
-            let visitStatus = visitStatusTable[object] ?? 0
-
-            switch visitStatus {
-            case 0: /* Unvisited */
-                visitStatusTable[object] = 1
-                try object.forEachChild { child in
-                    try findRootsVisit(child, object, objects, &resultTable, &visitStatusTable)
-                }
-                visitStatusTable[object] = 2
-
-                if objects.contains(object), parent != nil {
-                    resultTable[object] = false
-                }
-            case 1: /* Visiting */
-                throw LCError(code: .inconsistency, reason: "Circular reference.", userInfo: nil)
-            case 2: /* Visited */
-                if objects.contains(object), parent != nil {
-                    resultTable[object] = false
-                }
-            default: /* Impossible */
-                break
-            }
-        } else {
-            try (value as! LCValueExtension).forEachChild { child in
-                try findRootsVisit(child, parent, objects, &resultTable, &visitStatusTable)
-            }
-        }
-    }
-
     /**
-     Get all objects of an object family.
-
-     This method presumes that there is no circle in object graph.
+     Get all objects of object family.
 
      - parameter objects: An array of objects.
 
-     - returns: A set of objects in family.
+     - returns: An array of objects in family.
      */
-    static func family(_ objects: [LCObject]) -> Set<LCObject> {
-        var array: [LCObject] = []
+    static func family(_ objects: [LCObject]) throws -> [LCObject] {
+        var result: [LCObject] = []
+        var visitStateTable: [Int: VisitState] = [:]
 
-        objects.forEach { object in
-            var subarray: [LCObject] = []
+        try familyVisit(objects.unique, &result, &visitStateTable)
 
-            familyVisit(object, result: &subarray)
-
-            array.append(contentsOf: subarray)
-        }
-
-        let result = Set(array)
-
-        return result
+        return result.unique
     }
 
-    private static func familyVisit(_ value: LCValue, result: inout [LCObject]) {
-        (value as! LCValueExtension).forEachChild { child in
-            familyVisit(child, result: &result)
+    private static func familyVisit(_ objects: [LCObject], _ result: inout [LCObject], _ visitStateTable: inout [Int: VisitState]) throws {
+        try objects.forEach { try familyVisit($0, &result, &visitStateTable) }
+    }
+
+    private static func familyVisit(_ value: LCValue, _ result: inout [LCObject], _ visitStateTable: inout [Int: VisitState]) throws {
+        guard let value = value as? LCValueExtension else {
+            return
         }
 
-        if let object = value as? LCObject {
+        guard let object = value as? LCObject else {
+            try value.forEachChild { child in
+                try familyVisit(child, &result, &visitStateTable)
+            }
+            return
+        }
+
+        let key = ObjectIdentifier(object).hashValue
+        let visitState = visitStateTable[key] ?? .unvisited
+
+        switch visitState {
+        case .unvisited:
+            visitStateTable[key] = .visiting
+            try object.forEachChild { child in
+                try familyVisit(child, &result, &visitStateTable)
+            }
+            visitStateTable[key] = .visited
             result.append(object)
+        case .visiting:
+            throw LCError.circularReference
+        case .visited:
+            break
         }
     }
 
@@ -414,32 +400,44 @@ class ObjectProfiler {
      - parameter objects: The objects to validate.
      */
     static func validateCircularReference(_ objects: [LCObject]) throws {
-        var visitStatusTable: [Int: Int] = [:]
+        var visitStateTable: [Int: VisitState] = [:]
 
-        try Set(objects).forEach { object in
-            try validateCircularReference(object, visitStatusTable: &visitStatusTable)
+        try objects.unique.forEach { object in
+            try validateCircularReference(object, &visitStateTable)
         }
     }
 
     /**
      Validate circular reference in object graph iteratively.
 
-     - parameter object: The object to validate.
-     - parameter visitStatusTable: The object visit status table.
+     - parameter value: The value to validate.
+     - parameter visitStateTable: The visit state table.
      */
-    private static func validateCircularReference(_ object: LCValue, visitStatusTable: inout [Int: Int]) throws {
-        let key = ObjectIdentifier(object).hashValue
+    private static func validateCircularReference(_ value: LCValue, _ visitStateTable: inout [Int: VisitState]) throws {
+        guard let value = value as? LCValueExtension else {
+            return
+        }
 
-        switch visitStatusTable[key] ?? 0 {
-        case 0: /* Unvisited */
-            visitStatusTable[key] = 1
-            try (object as! LCValueExtension).forEachChild { (child) in
-                try validateCircularReference(child, visitStatusTable: &visitStatusTable)
+        guard let object = value as? LCObject else {
+            try value.forEachChild { child in
+                try validateCircularReference(child, &visitStateTable)
             }
-            visitStatusTable[key] = 2
-        case 1: /* Visiting */
-            throw LCError(code: .inconsistency, reason: "Circular reference.", userInfo: nil)
-        default: /* Visited */
+            return
+        }
+
+        let key = ObjectIdentifier(object).hashValue
+        let visitState = visitStateTable[key] ?? .unvisited
+
+        switch visitState {
+        case .unvisited:
+            visitStateTable[key] = .visiting
+            try object.forEachChild { child in
+                try validateCircularReference(child, &visitStateTable)
+            }
+            visitStateTable[key] = .visited
+        case .visiting:
+            throw LCError.circularReference
+        case .visited:
             break
         }
     }
@@ -513,9 +511,9 @@ class ObjectProfiler {
      */
     static func object(dictionary: [String: AnyObject], dataType: HTTPClient.DataType) throws -> LCValue? {
         switch dataType {
-        case .object, .pointer:
-            let className = dictionary["className"] as! String
-
+        case .object,
+             .pointer:
+            let className = dictionary["className"] as? String ?? LCObject.objectClassName()
             return try object(dictionary: dictionary, className: className)
         case .relation:
             return LCRelation(dictionary: dictionary)
@@ -525,6 +523,8 @@ class ObjectProfiler {
             return LCData(dictionary: dictionary)
         case .date:
             return LCDate(dictionary: dictionary)
+        case .file:
+            return try object(dictionary: dictionary, className: LCFile.objectClassName())
         }
     }
 
@@ -782,9 +782,9 @@ class ObjectProfiler {
         let value = value as? LCValue
 
         if ObjectProfiler.getLCValue(object, key) == nil {
-            object.set(key.firstLowercaseString, value: value)
+            object.set(key.firstLowercaseString, lcValue: value)
         } else {
-            object.set(key, value: value)
+            object.set(key, lcValue: value)
         }
     }
 }

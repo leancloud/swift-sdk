@@ -449,6 +449,16 @@ extension NSString: LCStringConvertible {
     }
 }
 
+extension URL: LCStringConvertible {
+    public var lcValue: LCValue {
+        return lcString
+    }
+
+    public var lcString: LCString {
+        return LCString(absoluteString)
+    }
+}
+
 extension Array: LCArrayConvertible {
     public var lcValue: LCValue {
         return lcArray
