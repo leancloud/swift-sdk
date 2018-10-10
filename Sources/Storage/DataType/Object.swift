@@ -145,7 +145,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
     }
 
     open var jsonString: String {
-        return ObjectProfiler.getJSONString(self)
+        return ObjectProfiler.shared.getJSONString(self)
     }
 
     public var rawValue: LCValueConvertible {
@@ -207,7 +207,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
      Register current object class manually.
      */
     public static func register() {
-        ObjectProfiler.registerClass(self)
+        ObjectProfiler.shared.registerClass(self)
     }
 
     /**
@@ -316,7 +316,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
         it will result in that some properties will not be added into property table.
      */
     func synchronizePropertyTable() {
-        ObjectProfiler.iterateProperties(self) { (key, _) in
+        ObjectProfiler.shared.iterateProperties(self) { (key, _) in
             if key == "propertyTable" { return }
 
             if let value = Runtime.instanceVariableValue(self, key) as? LCValue {
@@ -399,7 +399,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
      */
     open func get(_ key: String) -> LCValue? {
         var lcValue: LCValue? = nil
-        if let value: LCValue = ObjectProfiler.propertyValue(self, key) {
+        if let value: LCValue = ObjectProfiler.shared.propertyValue(self, key) {
             lcValue = value
         } else if let value: LCValue = propertyTable[key] {
             lcValue = value

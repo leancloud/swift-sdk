@@ -101,7 +101,7 @@ public enum LCValueResult<T: LCValue>: LCResultType {
                 jsonValue = dictionary as AnyObject
             }
 
-            value = try ObjectProfiler.object(jsonValue: jsonValue)
+            value = try ObjectProfiler.shared.object(jsonValue: jsonValue)
         } catch let error {
             self = .failure(error: error)
             return
@@ -155,7 +155,7 @@ public enum LCValueOptionalResult: LCResultType {
         }
 
         if let jsonValue: AnyObject = response[keyPath] {
-            self = .success(object: try? ObjectProfiler.object(jsonValue: jsonValue))
+            self = .success(object: try? ObjectProfiler.shared.object(jsonValue: jsonValue))
         } else {
             self = .success(object: nil)
         }

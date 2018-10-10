@@ -35,7 +35,7 @@ public final class LCCQLValue {
 
         do {
             let objects = try results.map { dictionary in
-                try ObjectProfiler.object(dictionary: dictionary, className: className)
+                try ObjectProfiler.shared.object(dictionary: dictionary, className: className)
             }
 
             return objects

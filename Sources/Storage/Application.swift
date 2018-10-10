@@ -121,7 +121,7 @@ public final class LCApplication {
     }
 
     private static let initialization: Void = {
-        ObjectProfiler.registerClasses()
+        ObjectProfiler.shared.registerClasses()
     }()
 
     /**

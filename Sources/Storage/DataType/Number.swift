@@ -58,7 +58,7 @@ public final class LCNumber: NSObject, LCValue, LCValueExtension, ExpressibleByF
     }
 
     public var jsonString: String {
-        return ObjectProfiler.getJSONString(self)
+        return ObjectProfiler.shared.getJSONString(self)
     }
 
     public var rawValue: LCValueConvertible {

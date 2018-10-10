@@ -52,7 +52,7 @@ final public class LCQuery: NSObject, NSCopying, NSCoding {
         dictionary["className"] = objectClassName as AnyObject?
 
         if !constraintDictionary.isEmpty {
-            dictionary["where"] = ObjectProfiler.lconValue(constraintDictionary as AnyObject)
+            dictionary["where"] = ObjectProfiler.shared.lconValue(constraintDictionary as AnyObject)
         }
         if !includedKeys.isEmpty {
             dictionary["include"] = includedKeys.joined(separator: ",") as AnyObject?
@@ -351,10 +351,10 @@ final public class LCQuery: NSObject, NSCopying, NSCoding {
      */
     func processResults<T: LCObject>(_ results: [AnyObject], className: String?) -> [T] {
         return results.map { dictionary in
-            let object = ObjectProfiler.object(className: className ?? self.objectClassName) as! T
+            let object = ObjectProfiler.shared.object(className: className ?? self.objectClassName) as! T
 
             if let dictionary = dictionary as? [String: AnyObject] {
-                ObjectProfiler.updateObject(object, dictionary)
+                ObjectProfiler.shared.updateObject(object, dictionary)
             }
 
             return object

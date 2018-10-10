@@ -54,7 +54,7 @@ public final class LCBool: NSObject, LCValue, LCValueExtension, ExpressibleByBoo
     }
 
     public var jsonString: String {
-        return ObjectProfiler.getJSONString(self)
+        return ObjectProfiler.shared.getJSONString(self)
     }
 
     public var rawValue: LCValueConvertible {
