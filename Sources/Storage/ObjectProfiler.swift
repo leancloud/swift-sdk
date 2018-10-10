@@ -18,7 +18,7 @@ extension LCError {
 
 class ObjectProfiler {
     private init() {
-        /* Nop */
+        registerClasses()
     }
 
     static let shared = ObjectProfiler()
@@ -86,7 +86,7 @@ class ObjectProfiler {
         let builtinClasses = [LCObject.self, LCRole.self, LCUser.self, LCFile.self]
 
         builtinClasses.forEach { type in
-            type.register()
+            registerClass(type)
         }
     }
 
