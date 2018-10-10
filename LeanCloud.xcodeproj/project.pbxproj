@@ -72,6 +72,7 @@
 		83BC11D61CDD76E900D7E7A6 /* ACLTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83BC11D51CDD76E900D7E7A6 /* ACLTestCase.swift */; };
 		83D0DE6F1CC7B3FF00FC204E /* QueryTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83D0DE6E1CC7B3FF00FC204E /* QueryTestCase.swift */; };
 		83FAF0931CC4D1E400A84063 /* ObjectTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83FAF0921CC4D1E400A84063 /* ObjectTestCase.swift */; };
+		D3AA135B216E0D3A008FECA6 /* WebSocket.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3AA1352216E0D3A008FECA6 /* WebSocket.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -203,6 +204,7 @@
 		83D0DE6E1CC7B3FF00FC204E /* QueryTestCase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QueryTestCase.swift; sourceTree = "<group>"; };
 		83D5923D1CD88846007177C5 /* BridgingHeader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BridgingHeader.h; sourceTree = "<group>"; };
 		83FAF0921CC4D1E400A84063 /* ObjectTestCase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ObjectTestCase.swift; sourceTree = "<group>"; };
+		D3AA1352216E0D3A008FECA6 /* WebSocket.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebSocket.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -398,6 +400,7 @@
 		D3CA1116216DD77400629343 /* IM */ = {
 			isa = PBXGroup;
 			children = (
+				D3AA1352216E0D3A008FECA6 /* WebSocket.swift */,
 			);
 			path = IM;
 			sourceTree = "<group>";
@@ -613,6 +616,7 @@
 				835F5D861D7E6808004D1A0E /* SMSClient.swift in Sources */,
 				835F5D7E1D7E6808004D1A0E /* ObjectUpdater.swift in Sources */,
 				835F5D831D7E6808004D1A0E /* HTTPClient.swift in Sources */,
+				D3AA135B216E0D3A008FECA6 /* WebSocket.swift in Sources */,
 				835F5D801D7E6808004D1A0E /* Query.swift in Sources */,
 				11D9C0FB216DF63B00A620B7 /* Application.swift in Sources */,
 				835F5D6B1D7E6808004D1A0E /* Bool.swift in Sources */,
