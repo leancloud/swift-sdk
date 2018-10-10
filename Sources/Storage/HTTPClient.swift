@@ -101,7 +101,7 @@ class HTTPClient {
     /// Create a signature for request.
     func createRequestSignature() -> String {
         let timestamp = String(format: "%.0f", 1000 * Date().timeIntervalSince1970)
-        let hash = (timestamp + application.key).md5String.lowercased()
+        let hash = (timestamp + application.key).md5.lowercased()
 
         return "\(hash),\(timestamp)"
     }

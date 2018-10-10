@@ -12,12 +12,20 @@ Pod::Spec.new do |s|
   s.tvos.deployment_target    = '10.0'
   s.watchos.deployment_target = '3.0'
 
+  s.subspec 'Foundation' do |ss|
+    ss.source_files = 'Sources/Foundation/**/*.swift'
+  end
+
   s.subspec 'LocalStorage' do |ss|
+    ss.dependency 'LeanCloud/Foundation'
+
     ss.source_files = 'Sources/LocalStorage/**/*.swift'
   end
 
   s.subspec 'Storage' do |ss|
-    ss.dependency 'Alamofire', '~> 4.7'
+    ss.dependency 'Alamofire', '~> 4.7.3'
+
+    ss.dependency 'LeanCloud/Foundation'
     ss.dependency 'LeanCloud/LocalStorage'
 
     ss.source_files = 'Sources/Storage/**/*.swift'
