@@ -417,7 +417,7 @@ extension Bool: LCBoolConvertible {
 
 extension NSNumber: LCNumberConvertible, LCBoolConvertible {
     public var lcValue: LCValue {
-        return try! ObjectProfiler.object(jsonValue: self)
+        return try! ObjectProfiler.shared.object(jsonValue: self)
     }
 
     public var lcNumber: LCNumber {

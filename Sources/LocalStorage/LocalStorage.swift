@@ -54,25 +54,27 @@ class LocalStorage {
      Load managed object context.
      */
     private func loadManagedObjectContext() throws -> NSManagedObjectContext {
-        return try synchronize(on: self) {
-            if let managedObjectContext = self.managedObjectContext {
-                return managedObjectContext
-            }
+        objc_sync_enter(self)
 
-            guard let name = name else {
-                throw LCError(code: .inconsistency, reason: "Unknown local storage name.")
-            }
+        defer { objc_sync_exit(self) }
 
-            let bundle = Bundle(for: Swift.type(of: self))
-
-            let persistentStoreType  = try synthesizePersistentStoreType()
-            let persistentController = try PersistentController(name: name, bundle: bundle, type: persistentStoreType)
-            let managedObjectContext = try persistentController.createManagedObjectContext()
-
-            self.managedObjectContext = managedObjectContext
-
+        if let managedObjectContext = self.managedObjectContext {
             return managedObjectContext
         }
+
+        guard let name = name else {
+            throw LCError(code: .inconsistency, reason: "Unknown local storage name.")
+        }
+
+        let bundle = Bundle(for: Swift.type(of: self))
+
+        let persistentStoreType  = try synthesizePersistentStoreType()
+        let persistentController = try PersistentController(name: name, bundle: bundle, type: persistentStoreType)
+        let managedObjectContext = try persistentController.createManagedObjectContext()
+
+        self.managedObjectContext = managedObjectContext
+
+        return managedObjectContext
     }
 
     /// System cache directory.
@@ -115,7 +117,7 @@ class LocalStorage {
 
         let directory = systemDirectory
             .appendingPathComponent("LeanCloud")
-            .appendingPathComponent(applicationID.md5String)
+            .appendingPathComponent(applicationID.md5)
             .appendingPathComponent(storageName)
 
         do {

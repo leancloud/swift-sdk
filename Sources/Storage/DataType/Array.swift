@@ -35,7 +35,7 @@ public final class LCArray: NSObject, LCValue, LCValueExtension, Collection, Exp
     public convenience init(unsafeObject: [AnyObject]) {
         self.init()
         value = unsafeObject.map { element in
-            try! ObjectProfiler.object(jsonValue: element)
+            try! ObjectProfiler.shared.object(jsonValue: element)
         }
     }
 
@@ -84,7 +84,7 @@ public final class LCArray: NSObject, LCValue, LCValueExtension, Collection, Exp
     }
 
     public var jsonString: String {
-        return ObjectProfiler.getJSONString(self)
+        return ObjectProfiler.shared.getJSONString(self)
     }
 
     public var rawValue: LCValueConvertible {

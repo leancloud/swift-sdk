@@ -123,7 +123,7 @@ public final class LCDate: NSObject, LCValue, LCValueExtension {
     }
 
     public var jsonString: String {
-        return ObjectProfiler.getJSONString(self)
+        return ObjectProfiler.shared.getJSONString(self)
     }
 
     public var rawValue: LCValueConvertible {

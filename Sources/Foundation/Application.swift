@@ -104,7 +104,7 @@ public final class LCApplication {
      - note: We make initializer internal before multi-applicaiton is supported.
      */
     init() {
-        type(of: self).initialization
+        /* Nop */
     }
 
     /**
@@ -119,10 +119,6 @@ public final class LCApplication {
         self.id = id
         self.key = key
     }
-
-    private static let initialization: Void = {
-        ObjectProfiler.registerClasses()
-    }()
 
     /**
      Initialize application by application information.
