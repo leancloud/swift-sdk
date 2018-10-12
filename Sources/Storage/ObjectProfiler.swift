@@ -83,7 +83,7 @@ class ObjectProfiler {
      */
     func registerClasses() {
         /* Only register builtin classes. */
-        let builtinClasses = [LCObject.self, LCRole.self, LCUser.self, LCFile.self]
+        let builtinClasses = [LCObject.self, LCRole.self, LCUser.self, LCFile.self, LCInstallation.self]
 
         builtinClasses.forEach { type in
             registerClass(type)
