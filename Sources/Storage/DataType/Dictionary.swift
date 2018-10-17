@@ -48,7 +48,7 @@ public final class LCDictionary: NSObject, LCValue, LCValueExtension, Collection
     public convenience init(unsafeObject: [Key: AnyObject]) {
         self.init()
         value = unsafeObject.mapValue { value in
-            try! ObjectProfiler.object(jsonValue: value)
+            try! ObjectProfiler.shared.object(jsonValue: value)
         }
     }
 
@@ -123,7 +123,7 @@ public final class LCDictionary: NSObject, LCValue, LCValueExtension, Collection
     }
 
     public var jsonString: String {
-        return ObjectProfiler.getJSONString(self)
+        return ObjectProfiler.shared.getJSONString(self)
     }
 
     public var rawValue: LCValueConvertible {

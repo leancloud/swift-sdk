@@ -11,7 +11,7 @@ import Foundation
 /**
  LeanCloud file type.
  */
-final class LCFile: LCObject {
+public final class LCFile: LCObject {
 
     /// The file URL.
     @objc public dynamic var url: LCString?
@@ -99,7 +99,7 @@ final class LCFile: LCObject {
         return "_File"
     }
 
-    override func save() -> LCBooleanResult {
+    override public func save() -> LCBooleanResult {
         return expect { fulfill in
             self.save(
             progressInBackground: { _ in /* Nop */ },
@@ -109,7 +109,7 @@ final class LCFile: LCObject {
         }
     }
 
-    override func save(
+    override public func save(
         _ completion: @escaping (LCBooleanResult) -> Void) -> LCRequest
     {
         return save(
