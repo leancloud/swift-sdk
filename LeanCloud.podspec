@@ -14,6 +14,7 @@ Pod::Spec.new do |s|
 
   s.subspec 'Foundation' do |ss|
     ss.source_files = 'Sources/Foundation/**/*.{h,m,swift}'
+    ss.private_header_files = 'Sources/Foundation/Polyfill/Polyfill.h'
     ss.pod_target_xcconfig = { 'SWIFT_INCLUDE_PATHS' => '"$(PODS_TARGET_SRCROOT)"/**' }
     ss.preserve_paths = 'Sources/Foundation/**/*.{modulemap}'
   end

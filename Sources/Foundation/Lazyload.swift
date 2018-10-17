@@ -7,7 +7,7 @@
 //
 
 import Foundation
-import Polyfill
+import Polyfill.Private
 
 extension NSObject {
 

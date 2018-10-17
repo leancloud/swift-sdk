@@ -1,4 +1,3 @@
 module Polyfill {
-    header "Polyfill.h"
     export *
 }
