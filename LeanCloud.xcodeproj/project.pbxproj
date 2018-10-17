@@ -72,6 +72,7 @@
 		83BC11D61CDD76E900D7E7A6 /* ACLTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83BC11D51CDD76E900D7E7A6 /* ACLTestCase.swift */; };
 		83D0DE6F1CC7B3FF00FC204E /* QueryTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83D0DE6E1CC7B3FF00FC204E /* QueryTestCase.swift */; };
 		83FAF0931CC4D1E400A84063 /* ObjectTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83FAF0921CC4D1E400A84063 /* ObjectTestCase.swift */; };
+		D3301279217727870007286A /* Command.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3301278217727870007286A /* Command.pb.swift */; };
 		D3AA135B216E0D3A008FECA6 /* WebSocket.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3AA1352216E0D3A008FECA6 /* WebSocket.swift */; };
 /* End PBXBuildFile section */
 
@@ -131,6 +132,55 @@
 			proxyType = 2;
 			remoteGlobalIDString = E4202FE01B667AA100C997FB;
 			remoteInfo = "Alamofire watchOS";
+		};
+		D387263C217726B500DD8FBF /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D387262A217726B500DD8FBF /* SwiftProtobuf.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = "_____Product_Protobuf_macOS";
+			remoteInfo = SwiftProtobuf_macOS;
+		};
+		D387263E217726B500DD8FBF /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D387262A217726B500DD8FBF /* SwiftProtobuf.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = "_____Product_ProtobufTestSuite_macOS";
+			remoteInfo = SwiftProtobufTestSuite_macOS;
+		};
+		D3872640217726B500DD8FBF /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D387262A217726B500DD8FBF /* SwiftProtobuf.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = "_____Product_Protobuf_iOS";
+			remoteInfo = SwiftProtobuf_iOS;
+		};
+		D3872642217726B500DD8FBF /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D387262A217726B500DD8FBF /* SwiftProtobuf.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = "_____Product_ProtobufTestSuite_iOS";
+			remoteInfo = SwiftProtobufTestSuite_iOS;
+		};
+		D3872644217726B500DD8FBF /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D387262A217726B500DD8FBF /* SwiftProtobuf.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = F44F936F1DAEA53900BC5B85;
+			remoteInfo = SwiftProtobuf_tvOS;
+		};
+		D3872646217726B500DD8FBF /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D387262A217726B500DD8FBF /* SwiftProtobuf.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = F44F939F1DAEA7C500BC5B85;
+			remoteInfo = SwiftProtobufTestSuite_tvOS;
+		};
+		D3872648217726B500DD8FBF /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D387262A217726B500DD8FBF /* SwiftProtobuf.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = F44F93FE1DAEB13F00BC5B85;
+			remoteInfo = SwiftProtobuf_watchOS;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -204,6 +254,8 @@
 		83D0DE6E1CC7B3FF00FC204E /* QueryTestCase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QueryTestCase.swift; sourceTree = "<group>"; };
 		83D5923D1CD88846007177C5 /* BridgingHeader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BridgingHeader.h; sourceTree = "<group>"; };
 		83FAF0921CC4D1E400A84063 /* ObjectTestCase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ObjectTestCase.swift; sourceTree = "<group>"; };
+		D3301278217727870007286A /* Command.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Command.pb.swift; sourceTree = "<group>"; };
+		D387262A217726B500DD8FBF /* SwiftProtobuf.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = SwiftProtobuf.xcodeproj; path = SwiftProtobuf/SwiftProtobuf.xcodeproj; sourceTree = "<group>"; };
 		D3AA1352216E0D3A008FECA6 /* WebSocket.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebSocket.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -269,6 +321,7 @@
 		8342FCB11C7B13A600C3CF15 = {
 			isa = PBXGroup;
 			children = (
+				D387262A217726B500DD8FBF /* SwiftProtobuf.xcodeproj */,
 				837E04E31CABA688008CC3FF /* Alamofire.xcodeproj */,
 				835F5D3F1D7E6808004D1A0E /* Sources */,
 				8342FCBD1C7B13A700C3CF15 /* LeanCloud */,
@@ -397,9 +450,24 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		D387262B217726B500DD8FBF /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				D387263D217726B500DD8FBF /* SwiftProtobuf.framework */,
+				D387263F217726B500DD8FBF /* SwiftProtobufTests.xctest */,
+				D3872641217726B500DD8FBF /* SwiftProtobuf.framework */,
+				D3872643217726B500DD8FBF /* SwiftProtobufTests.xctest */,
+				D3872645217726B500DD8FBF /* SwiftProtobuf.framework */,
+				D3872647217726B500DD8FBF /* SwiftProtobufTests.xctest */,
+				D3872649217726B500DD8FBF /* SwiftProtobuf.framework */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 		D3CA1116216DD77400629343 /* IM */ = {
 			isa = PBXGroup;
 			children = (
+				D3301278217727870007286A /* Command.pb.swift */,
 				D3AA1352216E0D3A008FECA6 /* WebSocket.swift */,
 			);
 			path = IM;
@@ -492,6 +560,10 @@
 					ProductGroup = 837E04E41CABA688008CC3FF /* Products */;
 					ProjectRef = 837E04E31CABA688008CC3FF /* Alamofire.xcodeproj */;
 				},
+				{
+					ProductGroup = D387262B217726B500DD8FBF /* Products */;
+					ProjectRef = D387262A217726B500DD8FBF /* SwiftProtobuf.xcodeproj */;
+				},
 			);
 			projectRoot = "";
 			targets = (
@@ -549,6 +621,55 @@
 			fileType = wrapper.framework;
 			path = Alamofire.framework;
 			remoteRef = 837E04F91CABA688008CC3FF /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		D387263D217726B500DD8FBF /* SwiftProtobuf.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = SwiftProtobuf.framework;
+			remoteRef = D387263C217726B500DD8FBF /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		D387263F217726B500DD8FBF /* SwiftProtobufTests.xctest */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = SwiftProtobufTests.xctest;
+			remoteRef = D387263E217726B500DD8FBF /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		D3872641217726B500DD8FBF /* SwiftProtobuf.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = SwiftProtobuf.framework;
+			remoteRef = D3872640217726B500DD8FBF /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		D3872643217726B500DD8FBF /* SwiftProtobufTests.xctest */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = SwiftProtobufTests.xctest;
+			remoteRef = D3872642217726B500DD8FBF /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		D3872645217726B500DD8FBF /* SwiftProtobuf.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = SwiftProtobuf.framework;
+			remoteRef = D3872644217726B500DD8FBF /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		D3872647217726B500DD8FBF /* SwiftProtobufTests.xctest */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = SwiftProtobufTests.xctest;
+			remoteRef = D3872646217726B500DD8FBF /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		D3872649217726B500DD8FBF /* SwiftProtobuf.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = SwiftProtobuf.framework;
+			remoteRef = D3872648217726B500DD8FBF /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 /* End PBXReferenceProxy section */
@@ -624,6 +745,7 @@
 				835F5D7B1D7E6808004D1A0E /* LeanCloud.swift in Sources */,
 				835F5D741D7E6808004D1A0E /* Role.swift in Sources */,
 				11A166E221509F020094AF13 /* AppRouterCache.swift in Sources */,
+				D3301279217727870007286A /* Command.pb.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
