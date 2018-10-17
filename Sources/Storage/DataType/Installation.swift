@@ -82,4 +82,24 @@ public final class LCInstallation: LCObject {
         #endif
     }
 
+    override func objectDidSave() {
+        super.objectDidSave()
+
+        let application = LCApplication.default
+
+        if application.currentInstallation == self {
+            application.storageContextCache.installation = self
+        }
+    }
+
+}
+
+extension LCApplication {
+
+    public var currentInstallation: LCInstallation {
+        return lc_lazyload("currentInstallation", .OBJC_ASSOCIATION_RETAIN) {
+            storageContextCache.installation ?? LCInstallation()
+        }
+    }
+
 }

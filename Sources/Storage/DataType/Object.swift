@@ -565,6 +565,13 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
         operationHub.reset()
     }
 
+    /**
+     The method which will be called when object itself did save.
+     */
+    func objectDidSave() {
+        /* Nop */
+    }
+
     // MARK: Save object
 
     /**
