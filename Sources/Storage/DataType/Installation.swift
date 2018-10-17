@@ -82,6 +82,29 @@ public final class LCInstallation: LCObject {
         #endif
     }
 
+    override func preferredBatchRequest(method: HTTPClient.Method, path: String, internalId: String) throws -> [String : Any]? {
+        switch method {
+        case .post, .put:
+            var request: [String: Any] = [:]
+
+            request["method"] = HTTPClient.Method.post.rawValue
+            request["path"] = try HTTPClient.default.getBatchRequestPath(object: self, method: .post)
+
+            if var body = dictionary.lconValue as? [String: Any] {
+                body["__internalId"] = internalId
+
+                body.removeValue(forKey: "createdAt")
+                body.removeValue(forKey: "updatedAt")
+
+                request["body"] = body
+            }
+
+            return request
+        default:
+            return nil
+        }
+    }
+
     override func objectDidSave() {
         super.objectDidSave()
 
