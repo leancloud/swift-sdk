@@ -23,12 +23,12 @@ import Foundation
 import CoreFoundation
 import CommonCrypto
 
-public let WebsocketDidConnectNotification = "WebsocketDidConnectNotification"
-public let WebsocketDidDisconnectNotification = "WebsocketDidDisconnectNotification"
-public let WebsocketDisconnectionErrorKeyName = "WebsocketDisconnectionErrorKeyName"
+let WebsocketDidConnectNotification = "WebsocketDidConnectNotification"
+let WebsocketDidDisconnectNotification = "WebsocketDidDisconnectNotification"
+let WebsocketDisconnectionErrorKeyName = "WebsocketDisconnectionErrorKeyName"
 
 //Standard WebSocket close codes
-public enum CloseCode : UInt16 {
+enum CloseCode : UInt16 {
     case normal                 = 1000
     case goingAway              = 1001
     case protocolError          = 1002
@@ -41,7 +41,7 @@ public enum CloseCode : UInt16 {
     case messageTooBig          = 1009
 }
 
-public enum ErrorType: Error {
+enum ErrorType: Error {
     case outputStreamWriteError //output stream error during write
     case compressionError
     case invalidSSLError //Invalid SSL certificate
@@ -51,14 +51,14 @@ public enum ErrorType: Error {
     case closeError //There was an error during the close (socket probably has been dereferenced)
 }
 
-public struct WSError: Error {
-    public let type: ErrorType
-    public let message: String
-    public let code: Int
+struct WSError: Error {
+    let type: ErrorType
+    let message: String
+    let code: Int
 }
 
 //WebSocketClient is setup to be dependency injection for testing
-public protocol WebSocketClient: class {
+protocol WebSocketClient: class {
     var delegate: WebSocketDelegate? {get set}
     var pongDelegate: WebSocketPongDelegate? {get set}
     var disableSSLCertValidation: Bool {get set}
@@ -82,47 +82,47 @@ public protocol WebSocketClient: class {
 
 //implements some of the base behaviors
 extension WebSocketClient {
-    public func write(string: String) {
+    func write(string: String) {
         write(string: string, completion: nil)
     }
     
-    public func write(data: Data) {
+    func write(data: Data) {
         write(data: data, completion: nil)
     }
     
-    public func write(ping: Data) {
+    func write(ping: Data) {
         write(ping: ping, completion: nil)
     }
 
-    public func write(pong: Data) {
+    func write(pong: Data) {
         write(pong: pong, completion: nil)
     }
     
-    public func disconnect() {
+    func disconnect() {
         disconnect(forceTimeout: nil, closeCode: CloseCode.normal.rawValue)
     }
 }
 
 //SSL settings for the stream
-public struct SSLSettings {
-    public let useSSL: Bool
-    public let disableCertValidation: Bool
-    public var overrideTrustHostname: Bool
-    public var desiredTrustHostname: String?
-    public let sslClientCertificate: SSLClientCertificate?
+struct SSLSettings {
+    let useSSL: Bool
+    let disableCertValidation: Bool
+    var overrideTrustHostname: Bool
+    var desiredTrustHostname: String?
+    let sslClientCertificate: SSLClientCertificate?
     #if os(Linux)
     #else
-    public let cipherSuites: [SSLCipherSuite]?
+    let cipherSuites: [SSLCipherSuite]?
     #endif
 }
 
-public protocol WSStreamDelegate: class {
+protocol WSStreamDelegate: class {
     func newBytesInStream()
     func streamDidError(error: Error?)
 }
 
 //This protocol is to allow custom implemention of the underlining stream. This way custom socket libraries (e.g. linux) can be used
-public protocol WSStream {
+protocol WSStream {
     var delegate: WSStreamDelegate? {get set}
     func connect(url: URL, port: Int, timeout: TimeInterval, ssl: SSLSettings, completion: @escaping ((Error?) -> Void))
     func write(data: Data) -> Int
@@ -134,16 +134,16 @@ public protocol WSStream {
     #endif
 }
 
-open class FoundationStream : NSObject, WSStream, StreamDelegate  {
+class FoundationStream : NSObject, WSStream, StreamDelegate  {
     private static let sharedWorkQueue = DispatchQueue(label: "com.vluxe.starscream.websocket", attributes: [])
     private var inputStream: InputStream?
     private var outputStream: OutputStream?
-    public weak var delegate: WSStreamDelegate?
+    weak var delegate: WSStreamDelegate?
     let BUFFER_MAX = 4096
 	
-	public var enableSOCKSProxy = false
+	var enableSOCKSProxy = false
     
-    public func connect(url: URL, port: Int, timeout: TimeInterval, ssl: SSLSettings, completion: @escaping ((Error?) -> Void)) {
+    func connect(url: URL, port: Int, timeout: TimeInterval, ssl: SSLSettings, completion: @escaping ((Error?) -> Void)) {
         var readStream: Unmanaged<CFReadStream>?
         var writeStream: Unmanaged<CFWriteStream>?
         let h = url.host! as NSString
@@ -235,13 +235,13 @@ open class FoundationStream : NSObject, WSStream, StreamDelegate  {
         }
     }
     
-    public func write(data: Data) -> Int {
+    func write(data: Data) -> Int {
         guard let outStream = outputStream else {return -1}
         let buffer = UnsafeRawPointer((data as NSData).bytes).assumingMemoryBound(to: UInt8.self)
         return outStream.write(buffer, maxLength: data.count)
     }
     
-    public func read() -> Data? {
+    func read() -> Data? {
         guard let stream = inputStream else {return nil}
         let buf = NSMutableData(capacity: BUFFER_MAX)
         let buffer = UnsafeMutableRawPointer(mutating: buf!.bytes).assumingMemoryBound(to: UInt8.self)
@@ -252,7 +252,7 @@ open class FoundationStream : NSObject, WSStream, StreamDelegate  {
         return Data(bytes: buffer, count: length)
     }
     
-    public func cleanup() {
+    func cleanup() {
         if let stream = inputStream {
             stream.delegate = nil
             CFReadStreamSetDispatchQueue(stream, nil)
@@ -269,7 +269,7 @@ open class FoundationStream : NSObject, WSStream, StreamDelegate  {
     
     #if os(Linux) || os(watchOS)
     #else
-    public func sslTrust() -> (trust: SecTrust?, domain: String?) {
+    func sslTrust() -> (trust: SecTrust?, domain: String?) {
         guard let outputStream = outputStream else { return (nil, nil) }
 
         let trust = outputStream.property(forKey: kCFStreamPropertySSLPeerTrust as Stream.PropertyKey) as! SecTrust?
@@ -294,7 +294,7 @@ open class FoundationStream : NSObject, WSStream, StreamDelegate  {
     /**
      Delegate for the stream methods. Processes incoming bytes
      */
-    open func stream(_ aStream: Stream, handle eventCode: Stream.Event) {
+    func stream(_ aStream: Stream, handle eventCode: Stream.Event) {
         if eventCode == .hasBytesAvailable {
             if aStream == inputStream {
                 delegate?.newBytesInStream()
@@ -310,7 +310,7 @@ open class FoundationStream : NSObject, WSStream, StreamDelegate  {
 //WebSocket implementation
 
 //standard delegate you should use
-public protocol WebSocketDelegate: class {
+protocol WebSocketDelegate: class {
     func websocketDidConnect(socket: WebSocketClient)
     func websocketDidDisconnect(socket: WebSocketClient, error: Error?)
     func websocketDidReceiveMessage(socket: WebSocketClient, text: String)
@@ -318,12 +318,12 @@ public protocol WebSocketDelegate: class {
 }
 
 //got pongs
-public protocol WebSocketPongDelegate: class {
+protocol WebSocketPongDelegate: class {
     func websocketDidReceivePong(socket: WebSocketClient, data: Data?)
 }
 
 // A Delegate with more advanced info on messages and connection etc.
-public protocol WebSocketAdvancedDelegate: class {
+protocol WebSocketAdvancedDelegate: class {
     func websocketDidConnect(socket: WebSocket)
     func websocketDidDisconnect(socket: WebSocket, error: Error?)
     func websocketDidReceiveMessage(socket: WebSocket, text: String, response: WebSocket.WSResponse)
@@ -333,9 +333,9 @@ public protocol WebSocketAdvancedDelegate: class {
 }
 
 
-open class WebSocket : NSObject, StreamDelegate, WebSocketClient, WSStreamDelegate {
+class WebSocket : NSObject, StreamDelegate, WebSocketClient, WSStreamDelegate {
 
-    public enum OpCode : UInt8 {
+    enum OpCode : UInt8 {
         case continueFrame = 0x0
         case textFrame = 0x1
         case binaryFrame = 0x2
@@ -346,10 +346,10 @@ open class WebSocket : NSObject, StreamDelegate, WebSocketClient, WSStreamDelega
         // B-F reserved.
     }
 
-    public static let ErrorDomain = "WebSocket"
+    static let ErrorDomain = "WebSocket"
 
     // Where the callback is executed. It defaults to the main UI thread queue.
-    public var callbackQueue = DispatchQueue.main
+    var callbackQueue = DispatchQueue.main
 
     // MARK: - Constants
 
@@ -376,13 +376,13 @@ open class WebSocket : NSObject, StreamDelegate, WebSocketClient, WSStreamDelega
     let httpSwitchProtocolCode  = 101
     let supportedSSLSchemes     = ["wss", "https"]
 
-    public class WSResponse {
+    class WSResponse {
         var isFin = false
-        public var code: OpCode = .continueFrame
+        var code: OpCode = .continueFrame
         var bytesLeft = 0
-        public var frameCount = 0
-        public var buffer: NSMutableData?
-        public let firstFrame = {
+        var frameCount = 0
+        var buffer: NSMutableData?
+        let firstFrame = {
             return Date()
         }()
     }
@@ -391,43 +391,43 @@ open class WebSocket : NSObject, StreamDelegate, WebSocketClient, WSStreamDelega
 
     /// Responds to callback about new messages coming in over the WebSocket
     /// and also connection/disconnect messages.
-    public weak var delegate: WebSocketDelegate?
+    weak var delegate: WebSocketDelegate?
     
     /// The optional advanced delegate can be used instead of of the delegate
-    public weak var advancedDelegate: WebSocketAdvancedDelegate?
+    weak var advancedDelegate: WebSocketAdvancedDelegate?
 
     /// Receives a callback for each pong message recived.
-    public weak var pongDelegate: WebSocketPongDelegate?
+    weak var pongDelegate: WebSocketPongDelegate?
     
-    public var onConnect: (() -> Void)?
-    public var onDisconnect: ((Error?) -> Void)?
-    public var onText: ((String) -> Void)?
-    public var onData: ((Data) -> Void)?
-    public var onPong: ((Data?) -> Void)?
-    public var onHttpResponseHeaders: (([String: String]) -> Void)?
+    var onConnect: (() -> Void)?
+    var onDisconnect: ((Error?) -> Void)?
+    var onText: ((String) -> Void)?
+    var onData: ((Data) -> Void)?
+    var onPong: ((Data?) -> Void)?
+    var onHttpResponseHeaders: (([String: String]) -> Void)?
 
-    public var disableSSLCertValidation = false
-    public var overrideTrustHostname = false
-    public var desiredTrustHostname: String? = nil
-    public var sslClientCertificate: SSLClientCertificate? = nil
+    var disableSSLCertValidation = false
+    var overrideTrustHostname = false
+    var desiredTrustHostname: String? = nil
+    var sslClientCertificate: SSLClientCertificate? = nil
 
-    public var enableCompression = true
+    var enableCompression = true
     #if os(Linux)
     #else
-    public var security: SSLTrustValidator?
-    public var enabledSSLCipherSuites: [SSLCipherSuite]?
+    var security: SSLTrustValidator?
+    var enabledSSLCipherSuites: [SSLCipherSuite]?
     #endif
     
-    public var isConnected: Bool {
+    var isConnected: Bool {
         mutex.lock()
         let isConnected = connected
         mutex.unlock()
         return isConnected
     }
-    public var request: URLRequest //this is only public to allow headers, timeout, etc to be modified on reconnect
-    public var currentURL: URL { return request.url! }
+    var request: URLRequest //this is only to allow headers, timeout, etc to be modified on reconnect
+    var currentURL: URL { return request.url! }
 
-    public var respondToPingWithPong: Bool = true
+    var respondToPingWithPong: Bool = true
 
     // MARK: - Private
 
@@ -463,7 +463,7 @@ open class WebSocket : NSObject, StreamDelegate, WebSocketClient, WSStreamDelega
     }
     
     /// Used for setting protocols.
-    public init(request: URLRequest, protocols: [String]? = nil, stream: WSStream = FoundationStream()) {
+    init(request: URLRequest, protocols: [String]? = nil, stream: WSStream = FoundationStream()) {
         self.request = request
         self.stream = stream
         if request.value(forHTTPHeaderField: headerOriginName) == nil {
@@ -481,14 +481,14 @@ open class WebSocket : NSObject, StreamDelegate, WebSocketClient, WSStreamDelega
         writeQueue.maxConcurrentOperationCount = 1
     }
     
-    public convenience init(url: URL, protocols: [String]? = nil) {
+    convenience init(url: URL, protocols: [String]? = nil) {
         var request = URLRequest(url: url)
         request.timeoutInterval = 5
         self.init(request: request, protocols: protocols)
     }
 
     // Used for specifically setting the QOS for the write queue.
-    public convenience init(url: URL, writeQueueQOS: QualityOfService, protocols: [String]? = nil) {
+    convenience init(url: URL, writeQueueQOS: QualityOfService, protocols: [String]? = nil) {
         self.init(url: url, protocols: protocols)
         writeQueue.qualityOfService = writeQueueQOS
     }
@@ -496,7 +496,7 @@ open class WebSocket : NSObject, StreamDelegate, WebSocketClient, WSStreamDelega
     /**
      Connect to the WebSocket server on a background thread.
      */
-    open func connect() {
+    func connect() {
         guard !isConnecting else { return }
         didDisconnect = false
         isConnecting = true
@@ -513,7 +513,7 @@ open class WebSocket : NSObject, StreamDelegate, WebSocketClient, WSStreamDelega
      - Parameter forceTimeout: Maximum time to wait for the server to close the socket.
      - Parameter closeCode: The code to send on disconnect. The default is the normal close code for cleanly disconnecting a webSocket.
     */
-    open func disconnect(forceTimeout: TimeInterval? = nil, closeCode: UInt16 = CloseCode.normal.rawValue) {
+    func disconnect(forceTimeout: TimeInterval? = nil, closeCode: UInt16 = CloseCode.normal.rawValue) {
         guard isConnected else { return }
         switch forceTimeout {
         case .some(let seconds) where seconds > 0:
@@ -538,7 +538,7 @@ open class WebSocket : NSObject, StreamDelegate, WebSocketClient, WSStreamDelega
      - parameter string:        The string to write.
      - parameter completion: The (optional) completion handler.
      */
-    open func write(string: String, completion: (() -> ())? = nil) {
+    func write(string: String, completion: (() -> ())? = nil) {
         guard isConnected else { return }
         dequeueWrite(string.data(using: String.Encoding.utf8)!, code: .textFrame, writeCompletion: completion)
     }
@@ -551,7 +551,7 @@ open class WebSocket : NSObject, StreamDelegate, WebSocketClient, WSStreamDelega
      - parameter data:       The data to write.
      - parameter completion: The (optional) completion handler.
      */
-    open func write(data: Data, completion: (() -> ())? = nil) {
+    func write(data: Data, completion: (() -> ())? = nil) {
         guard isConnected else { return }
         dequeueWrite(data, code: .binaryFrame, writeCompletion: completion)
     }
@@ -560,7 +560,7 @@ open class WebSocket : NSObject, StreamDelegate, WebSocketClient, WSStreamDelega
      Write a ping to the websocket. This sends it as a control frame.
      Yodel a   sound  to the planet.    This sends it as an astroid. http://youtu.be/Eu5ZJELRiJ8?t=42s
      */
-    open func write(ping: Data, completion: (() -> ())? = nil) {
+    func write(ping: Data, completion: (() -> ())? = nil) {
         guard isConnected else { return }
         dequeueWrite(ping, code: .ping, writeCompletion: completion)
     }
@@ -569,7 +569,7 @@ open class WebSocket : NSObject, StreamDelegate, WebSocketClient, WSStreamDelega
      Write a pong to the websocket. This sends it as a control frame.
      Respond to a Yodel.
      */
-    open func write(pong: Data, completion: (() -> ())? = nil) {
+    func write(pong: Data, completion: (() -> ())? = nil) {
         guard isConnected else { return }
         dequeueWrite(pong, code: .pong, writeCompletion: completion)
     }
@@ -711,11 +711,11 @@ open class WebSocket : NSObject, StreamDelegate, WebSocketClient, WSStreamDelega
      Delegate for the stream methods. Processes incoming bytes
      */
     
-    public func newBytesInStream() {
+    func newBytesInStream() {
         processInputStream()
     }
     
-    public func streamDidError(error: Error?) {
+    func streamDidError(error: Error?) {
         disconnectStream(error)
     }
 
@@ -1381,11 +1381,11 @@ fileprivate extension String {
 import Foundation
 import Security
 
-public protocol SSLTrustValidator {
+protocol SSLTrustValidator {
     func isValid(_ trust: SecTrust, domain: String?) -> Bool
 }
 
-open class SSLCert {
+class SSLCert {
     var certData: Data?
     var key: SecKey?
     
@@ -1396,30 +1396,30 @@ open class SSLCert {
      
      - returns: a representation security object to be used with
      */
-    public init(data: Data) {
+    init(data: Data) {
         self.certData = data
     }
     
     /**
-     Designated init for public keys
+     Designated init for keys
      
-     - parameter key: is the public key to be used
+     - parameter key: is the key to be used
      
      - returns: a representation security object to be used with
      */
-    public init(key: SecKey) {
+    init(key: SecKey) {
         self.key = key
     }
 }
 
-open class SSLSecurity : SSLTrustValidator {
-    public var validatedDN = true //should the domain name be validated?
-    public var validateEntireChain = true //should the entire cert chain be validated
+class SSLSecurity : SSLTrustValidator {
+    var validatedDN = true //should the domain name be validated?
+    var validateEntireChain = true //should the entire cert chain be validated
     
     var isReady = false //is the key processing done?
     var certificates: [Data]? //the certificates
-    var pubKeys: [SecKey]? //the public keys
-    var usePublicKeys = false //use public keys or certificate validation?
+    var pubKeys: [SecKey]? //the keys
+    var usePublicKeys = false //use keys or certificate validation?
     
     /**
      Use certs from main app bundle
@@ -1428,7 +1428,7 @@ open class SSLSecurity : SSLTrustValidator {
      
      - returns: a representation security object to be used with
      */
-    public convenience init(usePublicKeys: Bool = false) {
+    convenience init(usePublicKeys: Bool = false) {
         let paths = Bundle.main.paths(forResourcesOfType: "cer", inDirectory: ".")
         
         let certs = paths.reduce([SSLCert]()) { (certs: [SSLCert], path: String) -> [SSLCert] in
@@ -1445,12 +1445,12 @@ open class SSLSecurity : SSLTrustValidator {
     /**
      Designated init
      
-     - parameter certs: is the certificates or public keys to use
+     - parameter certs: is the certificates or keys to use
      - parameter usePublicKeys: is to specific if the publicKeys or certificates should be used for SSL pinning validation
      
      - returns: a representation security object to be used with
      */
-    public init(certs: [SSLCert], usePublicKeys: Bool) {
+    init(certs: [SSLCert], usePublicKeys: Bool) {
         self.usePublicKeys = usePublicKeys
         
         if self.usePublicKeys {
@@ -1490,7 +1490,7 @@ open class SSLSecurity : SSLTrustValidator {
      
      - returns: if the key was successfully validated
      */
-    open func isValid(_ trust: SecTrust, domain: String?) -> Bool {
+    func isValid(_ trust: SecTrust, domain: String?) -> Bool {
         
         var tries = 0
         while !self.isReady {
@@ -1549,26 +1549,26 @@ open class SSLSecurity : SSLTrustValidator {
     }
     
     /**
-     Get the public key from a certificate data
+     Get the key from a certificate data
      
-     - parameter data: is the certificate to pull the public key from
+     - parameter data: is the certificate to pull the key from
      
-     - returns: a public key
+     - returns: a key
      */
-    public func extractPublicKey(_ data: Data) -> SecKey? {
+    func extractPublicKey(_ data: Data) -> SecKey? {
         guard let cert = SecCertificateCreateWithData(nil, data as CFData) else { return nil }
         
         return extractPublicKey(cert, policy: SecPolicyCreateBasicX509())
     }
     
     /**
-     Get the public key from a certificate
+     Get the key from a certificate
      
-     - parameter data: is the certificate to pull the public key from
+     - parameter data: is the certificate to pull the key from
      
-     - returns: a public key
+     - returns: a key
      */
-    public func extractPublicKey(_ cert: SecCertificate, policy: SecPolicy) -> SecKey? {
+    func extractPublicKey(_ cert: SecCertificate, policy: SecPolicy) -> SecKey? {
         var possibleTrust: SecTrust?
         SecTrustCreateWithCertificates(cert, policy, &possibleTrust)
         
@@ -1585,7 +1585,7 @@ open class SSLSecurity : SSLTrustValidator {
      
      - returns: the certificate chain for the trust
      */
-    public func certificateChain(_ trust: SecTrust) -> [Data] {
+    func certificateChain(_ trust: SecTrust) -> [Data] {
         let certificates = (0..<SecTrustGetCertificateCount(trust)).reduce([Data]()) { (certificates: [Data], index: Int) -> [Data] in
             var certificates = certificates
             let cert = SecTrustGetCertificateAtIndex(trust, index)
@@ -1597,13 +1597,13 @@ open class SSLSecurity : SSLTrustValidator {
     }
     
     /**
-     Get the public key chain for the trust
+     Get the key chain for the trust
      
-     - parameter trust: is the trust to lookup the certificate chain and extract the public keys
+     - parameter trust: is the trust to lookup the certificate chain and extract the keys
      
-     - returns: the public keys from the certifcate chain for the trust
+     - returns: the keys from the certifcate chain for the trust
      */
-    public func publicKeyChain(_ trust: SecTrust) -> [SecKey] {
+    func publicKeyChain(_ trust: SecTrust) -> [SecKey] {
         let policy = SecPolicyCreateBasicX509()
         let keys = (0..<SecTrustGetCertificateCount(trust)).reduce([SecKey]()) { (keys: [SecKey], index: Int) -> [SecKey] in
             var keys = keys
@@ -1632,15 +1632,15 @@ open class SSLSecurity : SSLTrustValidator {
 
 import Foundation
 
-public struct SSLClientCertificateError: LocalizedError {
-    public var errorDescription: String?
+struct SSLClientCertificateError: LocalizedError {
+    var errorDescription: String?
     
     init(errorDescription: String) {
         self.errorDescription = errorDescription
     }
 }
 
-public class SSLClientCertificate {
+class SSLClientCertificate {
     internal let streamSSLCertificates: NSArray
     
     /**
@@ -1648,7 +1648,7 @@ public class SSLClientCertificate {
      - parameter pkcs12Path: Path to pkcs12 file containing private key and X.509 ceritifacte (.p12)
      - parameter password: file password, see **kSecImportExportPassphrase**
      */
-    public convenience init(pkcs12Path: String, password: String) throws {
+    convenience init(pkcs12Path: String, password: String) throws {
         let pkcs12Url = URL(fileURLWithPath: pkcs12Path)
         do {
             try self.init(pkcs12Url: pkcs12Url, password: password)
@@ -1662,7 +1662,7 @@ public class SSLClientCertificate {
      - parameter identity: SecIdentityRef, see **kCFStreamSSLCertificates**
      - parameter identityCertificate: CFArray of SecCertificateRefs, see **kCFStreamSSLCertificates**
      */
-    public init(identity: SecIdentity, identityCertificate: SecCertificate) {
+    init(identity: SecIdentity, identityCertificate: SecCertificate) {
         self.streamSSLCertificates = NSArray(objects: identity, identityCertificate)
     }
     
@@ -1671,7 +1671,7 @@ public class SSLClientCertificate {
      - parameter pkcs12Url: URL to pkcs12 file containing private key and X.509 ceritifacte (.p12)
      - parameter password: file password, see **kSecImportExportPassphrase**
      */
-    public convenience init(pkcs12Url: URL, password: String) throws {
+    convenience init(pkcs12Url: URL, password: String) throws {
         let importOptions = [kSecImportExportPassphrase as String : password] as CFDictionary
         do {
             try self.init(pkcs12Url: pkcs12Url, importOptions: importOptions)
@@ -1687,7 +1687,7 @@ public class SSLClientCertificate {
      kSecImportExportPassphrase entry is required at minimum. Only password-based
      PKCS12 blobs are currently supported. See **SecImportExport.h**
      */
-    public init(pkcs12Url: URL, importOptions: CFDictionary) throws {
+    init(pkcs12Url: URL, importOptions: CFDictionary) throws {
         do {
             let pkcs12Data = try Data(contentsOf: pkcs12Url)
             var rawIdentitiesAndCertificates: CFArray?
