@@ -135,6 +135,8 @@ class HTTPClient {
             return "users"
         case LCRole.objectClassName():
             return "roles"
+        case LCInstallation.objectClassName():
+            return "installations"
         default:
             return "classes/\(className)"
         }

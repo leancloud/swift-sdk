@@ -88,6 +88,7 @@ class ObjectUpdater {
 
                 objects.forEach { object in
                     object.discardChanges()
+                    object.objectDidSave()
                 }
             case .failure:
                 break

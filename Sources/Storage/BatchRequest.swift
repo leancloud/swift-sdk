@@ -27,10 +27,10 @@ class BatchRequest {
         return method ?? (isNewborn ? .post : .put)
     }
 
-    var body: AnyObject {
-        var body: [String: AnyObject] = [
-            "__internalId": object.objectId?.value as AnyObject? ?? object.internalId as AnyObject
-        ]
+    func getBody(internalId: String) -> [String: Any] {
+        var body: [String: Any] = [:]
+
+        body["__internalId"] = internalId
 
         var children: [(String, LCObject)] = []
 
@@ -65,14 +65,19 @@ class BatchRequest {
             body["__children"] = list as AnyObject?
         }
 
-        return body as AnyObject
+        return body
     }
 
     func jsonValue() throws -> AnyObject {
         let method = actualMethod
         let path = try HTTPClient.default.getBatchRequestPath(object: object, method: method)
+        let internalId = object.objectId?.value ?? object.internalId
 
-        var request: [String: AnyObject] = [
+        if let request = try object.preferredBatchRequest(method: method, path: path, internalId: internalId) {
+            return request as AnyObject
+        }
+
+        var request: [String: Any] = [
             "path": path as AnyObject,
             "method": method.rawValue as AnyObject
         ]
@@ -81,7 +86,7 @@ class BatchRequest {
         case .get:
             break
         case .post, .put:
-            request["body"] = body
+            request["body"] = getBody(internalId: internalId)
 
             if isNewborn {
                 request["new"] = true as AnyObject?

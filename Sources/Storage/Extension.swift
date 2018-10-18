@@ -173,6 +173,16 @@ extension Sequence {
 
 }
 
+extension LCApplication {
+
+    var storageContextCache: StorageContextCache {
+        return lc_lazyload("storageContextCache", .OBJC_ASSOCIATION_RETAIN) {
+            StorageContextCache(application: self)
+        }
+    }
+
+}
+
 /**
  Synchronize on an object and do something.
 

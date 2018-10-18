@@ -164,6 +164,15 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
         ] as AnyObject
     }
 
+    /**
+     Get preferred batch request.
+
+     If returns nil, it will use the default batch request.
+     */
+    func preferredBatchRequest(method: HTTPClient.Method, path: String, internalId: String) throws -> [String: Any]? {
+        return nil
+    }
+
     static func instance() -> LCValue {
         return self.init()
     }
@@ -563,6 +572,13 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
      */
     func discardChanges() {
         operationHub.reset()
+    }
+
+    /**
+     The method which will be called when object itself did save.
+     */
+    func objectDidSave() {
+        /* Nop */
     }
 
     // MARK: Save object
