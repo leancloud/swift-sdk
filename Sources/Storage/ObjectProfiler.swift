@@ -455,7 +455,7 @@ class ObjectProfiler {
 
      - returns: true if value is a boolean, false otherwise.
      */
-    private func isBoolean(_ jsonValue: AnyObject) -> Bool {
+    private func isBoolean(_ jsonValue: Any) -> Bool {
         switch String(describing: type(of: jsonValue)) {
         case "__NSCFBoolean", "Bool": return true
         default: return false
@@ -564,7 +564,7 @@ class ObjectProfiler {
 
      - returns: An LCValue object of the corresponding JSON value.
      */
-    func object(jsonValue: AnyObject) throws -> LCValue {
+    func object(jsonValue: Any) throws -> LCValue {
         switch jsonValue {
         /* Note: a bool is also a number, we must match it first. */
         case let bool where isBoolean(bool):
@@ -707,7 +707,7 @@ class ObjectProfiler {
         case is LCNull:
             return "null"
         case let number as LCNumber:
-            return "\(number.value)"
+            return String(format: "%g", number.value)
         case let bool as LCBool:
             return "\(bool.value)"
         case let string as LCString:
