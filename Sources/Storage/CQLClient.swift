@@ -18,8 +18,8 @@ public final class LCCQLValue {
         self.response = response
     }
 
-    var results: [[String: AnyObject]] {
-        return (response.results as? [[String: AnyObject]]) ?? []
+    var results: [[String: Any]] {
+        return (response.results as? [[String: Any]]) ?? []
     }
 
     var className: String {
@@ -68,7 +68,7 @@ public final class LCCQLClient {
 
      - returns: The parameters for CQL execution.
      */
-    static func parameters(_ cql: String, parameters: LCArrayConvertible?) -> [String: AnyObject] {
+    static func parameters(_ cql: String, parameters: LCArrayConvertible?) -> [String: Any] {
         var result = ["cql": cql]
 
         if let parameters = parameters?.lcArray {
@@ -77,7 +77,7 @@ public final class LCCQLClient {
             }
         }
 
-        return result as [String : AnyObject]
+        return result
     }
 
     /**

@@ -43,7 +43,7 @@ public final class LCGeoPoint: NSObject, LCValue, LCValueExtension {
         self.longitude = longitude
     }
 
-    init?(dictionary: [String: AnyObject]) {
+    init?(dictionary: [String: Any]) {
         guard let type = dictionary["__type"] as? String else {
             return nil
         }
@@ -86,12 +86,12 @@ public final class LCGeoPoint: NSObject, LCValue, LCValueExtension {
         }
     }
 
-    public var jsonValue: AnyObject {
+    public var jsonValue: Any {
         return [
             "__type"    : "GeoPoint",
             "latitude"  : latitude,
             "longitude" : longitude
-        ] as AnyObject
+        ]
     }
 
     public var jsonString: String {
@@ -102,7 +102,7 @@ public final class LCGeoPoint: NSObject, LCValue, LCValueExtension {
         return self
     }
 
-    var lconValue: AnyObject? {
+    var lconValue: Any? {
         return jsonValue
     }
 

@@ -45,10 +45,10 @@ public final class LCDictionary: NSObject, LCValue, LCValueExtension, Collection
         self.init(Dictionary<Key, Value>(elements: elements))
     }
 
-    public convenience init(unsafeObject: [Key: AnyObject]) {
+    public convenience init(unsafeObject: [Key: Any]) {
         self.init()
-        value = unsafeObject.mapValue { value in
-            try! ObjectProfiler.shared.object(jsonValue: value)
+        value = unsafeObject.compactMapValue { value in
+            try? ObjectProfiler.shared.object(jsonValue: value)
         }
     }
 
@@ -118,8 +118,8 @@ public final class LCDictionary: NSObject, LCValue, LCValueExtension, Collection
         self.value[key] = value
     }
 
-    public var jsonValue: AnyObject {
-        return value.mapValue { value in value.jsonValue } as AnyObject
+    public var jsonValue: Any {
+        return value.compactMapValue { value in value.jsonValue }
     }
 
     public var jsonString: String {
@@ -127,11 +127,11 @@ public final class LCDictionary: NSObject, LCValue, LCValueExtension, Collection
     }
 
     public var rawValue: LCValueConvertible {
-        return value.mapValue { value in value.rawValue }
+        return value.compactMapValue { value in value.rawValue }
     }
 
-    var lconValue: AnyObject? {
-        return value.mapValue { value in (value as! LCValueExtension).lconValue! } as AnyObject
+    var lconValue: Any? {
+        return value.compactMapValue { value in (value as? LCValueExtension)?.lconValue }
     }
 
     static func instance() -> LCValue {

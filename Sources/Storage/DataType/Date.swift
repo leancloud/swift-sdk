@@ -52,7 +52,7 @@ public final class LCDate: NSObject, LCValue, LCValueExtension {
         value = date
     }
 
-    init?(dictionary: [String: AnyObject]) {
+    init?(dictionary: [String: Any]) {
         guard let type = dictionary["__type"] as? String else {
             return nil
         }
@@ -72,13 +72,13 @@ public final class LCDate: NSObject, LCValue, LCValueExtension {
         value = date
     }
 
-    init?(jsonValue: AnyObject?) {
+    init?(jsonValue: Any?) {
         var value: Date?
 
         switch jsonValue {
         case let ISOString as String:
             value = LCDate.dateFromString(ISOString)
-        case let dictionary as [String: AnyObject]:
+        case let dictionary as [String: Any]:
             if let date = LCDate(dictionary: dictionary) {
                 value = date.value
             }
@@ -115,11 +115,11 @@ public final class LCDate: NSObject, LCValue, LCValueExtension {
         }
     }
 
-    public var jsonValue: AnyObject {
+    public var jsonValue: Any {
         return [
             "__type": "Date",
             "iso": isoString
-        ] as AnyObject
+        ]
     }
 
     public var jsonString: String {
@@ -130,7 +130,7 @@ public final class LCDate: NSObject, LCValue, LCValueExtension {
         return value
     }
 
-    var lconValue: AnyObject? {
+    var lconValue: Any? {
         return jsonValue
     }
 

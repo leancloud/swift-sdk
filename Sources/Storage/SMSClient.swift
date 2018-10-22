@@ -36,7 +36,7 @@ public final class LCSMSClient {
 
         parameters["mobilePhoneNumber"] = LCString(mobilePhoneNumber)
 
-        let request = HTTPClient.default.request(.post, "requestSmsCode", parameters: parameters.lconValue as? [String: AnyObject]) { response in
+        let request = HTTPClient.default.request(.post, "requestSmsCode", parameters: parameters.lconValue as? [String: Any]) { response in
             completion(LCBooleanResult(response: response))
         }
 

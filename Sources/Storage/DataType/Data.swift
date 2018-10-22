@@ -41,7 +41,7 @@ public final class LCData: NSObject, LCValue, LCValueExtension {
         value = data
     }
 
-    init?(dictionary: [String: AnyObject]) {
+    init?(dictionary: [String: Any]) {
         guard let type = dictionary["__type"] as? String else {
             return nil
         }
@@ -81,11 +81,11 @@ public final class LCData: NSObject, LCValue, LCValueExtension {
         }
     }
 
-    public var jsonValue: AnyObject {
+    public var jsonValue: Any {
         return [
             "__type": "Bytes",
             "base64": base64EncodedString
-        ] as AnyObject
+        ]
     }
 
     public var jsonString: String {
@@ -96,7 +96,7 @@ public final class LCData: NSObject, LCValue, LCValueExtension {
         return value
     }
 
-    var lconValue: AnyObject? {
+    var lconValue: Any? {
         return jsonValue
     }
 

@@ -32,7 +32,7 @@ public final class LCACL: NSObject, LCValue, LCValueExtension {
         super.init()
     }
 
-    init?(jsonValue: AnyObject?) {
+    init?(jsonValue: Any?) {
         guard let value = jsonValue as? AccessTable else {
             return nil
         }
@@ -64,8 +64,8 @@ public final class LCACL: NSObject, LCValue, LCValueExtension {
         }
     }
 
-    public var jsonValue: AnyObject {
-        return value as AnyObject
+    public var jsonValue: Any {
+        return value
     }
 
     public var jsonString: String {
@@ -76,7 +76,7 @@ public final class LCACL: NSObject, LCValue, LCValueExtension {
         return self
     }
 
-    var lconValue: AnyObject? {
+    var lconValue: Any? {
         return jsonValue
     }
 

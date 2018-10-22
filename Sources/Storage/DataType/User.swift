@@ -730,7 +730,7 @@ open class LCUser: LCObject {
             if let error = response.error {
                 completion(.failure(error: error))
             } else {
-                if let dictionary = response.value as? [String: AnyObject] {
+                if let dictionary = response.value as? [String: Any] {
                     ObjectProfiler.shared.updateObject(self, dictionary)
                 }
                 completion(.success)

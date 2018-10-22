@@ -132,19 +132,15 @@ class Runtime {
 
      - returns: Value of instance variable correspond to the property name.
      */
-    static func instanceVariableValue(_ object: AnyObject, _ propertyName: String) -> AnyObject? {
-        
-        let aClass: AnyClass = object_getClass(object)!
-        
-        guard let ivar: Ivar = self.instanceVariable(aClass, propertyName) else {
+    static func instanceVariableValue(_ object: Any, _ propertyName: String) -> Any? {
+        guard
+            let aClass = object_getClass(object),
+            let ivar = instanceVariable(aClass, propertyName)
+        else {
             return nil
         }
 
-        var ivarValue: AnyObject? = nil
-        
-        if let obj: AnyObject = (object_getIvar(object, ivar) as AnyObject?) {
-            ivarValue = obj
-        }
+        let ivarValue = object_getIvar(object, ivar)
         
         return ivarValue
     }
@@ -156,19 +152,20 @@ class Runtime {
      - parameter propertyName: Property name on which you want to set.
      - parameter value:        New property value.
      */
-    static func setInstanceVariable(_ object: AnyObject, _ propertyName: String, _ value: AnyObject?) {
-        
-        guard let aClass: AnyClass = object_getClass(object) else {
+    static func setInstanceVariable(_ object: Any, _ propertyName: String, _ value: Any?) {
+        guard
+            let aClass = object_getClass(object),
+            let ivar = instanceVariable(aClass, propertyName)
+        else {
             return
         }
-        
-        guard let ivar: Ivar = instanceVariable(aClass, propertyName) else {
-            return
+
+        if let value = value {
+            let ivarValue = retainedObject(value as AnyObject)
+            object_setIvar(object, ivar, ivarValue)
+        } else {
+            object_setIvar(object, ivar, nil)
         }
-        
-        let ivarValue = retainedObject(value)
-        
-        object_setIvar(object, ivar, ivarValue)
     }
 
     /**
@@ -178,7 +175,7 @@ class Runtime {
 
      - returns: An retained object.
      */
-    static func retainedObject<T: AnyObject>(_ object: T?) -> T? {
-        return object != nil ? Unmanaged.passRetained(object!).takeUnretainedValue() : nil
+    static func retainedObject<T: AnyObject>(_ object: T) -> T {
+        return Unmanaged.passRetained(object).takeUnretainedValue()
     }
 }

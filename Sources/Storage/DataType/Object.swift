@@ -135,13 +135,17 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
         return dictionary.makeIterator()
     }
 
-    open var jsonValue: AnyObject {
-        var result = dictionary.jsonValue as! [String: AnyObject]
+    open var jsonValue: Any {
+        var result: [String: Any] = [:]
 
-        result["__type"]    = "Object" as AnyObject?
-        result["className"] = actualClassName as AnyObject?
+        if let properties = dictionary.jsonValue as? [String: Any] {
+            result.merge(properties) { (lhs, rhs) in rhs }
+        }
 
-        return result as AnyObject
+        result["__type"]    = "Object"
+        result["className"] = actualClassName
+
+        return result
     }
 
     open var jsonString: String {
@@ -152,7 +156,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
         return self
     }
 
-    var lconValue: AnyObject? {
+    var lconValue: Any? {
         guard let objectId = objectId else {
             return nil
         }
@@ -161,7 +165,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
             "__type"    : "Pointer",
             "className" : actualClassName,
             "objectId"  : objectId.value
-        ] as AnyObject
+        ]
     }
 
     /**
