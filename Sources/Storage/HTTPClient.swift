@@ -396,23 +396,32 @@ extension Request {
 extension DataResponse {
 
     func lcDebugDescription(_ request : Request) -> String {
-        var body : Any
+        let taskIdentifier = request.task?.taskIdentifier ?? 0
 
-        switch value {
-        case let value as [String : AnyObject]:
-            /* Print pertty JSON string. */
-            body = LCDictionary(unsafeObject: value).jsonString
-            break
-        default:
-            body = value ?? ""
-            break
+        var message = "------ BEGIN LeanCloud HTTP Response\n"
+
+        message.append("task: \(taskIdentifier)\n")
+
+        if let response = response {
+            message.append("code: \(response.statusCode)\n")
         }
 
-        let taskIdentifier = request.task?.taskIdentifier ?? 0
-        let message = "------ BEGIN LeanCloud HTTP Response\n" +
-                      "task: \(taskIdentifier)\n" +
-                      "body: \(body)\n" +
-                      "------ END"
+        if let error = error {
+            message.append("error: \(error.localizedDescription)\n")
+        }
+
+        if let data = data {
+            do {
+                let jsonObject = try JSONSerialization.jsonObject(with: data, options: [])
+                let object = try ObjectProfiler.shared.object(jsonValue: jsonObject)
+                message.append("data: \(object.jsonString)\n")
+            } catch {
+                /* Nop */
+            }
+        }
+
+        message.append("------ END")
+
         return message
     }
 
