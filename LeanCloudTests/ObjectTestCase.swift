@@ -284,4 +284,15 @@ class ObjectTestCase: BaseTestCase {
         XCTAssertTrue(shadow.fetch().isSuccess)
         XCTAssertEqual(shadow["stringField"] as? LCString, stringValue)
     }
+
+    func testDynamicMemberLookup() {
+        let object = LCObject()
+        let dictionary = LCDictionary()
+
+        object.foo = "bar"
+        XCTAssertEqual(object.foo?.stringValue, "bar")
+
+        dictionary.foo = "bar"
+        XCTAssertEqual(dictionary.foo?.stringValue, "bar")
+    }
 }

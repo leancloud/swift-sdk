@@ -13,6 +13,7 @@ import Foundation
 
  It is a wrapper of `Swift.Dictionary` type, used to store a dictionary value.
  */
+@dynamicMemberLookup
 public final class LCDictionary: NSObject, LCValue, LCValueExtension, Collection, ExpressibleByDictionaryLiteral {
     public typealias Key   = String
     public typealias Value = LCValue
@@ -99,6 +100,15 @@ public final class LCDictionary: NSObject, LCValue, LCValueExtension, Collection
         set {
             value[key] = newValue
             elementDidChange?(key, newValue)
+        }
+    }
+
+    public subscript(dynamicMember key: String) -> LCValueConvertible? {
+        get {
+            return self[key]
+        }
+        set {
+            self[key] = newValue?.lcValue
         }
     }
 

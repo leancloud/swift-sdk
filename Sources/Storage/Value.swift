@@ -13,7 +13,7 @@ import Foundation
 
  All LeanCloud data types must confirm this protocol.
  */
-public protocol LCValue: NSObjectProtocol, NSCoding, NSCopying {
+public protocol LCValue: NSObjectProtocol, NSCoding, NSCopying, LCValueConvertible {
     /**
      The JSON representation.
      */
@@ -217,6 +217,80 @@ public protocol LCValueConvertible {
      Get the `LCValue` value for current object.
      */
     var lcValue: LCValue { get }
+}
+
+extension LCValueConvertible {
+    public var intValue: Int? {
+        return lcValue.intValue
+    }
+
+    public var uintValue: UInt? {
+        return lcValue.uintValue
+    }
+
+    public var int8Value: Int8? {
+        return lcValue.int8Value
+    }
+
+    public var uint8Value: UInt8? {
+        return lcValue.uint8Value
+    }
+
+    public var int16Value: Int16? {
+        return lcValue.int16Value
+    }
+
+    public var uint16Value: UInt16? {
+        return lcValue.uint16Value
+    }
+
+    public var int32Value: Int32? {
+        return lcValue.int32Value
+    }
+
+    public var uint32Value: UInt32? {
+        return lcValue.uint32Value
+    }
+
+    public var int64Value: Int64? {
+        return lcValue.int64Value
+    }
+
+    public var uint64Value: UInt64? {
+        return lcValue.uint64Value
+    }
+
+    public var floatValue: Float? {
+        return lcValue.floatValue
+    }
+
+    public var doubleValue: Double? {
+        return lcValue.doubleValue
+    }
+
+    public var boolValue: Bool? {
+        return lcValue.boolValue
+    }
+
+    public var stringValue: String? {
+        return lcValue.stringValue
+    }
+
+    public var arrayValue: [LCValueConvertible]? {
+        return lcValue.arrayValue
+    }
+
+    public var dictionaryValue: [String: LCValueConvertible]? {
+        return lcValue.dictionaryValue
+    }
+
+    public var dataValue: Data? {
+        return lcValue.dataValue
+    }
+
+    public var dateValue: Date? {
+        return lcValue.dateValue
+    }
 }
 
 /**

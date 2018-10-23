@@ -15,6 +15,7 @@ import Foundation
  It can be extended into subclass while adding some other properties to form a new type.
  Each object is correspond to a record in data storage.
  */
+@dynamicMemberLookup
 open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
     /// Access control lists.
     @objc open dynamic var ACL: LCACL?
@@ -396,6 +397,15 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
         }
         set {
             set(key, lcValue: newValue)
+        }
+    }
+
+    open subscript(dynamicMember key: String) -> LCValueConvertible? {
+        get {
+            return self[key]
+        }
+        set {
+            self[key] = newValue?.lcValue
         }
     }
 
