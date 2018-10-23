@@ -52,34 +52,34 @@ class BatchRequest {
         }
 
         if children.count > 0 {
-            var list: [AnyObject] = []
+            var list: [Any] = []
 
             children.forEach { (key, child) in
                 list.append([
                     "className": child.actualClassName,
                     "cid": child.internalId,
                     "key": key
-                ] as AnyObject)
+                ])
             }
 
-            body["__children"] = list as AnyObject?
+            body["__children"] = list
         }
 
         return body
     }
 
-    func jsonValue() throws -> AnyObject {
+    func jsonValue() throws -> Any {
         let method = actualMethod
         let path = try HTTPClient.default.getBatchRequestPath(object: object, method: method)
         let internalId = object.objectId?.value ?? object.internalId
 
         if let request = try object.preferredBatchRequest(method: method, path: path, internalId: internalId) {
-            return request as AnyObject
+            return request
         }
 
         var request: [String: Any] = [
-            "path": path as AnyObject,
-            "method": method.rawValue as AnyObject
+            "path": path,
+            "method": method.rawValue
         ]
 
         switch method {
@@ -89,13 +89,13 @@ class BatchRequest {
             request["body"] = getBody(internalId: internalId)
 
             if isNewborn {
-                request["new"] = true as AnyObject?
+                request["new"] = true
             }
         case .delete:
             break
         }
 
-        return request as AnyObject
+        return request
     }
 }
 

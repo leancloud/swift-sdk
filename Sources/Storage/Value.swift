@@ -17,7 +17,7 @@ public protocol LCValue: NSObjectProtocol, NSCoding, NSCopying {
     /**
      The JSON representation.
      */
-    var jsonValue: AnyObject { get }
+    var jsonValue: Any { get }
 
     /**
      The pretty description.
@@ -155,7 +155,7 @@ protocol LCValueExtension {
      However, some types might have different representations, or even have no LCON value.
      For example, when an object has not been saved, its LCON value is nil.
      */
-    var lconValue: AnyObject? { get }
+    var lconValue: Any? { get }
 
     /**
      Create an instance of current type.

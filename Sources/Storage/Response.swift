@@ -27,15 +27,18 @@ final class LCResponse {
         return error == nil
     }
 
-    var value: AnyObject? {
-        return response.result.value as AnyObject?
+    var value: Any? {
+        return response.result.value
     }
 
     subscript<T>(key: String) -> T? {
-        return value?[key] as? T
+        guard let value = value as? [String: Any] else {
+            return nil
+        }
+        return value[key] as? T
     }
 
-    var results: [AnyObject] {
+    var results: [Any] {
         return self["results"] ?? []
     }
 

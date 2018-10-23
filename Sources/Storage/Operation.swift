@@ -43,22 +43,36 @@ class Operation {
     /**
      The LCON representation of operation.
      */
-    var lconValue: AnyObject {
+    var lconValue: Any? {
         let lconValue = (value as? LCValueExtension)?.lconValue
 
         switch name {
         case .set:
-            return lconValue!
+            return lconValue
         case .delete:
-            return ["__op": name.rawValue] as AnyObject
+            return [
+                "__op": name.rawValue
+            ]
         case .increment:
-            return ["__op": name.rawValue, "amount": lconValue!] as AnyObject
+            guard let lconValue = lconValue else {
+                return nil
+            }
+            return [
+                "__op": name.rawValue,
+                "amount": lconValue
+            ]
         case .add,
              .addUnique,
              .addRelation,
              .remove,
              .removeRelation:
-            return ["__op": name.rawValue, "objects": lconValue!] as AnyObject
+            guard let lconValue = lconValue else {
+                return nil
+            }
+            return [
+                "__op": name.rawValue,
+                "objects": lconValue
+            ]
         }
     }
 

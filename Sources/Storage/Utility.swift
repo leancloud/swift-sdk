@@ -14,7 +14,7 @@ class Utility {
         return (uuid as NSString).replacingOccurrences(of: "-", with: "").lowercased()
     }
 
-    static func jsonString(_ object: AnyObject) -> String {
+    static func jsonString(_ object: Any) -> String {
         let data = try! JSONSerialization.data(withJSONObject: object, options: JSONSerialization.WritingOptions(rawValue: 0))
         return String(data: data, encoding: String.Encoding.utf8)!
     }

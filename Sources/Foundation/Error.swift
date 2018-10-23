@@ -40,7 +40,7 @@ public struct LCError: Error {
         self = LCError(code: code.rawValue, reason: reason, userInfo: userInfo)
     }
 
-    init(dictionary: [String: AnyObject]) {
+    init(dictionary: [String: Any]) {
         code = dictionary["code"] as? Int ?? 0
         reason = dictionary["error"] as? String
         userInfo = dictionary

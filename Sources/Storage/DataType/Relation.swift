@@ -44,7 +44,7 @@ public final class LCRelation: NSObject, LCValue, LCValueExtension, Sequence {
         self.parent = parent
     }
 
-    init?(dictionary: [String: AnyObject]) {
+    init?(dictionary: [String: Any]) {
         guard let type = dictionary["__type"] as? String else {
             return nil
         }
@@ -87,7 +87,7 @@ public final class LCRelation: NSObject, LCValue, LCValueExtension, Sequence {
         return value.makeIterator()
     }
 
-    public var jsonValue: AnyObject {
+    public var jsonValue: Any {
         var result = [
             "__type": "Relation"
         ]
@@ -96,7 +96,7 @@ public final class LCRelation: NSObject, LCValue, LCValueExtension, Sequence {
             result["className"] = className
         }
 
-        return result as AnyObject
+        return result
     }
 
     public var jsonString: String {
@@ -107,8 +107,8 @@ public final class LCRelation: NSObject, LCValue, LCValueExtension, Sequence {
         return self
     }
 
-    var lconValue: AnyObject? {
-        return value.map { (element) in element.lconValue! } as AnyObject
+    var lconValue: Any? {
+        return value.compactMap { (element) in element.lconValue }
     }
 
     static func instance() -> LCValue {
@@ -197,7 +197,7 @@ public final class LCRelation: NSObject, LCValue, LCValueExtension, Sequence {
         } else {
             query = LCQuery(className: parent.actualClassName)
             query.extraParameters = [
-                "redirectClassNameForKey": key as AnyObject
+                "redirectClassNameForKey": key
             ]
         }
 
