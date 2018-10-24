@@ -81,8 +81,6 @@ class HTTPClient {
         self.configuration = configuration
     }
 
-    /// HTTPClient and HTTPRouter is circled reference. But its by design.
-    /// Client and Router is signleton, so its no memory leaks.
     lazy var router = HTTPRouter(application: application, configuration: .default)
 
     lazy var sessionManager: SessionManager = {
