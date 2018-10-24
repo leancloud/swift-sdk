@@ -45,7 +45,7 @@ class BaseTestCase: XCTestCase {
     func busywait(interval: TimeInterval = 0.1, untilTrue: () -> Bool) -> Void {
         while !untilTrue() {
             let due = Date(timeIntervalSinceNow: interval)
-            RunLoop.current.run(mode: .defaultRunLoopMode, before: due)
+            RunLoop.current.run(mode: RunLoop.Mode.default, before: due)
         }
     }
 
