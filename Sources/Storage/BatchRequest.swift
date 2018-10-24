@@ -27,10 +27,10 @@ class BatchRequest {
         return method ?? (isNewborn ? .post : .put)
     }
 
-    var body: AnyObject {
-        var body: [String: AnyObject] = [
-            "__internalId": object.objectId?.value as AnyObject? ?? object.internalId as AnyObject
-        ]
+    func getBody(internalId: String) -> [String: Any] {
+        var body: [String: Any] = [:]
+
+        body["__internalId"] = internalId
 
         var children: [(String, LCObject)] = []
 
@@ -52,45 +52,50 @@ class BatchRequest {
         }
 
         if children.count > 0 {
-            var list: [AnyObject] = []
+            var list: [Any] = []
 
             children.forEach { (key, child) in
                 list.append([
                     "className": child.actualClassName,
                     "cid": child.internalId,
                     "key": key
-                ] as AnyObject)
+                ])
             }
 
-            body["__children"] = list as AnyObject?
+            body["__children"] = list
         }
 
-        return body as AnyObject
+        return body
     }
 
-    func jsonValue() throws -> AnyObject {
+    func jsonValue() throws -> Any {
         let method = actualMethod
         let path = try HTTPClient.default.getBatchRequestPath(object: object, method: method)
+        let internalId = object.objectId?.value ?? object.internalId
 
-        var request: [String: AnyObject] = [
-            "path": path as AnyObject,
-            "method": method.rawValue as AnyObject
+        if let request = try object.preferredBatchRequest(method: method, path: path, internalId: internalId) {
+            return request
+        }
+
+        var request: [String: Any] = [
+            "path": path,
+            "method": method.rawValue
         ]
 
         switch method {
         case .get:
             break
         case .post, .put:
-            request["body"] = body
+            request["body"] = getBody(internalId: internalId)
 
             if isNewborn {
-                request["new"] = true as AnyObject?
+                request["new"] = true
             }
         case .delete:
             break
         }
 
-        return request as AnyObject
+        return request
     }
 }
 

@@ -53,8 +53,8 @@ public final class LCNumber: NSObject, LCValue, LCValueExtension, ExpressibleByF
         }
     }
 
-    public var jsonValue: AnyObject {
-        return value as AnyObject
+    public var jsonValue: Any {
+        return value
     }
 
     public var jsonString: String {
@@ -65,8 +65,8 @@ public final class LCNumber: NSObject, LCValue, LCValueExtension, ExpressibleByF
         return value
     }
 
-    var lconValue: AnyObject? {
-        return value as AnyObject?
+    var lconValue: Any? {
+        return jsonValue
     }
 
     static func instance() -> LCValue {

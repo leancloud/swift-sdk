@@ -60,8 +60,8 @@ public final class LCString: NSObject, LCValue, LCValueExtension, ExpressibleByS
         }
     }
 
-    public var jsonValue: AnyObject {
-        return value as AnyObject
+    public var jsonValue: Any {
+        return value
     }
 
     public var jsonString: String {
@@ -72,8 +72,8 @@ public final class LCString: NSObject, LCValue, LCValueExtension, ExpressibleByS
         return value
     }
 
-    var lconValue: AnyObject? {
-        return value as AnyObject?
+    var lconValue: Any? {
+        return jsonValue
     }
 
     class func instance() -> LCValue {

@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name         = 'LeanCloud'
-  s.version      = '12.0.0'
+  s.version      = '13.0.0'
   s.license      = { :type => 'Apache License, Version 2.0', :file => 'LICENSE' }
   s.summary      = 'LeanCloud Swift SDK'
   s.homepage     = 'https://leancloud.cn/'
@@ -13,7 +13,10 @@ Pod::Spec.new do |s|
   s.watchos.deployment_target = '3.0'
 
   s.subspec 'Foundation' do |ss|
-    ss.source_files = 'Sources/Foundation/**/*.swift'
+    ss.source_files = 'Sources/Foundation/**/*.{h,m,swift}'
+    ss.private_header_files = 'Sources/Foundation/Polyfill/Polyfill.h'
+    ss.pod_target_xcconfig = { 'SWIFT_INCLUDE_PATHS' => '"$(PODS_TARGET_SRCROOT)"/**' }
+    ss.preserve_paths = 'Sources/Foundation/**/*.{modulemap}'
   end
 
   s.subspec 'LocalStorage' do |ss|
@@ -29,6 +32,6 @@ Pod::Spec.new do |s|
     ss.dependency 'LeanCloud/LocalStorage'
 
     ss.source_files = 'Sources/Storage/**/*.swift'
-    ss.resources = 'Sources/Storage/AppRouterCache.xcdatamodeld'
+    ss.resources = 'Sources/Storage/**/*.{xcdatamodeld}'
   end
 end

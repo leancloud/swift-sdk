@@ -514,7 +514,7 @@ class FileUploader {
             let properties = LCDictionary(tokens)
 
             // Touch parameters are also part of propertise.
-            let dictionary = LCDictionary(unsafeObject: touchParameters as [String: AnyObject])
+            let dictionary = LCDictionary(unsafeObject: touchParameters)
 
             dictionary.forEach { (key, value) in
                 properties.set(key, value)

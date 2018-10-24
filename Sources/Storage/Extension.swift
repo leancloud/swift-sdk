@@ -116,8 +116,13 @@ extension Dictionary {
         }
     }
 
-    func mapValue<T>(_ transform: (Value) throws -> T) rethrows -> [Key: T] {
-        let elements = try map { (key, value) in (key, try transform(value)) }
+    func compactMapValue<T>(_ transform: (Value) throws -> T?) rethrows -> [Key: T] {
+        let elements: [(Key, T)] = try compactMap { (key, value) in
+            guard let value = try transform(value) else {
+                return nil
+            }
+            return (key, value)
+        }
         return Dictionary<Key, T>(elements: elements)
     }
 }
@@ -169,6 +174,16 @@ extension Sequence {
 
     var unique: [Element] {
         return NSOrderedSet(array: Array(self)).array as? [Element] ?? []
+    }
+
+}
+
+extension LCApplication {
+
+    var storageContextCache: StorageContextCache {
+        return lc_lazyload("storageContextCache", .OBJC_ASSOCIATION_RETAIN) {
+            StorageContextCache(application: self)
+        }
     }
 
 }

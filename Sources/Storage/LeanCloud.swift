@@ -8,4 +8,4 @@
 
 import Foundation
 
-public let version = "11.0.1"
+public let version = "13.0.0"

@@ -14,7 +14,7 @@ import Foundation
  This class can be used to create, update and delete object.
  */
 class ObjectUpdater {
-    typealias BatchResponse = [String: [String: AnyObject]]
+    typealias BatchResponse = [String: [String: Any]]
 
     /**
      Update objects with response of batch request.
@@ -88,6 +88,7 @@ class ObjectUpdater {
 
                 objects.forEach { object in
                     object.discardChanges()
+                    object.objectDidSave()
                 }
             case .failure:
                 break
@@ -260,7 +261,7 @@ class ObjectUpdater {
         }
 
         matchedObjects.forEach { object in
-            ObjectProfiler.shared.updateObject(object, dictionary as [String : AnyObject])
+            ObjectProfiler.shared.updateObject(object, dictionary)
             object.discardChanges()
         }
 

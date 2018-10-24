@@ -36,7 +36,7 @@ public final class LCNull: NSObject, LCValue, LCValueExtension {
         return object is LCNull
     }
 
-    public var jsonValue: AnyObject {
+    public var jsonValue: Any {
         return NSNull()
     }
 
@@ -48,8 +48,8 @@ public final class LCNull: NSObject, LCValue, LCValueExtension {
         return NSNull()
     }
 
-    var lconValue: AnyObject? {
-        return NSNull()
+    var lconValue: Any? {
+        return jsonValue
     }
 
     static func instance() throws -> LCValue {

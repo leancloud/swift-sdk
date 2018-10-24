@@ -236,6 +236,17 @@ class LocalStorage {
     }
 
     /**
+     Create a singleton and perform task.
+     */
+    @discardableResult
+    func withSingleton<S: NSManagedObject, T>(body: (S, NSManagedObjectContext) throws -> T) throws -> T {
+        return try perform { context in
+            let singleton: S = try createSingleton()
+            return try body(singleton, context)
+        }
+    }
+
+    /**
      Fetch only one object with optional predicate.
      */
     func fetchAnyObject<T: NSManagedObject>(predicate: NSPredicate? = nil) throws -> T? {
