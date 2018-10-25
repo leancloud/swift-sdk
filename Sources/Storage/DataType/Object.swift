@@ -261,7 +261,13 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
             return value
         }
 
-        let value = try! (Value.self as! LCValueExtension.Type).instance() as! Value
+        guard
+            let type = Value.self as? LCValueExtension.Type,
+            let value = try type.instance() as? Value
+        else {
+            throw LCError(code: .invalidType, reason: "Invalid property type.")
+        }
+
         propertyTable[key] = value
 
         return value

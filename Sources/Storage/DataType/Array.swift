@@ -32,10 +32,17 @@ public final class LCArray: NSObject, LCValue, LCValueExtension, Collection, Exp
         self.init(elements)
     }
 
-    public convenience init(unsafeObject: [Any]) {
+    public convenience init(unsafeObject: Any) throws {
         self.init()
-        value = unsafeObject.map { element in
-            try! ObjectProfiler.shared.object(jsonValue: element)
+
+        guard let object = unsafeObject as? [Any] else {
+            throw LCError(
+                code: .malformedData,
+                reason: "Failed to construct LCArray with non-array object.")
+        }
+
+        value = try object.map { element in
+            try ObjectProfiler.shared.object(jsonValue: element)
         }
     }
 

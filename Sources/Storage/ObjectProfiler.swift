@@ -762,11 +762,22 @@ class ObjectProfiler {
                      object is LCACL:
 
             let jsonValue  = object.jsonValue
-            let dictionary = LCDictionary(unsafeObject: jsonValue as! [String : Any])
 
-            return getJSONString(dictionary, depth: depth)
+            do {
+                let dictionary = try LCDictionary(unsafeObject: jsonValue)
+
+                return getJSONString(dictionary, depth: depth)
+            } catch {
+                do {
+                    let data = try JSONSerialization.data(withJSONObject: jsonValue, options: [])
+
+                    return String(data: data, encoding: .utf8) ?? "null"
+                } catch {
+                    return "null" // Impossible
+                }
+            }
         default:
-            return object.description
+            return "null" // Impossible
         }
     }
 

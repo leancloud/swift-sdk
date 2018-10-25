@@ -46,10 +46,17 @@ public final class LCDictionary: NSObject, LCValue, LCValueExtension, Collection
         self.init(Dictionary<Key, Value>(elements: elements))
     }
 
-    public convenience init(unsafeObject: [Key: Any]) {
+    public convenience init(unsafeObject: Any) throws {
         self.init()
-        value = unsafeObject.compactMapValue { value in
-            try? ObjectProfiler.shared.object(jsonValue: value)
+
+        guard let object = unsafeObject as? [Key: Any] else {
+            throw LCError(
+                code: .malformedData,
+                reason: "Failed to construct LCDictionary with non-dictionary object.")
+        }
+
+        value = try object.mapValue { value in
+            try ObjectProfiler.shared.object(jsonValue: value)
         }
     }
 
