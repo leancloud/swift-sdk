@@ -32,6 +32,11 @@ public final class LCDictionary: NSObject, LCValue, LCValueExtension, Collection
         self.value = value
     }
 
+    public convenience init(_ value: [Key: LCValueConvertible]) {
+        self.init()
+        self.value = value.mapValue { value in value.lcValue }
+    }
+
     /**
      Create copy of dictionary.
 

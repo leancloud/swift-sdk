@@ -455,7 +455,7 @@ class ObjectProfiler {
 
      - returns: true if value is a boolean, false otherwise.
      */
-    private func isBoolean(_ jsonValue: Any) -> Bool {
+    func isBoolean(_ jsonValue: Any) -> Bool {
         switch String(describing: type(of: jsonValue)) {
         case "__NSCFBoolean", "Bool": return true
         default: return false
@@ -799,9 +799,9 @@ class ObjectProfiler {
         let value = value as? LCValue
 
         if ObjectProfiler.shared.getLCValue(object, key) == nil {
-            object.set(key.firstLowercaseString, lcValue: value)
+            try? object.set(key.firstLowercaseString, lcValue: value)
         } else {
-            object.set(key, lcValue: value)
+            try? object.set(key, lcValue: value)
         }
     }
 }

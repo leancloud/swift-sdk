@@ -125,7 +125,7 @@ public final class LCSMSClient {
 
     @discardableResult
     private static func requestVerificationCode(mobilePhoneNumber: String, applicationName: String? = nil, operation: String? = nil, timeToLive: UInt? = nil, completionInBackground completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
-        var parameters: [String: Any] = [:]
+        var parameters: [String: LCValueConvertible] = [:]
 
         if let operation = operation {
             parameters["op"] = operation
@@ -175,7 +175,7 @@ public final class LCSMSClient {
 
     @discardableResult
     private static func requestVoiceVerificationCode(mobilePhoneNumber: String, completionInBackground completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
-        let parameters = ["smsType": "voice"]
+        let parameters: [String: LCValueConvertible] = ["smsType": "voice"]
 
         return requestShortMessage(mobilePhoneNumber: mobilePhoneNumber, parameters: parameters, completionInBackground: { result in
             mainQueueAsync {

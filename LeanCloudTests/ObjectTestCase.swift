@@ -60,7 +60,7 @@ class ObjectTestCase: BaseTestCase {
 
         newbornOrphan3.arrayField = [newbornOrphan5]
 
-        object.insertRelation("relationField", object: newbornOrphan4)
+        try! object.insertRelation("relationField", object: newbornOrphan4)
 
         XCTAssertTrue(object.save().isSuccess)
 
@@ -127,7 +127,7 @@ class ObjectTestCase: BaseTestCase {
         let object  = TestObject()
         let element = TestObject()
 
-        object.append("arrayField", element: element)
+        try! object.append("arrayField", element: element)
 
         XCTAssertTrue(object.save().isSuccess)
         XCTAssertNotNil(element.objectId)
@@ -164,7 +164,7 @@ class ObjectTestCase: BaseTestCase {
         let object = TestObject()
         let friend = TestObject()
 
-        object.insertRelation("relationField", object: friend)
+        try! object.insertRelation("relationField", object: friend)
 
         XCTAssertTrue(object.save().isSuccess)
         XCTAssertNotNil(friend.objectId)

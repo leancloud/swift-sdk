@@ -53,13 +53,21 @@ class TypeTestCase: BaseTestCase {
     }
 
     func testArrayConvertible() {
-        let array = [42, true, NSNull(), [:], [], Data(), Date()] as [Any]
-        XCTAssertEqual(convert(array) as? LCArray, try LCArray(unsafeObject: array))
+        let date = Date()
+        let object = LCObject()
+
+        XCTAssertEqual(
+            LCArray([42, true, NSNull(), [:], [], Data(), date, object]),
+            try LCArray(unsafeObject: [42, true, NSNull(), [:], [], Data(), date, object]))
     }
 
     func testDictionaryConvertible() {
-        let dictionary = ["foo": "bar", "true": true, "dict": ["null": NSNull()]] as [String : Any]
-        XCTAssertEqual(convert(dictionary) as? LCDictionary, try LCDictionary(unsafeObject: dictionary))
+        let date = Date()
+        let object = LCObject()
+
+        XCTAssertEqual(
+            LCDictionary(["foo": "bar", "true": true, "dict": ["null": NSNull()], "date": date, "object": object]),
+            try LCDictionary(unsafeObject: ["foo": "bar", "true": true, "dict": ["null": NSNull()], "date": date, "object": object]))
     }
 
     func testDataConvertible() {
@@ -116,7 +124,7 @@ class TypeTestCase: BaseTestCase {
 
         let object = LCObject(objectId: "1234567890")
         let friend = LCObject(objectId: "0987654321")
-        object.insertRelation("friend", object: friend)
+        try! object.insertRelation("friend", object: friend)
         let objectCopy = archiveThenUnarchive(object)
         XCTAssertEqual(objectCopy, object)
         let relation = object.relationForKey("friend")

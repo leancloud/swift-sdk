@@ -21,7 +21,7 @@ let sharedObject: TestObject = {
     object.objectField   = sharedChild
     object.nullField     = LCNull()
 
-    object.insertRelation("relationField", object: sharedFriend)
+    try! object.insertRelation("relationField", object: sharedFriend)
 
     XCTAssertTrue(object.save().isSuccess)
 
@@ -471,7 +471,7 @@ class QueryTestCase: BaseTestCase {
         query1.whereKey("objectId", .equalTo(object.objectId!))
         query2.whereKey("objectId", .equalTo(child.objectId!))
 
-        let query = query1.and(query2)
+        let query = try! query1.and(query2)
         let (isSuccess, objects) = execute(query)
         XCTAssertTrue(isSuccess && objects.isEmpty)
     }
@@ -485,7 +485,7 @@ class QueryTestCase: BaseTestCase {
         query1.whereKey("objectId", .equalTo(object.objectId!))
         query2.whereKey("objectId", .equalTo(child.objectId!))
 
-        let query = query1.or(query2)
+        let query = try! query1.or(query2)
         let (isSuccess, objects) = execute(query)
         XCTAssertTrue(isSuccess && objects.count == 2)
     }
