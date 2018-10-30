@@ -82,14 +82,22 @@ public final class LCData: NSObject, LCValue, LCValueExtension {
     }
 
     public var jsonValue: Any {
+        return typedJSONValue
+    }
+
+    private var typedJSONValue: [String: String] {
         return [
             "__type": "Bytes",
             "base64": base64EncodedString
         ]
     }
 
+    func formattedJSONString(indentLevel: Int, numberOfSpacesForOneIndentLevel: Int = 4) -> String {
+        return LCDictionary(typedJSONValue).formattedJSONString(indentLevel: indentLevel, numberOfSpacesForOneIndentLevel: numberOfSpacesForOneIndentLevel)
+    }
+
     public var jsonString: String {
-        return ObjectProfiler.shared.getJSONString(self)
+        return formattedJSONString(indentLevel: 0)
     }
 
     public var rawValue: LCValueConvertible {

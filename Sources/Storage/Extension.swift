@@ -116,6 +116,13 @@ extension Dictionary {
         }
     }
 
+    func mapValue<T>(_ transform: (Value) throws -> T) rethrows -> [Key: T] {
+        let elements: [(Key, T)] = try compactMap { (key, value) in
+            (key, try transform(value))
+        }
+        return Dictionary<Key, T>(elements: elements)
+    }
+
     func compactMapValue<T>(_ transform: (Value) throws -> T?) rethrows -> [Key: T] {
         let elements: [(Key, T)] = try compactMap { (key, value) in
             guard let value = try transform(value) else {

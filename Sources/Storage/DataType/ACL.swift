@@ -68,8 +68,12 @@ public final class LCACL: NSObject, LCValue, LCValueExtension {
         return value
     }
 
+    func formattedJSONString(indentLevel: Int, numberOfSpacesForOneIndentLevel: Int = 4) -> String {
+        return LCDictionary(value).formattedJSONString(indentLevel: indentLevel, numberOfSpacesForOneIndentLevel: numberOfSpacesForOneIndentLevel)
+    }
+
     public var jsonString: String {
-        return ObjectProfiler.shared.getJSONString(self)
+        return formattedJSONString(indentLevel: 0)
     }
 
     public var rawValue: LCValueConvertible {
