@@ -1,3 +1,7 @@
 module Polyfill {
     export *
+    explicit module Private {
+        header "Polyfill.h"
+        export *
+    }
 }
