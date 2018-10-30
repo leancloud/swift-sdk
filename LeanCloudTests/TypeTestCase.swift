@@ -57,8 +57,8 @@ class TypeTestCase: BaseTestCase {
         let object = LCObject()
 
         XCTAssertEqual(
-            LCArray([42, true, NSNull(), [:], [], Data(), date, object]),
-            try LCArray(unsafeObject: [42, true, NSNull(), [:], [], Data(), date, object]))
+            LCArray([42, true, NSNull(), [String: String](), [String](), Data(), date, object]),
+            try LCArray(unsafeObject: [42, true, NSNull(), [String: String](), [String](), Data(), date, object]))
     }
 
     func testDictionaryConvertible() {
@@ -90,7 +90,7 @@ class TypeTestCase: BaseTestCase {
         let aclCopy = archiveThenUnarchive(acl)
         XCTAssertTrue(aclCopy.getAccess(.write))
 
-        let array = [true, 42, "foo"].lcArray
+        let array = LCArray([true, 42, "foo"])
         let arrayCopy = archiveThenUnarchive(array)
         XCTAssertEqual(arrayCopy, array)
 
@@ -106,7 +106,7 @@ class TypeTestCase: BaseTestCase {
         let dateCopy = archiveThenUnarchive(date)
         XCTAssertEqual(dateCopy, date)
 
-        let dictionary = ["foo": "bar", "baz": 42].lcDictionary
+        let dictionary = LCDictionary(["foo": "bar", "baz": 42])
         let dictionaryCopy = archiveThenUnarchive(dictionary)
         XCTAssertEqual(dictionaryCopy, dictionary)
 

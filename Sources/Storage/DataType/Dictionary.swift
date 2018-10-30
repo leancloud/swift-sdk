@@ -144,12 +144,29 @@ public final class LCDictionary: NSObject, LCValue, LCValueExtension, Collection
         return value.compactMapValue { value in value.jsonValue }
     }
 
+    func formattedJSONString(indentLevel: Int, numberOfSpacesForOneIndentLevel: Int = 4) -> String {
+        if value.isEmpty {
+            return "{}"
+        }
+
+        let lastIndent = " " * (numberOfSpacesForOneIndentLevel * indentLevel)
+        let bodyIndent = " " * (numberOfSpacesForOneIndentLevel * (indentLevel + 1))
+        let body = value
+            .map    { (key, value)  in (key, (value as! LCValueExtension).formattedJSONString(indentLevel: indentLevel + 1, numberOfSpacesForOneIndentLevel: numberOfSpacesForOneIndentLevel)) }
+            .sorted { (left, right) in left.0 < right.0 }
+            .map    { (key, value)  in "\"\(key.doubleQuoteEscapedString)\": \(value)" }
+            .joined(separator: ",\n" + bodyIndent)
+
+        return "{\n\(bodyIndent)\(body)\n\(lastIndent)}"
+    }
+
     public var jsonString: String {
-        return ObjectProfiler.shared.getJSONString(self)
+        return formattedJSONString(indentLevel: 0)
     }
 
     public var rawValue: LCValueConvertible {
-        return value.compactMapValue { value in value.rawValue }
+        let dictionary = value.mapValue { value in value.rawValue }
+        return dictionary as! LCValueConvertible
     }
 
     var lconValue: Any? {

@@ -87,6 +87,10 @@ public final class LCGeoPoint: NSObject, LCValue, LCValueExtension {
     }
 
     public var jsonValue: Any {
+        return typedJSONValue
+    }
+
+    private var typedJSONValue: [String: LCValueConvertible] {
         return [
             "__type"    : "GeoPoint",
             "latitude"  : latitude,
@@ -94,8 +98,12 @@ public final class LCGeoPoint: NSObject, LCValue, LCValueExtension {
         ]
     }
 
+    func formattedJSONString(indentLevel: Int, numberOfSpacesForOneIndentLevel: Int = 4) -> String {
+        return LCDictionary(typedJSONValue).formattedJSONString(indentLevel: indentLevel, numberOfSpacesForOneIndentLevel: numberOfSpacesForOneIndentLevel)
+    }
+
     public var jsonString: String {
-        return ObjectProfiler.shared.getJSONString(self)
+        return formattedJSONString(indentLevel: 0)
     }
 
     public var rawValue: LCValueConvertible {

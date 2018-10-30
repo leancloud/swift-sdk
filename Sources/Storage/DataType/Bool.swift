@@ -53,8 +53,12 @@ public final class LCBool: NSObject, LCValue, LCValueExtension, ExpressibleByBoo
         return value
     }
 
+    func formattedJSONString(indentLevel: Int, numberOfSpacesForOneIndentLevel: Int = 4) -> String {
+        return "\(value)"
+    }
+
     public var jsonString: String {
-        return ObjectProfiler.shared.getJSONString(self)
+        return formattedJSONString(indentLevel: 0)
     }
 
     public var rawValue: LCValueConvertible {

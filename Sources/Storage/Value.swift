@@ -146,7 +146,7 @@ extension LCValue {
 
  By convention, all types that confirm `LCValue` must also confirm `LCValueExtension`.
  */
-protocol LCValueExtension {
+protocol LCValueExtension: LCValue {
     /**
      The LCON (LeanCloud Object Notation) representation.
 
@@ -207,6 +207,16 @@ protocol LCValueExtension {
      - returns: The difference result.
      */
     func differ(_ other: LCValue) throws -> LCValue
+
+    /**
+     Get formatted JSON string with indent.
+
+     - parameter indentLevel: The indent level.
+     - parameter numberOfSpacesForOneIndentLevel: The number of spaces for one indent level.
+
+     - returns: The JSON string.
+     */
+    func formattedJSONString(indentLevel: Int, numberOfSpacesForOneIndentLevel: Int) -> String
 }
 
 /**
@@ -537,7 +547,7 @@ extension URL: LCStringConvertible {
     }
 }
 
-extension Array: LCValueConvertible, LCArrayConvertible where Element == LCValueConvertible {
+extension Array: LCValueConvertible, LCArrayConvertible where Element: LCValueConvertible {
     public var lcValue: LCValue {
         return lcArray
     }
@@ -548,7 +558,7 @@ extension Array: LCValueConvertible, LCArrayConvertible where Element == LCValue
     }
 }
 
-extension Dictionary: LCValueConvertible, LCDictionaryConvertible where Key == String, Value == LCValueConvertible {
+extension Dictionary: LCValueConvertible, LCDictionaryConvertible where Key == String, Value: LCValueConvertible {
     public var lcValue: LCValue {
         return lcDictionary
     }

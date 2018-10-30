@@ -149,8 +149,17 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
         return result
     }
 
+    func formattedJSONString(indentLevel: Int, numberOfSpacesForOneIndentLevel: Int = 4) -> String {
+        let dictionary = LCDictionary(self.dictionary)
+
+        dictionary.__type = "Object"
+        dictionary.className = actualClassName
+
+        return dictionary.formattedJSONString(indentLevel: indentLevel, numberOfSpacesForOneIndentLevel: numberOfSpacesForOneIndentLevel)
+    }
+
     open var jsonString: String {
-        return ObjectProfiler.shared.getJSONString(self)
+        return formattedJSONString(indentLevel: 0)
     }
 
     public var rawValue: LCValueConvertible {
