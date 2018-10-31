@@ -7,7 +7,7 @@
 //
 
 import Foundation
-import Polyfill.Private
+import _LeanCloud_Polyfill
 
 extension NSObject {
 

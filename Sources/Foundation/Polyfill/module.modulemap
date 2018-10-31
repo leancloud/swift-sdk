@@ -1,7 +1,4 @@
-module Polyfill {
+module _LeanCloud_Polyfill {
     export *
-    explicit module Private {
-        header "Polyfill.h"
-        export *
-    }
+    header "Polyfill.h"
 }
