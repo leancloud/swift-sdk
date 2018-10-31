@@ -152,8 +152,8 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
     func formattedJSONString(indentLevel: Int, numberOfSpacesForOneIndentLevel: Int = 4) -> String {
         let dictionary = LCDictionary(self.dictionary)
 
-        dictionary.__type = "Object"
-        dictionary.className = actualClassName
+        dictionary["__type"] = "Object".lcString
+        dictionary["className"] = actualClassName.lcString
 
         return dictionary.formattedJSONString(indentLevel: indentLevel, numberOfSpacesForOneIndentLevel: numberOfSpacesForOneIndentLevel)
     }
