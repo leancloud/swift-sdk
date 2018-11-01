@@ -21,7 +21,7 @@ let sharedObject: TestObject = {
     object.objectField   = sharedChild
     object.nullField     = LCNull()
 
-    object.insertRelation("relationField", object: sharedFriend)
+    try! object.insertRelation("relationField", object: sharedFriend)
 
     XCTAssertTrue(object.save().isSuccess)
 
@@ -219,7 +219,7 @@ class QueryTestCase: BaseTestCase {
         query.whereKey("dateField", .containedIn([Date(timeIntervalSince1970: 1024)]))
 
         /* Tip: Also, you can apply the constraint to array field. */
-        query.whereKey("arrayField", .containedIn([42, "bar"]))
+        query.whereKey("arrayField", .containedIn(LCArray([42, "bar"])))
 
         let (isSuccess, objects) = execute(query)
         XCTAssertTrue(isSuccess && !objects.isEmpty)
@@ -235,7 +235,7 @@ class QueryTestCase: BaseTestCase {
         query.whereKey("numberField", .notContainedIn([42]))
 
         /* Tip: Also, you can apply the constraint to array field. */
-        query.whereKey("arrayField", .notContainedIn([42, "bar"]))
+        query.whereKey("arrayField", .notContainedIn(LCArray([42, "bar"])))
 
         let (isSuccess, objects) = execute(query)
         XCTAssertTrue(isSuccess && objects.isEmpty)
@@ -251,7 +251,7 @@ class QueryTestCase: BaseTestCase {
         query.whereKey("numberField", .containedAllIn([42]))
 
         /* Tip: Also, you can apply the constraint to array field. */
-        query.whereKey("arrayField", .containedAllIn([42, "bar", sharedElement]))
+        query.whereKey("arrayField", .containedAllIn(LCArray([42, "bar", sharedElement])))
 
         let (isSuccess, objects) = execute(query)
         XCTAssertTrue(isSuccess && !objects.isEmpty)
@@ -471,7 +471,7 @@ class QueryTestCase: BaseTestCase {
         query1.whereKey("objectId", .equalTo(object.objectId!))
         query2.whereKey("objectId", .equalTo(child.objectId!))
 
-        let query = query1.and(query2)
+        let query = try! query1.and(query2)
         let (isSuccess, objects) = execute(query)
         XCTAssertTrue(isSuccess && objects.isEmpty)
     }
@@ -485,7 +485,7 @@ class QueryTestCase: BaseTestCase {
         query1.whereKey("objectId", .equalTo(object.objectId!))
         query2.whereKey("objectId", .equalTo(child.objectId!))
 
-        let query = query1.or(query2)
+        let query = try! query1.or(query2)
         let (isSuccess, objects) = execute(query)
         XCTAssertTrue(isSuccess && objects.count == 2)
     }

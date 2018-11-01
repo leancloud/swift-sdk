@@ -294,8 +294,8 @@ final public class LCQuery: NSObject, NSCopying, NSCoding {
 
      - returns: The logic AND of two queries.
      */
-    public func and(_ query: LCQuery) -> LCQuery {
-        try! validateClassName(query)
+    public func and(_ query: LCQuery) throws -> LCQuery {
+        try validateClassName(query)
 
         let result = LCQuery(className: objectClassName)
 
@@ -313,8 +313,8 @@ final public class LCQuery: NSObject, NSCopying, NSCoding {
 
      - returns: The logic OR of two queries.
      */
-    public func or(_ query: LCQuery) -> LCQuery {
-        try! validateClassName(query)
+    public func or(_ query: LCQuery) throws -> LCQuery {
+        try validateClassName(query)
 
         let result = LCQuery(className: objectClassName)
 

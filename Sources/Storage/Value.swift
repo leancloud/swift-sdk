@@ -146,7 +146,7 @@ extension LCValue {
 
  By convention, all types that confirm `LCValue` must also confirm `LCValueExtension`.
  */
-protocol LCValueExtension {
+protocol LCValueExtension: LCValue {
     /**
      The LCON (LeanCloud Object Notation) representation.
 
@@ -207,6 +207,16 @@ protocol LCValueExtension {
      - returns: The difference result.
      */
     func differ(_ other: LCValue) throws -> LCValue
+
+    /**
+     Get formatted JSON string with indent.
+
+     - parameter indentLevel: The indent level.
+     - parameter numberOfSpacesForOneIndentLevel: The number of spaces for one indent level.
+
+     - returns: The JSON string.
+     */
+    func formattedJSONString(indentLevel: Int, numberOfSpacesForOneIndentLevel: Int) -> String
 }
 
 /**
@@ -491,15 +501,19 @@ extension Bool: LCBoolConvertible {
 
 extension NSNumber: LCNumberConvertible, LCBoolConvertible {
     public var lcValue: LCValue {
-        return try! ObjectProfiler.shared.object(jsonValue: self)
+        if ObjectProfiler.shared.isBoolean(self) {
+            return lcBool
+        }
+
+        return lcNumber
     }
 
     public var lcNumber: LCNumber {
-        return LCNumber(self.doubleValue)
+        return LCNumber(doubleValue)
     }
 
     public var lcBool: LCBool {
-        return LCBool(self.boolValue)
+        return LCBool(boolValue)
     }
 }
 
@@ -533,61 +547,25 @@ extension URL: LCStringConvertible {
     }
 }
 
-extension Array: LCArrayConvertible {
+extension Array: LCValueConvertible, LCArrayConvertible where Element: LCValueConvertible {
     public var lcValue: LCValue {
         return lcArray
     }
 
     public var lcArray: LCArray {
-        let value = try! map { element -> LCValue in
-            guard let element = element as? LCValueConvertible else {
-                throw LCError(code: .invalidType, reason: "Element is not LCValue-convertible.", userInfo: nil)
-            }
-            return element.lcValue
-        }
-
+        let value = map { element in element.lcValue }
         return LCArray(value)
     }
 }
 
-extension NSArray: LCArrayConvertible {
-    public var lcValue: LCValue {
-        return lcArray
-    }
-
-    public var lcArray: LCArray {
-        return (self as Array).lcArray
-    }
-}
-
-extension Dictionary: LCDictionaryConvertible {
+extension Dictionary: LCValueConvertible, LCDictionaryConvertible where Key == String, Value: LCValueConvertible {
     public var lcValue: LCValue {
         return lcDictionary
     }
 
     public var lcDictionary: LCDictionary {
-        let elements = try! map { (key, value) -> (String, LCValue) in
-            guard let key = key as? String else {
-                throw LCError(code: .invalidType, reason: "Key is not a string.", userInfo: nil)
-            }
-            guard let value = value as? LCValueConvertible else {
-                throw LCError(code: .invalidType, reason: "Value is not LCValue-convertible.", userInfo: nil)
-            }
-            return (key, value.lcValue)
-        }
-        let value = [String: LCValue](elements: elements)
-
+        let value = mapValue { value in value.lcValue }
         return LCDictionary(value)
-    }
-}
-
-extension NSDictionary: LCDictionaryConvertible {
-    public var lcValue: LCValue {
-        return lcDictionary
-    }
-
-    public var lcDictionary: LCDictionary {
-        return (self as Dictionary).lcDictionary
     }
 }
 

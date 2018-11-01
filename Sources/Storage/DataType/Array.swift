@@ -28,14 +28,26 @@ public final class LCArray: NSObject, LCValue, LCValueExtension, Collection, Exp
         self.value = value
     }
 
+    public convenience init(_ value: [LCValueConvertible]) {
+        self.init()
+        self.value = value.map { element in element.lcValue }
+    }
+
     public convenience required init(arrayLiteral elements: Element...) {
         self.init(elements)
     }
 
-    public convenience init(unsafeObject: [Any]) {
+    public convenience init(unsafeObject: Any) throws {
         self.init()
-        value = unsafeObject.map { element in
-            try! ObjectProfiler.shared.object(jsonValue: element)
+
+        guard let object = unsafeObject as? [Any] else {
+            throw LCError(
+                code: .malformedData,
+                reason: "Failed to construct LCArray with non-array object.")
+        }
+
+        value = try object.map { element in
+            try ObjectProfiler.shared.object(jsonValue: element)
         }
     }
 
@@ -83,12 +95,27 @@ public final class LCArray: NSObject, LCValue, LCValueExtension, Collection, Exp
         return value.map { element in element.jsonValue }
     }
 
+    func formattedJSONString(indentLevel: Int, numberOfSpacesForOneIndentLevel: Int = 4) -> String {
+        if value.isEmpty {
+            return "[]"
+        }
+
+        let lastIndent = " " * (numberOfSpacesForOneIndentLevel * indentLevel)
+        let bodyIndent = " " * (numberOfSpacesForOneIndentLevel * (indentLevel + 1))
+        let body = value
+            .map { value in (value as! LCValueExtension).formattedJSONString(indentLevel: indentLevel + 1, numberOfSpacesForOneIndentLevel: numberOfSpacesForOneIndentLevel) }
+            .joined(separator: ",\n" + bodyIndent)
+
+        return "[\n\(bodyIndent)\(body)\n\(lastIndent)]"
+    }
+
     public var jsonString: String {
-        return ObjectProfiler.shared.getJSONString(self)
+        return formattedJSONString(indentLevel: 0)
     }
 
     public var rawValue: LCValueConvertible {
-        return value.map { element in element.rawValue }
+        let array = value.map { element in element.rawValue }
+        return array as! LCValueConvertible
     }
 
     var lconValue: Any? {

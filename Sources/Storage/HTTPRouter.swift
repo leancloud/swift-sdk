@@ -76,8 +76,8 @@ class HTTPRouter {
         self.configuration = configuration
     }
 
-    /// HTTPClient and HTTPRouter is circled reference. But its by design.
-    /// Client and Router is signleton, so its no memory leaks.
+    /// HTTPClient and HTTPRouter is not really circular referenced.
+    /// Here, router retains a **newly created** client, not the client which retains current router.
     private lazy var httpClient = HTTPClient(application: application, configuration: .default)
 
     private let appRouterURL = URL(string: "https://app-router.leancloud.cn/2/route")

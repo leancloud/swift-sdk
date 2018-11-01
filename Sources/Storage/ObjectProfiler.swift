@@ -455,7 +455,7 @@ class ObjectProfiler {
 
      - returns: true if value is a boolean, false otherwise.
      */
-    private func isBoolean(_ jsonValue: Any) -> Bool {
+    func isBoolean(_ jsonValue: Any) -> Bool {
         switch String(describing: type(of: jsonValue)) {
         case "__NSCFBoolean", "Bool": return true
         default: return false
@@ -698,78 +698,6 @@ class ObjectProfiler {
         return Runtime.instanceVariableValue(object, propertyName) as? LCValue
     }
 
-    func getJSONString(_ object: LCValue) -> String {
-        return getJSONString(object, depth: 0)
-    }
-
-    func getJSONString(_ object: LCValue, depth: Int, indent: Int = 4) -> String {
-        switch object {
-        case is LCNull:
-            return "null"
-        case let number as LCNumber:
-            return String(format: "%g", number.value)
-        case let bool as LCBool:
-            return "\(bool.value)"
-        case let string as LCString:
-            let value = string.value
-
-            if depth > 0 {
-                return "\"\(value.doubleQuoteEscapedString)\""
-            } else {
-                return value
-            }
-        case let array as LCArray:
-            let value = array.value
-
-            if value.isEmpty {
-                return "[]"
-            } else {
-                let lastIndent = " " * (indent * depth)
-                let bodyIndent = " " * (indent * (depth + 1))
-                let body = value
-                    .map { element in getJSONString(element, depth: depth + 1) }
-                    .joined(separator: ",\n" + bodyIndent)
-
-                return "[\n\(bodyIndent)\(body)\n\(lastIndent)]"
-            }
-        case let dictionary as LCDictionary:
-            let value = dictionary.value
-
-            if value.isEmpty {
-                return "{}"
-            } else {
-                let lastIndent = " " * (indent * depth)
-                let bodyIndent = " " * (indent * (depth + 1))
-                let body = value
-                    .map    { (key, value)  in (key, getJSONString(value, depth: depth + 1)) }
-                    .sorted { (left, right) in left.0 < right.0 }
-                    .map    { (key, value)  in "\"\(key.doubleQuoteEscapedString)\" : \(value)" }
-                    .joined(separator: ",\n" + bodyIndent)
-
-                return "{\n\(bodyIndent)\(body)\n\(lastIndent)}"
-            }
-        case let object as LCObject:
-            let dictionary = object.dictionary.copy() as! LCDictionary
-
-            dictionary["__type"]    = LCString("Object")
-            dictionary["className"] = LCString(object.actualClassName)
-
-            return getJSONString(dictionary, depth: depth)
-        case _ where object is LCRelation ||
-                     object is LCGeoPoint ||
-                     object is LCData     ||
-                     object is LCDate     ||
-                     object is LCACL:
-
-            let jsonValue  = object.jsonValue
-            let dictionary = LCDictionary(unsafeObject: jsonValue as! [String : Any])
-
-            return getJSONString(dictionary, depth: depth)
-        default:
-            return object.description
-        }
-    }
-
     /**
      Getter implementation of LeanCloud data type property.
      */
@@ -788,9 +716,9 @@ class ObjectProfiler {
         let value = value as? LCValue
 
         if ObjectProfiler.shared.getLCValue(object, key) == nil {
-            object.set(key.firstLowercaseString, lcValue: value)
+            try? object.set(key.firstLowercaseString, lcValue: value)
         } else {
-            object.set(key, lcValue: value)
+            try? object.set(key, lcValue: value)
         }
     }
 }

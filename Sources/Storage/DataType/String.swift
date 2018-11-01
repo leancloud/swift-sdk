@@ -64,8 +64,12 @@ public final class LCString: NSObject, LCValue, LCValueExtension, ExpressibleByS
         return value
     }
 
+    func formattedJSONString(indentLevel: Int, numberOfSpacesForOneIndentLevel: Int = 4) -> String {
+        return "\"\(value.doubleQuoteEscapedString)\""
+    }
+
     public var jsonString: String {
-        return ObjectProfiler.shared.getJSONString(self)
+        return formattedJSONString(indentLevel: 0)
     }
 
     public var rawValue: LCValueConvertible {

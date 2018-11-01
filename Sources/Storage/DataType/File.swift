@@ -48,7 +48,7 @@ public final class LCFile: LCObject {
             return self.get("mime_type") as? LCString
         }
         set {
-            self.set("mime_type", value: newValue)
+            try? self.set("mime_type", value: newValue)
         }
     }
 
