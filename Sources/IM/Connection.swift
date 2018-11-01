@@ -10,195 +10,192 @@ import Foundation
 import UIKit
 import Alamofire
 
-class Command {
-    
-    enum Response {
-        case data(IMGenericCommand)
-        case error(LCError)
-    }
-    
-    private(set) var data: IMGenericCommand
-    private(set) var callback: ((Command.Response) -> Void)?
-    
-    init(data: IMGenericCommand, callback: ((Command.Response) -> Void)? = nil) {
-        self.data = data
-        self.callback = callback
-    }
-    
-    /// for `Connection` to record send timestamp.
-    fileprivate var sendTimestamp: TimeInterval = 0
-    
-    /// for `Connection` to set serial index.
-    fileprivate func setSerialIndex(with index: Int32) {
-        self.data.i = index
-    }
-    
-    /// `Command`'s callback may retain itself,
-    /// so must set callback to nil after invoking to avoid retain cycle.
-    fileprivate func invokeCallback(with response: Command.Response) {
-        self.callback?(response)
-        self.callback = nil
-    }
-    
-}
-
 protocol ConnectionDelegate: class {
-    func connectionDidReceiveCommand(connection: Connection, inCommand: Command)
+    func connectionInConnecting(connection: Connection)
     func connectionDidConnect(connection: Connection)
-    func connectionConnectingFailed(connection: Connection, reason: Connection.Reason)
-    func connectionDidDisconnect(connection: Connection, reason: Connection.Reason)
-    func connectionInReconnecting(connection: Connection)
+    func connection(connection: Connection, didFailInConnecting event: Connection.Event)
+    func connection(connection: Connection, didDisconnect event: Connection.Event)
+    func connection(connection: Connection, didReceiveCommand inCommand: IMGenericCommand)
 }
 
 class Connection {
     
-    enum AppState {
-        case background
-        case foreground
-    }
-    
-    enum Reason {
-        case userInvoked
-        case networkChanged
-        case networkNotReachable
-        case appInBackground
-        case other((error: LCError, isReconnectionOpen: Bool))
-    }
-    
-    enum LCProtocol: String {
+    enum LCIMProtocol: String {
         case protobuf1 = "lc.protobuf2.1"
         case protobuf3 = "lc.protobuf2.3"
     }
     
+    enum Event {
+        case dealloc
+        case disconnectInvoked
+        case appInBackground
+        case networkNotReachable
+        case networkChanged
+        case error(Error)
+    }
+    
+    class CommandCallback {
+        
+        enum Result {
+            case inCommand(IMGenericCommand)
+            case error(Error)
+        }
+        
+        let closure: ((Result) -> Void)
+        let timeoutTimestamp: TimeInterval
+        
+        init(closure: @escaping ((Result) -> Void), timeToLive: TimeInterval) {
+            self.closure = closure
+            self.timeoutTimestamp = Date().timeIntervalSince1970 + timeToLive
+        }
+        
+    }
+    
     class Timer {
         
-        static let pingRepeating: TimeInterval = 180.0
-        static let pingTimeout: TimeInterval = 20.0
-        static let repeating: Int = 1
+        let pingpongInterval: TimeInterval
+        let pingTimeout: TimeInterval
         
-        let source: DispatchSourceTimer
-        private var lastPingSendTimestamp: TimeInterval = 0
-        private var lastPongReceiveTimestamp: TimeInterval = 0
+        private let source: DispatchSourceTimer
+        private let commandCallbackQueue: DispatchQueue
         
-        #if DEBUG
-        private let specificKey: DispatchSpecificKey<Int>
-        private let specificValue: Int
-        private var specificAssertion: Bool {
-            return self.specificValue == DispatchQueue.getSpecific(key: self.specificKey)
-        }
-        #else
-        private var specificAssertion: Bool {
-            return true
-        }
-        #endif
-        
-        init(connection: Connection) {
-            #if DEBUG
-            self.specificKey = connection.specificKey
-            self.specificValue = connection.specificValue
-            #endif
-            self.source = DispatchSource.makeTimerSource(queue: connection.serialQueue)
-            self.source.setEventHandler { [weak self, weak connection] in
-                guard let ss: Timer = self,
-                    let conn: Connection = connection
-                    else { return }
-                ss.checkCommand(connection: conn)
-                ss.checkPing(connection: conn)
+        init(timerQueue: DispatchQueue,
+             commandCallbackQueue: DispatchQueue,
+             pingpongInterval: TimeInterval = 180.0,
+             pingTimeout: TimeInterval = 20.0,
+             pingSentClosure: @escaping ((Timer) -> Void))
+        {
+            self.pingpongInterval = pingpongInterval
+            self.pingTimeout = pingTimeout
+            self.source = DispatchSource.makeTimerSource(queue: timerQueue)
+            self.commandCallbackQueue = commandCallbackQueue
+            self.pingSentClosure = pingSentClosure
+            self.source.schedule(deadline: .now(), repeating: .seconds(1))
+            self.source.setEventHandler { [weak self] in
+                let currentTimestamp: TimeInterval = Date().timeIntervalSince1970
+                self?.check(commandTimeout: currentTimestamp)
+                self?.check(pingPong: currentTimestamp)
             }
-            self.source.schedule(
-                deadline: .now(),
-                repeating: .seconds(Timer.repeating)
-            )
             self.source.resume()
         }
         
-        deinit {
+        func cancel() {
             self.source.cancel()
+            let values: Dictionary<UInt16, CommandCallback>.Values = self.commandCallbackCollection.values
+            if values.count > 0 {
+                self.commandCallbackQueue.async {
+                    let error = LCError(code: 0)
+                    for item in values {
+                        item.closure(.error(error))
+                    }
+                }
+            }
         }
         
-        func setPongTimestamp() {
-            assert(self.specificAssertion)
-            self.lastPongReceiveTimestamp = NSDate().timeIntervalSince1970
+        private(set) var commandIndexSequence: [UInt16] = []
+        private(set) var commandCallbackCollection: [UInt16 : CommandCallback] = [:]
+        
+        func insert(commandCallback: CommandCallback, index: UInt16) {
+            self.commandIndexSequence.append(index)
+            self.commandCallbackCollection[index] = commandCallback
         }
         
-        private func checkCommand(connection: Connection) {
-            assert(self.specificAssertion)
-            let currentTS: TimeInterval = NSDate().timeIntervalSince1970
-            var stopIndex: Int = 0
-            for (index, commandIndex) in connection.commandIndexes.enumerated() {
-                stopIndex = index + 1
-                guard let command: Command = connection.commandMap[commandIndex] else {
+        func handle(callbackCommand command: IMGenericCommand) {
+            let i: Int32 = (command.hasI ? command.i : 0)
+            guard i > 0 && i <= UInt16.max else {
+                return
+            }
+            let indexKey: UInt16 = UInt16(i)
+            guard let commandCallback: CommandCallback = self.commandCallbackCollection.removeValue(forKey: indexKey) else {
+                return
+            }
+            if let index: Int = self.commandIndexSequence.firstIndex(of: indexKey) {
+                self.commandIndexSequence.remove(at: index)
+            }
+            self.commandCallbackQueue.async {
+                commandCallback.closure(.inCommand(command))
+            }
+        }
+        
+        private func check(commandTimeout currentTimestamp: TimeInterval) {
+            var length: Int = 0
+            for indexKey in self.commandIndexSequence {
+                length += 1
+                guard let commandCallback: CommandCallback = self.commandCallbackCollection[indexKey] else {
                     continue
                 }
-                if currentTS < command.sendTimestamp + connection.commandTTL {
-                    stopIndex = index
+                if commandCallback.timeoutTimestamp > currentTimestamp  {
+                    length -= 1
                     break
-                }
-                connection.commandMap.removeValue(forKey: commandIndex)
-                connection.delegateQueue.async {
-                    // TODO: error
-                    command.invokeCallback(with: .error(LCError(code: 0)))
+                } else {
+                    self.commandCallbackCollection.removeValue(forKey: indexKey)
+                    self.commandCallbackQueue.async {
+                        commandCallback.closure(.error(LCError(code: 0)))
+                    }
                 }
             }
-            if stopIndex > 0 {
-                connection.commandIndexes.removeSubrange(0..<stopIndex)
+            if length > 0 {
+                self.commandIndexSequence.removeSubrange(0..<length)
             }
         }
         
-        private func checkPing(connection: Connection) {
-            assert(self.specificAssertion)
-            let currentTS: TimeInterval = NSDate().timeIntervalSince1970
-            if (self.lastPingSendTimestamp == 0) ||
-                (self.lastPingSendTimestamp > self.lastPongReceiveTimestamp
-                    && currentTS > self.lastPingSendTimestamp + Timer.pingTimeout) ||
-                (self.lastPingSendTimestamp < self.lastPongReceiveTimestamp
-                    && currentTS > self.lastPongReceiveTimestamp + Timer.pingRepeating)
-            {
-                connection.websocket?.write(ping: Data())
-                self.lastPingSendTimestamp = currentTS
+        private(set) var lastPingSentTimestamp: TimeInterval = 0
+        var lastPongReceivedTimestamp: TimeInterval = 0
+        private let pingSentClosure: ((Timer) -> Void)
+        
+        private func check(pingPong currentTimestamp: TimeInterval) {
+            let isPingSentAndPongNotReceived: Bool = (self.lastPingSentTimestamp > self.lastPongReceivedTimestamp)
+            let lastPingTimeout: Bool = (isPingSentAndPongNotReceived && currentTimestamp > self.lastPingSentTimestamp + self.pingTimeout)
+            let shouldNextPingPong: Bool = (!isPingSentAndPongNotReceived && currentTimestamp > self.lastPongReceivedTimestamp + self.pingpongInterval)
+            if lastPingTimeout || shouldNextPingPong {
+                self.pingSentClosure(self)
+                self.lastPingSentTimestamp = currentTimestamp
             }
         }
         
     }
     
-    #if os(iOS) || os(tvOS)
-    private var appState: Connection.AppState = .foreground
-    private var enterBackgroundObserver: NSObjectProtocol? = nil
-    private var enterForegroundObserver: NSObjectProtocol? = nil
-    #endif
-    #if !os(watchOS)
-    private var reachabilityStatus: NetworkReachabilityManager.NetworkReachabilityStatus = .unknown
-    private var reachabilityManager: NetworkReachabilityManager? = nil
-    #endif
-    
-    private let application: LCApplication
-    private weak var delegate: ConnectionDelegate?
-    private let lcProtocol: Connection.LCProtocol
-    private let delegateQueue: DispatchQueue
-    private let commandTTL: TimeInterval
+    let application: LCApplication
+    weak var delegate: ConnectionDelegate?
+    let lcimProtocol: LCIMProtocol
+    let customRTMServer: String?
+    let delegateQueue: DispatchQueue
+    let commandTTL: TimeInterval
     
     private let serialQueue: DispatchQueue = DispatchQueue(label: "LeanCloud.Connection.serialQueue")
-    private var websocket: WebSocket? = nil
-    private var timer: Connection.Timer? = nil
-    private var isReconnectionOpen: Bool = false
+    private var socket: WebSocket? = nil
+    private var timer: Timer? = nil
+    private var isAutoReconnectionEnabled: Bool = false
     private var useSecondaryServer: Bool = false
-    private var commandMap: [UInt16: Command] = [:]
-    private var commandIndexes: [UInt16] = []
     private var serialIndex: UInt16 = 1
     private var nextSerialIndex: UInt16 {
-        let current: UInt16 = self.serialIndex
-        assert(current != 0)
-        if current == UInt16.max {
+        let index: UInt16 = self.serialIndex
+        if index == UInt16.max {
             self.serialIndex = 1
         } else {
             self.serialIndex += 1
         }
-        return current
+        return index
     }
+    
+    #if os(iOS) || os(tvOS)
+    private enum AppState {
+        case background
+        case foreground
+    }
+    private var previousAppState: AppState = .foreground
+    private var enterBackgroundObserver: NSObjectProtocol!
+    private var enterForegroundObserver: NSObjectProtocol!
+    #endif
+    #if !os(watchOS)
+    private var previousReachabilityStatus: NetworkReachabilityManager.NetworkReachabilityStatus = .unknown
+    private var reachabilityManager: NetworkReachabilityManager? = nil
+    #endif
     
     #if DEBUG
     private let specificKey = DispatchSpecificKey<Int>()
-    private let specificValue: Int = Int.random(in: 1...9999999)
+    // whatever random Int is OK.
+    private let specificValue: Int = Int.random(in: 1...999)
     private var specificAssertion: Bool {
         return self.specificValue == DispatchQueue.getSpecific(key: self.specificKey)
     }
@@ -210,7 +207,8 @@ class Connection {
     
     init(application: LCApplication,
          delegate: ConnectionDelegate,
-         lcProtocol: Connection.LCProtocol,
+         lcimProtocol: LCIMProtocol,
+         customRTMServer: String? = nil,
          delegateQueue: DispatchQueue = .main,
          commandTTL: TimeInterval = 30.0)
     {
@@ -219,43 +217,29 @@ class Connection {
         #endif
         self.application = application
         self.delegate = delegate
-        self.lcProtocol = lcProtocol
+        self.lcimProtocol = lcimProtocol
+        self.customRTMServer = customRTMServer
         self.delegateQueue = delegateQueue
         self.commandTTL = commandTTL
         
         #if os(iOS) || os(tvOS)
-        self.appState = (UIApplication.shared.applicationState == .background ? .background : .foreground)
+        self.previousAppState = (UIApplication.shared.applicationState == .background ? .background : .foreground)
         let operationQueue = OperationQueue()
         operationQueue.underlyingQueue = self.serialQueue
         self.enterBackgroundObserver = NotificationCenter.default.addObserver(forName: UIApplication.didEnterBackgroundNotification, object: nil, queue: operationQueue) { [weak self] _ in
-            guard let ss = self else { return }
-            ss.applicationStateChanged(with: .background)
+            self?.applicationStateChanged(with: .background)
         }
         self.enterForegroundObserver = NotificationCenter.default.addObserver(forName: UIApplication.willEnterForegroundNotification, object: nil, queue: operationQueue) { [weak self] _ in
-            guard let ss = self else { return }
-            ss.applicationStateChanged(with: .foreground)
+            self?.applicationStateChanged(with: .foreground)
         }
         #endif
         
         #if !os(watchOS)
         self.reachabilityManager = NetworkReachabilityManager()
-        self.reachabilityStatus = self.reachabilityManager?.networkReachabilityStatus ?? .unknown
+        self.previousReachabilityStatus = self.reachabilityManager?.networkReachabilityStatus ?? .unknown
         self.reachabilityManager?.listenerQueue = self.serialQueue
         self.reachabilityManager?.listener = { [weak self] newStatus in
-            guard let ss = self else { return }
-            let oldStatus = ss.reachabilityStatus
-            ss.reachabilityStatus = newStatus
-            if oldStatus != .notReachable && newStatus == .notReachable {
-                ss.internalDisconnect(with: .networkNotReachable)
-            } else if oldStatus == .notReachable && newStatus != .notReachable {
-                ss.tryReconnect()
-            } else if oldStatus == newStatus {
-                // do nothing.
-            } else {
-                // example: 'ethernetOrWiFi <--> wwan' ...
-                ss.internalDisconnect(with: .networkChanged)
-                ss.tryReconnect()
-            }
+            self?.networkReachabilityStatusChanged(with: newStatus)
         }
         self.reachabilityManager?.startListening()
         #endif
@@ -263,93 +247,76 @@ class Connection {
     
     deinit {
         #if os(iOS) || os(tvOS)
-        for item in [self.enterBackgroundObserver, self.enterForegroundObserver] {
-            if let observer: NSObjectProtocol = item {
-                NotificationCenter.default.removeObserver(observer)
-            }
-        }
+        NotificationCenter.default.removeObserver(self.enterBackgroundObserver)
+        NotificationCenter.default.removeObserver(self.enterForegroundObserver)
         #endif
         #if !os(watchOS)
         self.reachabilityManager?.stopListening()
         #endif
+        self.tryClearConnection(with: .dealloc)
     }
     
     func connect() {
         self.serialQueue.async {
-            guard self.websocket == nil && !self.isReconnectionOpen else {
-                // ignore connect action when websocket exists or reconnection is opened.
+            if self.socket != nil && self.isAutoReconnectionEnabled {
+                // ignore connect-action when socket exists or auto-reconnection enabled.
                 return
             }
-            #if os(iOS) || os(tvOS)
-            guard self.appState == .foreground else {
-                self.delegateQueue.async {
-                    self.delegate?.connectionConnectingFailed(connection: self, reason: .appInBackground)
-                }
-                return
-            }
-            #endif
-            #if !os(watchOS)
-            guard self.reachabilityStatus != .notReachable else {
-                self.delegateQueue.async {
-                    self.delegate?.connectionConnectingFailed(connection: self, reason: .networkNotReachable)
-                }
-                return
-            }
-            #endif
-            self.internalConnect(isReconnecting: false)
+            self.tryConnecting()
         }
     }
     
-    func setReconnection(with isOpen: Bool) {
+    func setAutoReconnectionEnabled(with enabled: Bool) {
         self.serialQueue.async {
-            self.isReconnectionOpen = isOpen
+            self.isAutoReconnectionEnabled = enabled
         }
     }
     
     func disconnect() {
         self.serialQueue.async {
-            self.internalDisconnect(with: .userInvoked)
+            self.tryClearConnection(with: .disconnectInvoked)
         }
     }
     
-    func send(command: Command) {
+    func send(command: IMGenericCommand, callback: ((CommandCallback.Result) -> Void)? = nil) {
         self.serialQueue.async {
-            let hasCallback: Bool = (command.callback != nil)
-            guard let websocket: WebSocket = self.websocket, websocket.isConnected else {
-                if hasCallback {
+            guard let socket: WebSocket = self.socket, let timer: Timer = self.timer else {
+                if let callback = callback {
                     self.delegateQueue.async {
-                        // TODO: error
-                        command.invokeCallback(with: .error(LCError(code: 0)))
+                        callback(.error(LCError(code: 0)))
                     }
                 }
                 return
             }
-            var serialIndex: UInt16? = nil
-            if hasCallback {
-                serialIndex = self.nextSerialIndex
-                command.setSerialIndex(with: Int32(serialIndex!))
+            var command = command
+            if callback != nil {
+                command.i = Int32(self.nextSerialIndex)
             }
-            var serializedData: Data? = nil
+            let serializedData: Data
             do {
-                serializedData = try command.data.serializedData()
+                serializedData = try command.serializedData()
             } catch {
-                // TODO: log
-            }
-            guard let data: Data = serializedData, data.count <= 5000 else {
-                if hasCallback {
+                if let callback = callback {
                     self.delegateQueue.async {
-                        // TODO: error
-                        command.invokeCallback(with: .error(LCError(code: 0)))
+                        callback(.error(error))
                     }
                 }
                 return
             }
-            if let index: UInt16 = serialIndex {
-                self.commandIndexes.append(index)
-                self.commandMap[index] = command
+            guard serializedData.count <= 5000 else {
+                if let callback = callback {
+                    self.delegateQueue.async {
+                        callback(.error(LCError(code: 0)))
+                    }
+                }
+                return
             }
-            command.sendTimestamp = NSDate().timeIntervalSince1970
-            websocket.write(data: data)
+            if let callback = callback {
+                let commandCallback = CommandCallback(closure: callback, timeToLive: self.commandTTL)
+                let index: UInt16 = UInt16(command.i)
+                timer.insert(commandCallback: commandCallback, index: index)
+            }
+            socket.write(data: serializedData)
         }
     }
     
@@ -359,88 +326,95 @@ class Connection {
 
 extension Connection {
     
-    private func internalConnect(isReconnecting: Bool) {
-        assert(self.specificAssertion)
-        assert(self.websocket == nil && self.timer == nil && self.commandIndexes.isEmpty && self.commandMap.isEmpty)
-        // TODO: RTM server
-        guard let url: URL = URL(string: self.useSecondaryServer ? "Secondary" : "Primary") else {
-            self.isReconnectionOpen = false
-            // TODO: error
-            let reason: Connection.Reason = .other((LCError(code: 0), self.isReconnectionOpen))
-            self.delegateQueue.async {
-                if isReconnecting {
-                    self.delegate?.connectionDidDisconnect(connection: self, reason: reason)
-                } else {
-                    self.delegate?.connectionConnectingFailed(connection: self, reason: reason)
-                }
-            }
-            return
-        }
-        let websocket: WebSocket = WebSocket(url: url, protocols: [self.lcProtocol.rawValue])
-        websocket.delegate = self
-        websocket.pongDelegate = self
-        websocket.callbackQueue = self.serialQueue
-        self.websocket = websocket
-        if isReconnecting {
-            self.delegateQueue.async {
-                self.delegate?.connectionInReconnecting(connection: self)
-            }
-        }
-        websocket.connect()
-    }
-    
-    private func internalDisconnect(with reason: Connection.Reason) {
-        assert(self.specificAssertion)
-        if let timer: Connection.Timer = self.timer {
-            timer.source.cancel()
-            self.timer = nil
-        }
-        if let websocket: WebSocket = self.websocket {
-            websocket.delegate = nil
-            websocket.disconnect()
-            self.websocket = nil
-            self.delegateQueue.async {
-                self.delegate?.connectionDidDisconnect(connection: self, reason: reason)
-            }
-        }
-        let commands: Dictionary<UInt16, Command>.Values = self.commandMap.values
-        self.commandMap.removeAll()
-        self.commandIndexes.removeAll()
-        self.serialIndex = 1
-        self.delegateQueue.async {
-            // TODO: error
-            let error: LCError = LCError(code: 0)
-            for command in commands {
-                command.invokeCallback(with: .error(error))
-            }
-        }
-    }
-    
+    #if os(iOS) || os(tvOS)
     private func applicationStateChanged(with newState: Connection.AppState) {
         assert(self.specificAssertion)
-        let oldState: Connection.AppState = self.appState
-        self.appState = newState
+        let oldState: AppState = self.previousAppState
+        self.previousAppState = newState
         switch (oldState, newState) {
         case (.background, .foreground):
-            self.tryReconnect()
+            if self.isAutoReconnectionEnabled {
+                self.tryConnecting()
+            }
         case (.foreground, .background):
-            self.internalDisconnect(with: .appInBackground)
+            self.tryClearConnection(with: .appInBackground)
         default:
             break
         }
     }
+    #endif
     
-    private func tryReconnect() {
+    #if !os(watchOS)
+    private func networkReachabilityStatusChanged(with newStatus: NetworkReachabilityManager.NetworkReachabilityStatus) {
         assert(self.specificAssertion)
-        var flag: Bool = true
+        let oldStatus = self.previousReachabilityStatus
+        self.previousReachabilityStatus = newStatus
+        if oldStatus != .notReachable && newStatus == .notReachable {
+            self.tryClearConnection(with: .networkNotReachable)
+        } else if oldStatus != newStatus && newStatus != .notReachable {
+            self.tryClearConnection(with: .networkChanged)
+            if self.isAutoReconnectionEnabled {
+                self.tryConnecting()
+            }
+        }
+    }
+    #endif
+    
+    private func checkIfCanDoConnecting() -> Event? {
+        assert(self.specificAssertion)
         #if os(iOS) || os(tvOS)
-        flag = (self.appState == .foreground)
-        #endif
-        #if !os(watchOS)
-        if flag && self.reachabilityStatus != .notReachable && self.isReconnectionOpen {
-            self.internalConnect(isReconnecting: true)
+        guard self.previousAppState == .foreground else {
+            return Event.appInBackground
         }
         #endif
+        #if !os(watchOS)
+        guard self.previousReachabilityStatus != .notReachable else {
+            return Event.networkNotReachable
+        }
+        #endif
+        return nil
+    }
+    
+    private func tryConnecting() {
+        assert(self.specificAssertion)
+        if let cannotEvent: Event = self.checkIfCanDoConnecting() {
+            self.delegateQueue.async {
+                self.delegate?.connection(connection: self, didFailInConnecting: cannotEvent)
+            }
+        } else {
+            if let server: String = self.customRTMServer, let url = URL(string: server) {
+                let socket = WebSocket(url: url, protocols: [self.lcimProtocol.rawValue])
+                socket.delegate = self
+                socket.pongDelegate = self
+                socket.callbackQueue = self.serialQueue
+                socket.connect()
+                self.socket = socket
+                self.delegateQueue.async {
+                    self.delegate?.connectionInConnecting(connection: self)
+                }
+            } else {
+                self.delegateQueue.async {
+                    self.delegate?.connection(connection: self, didFailInConnecting: .error(LCError(code: 0)))
+                }
+            }
+        }
+    }
+    
+    private func tryClearConnection(with event: Event) {
+        assert(self.specificAssertion)
+        if let socket: WebSocket = self.socket {
+            socket.delegate = nil
+            socket.pongDelegate = nil
+            socket.disconnect()
+            self.socket = nil
+            self.delegateQueue.async {
+                self.delegate?.connection(connection: self, didDisconnect: event)
+            }
+        }
+        if let timer: Timer = self.timer {
+            timer.cancel()
+            self.timer = nil
+        }
     }
     
 }
@@ -450,79 +424,62 @@ extension Connection {
 extension Connection: WebSocketDelegate, WebSocketPongDelegate {
     
     func websocketDidConnect(socket: WebSocketClient) {
-        assert(self.specificAssertion && self.websocket === socket && self.timer == nil)
-        self.timer = Timer(connection: self)
+        assert(self.specificAssertion)
+        assert(self.socket === socket && self.timer == nil)
+        self.timer = Timer(timerQueue: self.serialQueue, commandCallbackQueue: self.delegateQueue) { _ in
+            socket.write(ping: Data())
+        }
         self.delegateQueue.async {
             self.delegate?.connectionDidConnect(connection: self)
         }
     }
     
     func websocketDidDisconnect(socket: WebSocketClient, error: Error?) {
-        assert(self.specificAssertion && self.websocket === socket)
-        // TODO: error
-        if let wsError: WSError = error as? WSError {
-            switch wsError.type {
-            case .outputStreamWriteError, .upgradeError, .writeTimeoutError:
-                if wsError.type == .upgradeError {
-                    self.useSecondaryServer.toggle()
-                }
-                let reason: Connection.Reason = .other((LCError(code: 0), self.isReconnectionOpen))
-                self.internalDisconnect(with: reason)
-            case .protocolError:
-                self.isReconnectionOpen = false
-                let reason: Connection.Reason = .other((LCError(code: 0), self.isReconnectionOpen))
-                self.internalDisconnect(with: reason)
-            case .compressionError, .invalidSSLError, .closeError:
-                assertionFailure("should not occurred.")
-            }
-        } else if let streamError: NSError = error as NSError? {
-            let reason: Connection.Reason = .other((LCError(code: streamError.code), self.isReconnectionOpen))
-            self.internalDisconnect(with: reason)
+        assert(self.specificAssertion)
+        assert(self.socket === socket)
+        if self.timer != nil {
+            self.tryClearConnection(with: .error(error ?? LCError(code: 0)))
         } else {
-            assertionFailure("should not occurred.")
+            self.delegateQueue.async {
+                self.delegate?.connection(connection: self, didFailInConnecting: .error(error ?? LCError(code: 0)))
+            }
+            self.socket?.delegate = nil
+            self.socket?.pongDelegate = nil
+            self.socket = nil
+            self.useSecondaryServer.toggle()
+            if self.isAutoReconnectionEnabled {
+                self.tryConnecting()
+            }
         }
     }
     
     func websocketDidReceiveData(socket: WebSocketClient, data: Data) {
-        assert(self.specificAssertion && self.websocket === socket)
-        let gpbCommand: IMGenericCommand
+        assert(self.specificAssertion)
+        assert(self.socket === socket)
+        let inCommand: IMGenericCommand
         do {
-            gpbCommand = try IMGenericCommand(serializedData: data)
+            inCommand = try IMGenericCommand(serializedData: data)
         } catch {
-            // TODO: log
+            print(error)
             return
         }
-        let index: Int32? = (gpbCommand.hasI ? gpbCommand.i : nil)
-        if let index: Int32 = index {
-            if index >= 1 && index <= UInt16.max {
-                let serialIndex: UInt16 = UInt16(index)
-                guard let outCommand: Command = self.commandMap.removeValue(forKey: serialIndex) else {
-                    return
-                }
-                if let arrayIndex: Int = self.commandIndexes.firstIndex(of: serialIndex) {
-                    self.commandIndexes.remove(at: arrayIndex)
-                }
-                self.delegateQueue.async {
-                    outCommand.invokeCallback(with: .data(gpbCommand))
-                }
-            } else {
-                // TODO: log
-            }
+        if inCommand.hasI {
+            self.timer?.handle(callbackCommand: inCommand)
         } else {
-            let inCommand: Command = Command(data: gpbCommand)
             self.delegateQueue.async {
-                self.delegate?.connectionDidReceiveCommand(connection: self, inCommand: inCommand)
+                self.delegate?.connection(connection: self, didReceiveCommand: inCommand)
             }
         }
     }
     
     func websocketDidReceivePong(socket: WebSocketClient, data: Data?) {
-        assert(self.specificAssertion && self.websocket === socket)
-        self.timer?.setPongTimestamp()
+        assert(self.specificAssertion)
+        assert(self.socket === socket)
+        self.timer?.lastPongReceivedTimestamp = Date().timeIntervalSince1970
     }
     
     func websocketDidReceiveMessage(socket: WebSocketClient, text: String) {
-        assertionFailure("should not be invoked.")
+        fatalError("should not be invoked.")
     }
     
 }
