@@ -11,20 +11,48 @@ import UIKit
 import Alamofire
 
 protocol ConnectionDelegate: class {
+    
+    /// Invoked when websocket is connecting server.
     func connectionInConnecting(connection: Connection)
+    
+    /// Invoked when websocket connected server.
     func connectionDidConnect(connection: Connection)
+    
+    /// Invoked when encounter some can't-start-websocket-connecting event or websocket connecting failed.
+    ///
+    /// - Parameters:
+    ///   - event: @see Connection.Event
     func connection(connection: Connection, didFailInConnecting event: Connection.Event)
+    
+    /// Invoked when the connected websocket encounter some should-disconnect event or other network error.
+    ///
+    /// - Parameters:
+    ///   - event: @see Connection.Event
     func connection(connection: Connection, didDisconnect event: Connection.Event)
+    
+    /// Invoked when the connected websocket receive direct-in-protobuf-command.
+    ///
+    /// - Parameters:
+    ///   - inCommand: protobuf-command without serial ID.
     func connection(connection: Connection, didReceiveCommand inCommand: IMGenericCommand)
 }
 
 class Connection {
     
+    /// ref: https://github.com/leancloud/avoscloud-push/blob/develop/push-server/doc/protocol.md#传输协议
     enum LCIMProtocol: String {
         case protobuf1 = "lc.protobuf2.1"
         case protobuf3 = "lc.protobuf2.3"
     }
     
+    /// Event for ConnectionDelegate
+    ///
+    /// - dealloc: The connected or in-connecting Connection-Instance was releaseed.
+    /// - disconnectInvoked: The connected or in-connecting Connection-Instance was invoked disconnect().
+    /// - appInBackground: The connected or in-connecting Connection-Instance was disconencted due to APP enter background, or Connection-Instance can't start connecting.
+    /// - networkNotReachable: The connected or in-connecting Connection-Instance was disconencted due to network not reachable, or Connection-Instance can't start connecting.
+    /// - networkChanged: The connected or in-connecting Connection-Instance was disconencted due to network's primary interface changed.
+    /// - error: maybe LeanCloud error, websocket error or other network error.
     enum Event {
         case dealloc
         case disconnectInvoked
@@ -34,6 +62,7 @@ class Connection {
         case error(Error)
     }
     
+    /// private for Connection Class but internal for test, so should never use it.
     class CommandCallback {
         
         enum Result {
@@ -51,6 +80,7 @@ class Connection {
         
     }
     
+    /// private for Connection Class but internal for test, so should never use it.
     class Timer {
         
         let pingpongInterval: TimeInterval
@@ -205,6 +235,15 @@ class Connection {
     }
     #endif
     
+    /// Initialization function.
+    ///
+    /// - Parameters:
+    ///   - application: LeanCloud Application, @see LCApplication.
+    ///   - delegate: @see ConnectionDelegate.
+    ///   - lcimProtocol: @see LCIMProtocol.
+    ///   - customRTMServer: The custom RTM server, if set, Connection will ignore RTM Router, if not set, Connection will use the server return by RTM Router.
+    ///   - delegateQueue: The queue where ConnectionDelegate's fuctions and command's callback be invoked.
+    ///   - commandTTL: Time-To-Live of command's callback.
     init(application: LCApplication,
          delegate: ConnectionDelegate,
          lcimProtocol: LCIMProtocol,
@@ -256,6 +295,7 @@ class Connection {
         self.tryClearConnection(with: .dealloc)
     }
     
+    /// Try connecting RTM server, if websocket exists and auto reconnection is enabled, then this action will be ignored.
     func connect() {
         self.serialQueue.async {
             if self.socket != nil && self.isAutoReconnectionEnabled {
@@ -266,18 +306,25 @@ class Connection {
         }
     }
     
+    /// Switch for auto reconnection.
     func setAutoReconnectionEnabled(with enabled: Bool) {
         self.serialQueue.async {
             self.isAutoReconnectionEnabled = enabled
         }
     }
     
+    /// Try close websocket, cancel timer and purge command callback.
     func disconnect() {
         self.serialQueue.async {
             self.tryClearConnection(with: .disconnectInvoked)
         }
     }
     
+    /// Send Command.
+    ///
+    /// - Parameters:
+    ///   - command: Out Command.
+    ///   - callback: If set, the out command will has a serial-ID and callback will be added into waiting queue.
     func send(command: IMGenericCommand, callback: ((CommandCallback.Result) -> Void)? = nil) {
         self.serialQueue.async {
             guard let socket: WebSocket = self.socket, let timer: Timer = self.timer else {
@@ -322,7 +369,7 @@ class Connection {
     
 }
 
-// MARK: - Internal
+// MARK: - Private
 
 extension Connection {
     
