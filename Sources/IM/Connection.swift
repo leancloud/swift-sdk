@@ -47,14 +47,12 @@ class Connection {
     
     /// Event for ConnectionDelegate
     ///
-    /// - dealloc: The connected or in-connecting Connection-Instance was releaseed.
     /// - disconnectInvoked: The connected or in-connecting Connection-Instance was invoked disconnect().
     /// - appInBackground: The connected or in-connecting Connection-Instance was disconencted due to APP enter background, or Connection-Instance can't start connecting.
     /// - networkNotReachable: The connected or in-connecting Connection-Instance was disconencted due to network not reachable, or Connection-Instance can't start connecting.
     /// - networkChanged: The connected or in-connecting Connection-Instance was disconencted due to network's primary interface changed.
     /// - error: maybe LeanCloud error, websocket error or other network error.
     enum Event {
-        case dealloc
         case disconnectInvoked
         case appInBackground
         case networkNotReachable
@@ -292,7 +290,8 @@ class Connection {
         #if !os(watchOS)
         self.reachabilityManager?.stopListening()
         #endif
-        self.tryClearConnection(with: .dealloc)
+        self.socket?.disconnect()
+        self.timer?.cancel()
     }
     
     /// Try connecting RTM server, if websocket exists and auto reconnection is enabled, then this action will be ignored.
