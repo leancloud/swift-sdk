@@ -7,6 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		112392152190AB6E00ECCBCC /* RTMRouterCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 112392142190AB6E00ECCBCC /* RTMRouterCache.swift */; };
+		1123922A219165BE00ECCBCC /* RTMRouterCache.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 11239228219165BE00ECCBCC /* RTMRouterCache.xcdatamodeld */; };
+		1123922C2191669100ECCBCC /* RTMTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1123922B2191669100ECCBCC /* RTMTestCase.swift */; };
+		113D23C721900CEB006B53EC /* SwiftProtobuf.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D3872641217726B500DD8FBF /* SwiftProtobuf.framework */; };
+		113D23D121901A71006B53EC /* RTMRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 113D23D021901A71006B53EC /* RTMRouter.swift */; };
 		114E1E772151FFB600DA7DB0 /* File.swift in Sources */ = {isa = PBXBuildFile; fileRef = 114E1E762151FFB600DA7DB0 /* File.swift */; };
 		114E1E812152500200DA7DB0 /* FileUploader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 114E1E802152500200DA7DB0 /* FileUploader.swift */; };
 		114E1E852153A3ED00DA7DB0 /* FileTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 114E1E842153A3ED00DA7DB0 /* FileTestCase.swift */; };
@@ -187,6 +192,10 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		112392142190AB6E00ECCBCC /* RTMRouterCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RTMRouterCache.swift; sourceTree = "<group>"; };
+		11239229219165BE00ECCBCC /* RTMRouterCache.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = RTMRouterCache.xcdatamodel; sourceTree = "<group>"; };
+		1123922B2191669100ECCBCC /* RTMTestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RTMTestCase.swift; sourceTree = "<group>"; };
+		113D23D021901A71006B53EC /* RTMRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RTMRouter.swift; sourceTree = "<group>"; };
 		114E1E762151FFB600DA7DB0 /* File.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = File.swift; sourceTree = "<group>"; };
 		114E1E802152500200DA7DB0 /* FileUploader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileUploader.swift; sourceTree = "<group>"; };
 		114E1E842153A3ED00DA7DB0 /* FileTestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileTestCase.swift; sourceTree = "<group>"; };
@@ -268,6 +277,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				113D23C721900CEB006B53EC /* SwiftProtobuf.framework in Frameworks */,
 				837E04FB1CABA694008CC3FF /* Alamofire.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -283,6 +293,13 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		113D23BF21900CEB006B53EC /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		11A166CB214F56F00094AF13 /* LocalStorage */ = {
 			isa = PBXGroup;
 			children = (
@@ -331,6 +348,7 @@
 				8342FCBD1C7B13A700C3CF15 /* LeanCloud */,
 				8342FCC91C7B13A700C3CF15 /* LeanCloudTests */,
 				8342FCBC1C7B13A700C3CF15 /* Products */,
+				113D23BF21900CEB006B53EC /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -370,6 +388,7 @@
 				114E1E842153A3ED00DA7DB0 /* FileTestCase.swift */,
 				118763AE2176EA3A0078645B /* InstallationTestCase.swift */,
 				D3DAD03B218DA402008BCD37 /* ConnectionTestCase.swift */,
+				1123922B2191669100ECCBCC /* RTMTestCase.swift */,
 				8342FCCC1C7B13A700C3CF15 /* Info.plist */,
 			);
 			path = LeanCloudTests;
@@ -475,6 +494,9 @@
 				D3301278217727870007286A /* Command.pb.swift */,
 				D3AA1352216E0D3A008FECA6 /* WebSocket.swift */,
 				D324CD9121774A9B003FA35F /* Connection.swift */,
+				113D23D021901A71006B53EC /* RTMRouter.swift */,
+				112392142190AB6E00ECCBCC /* RTMRouterCache.swift */,
+				11239228219165BE00ECCBCC /* RTMRouterCache.xcdatamodeld */,
 			);
 			path = IM;
 			sourceTree = "<group>";
@@ -710,6 +732,7 @@
 				835F5D6D1D7E6808004D1A0E /* Date.swift in Sources */,
 				11A166DE214F5E440094AF13 /* PersistentController.swift in Sources */,
 				835F5D881D7E6808004D1A0E /* Value.swift in Sources */,
+				112392152190AB6E00ECCBCC /* RTMRouterCache.swift in Sources */,
 				835F5D6F1D7E6808004D1A0E /* GeoPoint.swift in Sources */,
 				11FD151421743A09008389D4 /* Lazyload.swift in Sources */,
 				835F5D841D7E6808004D1A0E /* Result.swift in Sources */,
@@ -727,6 +750,7 @@
 				835F5D7F1D7E6808004D1A0E /* Operation.swift in Sources */,
 				11A166CD214F57360094AF13 /* LocalStorage.swift in Sources */,
 				835F5D661D7E6808004D1A0E /* BatchRequest.swift in Sources */,
+				1123922A219165BE00ECCBCC /* RTMRouterCache.xcdatamodeld in Sources */,
 				835F5D851D7E6808004D1A0E /* Runtime.swift in Sources */,
 				835F5D721D7E6808004D1A0E /* Object.swift in Sources */,
 				1178D132214019F800429131 /* HTTPRouter.swift in Sources */,
@@ -742,6 +766,7 @@
 				835F5D821D7E6808004D1A0E /* Response.swift in Sources */,
 				835F5D861D7E6808004D1A0E /* SMSClient.swift in Sources */,
 				835F5D7E1D7E6808004D1A0E /* ObjectUpdater.swift in Sources */,
+				113D23D121901A71006B53EC /* RTMRouter.swift in Sources */,
 				835F5D831D7E6808004D1A0E /* HTTPClient.swift in Sources */,
 				D3AA135B216E0D3A008FECA6 /* WebSocket.swift in Sources */,
 				835F5D801D7E6808004D1A0E /* Query.swift in Sources */,
@@ -771,6 +796,7 @@
 				1178D10F213F7B9600429131 /* APITestCase.swift in Sources */,
 				8334561C1CE589E500D42725 /* EngineTestCase.swift in Sources */,
 				116A682621427442004141A5 /* RouterTestCase.swift in Sources */,
+				1123922C2191669100ECCBCC /* RTMTestCase.swift in Sources */,
 				118763AF2176EA3A0078645B /* InstallationTestCase.swift in Sources */,
 				8365CFA81D79849D006B856E /* TypeTestCase.swift in Sources */,
 				D3DAD03C218DA402008BCD37 /* ConnectionTestCase.swift in Sources */,
@@ -1004,6 +1030,16 @@
 /* End XCConfigurationList section */
 
 /* Begin XCVersionGroup section */
+		11239228219165BE00ECCBCC /* RTMRouterCache.xcdatamodeld */ = {
+			isa = XCVersionGroup;
+			children = (
+				11239229219165BE00ECCBCC /* RTMRouterCache.xcdatamodel */,
+			);
+			currentVersion = 11239229219165BE00ECCBCC /* RTMRouterCache.xcdatamodel */;
+			path = RTMRouterCache.xcdatamodeld;
+			sourceTree = "<group>";
+			versionGroupType = wrapper.xcdatamodel;
+		};
 		118763A92176DF110078645B /* StorageContext.xcdatamodeld */ = {
 			isa = XCVersionGroup;
 			children = (

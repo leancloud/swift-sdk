@@ -321,32 +321,13 @@ class HTTPClient {
 
      - returns: A request object.
      */
-    func request(
+    func request<T: LCResultType>(
         error: Error,
         completionDispatchQueue: DispatchQueue? = nil,
-        completionHandler: @escaping (LCBooleanResult) -> Void) -> LCRequest
+        completionHandler: @escaping (T) -> Void) -> LCRequest
     {
         return request(object: error, completionDispatchQueue: completionDispatchQueue) { error in
-            completionHandler(.failure(error: error))
-        }
-    }
-
-    /**
-     Create request for error.
-
-     - parameter error:                     The error object.
-     - parameter completionDispatchQueue:   The dispatch queue in which the completion handler will be called. By default, it's a concurrent queue.
-     - parameter completionHandler:         The completion callback closure.
-
-     - returns: A request object.
-     */
-    func request<T>(
-        error: Error,
-        completionDispatchQueue: DispatchQueue? = nil,
-        completionHandler: @escaping (LCValueResult<T>) -> Void) -> LCRequest
-    {
-        return request(object: error, completionDispatchQueue: completionDispatchQueue) { error in
-            completionHandler(.failure(error: error))
+            completionHandler(T(error: error))
         }
     }
 
