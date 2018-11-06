@@ -33,8 +33,18 @@ class Logger {
 
         let date = Logger.dateFormatter.string(from: Date())
         let file = NSURL(string: file)?.lastPathComponent ?? "Unknown"
+        
+        var info = "[LeanCloud \(date) \(file) #\(line) \(function)]:"
+        switch level {
+        case .error:
+            info = "[❤️][Error]" + info
+        case .debug:
+            info = "[💙][Debug]" + info
+        default:
+            break
+        }
 
-        print("[LeanCloud \(date) \(file) #\(line) \(function)]:", value())
+        print(info, value())
     }
 
     func debug<T>(
