@@ -67,12 +67,23 @@ public final class LCApplication: NSObject {
     public enum LogLevel: Int, Comparable {
 
         case off
-        case debug
         case error
+        case debug
         case all
 
         public static func < (lhs: LogLevel, rhs: LogLevel) -> Bool {
             return lhs.rawValue < rhs.rawValue
+        }
+        
+        var description: String {
+            switch self {
+            case .error:
+                return "Error"
+            case .debug:
+                return "Debug"
+            default:
+                return ""
+            }
         }
 
     }
