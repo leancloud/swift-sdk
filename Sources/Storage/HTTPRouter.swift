@@ -167,8 +167,15 @@ class HTTPRouter {
 
      - returns: A versionized path.
      */
-    private func versionizedPath(_ path: String) -> String {
-        return configuration.apiVersion.appendingPathComponent(path)
+    private func versionizedPath(_ path: String, module: Module? = nil) -> String {
+        let module = module ?? findModule(path: path)
+
+        switch module {
+        case .rtm:
+            return path // RTM router path itself has API version already.
+        default:
+            return configuration.apiVersion.appendingPathComponent(path)
+        }
     }
 
     /**
@@ -377,7 +384,7 @@ class HTTPRouter {
      */
     func route(path: String, module: Module? = nil) -> URL? {
         let module = module ?? findModule(path: path)
-        let fullPath = versionizedPath(path)
+        let fullPath = versionizedPath(path, module: module)
 
         if let url = cachedUrl(path: fullPath, module: module) {
             return url
