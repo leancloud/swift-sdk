@@ -12,6 +12,8 @@ public protocol LCResultType {
     var error: LCError? { get }
     var isSuccess: Bool { get }
     var isFailure: Bool { get }
+
+    init(error: LCError)
 }
 
 extension LCResultType {
@@ -23,6 +25,10 @@ extension LCResultType {
 public enum LCBooleanResult: LCResultType {
     case success
     case failure(error: LCError)
+
+    public init(error: LCError) {
+        self = .failure(error: error)
+    }
 
     public var error: LCError? {
         switch self {
@@ -53,6 +59,10 @@ enum LCGenericResult<T>: LCResultType {
     case success(value: T)
     case failure(error: LCError)
 
+    public init(error: LCError) {
+        self = .failure(error: error)
+    }
+
     public var error: LCError? {
         switch self {
         case .success:
@@ -76,6 +86,10 @@ enum LCGenericResult<T>: LCResultType {
 public enum LCValueResult<T: LCValue>: LCResultType {
     case success(object: T)
     case failure(error: LCError)
+
+    public init(error: LCError) {
+        self = .failure(error: error)
+    }
 
     init(response: LCResponse) {
         if let error = LCError(response: response) {
@@ -148,6 +162,10 @@ public enum LCValueOptionalResult: LCResultType {
     case success(object: LCValue?)
     case failure(error: LCError)
 
+    public init(error: LCError) {
+        self = .failure(error: error)
+    }
+
     init(response: LCResponse, keyPath: String) {
         if let error = LCError(response: response) {
             self = .failure(error: error)
@@ -191,6 +209,10 @@ public enum LCQueryResult<T: LCObject>: LCResultType {
     case success(objects: [T])
     case failure(error: LCError)
 
+    public init(error: LCError) {
+        self = .failure(error: error)
+    }
+
     public var error: LCError? {
         switch self {
         case .success:
@@ -220,6 +242,10 @@ public enum LCQueryResult<T: LCObject>: LCResultType {
 public enum LCCountResult: LCResultType {
     case success(count: Int)
     case failure(error: LCError)
+
+    public init(error: LCError) {
+        self = .failure(error: error)
+    }
 
     init(response: LCResponse) {
         if let error = LCError(response: response) {
@@ -258,6 +284,10 @@ public enum LCCountResult: LCResultType {
 public enum LCCQLResult: LCResultType {
     case success(value: LCCQLValue)
     case failure(error: LCError)
+
+    public init(error: LCError) {
+        self = .failure(error: error)
+    }
 
     init(response: LCResponse) {
         if let error = LCError(response: response) {
