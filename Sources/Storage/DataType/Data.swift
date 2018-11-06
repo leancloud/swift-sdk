@@ -41,7 +41,7 @@ public final class LCData: NSObject, LCValue, LCValueExtension {
         value = data
     }
 
-    init?(dictionary: [String: AnyObject]) {
+    init?(dictionary: [String: Any]) {
         guard let type = dictionary["__type"] as? String else {
             return nil
         }
@@ -81,22 +81,30 @@ public final class LCData: NSObject, LCValue, LCValueExtension {
         }
     }
 
-    public var jsonValue: AnyObject {
+    public var jsonValue: Any {
+        return typedJSONValue
+    }
+
+    private var typedJSONValue: [String: String] {
         return [
             "__type": "Bytes",
             "base64": base64EncodedString
-        ] as AnyObject
+        ]
+    }
+
+    func formattedJSONString(indentLevel: Int, numberOfSpacesForOneIndentLevel: Int = 4) -> String {
+        return LCDictionary(typedJSONValue).formattedJSONString(indentLevel: indentLevel, numberOfSpacesForOneIndentLevel: numberOfSpacesForOneIndentLevel)
     }
 
     public var jsonString: String {
-        return ObjectProfiler.getJSONString(self)
+        return formattedJSONString(indentLevel: 0)
     }
 
     public var rawValue: LCValueConvertible {
         return value
     }
 
-    var lconValue: AnyObject? {
+    var lconValue: Any? {
         return jsonValue
     }
 

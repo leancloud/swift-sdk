@@ -15,6 +15,7 @@ import Foundation
  It can be extended into subclass while adding some other properties to form a new type.
  Each object is correspond to a record in data storage.
  */
+@dynamicMemberLookup
 open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
     /// Access control lists.
     @objc open dynamic var ACL: LCACL?
@@ -135,24 +136,37 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
         return dictionary.makeIterator()
     }
 
-    open var jsonValue: AnyObject {
-        var result = dictionary.jsonValue as! [String: AnyObject]
+    open var jsonValue: Any {
+        var result: [String: Any] = [:]
 
-        result["__type"]    = "Object" as AnyObject?
-        result["className"] = actualClassName as AnyObject?
+        if let properties = dictionary.jsonValue as? [String: Any] {
+            result.merge(properties) { (lhs, rhs) in rhs }
+        }
 
-        return result as AnyObject
+        result["__type"]    = "Object"
+        result["className"] = actualClassName
+
+        return result
+    }
+
+    func formattedJSONString(indentLevel: Int, numberOfSpacesForOneIndentLevel: Int = 4) -> String {
+        let dictionary = LCDictionary(self.dictionary)
+
+        dictionary["__type"] = "Object".lcString
+        dictionary["className"] = actualClassName.lcString
+
+        return dictionary.formattedJSONString(indentLevel: indentLevel, numberOfSpacesForOneIndentLevel: numberOfSpacesForOneIndentLevel)
     }
 
     open var jsonString: String {
-        return ObjectProfiler.getJSONString(self)
+        return formattedJSONString(indentLevel: 0)
     }
 
     public var rawValue: LCValueConvertible {
         return self
     }
 
-    var lconValue: AnyObject? {
+    var lconValue: Any? {
         guard let objectId = objectId else {
             return nil
         }
@@ -161,7 +175,16 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
             "__type"    : "Pointer",
             "className" : actualClassName,
             "objectId"  : objectId.value
-        ] as AnyObject
+        ]
+    }
+
+    /**
+     Get preferred batch request.
+
+     If returns nil, it will use the default batch request.
+     */
+    func preferredBatchRequest(method: HTTPClient.Method, path: String, internalId: String) throws -> [String: Any]? {
+        return nil
     }
 
     static func instance() -> LCValue {
@@ -207,7 +230,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
      Register current object class manually.
      */
     public static func register() {
-        ObjectProfiler.registerClass(self)
+        ObjectProfiler.shared.registerClass(self)
     }
 
     /**
@@ -224,8 +247,8 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
 
         if let value = value {
             guard value is Value else {
-                let reason = String(format: "No such a property with name \"%@\" and type \"%s\".", key, class_getName(Value.self))
-                throw LCError(code: .invalidType, reason: reason, userInfo: nil)
+                let reason = String(format: "Failed to get property for name \"%@\" with type \"%s\".", key, class_getName(Value.self))
+                throw LCError(code: .invalidType, reason: reason)
             }
         }
 
@@ -247,7 +270,14 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
             return value
         }
 
-        let value = try! (Value.self as! LCValueExtension.Type).instance() as! Value
+        guard
+            let type = Value.self as? LCValueExtension.Type,
+            let value = try type.instance() as? Value
+        else {
+            let reason = String(format: "Failed to load property for name \"%@\" with type \"%s\".", key, class_getName(Value.self))
+            throw LCError(code: .invalidType, reason: reason)
+        }
+
         propertyTable[key] = value
 
         return value
@@ -258,7 +288,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
 
      - parameter operation: The operation used to update property.
      */
-    func updateProperty(_ operation: Operation) {
+    func updateProperty(_ operation: Operation) throws {
         let key   = operation.key
         let name  = operation.name
         let value = operation.value
@@ -271,33 +301,61 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
         case .delete:
             propertyTable[key] = nil
         case .increment:
-            let amount   = (value as! LCNumber).value
-            let property = try! loadProperty(key) as LCNumber
+            guard let number = value as? LCNumber else {
+                throw LCError(code: .invalidType, reason: "Failed to increase property.")
+            }
+
+            let amount = number.value
+            let property: LCNumber = try loadProperty(key)
 
             property.addInPlace(amount)
         case .add:
-            let elements = (value as! LCArray).value
-            let property = try! loadProperty(key) as LCArray
+            guard let array = value as? LCArray else {
+                throw LCError(code: .invalidType, reason: "Failed to add objects to property.")
+            }
+
+            let elements = array.value
+            let property: LCArray = try loadProperty(key)
 
             property.concatenateInPlace(elements, unique: false)
         case .addUnique:
-            let elements = (value as! LCArray).value
-            let property = try! loadProperty(key) as LCArray
+            guard let array = value as? LCArray else {
+                throw LCError(code: .invalidType, reason: "Failed to add objects to property by unique.")
+            }
+
+            let elements = array.value
+            let property: LCArray = try loadProperty(key)
 
             property.concatenateInPlace(elements, unique: true)
         case .remove:
-            let elements = (value as! LCArray).value
-            let property = try! getProperty(key) as LCArray?
+            guard let array = value as? LCArray else {
+                throw LCError(code: .invalidType, reason: "Failed to remove objects from property.")
+            }
+
+            let elements = array.value
+            let property: LCArray? = try getProperty(key)
 
             property?.differInPlace(elements)
         case .addRelation:
-            let elements = (value as! LCArray).value as! [LCRelation.Element]
-            let relation = try! loadProperty(key) as LCRelation
+            guard
+                let array = value as? LCArray,
+                let elements = array.value as? [LCRelation.Element]
+            else {
+                throw LCError(code: .invalidType, reason: "Failed to add relations to property.")
+            }
 
-            relation.appendElements(elements)
+            let relation = try loadProperty(key) as LCRelation
+
+            try relation.appendElements(elements)
         case .removeRelation:
-            let relation: LCRelation? = try! getProperty(key)
-            let elements = (value as! LCArray).value as! [LCRelation.Element]
+            guard
+                let array = value as? LCArray,
+                let elements = array.value as? [LCRelation.Element]
+            else {
+                throw LCError(code: .invalidType, reason: "Failed to remove relations from property.")
+            }
+
+            let relation: LCRelation? = try getProperty(key)
 
             relation?.removeElements(elements)
         }
@@ -316,7 +374,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
         it will result in that some properties will not be added into property table.
      */
     func synchronizePropertyTable() {
-        ObjectProfiler.iterateProperties(self) { (key, _) in
+        ObjectProfiler.shared.iterateProperties(self) { (key, _) in
             if key == "propertyTable" { return }
 
             if let value = Runtime.instanceVariableValue(self, key) as? LCValue {
@@ -332,10 +390,10 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
      - parameter key:   The operation key.
      - parameter value: The operation value.
      */
-    func addOperation(_ name: Operation.Name, _ key: String, _ value: LCValue? = nil) {
+    func addOperation(_ name: Operation.Name, _ key: String, _ value: LCValue? = nil) throws {
         let operation = Operation(name: name, key: key, value: value)
 
-        updateProperty(operation)
+        try updateProperty(operation)
         operationHub.reduce(operation)
     }
 
@@ -386,7 +444,20 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
             return lcValue
         }
         set {
-            set(key, lcValue: newValue)
+            /*
+             Currently, Swift do not support throwable subscript.
+             So, the exception will be ignored.
+             */
+            try? set(key, lcValue: newValue)
+        }
+    }
+
+    open subscript(dynamicMember key: String) -> LCValueConvertible? {
+        get {
+            return self[key]
+        }
+        set {
+            self[key] = newValue?.lcValue
         }
     }
 
@@ -399,7 +470,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
      */
     open func get(_ key: String) -> LCValue? {
         var lcValue: LCValue? = nil
-        if let value: LCValue = ObjectProfiler.propertyValue(self, key) {
+        if let value: LCValue = ObjectProfiler.shared.propertyValue(self, key) {
             lcValue = value
         } else if let value: LCValue = propertyTable[key] {
             lcValue = value
@@ -413,11 +484,11 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
      - parameter key:   The key for which to set the value.
      - parameter value: The new value.
      */
-    func set(_ key: String, lcValue value: LCValue?) {
+    func set(_ key: String, lcValue value: LCValue?) throws {
         if let value = value {
-            addOperation(.set, key, value)
+            try addOperation(.set, key, value)
         } else {
-            addOperation(.delete, key)
+            try addOperation(.delete, key)
         }
     }
 
@@ -429,8 +500,8 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
      - parameter key:   The key for which to set the value.
      - parameter value: The new value.
      */
-    open func set(_ key: String, value: LCValueConvertible?) {
-        set(key, lcValue: value?.lcValue)
+    open func set(_ key: String, value: LCValueConvertible?) throws {
+        try set(key, lcValue: value?.lcValue)
     }
 
     /**
@@ -438,8 +509,8 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
 
      - parameter key: The key for which to unset.
      */
-    open func unset(_ key: String) {
-        addOperation(.delete, key, nil)
+    open func unset(_ key: String) throws {
+        try addOperation(.delete, key, nil)
     }
 
     /**
@@ -448,8 +519,8 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
      - parameter key:    The key of number which you want to increase.
      - parameter amount: The amount to increase.
      */
-    open func increase(_ key: String, by: LCNumberConvertible) {
-        addOperation(.increment, key, by.lcNumber)
+    open func increase(_ key: String, by: LCNumberConvertible) throws {
+        try addOperation(.increment, key, by.lcNumber)
     }
 
     /**
@@ -458,8 +529,8 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
      - parameter key:     The key of array into which you want to append the element.
      - parameter element: The element to append.
      */
-    open func append(_ key: String, element: LCValueConvertible) {
-        addOperation(.add, key, LCArray([element.lcValue]))
+    open func append(_ key: String, element: LCValueConvertible) throws {
+        try addOperation(.add, key, LCArray([element.lcValue]))
     }
 
     /**
@@ -468,8 +539,8 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
      - parameter key:      The key of array into which you want to append the elements.
      - parameter elements: The array of elements to append.
      */
-    open func append(_ key: String, elements: LCArrayConvertible) {
-        addOperation(.add, key, elements.lcArray)
+    open func append(_ key: String, elements: LCArrayConvertible) throws {
+        try addOperation(.add, key, elements.lcArray)
     }
 
     /**
@@ -481,8 +552,8 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
                           If true, element will not be appended if it had already existed in array;
                           otherwise, element will always be appended.
      */
-    open func append(_ key: String, element: LCValueConvertible, unique: Bool) {
-        addOperation(unique ? .addUnique : .add, key, LCArray([element.lcValue]))
+    open func append(_ key: String, element: LCValueConvertible, unique: Bool) throws {
+        try addOperation(unique ? .addUnique : .add, key, LCArray([element.lcValue]))
     }
 
     /**
@@ -494,8 +565,8 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
      - parameter elements: The array of elements to append.
      - parameter unique:   Whether append element by unique or not.
      */
-    open func append(_ key: String, elements: LCArrayConvertible, unique: Bool) {
-        addOperation(unique ? .addUnique : .add, key, elements.lcArray)
+    open func append(_ key: String, elements: LCArrayConvertible, unique: Bool) throws {
+        try addOperation(unique ? .addUnique : .add, key, elements.lcArray)
     }
 
     /**
@@ -504,8 +575,8 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
      - parameter key:     The key of array from which you want to remove the element.
      - parameter element: The element to remove.
      */
-    open func remove(_ key: String, element: LCValueConvertible) {
-        addOperation(.remove, key, LCArray([element.lcValue]))
+    open func remove(_ key: String, element: LCValueConvertible) throws {
+        try addOperation(.remove, key, LCArray([element.lcValue]))
     }
 
     /**
@@ -514,8 +585,8 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
      - parameter key:      The key of array from which you want to remove the element.
      - parameter elements: The array of elements to remove.
      */
-    open func remove(_ key: String, elements: LCArrayConvertible) {
-        addOperation(.remove, key, elements.lcArray)
+    open func remove(_ key: String, elements: LCArrayConvertible) throws {
+        try addOperation(.remove, key, elements.lcArray)
     }
 
     /**
@@ -535,8 +606,8 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
      - parameter key:    The key of relation into which you want to insert the object.
      - parameter object: The object to insert.
      */
-    open func insertRelation(_ key: String, object: LCObject) {
-        addOperation(.addRelation, key, LCArray([object]))
+    open func insertRelation(_ key: String, object: LCObject) throws {
+        try addOperation(.addRelation, key, LCArray([object]))
     }
 
     /**
@@ -545,8 +616,8 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
      - parameter key:    The key of relation from which you want to remove the object.
      - parameter object: The object to remove.
      */
-    open func removeRelation(_ key: String, object: LCObject) {
-        addOperation(.removeRelation, key, LCArray([object]))
+    open func removeRelation(_ key: String, object: LCObject) throws {
+        try addOperation(.removeRelation, key, LCArray([object]))
     }
 
     /**
@@ -563,6 +634,13 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
      */
     func discardChanges() {
         operationHub.reset()
+    }
+
+    /**
+     The method which will be called when object itself did save.
+     */
+    func objectDidSave() {
+        /* Nop */
     }
 
     // MARK: Save object

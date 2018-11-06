@@ -36,7 +36,7 @@ public final class LCSMSClient {
 
         parameters["mobilePhoneNumber"] = LCString(mobilePhoneNumber)
 
-        let request = HTTPClient.default.request(.post, "requestSmsCode", parameters: parameters.lconValue as? [String: AnyObject]) { response in
+        let request = HTTPClient.default.request(.post, "requestSmsCode", parameters: parameters.lconValue as? [String: Any]) { response in
             completion(LCBooleanResult(response: response))
         }
 
@@ -125,16 +125,16 @@ public final class LCSMSClient {
 
     @discardableResult
     private static func requestVerificationCode(mobilePhoneNumber: String, applicationName: String? = nil, operation: String? = nil, timeToLive: UInt? = nil, completionInBackground completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
-        var parameters: [String: Any] = [:]
+        let parameters = LCDictionary()
 
         if let operation = operation {
-            parameters["op"] = operation
+            parameters.op = operation
         }
         if let applicationName = applicationName {
-            parameters["name"] = applicationName
+            parameters.name = applicationName
         }
         if let timeToLive = timeToLive {
-            parameters["ttl"] = timeToLive
+            parameters.ttl = timeToLive
         }
 
         return requestShortMessage(mobilePhoneNumber: mobilePhoneNumber, parameters: parameters, completionInBackground: { result in
@@ -175,7 +175,7 @@ public final class LCSMSClient {
 
     @discardableResult
     private static func requestVoiceVerificationCode(mobilePhoneNumber: String, completionInBackground completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
-        let parameters = ["smsType": "voice"]
+        let parameters = LCDictionary(["smsType": "voice"])
 
         return requestShortMessage(mobilePhoneNumber: mobilePhoneNumber, parameters: parameters, completionInBackground: { result in
             mainQueueAsync {

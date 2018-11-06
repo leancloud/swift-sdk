@@ -98,10 +98,10 @@ public enum LCValueResult<T: LCValue>: LCResultType {
                 dictionary["__type"]    = HTTPClient.DataType.object.rawValue
                 dictionary["className"] = objectClass.objectClassName()
 
-                jsonValue = dictionary as AnyObject
+                jsonValue = dictionary
             }
 
-            value = try ObjectProfiler.object(jsonValue: jsonValue)
+            value = try ObjectProfiler.shared.object(jsonValue: jsonValue)
         } catch let error {
             self = .failure(error: error)
             return
@@ -154,8 +154,8 @@ public enum LCValueOptionalResult: LCResultType {
             return
         }
 
-        if let jsonValue: AnyObject = response[keyPath] {
-            self = .success(object: try? ObjectProfiler.object(jsonValue: jsonValue))
+        if let jsonValue: Any = response[keyPath] {
+            self = .success(object: try? ObjectProfiler.shared.object(jsonValue: jsonValue))
         } else {
             self = .success(object: nil)
         }

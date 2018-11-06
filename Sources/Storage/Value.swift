@@ -13,11 +13,11 @@ import Foundation
 
  All LeanCloud data types must confirm this protocol.
  */
-public protocol LCValue: NSObjectProtocol, NSCoding, NSCopying {
+public protocol LCValue: NSObjectProtocol, NSCoding, NSCopying, LCValueConvertible {
     /**
      The JSON representation.
      */
-    var jsonValue: AnyObject { get }
+    var jsonValue: Any { get }
 
     /**
      The pretty description.
@@ -146,7 +146,7 @@ extension LCValue {
 
  By convention, all types that confirm `LCValue` must also confirm `LCValueExtension`.
  */
-protocol LCValueExtension {
+protocol LCValueExtension: LCValue {
     /**
      The LCON (LeanCloud Object Notation) representation.
 
@@ -155,7 +155,7 @@ protocol LCValueExtension {
      However, some types might have different representations, or even have no LCON value.
      For example, when an object has not been saved, its LCON value is nil.
      */
-    var lconValue: AnyObject? { get }
+    var lconValue: Any? { get }
 
     /**
      Create an instance of current type.
@@ -207,6 +207,16 @@ protocol LCValueExtension {
      - returns: The difference result.
      */
     func differ(_ other: LCValue) throws -> LCValue
+
+    /**
+     Get formatted JSON string with indent.
+
+     - parameter indentLevel: The indent level.
+     - parameter numberOfSpacesForOneIndentLevel: The number of spaces for one indent level.
+
+     - returns: The JSON string.
+     */
+    func formattedJSONString(indentLevel: Int, numberOfSpacesForOneIndentLevel: Int) -> String
 }
 
 /**
@@ -217,6 +227,80 @@ public protocol LCValueConvertible {
      Get the `LCValue` value for current object.
      */
     var lcValue: LCValue { get }
+}
+
+extension LCValueConvertible {
+    public var intValue: Int? {
+        return lcValue.intValue
+    }
+
+    public var uintValue: UInt? {
+        return lcValue.uintValue
+    }
+
+    public var int8Value: Int8? {
+        return lcValue.int8Value
+    }
+
+    public var uint8Value: UInt8? {
+        return lcValue.uint8Value
+    }
+
+    public var int16Value: Int16? {
+        return lcValue.int16Value
+    }
+
+    public var uint16Value: UInt16? {
+        return lcValue.uint16Value
+    }
+
+    public var int32Value: Int32? {
+        return lcValue.int32Value
+    }
+
+    public var uint32Value: UInt32? {
+        return lcValue.uint32Value
+    }
+
+    public var int64Value: Int64? {
+        return lcValue.int64Value
+    }
+
+    public var uint64Value: UInt64? {
+        return lcValue.uint64Value
+    }
+
+    public var floatValue: Float? {
+        return lcValue.floatValue
+    }
+
+    public var doubleValue: Double? {
+        return lcValue.doubleValue
+    }
+
+    public var boolValue: Bool? {
+        return lcValue.boolValue
+    }
+
+    public var stringValue: String? {
+        return lcValue.stringValue
+    }
+
+    public var arrayValue: [LCValueConvertible]? {
+        return lcValue.arrayValue
+    }
+
+    public var dictionaryValue: [String: LCValueConvertible]? {
+        return lcValue.dictionaryValue
+    }
+
+    public var dataValue: Data? {
+        return lcValue.dataValue
+    }
+
+    public var dateValue: Date? {
+        return lcValue.dateValue
+    }
 }
 
 /**
@@ -417,15 +501,19 @@ extension Bool: LCBoolConvertible {
 
 extension NSNumber: LCNumberConvertible, LCBoolConvertible {
     public var lcValue: LCValue {
-        return try! ObjectProfiler.object(jsonValue: self)
+        if ObjectProfiler.shared.isBoolean(self) {
+            return lcBool
+        }
+
+        return lcNumber
     }
 
     public var lcNumber: LCNumber {
-        return LCNumber(self.doubleValue)
+        return LCNumber(doubleValue)
     }
 
     public var lcBool: LCBool {
-        return LCBool(self.boolValue)
+        return LCBool(boolValue)
     }
 }
 
@@ -459,61 +547,25 @@ extension URL: LCStringConvertible {
     }
 }
 
-extension Array: LCArrayConvertible {
+extension Array: LCValueConvertible, LCArrayConvertible where Element: LCValueConvertible {
     public var lcValue: LCValue {
         return lcArray
     }
 
     public var lcArray: LCArray {
-        let value = try! map { element -> LCValue in
-            guard let element = element as? LCValueConvertible else {
-                throw LCError(code: .invalidType, reason: "Element is not LCValue-convertible.", userInfo: nil)
-            }
-            return element.lcValue
-        }
-
+        let value = map { element in element.lcValue }
         return LCArray(value)
     }
 }
 
-extension NSArray: LCArrayConvertible {
-    public var lcValue: LCValue {
-        return lcArray
-    }
-
-    public var lcArray: LCArray {
-        return (self as Array).lcArray
-    }
-}
-
-extension Dictionary: LCDictionaryConvertible {
+extension Dictionary: LCValueConvertible, LCDictionaryConvertible where Key == String, Value: LCValueConvertible {
     public var lcValue: LCValue {
         return lcDictionary
     }
 
     public var lcDictionary: LCDictionary {
-        let elements = try! map { (key, value) -> (String, LCValue) in
-            guard let key = key as? String else {
-                throw LCError(code: .invalidType, reason: "Key is not a string.", userInfo: nil)
-            }
-            guard let value = value as? LCValueConvertible else {
-                throw LCError(code: .invalidType, reason: "Value is not LCValue-convertible.", userInfo: nil)
-            }
-            return (key, value.lcValue)
-        }
-        let value = [String: LCValue](elements: elements)
-
+        let value = mapValue { value in value.lcValue }
         return LCDictionary(value)
-    }
-}
-
-extension NSDictionary: LCDictionaryConvertible {
-    public var lcValue: LCValue {
-        return lcDictionary
-    }
-
-    public var lcDictionary: LCDictionary {
-        return (self as Dictionary).lcDictionary
     }
 }
 

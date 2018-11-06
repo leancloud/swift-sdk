@@ -7,7 +7,6 @@
 //
 
 import Foundation
-import Alamofire
 
 public struct LCError: Error {
     public typealias UserInfo = [String: Any]
@@ -15,8 +14,6 @@ public struct LCError: Error {
     public var code: Int = 0
     public var reason: String?
     public var userInfo: UserInfo?
-
-    public var underlyingError: Error?
 
     enum InternalErrorCode: Int {
         case notFound      = 9973
@@ -43,19 +40,11 @@ public struct LCError: Error {
         self = LCError(code: code.rawValue, reason: reason, userInfo: userInfo)
     }
 
-    init(dictionary: [String: AnyObject]) {
+    init(dictionary: [String: Any]) {
         code = dictionary["code"] as? Int ?? 0
         reason = dictionary["error"] as? String
         userInfo = dictionary
     }
-}
-
-extension LCError {
-
-    static let appRouterUrlNotFound = LCError(code: .inconsistency, reason: "App router URL not found.")
-
-    static let applicationNotInitialized = LCError(code: .inconsistency, reason: "Application not initialized.")
-
 }
 
 extension LCError: LocalizedError {

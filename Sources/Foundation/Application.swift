@@ -15,7 +15,7 @@ import Foundation
 
  It is a context of application-specific settings and objects.
  */
-public final class LCApplication {
+public final class LCApplication: NSObject {
 
     /**
      Application region.
@@ -103,8 +103,8 @@ public final class LCApplication {
 
      - note: We make initializer internal before multi-applicaiton is supported.
      */
-    init() {
-        type(of: self).initialization
+    override init() {
+        /* Nop */
     }
 
     /**
@@ -119,10 +119,6 @@ public final class LCApplication {
         self.id = id
         self.key = key
     }
-
-    private static let initialization: Void = {
-        ObjectProfiler.registerClasses()
-    }()
 
     /**
      Initialize application by application information.

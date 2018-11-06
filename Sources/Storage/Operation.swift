@@ -43,22 +43,36 @@ class Operation {
     /**
      The LCON representation of operation.
      */
-    var lconValue: AnyObject {
+    var lconValue: Any? {
         let lconValue = (value as? LCValueExtension)?.lconValue
 
         switch name {
         case .set:
-            return lconValue!
+            return lconValue
         case .delete:
-            return ["__op": name.rawValue] as AnyObject
+            return [
+                "__op": name.rawValue
+            ]
         case .increment:
-            return ["__op": name.rawValue, "amount": lconValue!] as AnyObject
+            guard let lconValue = lconValue else {
+                return nil
+            }
+            return [
+                "__op": name.rawValue,
+                "amount": lconValue
+            ]
         case .add,
              .addUnique,
              .addRelation,
              .remove,
              .removeRelation:
-            return ["__op": name.rawValue, "objects": lconValue!] as AnyObject
+            guard let lconValue = lconValue else {
+                return nil
+            }
+            return [
+                "__op": name.rawValue,
+                "objects": lconValue
+            ]
         }
     }
 
@@ -178,7 +192,7 @@ class OperationHub {
      */
     func operationReducerType(_ operation: Operation) -> OperationReducer.Type? {
         let propertyName = operation.key
-        let propertyType = ObjectProfiler.getLCValue(object, propertyName)
+        let propertyType = ObjectProfiler.shared.getLCValue(object, propertyName)
 
         if let propertyType = propertyType {
             return Operation.reducerType(propertyType)

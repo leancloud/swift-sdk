@@ -514,10 +514,14 @@ class FileUploader {
             let properties = LCDictionary(tokens)
 
             // Touch parameters are also part of propertise.
-            let dictionary = LCDictionary(unsafeObject: touchParameters as [String: AnyObject])
+            do {
+                let dictionary = try LCDictionary(unsafeObject: touchParameters)
 
-            dictionary.forEach { (key, value) in
-                properties.set(key, value)
+                dictionary.forEach { (key, value) in
+                    properties.set(key, value)
+                }
+            } catch let error {
+                Logger.shared.error(error)
             }
 
             // Remove security-sensitive and pointless information.

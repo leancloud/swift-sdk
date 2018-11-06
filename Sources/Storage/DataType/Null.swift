@@ -36,20 +36,24 @@ public final class LCNull: NSObject, LCValue, LCValueExtension {
         return object is LCNull
     }
 
-    public var jsonValue: AnyObject {
+    public var jsonValue: Any {
         return NSNull()
     }
 
+    func formattedJSONString(indentLevel: Int, numberOfSpacesForOneIndentLevel: Int = 4) -> String {
+        return "null"
+    }
+
     public var jsonString: String {
-        return ObjectProfiler.getJSONString(self)
+        return formattedJSONString(indentLevel: 0)
     }
 
     public var rawValue: LCValueConvertible {
         return NSNull()
     }
 
-    var lconValue: AnyObject? {
-        return NSNull()
+    var lconValue: Any? {
+        return jsonValue
     }
 
     static func instance() throws -> LCValue {

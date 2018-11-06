@@ -13,13 +13,23 @@
 		116A682621427442004141A5 /* RouterTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 116A682521427442004141A5 /* RouterTestCase.swift */; };
 		1178D10F213F7B9600429131 /* APITestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1178D10E213F7B9600429131 /* APITestCase.swift */; };
 		1178D132214019F800429131 /* HTTPRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1178D131214019F800429131 /* HTTPRouter.swift */; };
+		117A2D0C21704620007C509A /* Installation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 117A2D0B21704620007C509A /* Installation.swift */; };
+		118763AB2176DF110078645B /* StorageContext.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 118763A92176DF110078645B /* StorageContext.xcdatamodeld */; };
+		118763AD2176DF440078645B /* StorageContextCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 118763AC2176DF440078645B /* StorageContextCache.swift */; };
+		118763AF2176EA3A0078645B /* InstallationTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 118763AE2176EA3A0078645B /* InstallationTestCase.swift */; };
 		11A166CD214F57360094AF13 /* LocalStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A166CC214F57360094AF13 /* LocalStorage.swift */; };
 		11A166DE214F5E440094AF13 /* PersistentController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A166DD214F5E440094AF13 /* PersistentController.swift */; };
 		11A166E221509F020094AF13 /* AppRouterCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A166E121509F020094AF13 /* AppRouterCache.swift */; };
 		11A166E82150A39F0094AF13 /* AppRouterCache.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 11A166E62150A39F0094AF13 /* AppRouterCache.xcdatamodeld */; };
-		11CD228B213545A1007E270A /* Application.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11CD228A213545A1007E270A /* Application.swift */; };
+		11D9C0FA216DF63B00A620B7 /* Error.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11D9C0F8216DF63B00A620B7 /* Error.swift */; };
+		11D9C0FB216DF63B00A620B7 /* Application.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11D9C0F9216DF63B00A620B7 /* Application.swift */; };
+		11D9C0FF216DF91A00A620B7 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11D9C0FE216DF91A00A620B7 /* Logger.swift */; };
+		11D9C101216DFB2D00A620B7 /* MD5.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11D9C100216DFB2D00A620B7 /* MD5.swift */; };
 		11FBD1E5215BDDCA00370C61 /* CoreTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11FBD1E4215BDDCA00370C61 /* CoreTestCase.swift */; };
 		11FBD1E8215BEEB400370C61 /* THE RIEMANN HYPOTHESIS.zip in Resources */ = {isa = PBXBuildFile; fileRef = 11FBD1E7215BEEB400370C61 /* THE RIEMANN HYPOTHESIS.zip */; };
+		11FD150E21742CCE008389D4 /* Polyfill.h in Headers */ = {isa = PBXBuildFile; fileRef = 11FD150D21742CCD008389D4 /* Polyfill.h */; };
+		11FD151021742CD3008389D4 /* Polyfill.m in Sources */ = {isa = PBXBuildFile; fileRef = 11FD150F21742CD3008389D4 /* Polyfill.m */; };
+		11FD151421743A09008389D4 /* Lazyload.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11FD151321743A09008389D4 /* Lazyload.swift */; };
 		8334561C1CE589E500D42725 /* EngineTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8334561B1CE589E500D42725 /* EngineTestCase.swift */; };
 		8342FCC61C7B13A700C3CF15 /* LeanCloud.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8342FCBB1C7B13A700C3CF15 /* LeanCloud.framework */; };
 		8342FCCB1C7B13A700C3CF15 /* BaseTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8342FCCA1C7B13A700C3CF15 /* BaseTestCase.swift */; };
@@ -42,11 +52,9 @@
 		835F5D751D7E6808004D1A0E /* String.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D511D7E6808004D1A0E /* String.swift */; };
 		835F5D761D7E6808004D1A0E /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D521D7E6808004D1A0E /* User.swift */; };
 		835F5D771D7E6808004D1A0E /* Engine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D531D7E6808004D1A0E /* Engine.swift */; };
-		835F5D781D7E6808004D1A0E /* Error.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D541D7E6808004D1A0E /* Error.swift */; };
 		835F5D791D7E6808004D1A0E /* Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D551D7E6808004D1A0E /* Extension.swift */; };
 		835F5D7A1D7E6808004D1A0E /* LeanCloud.h in Headers */ = {isa = PBXBuildFile; fileRef = 835F5D561D7E6808004D1A0E /* LeanCloud.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		835F5D7B1D7E6808004D1A0E /* LeanCloud.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D571D7E6808004D1A0E /* LeanCloud.swift */; };
-		835F5D7C1D7E6808004D1A0E /* MD5.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D591D7E6808004D1A0E /* MD5.swift */; };
 		835F5D7D1D7E6808004D1A0E /* ObjectProfiler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D5A1D7E6808004D1A0E /* ObjectProfiler.swift */; };
 		835F5D7E1D7E6808004D1A0E /* ObjectUpdater.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D5B1D7E6808004D1A0E /* ObjectUpdater.swift */; };
 		835F5D7F1D7E6808004D1A0E /* Operation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D5C1D7E6808004D1A0E /* Operation.swift */; };
@@ -61,7 +69,6 @@
 		835F5D881D7E6808004D1A0E /* Value.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D651D7E6808004D1A0E /* Value.swift */; };
 		8365CFA81D79849D006B856E /* TypeTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8365CFA71D79849D006B856E /* TypeTestCase.swift */; };
 		837E04FB1CABA694008CC3FF /* Alamofire.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 837E04EE1CABA688008CC3FF /* Alamofire.framework */; };
-		83B4DB231DB8618A00E36067 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83B4DB221DB8618A00E36067 /* Logger.swift */; };
 		83BC11D61CDD76E900D7E7A6 /* ACLTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83BC11D51CDD76E900D7E7A6 /* ACLTestCase.swift */; };
 		83D0DE6F1CC7B3FF00FC204E /* QueryTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83D0DE6E1CC7B3FF00FC204E /* QueryTestCase.swift */; };
 		83FAF0931CC4D1E400A84063 /* ObjectTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83FAF0921CC4D1E400A84063 /* ObjectTestCase.swift */; };
@@ -133,13 +140,23 @@
 		116A682521427442004141A5 /* RouterTestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RouterTestCase.swift; sourceTree = "<group>"; };
 		1178D10E213F7B9600429131 /* APITestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APITestCase.swift; sourceTree = "<group>"; };
 		1178D131214019F800429131 /* HTTPRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HTTPRouter.swift; sourceTree = "<group>"; };
+		117A2D0B21704620007C509A /* Installation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Installation.swift; sourceTree = "<group>"; };
+		118763AA2176DF110078645B /* StorageContext.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = StorageContext.xcdatamodel; sourceTree = "<group>"; };
+		118763AC2176DF440078645B /* StorageContextCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StorageContextCache.swift; sourceTree = "<group>"; };
+		118763AE2176EA3A0078645B /* InstallationTestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InstallationTestCase.swift; sourceTree = "<group>"; };
 		11A166CC214F57360094AF13 /* LocalStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalStorage.swift; sourceTree = "<group>"; };
 		11A166DD214F5E440094AF13 /* PersistentController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistentController.swift; sourceTree = "<group>"; };
 		11A166E121509F020094AF13 /* AppRouterCache.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppRouterCache.swift; sourceTree = "<group>"; };
 		11A166E72150A39F0094AF13 /* AppRouterCache.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = AppRouterCache.xcdatamodel; sourceTree = "<group>"; };
-		11CD228A213545A1007E270A /* Application.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Application.swift; sourceTree = "<group>"; };
+		11D9C0F8216DF63B00A620B7 /* Error.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Error.swift; sourceTree = "<group>"; };
+		11D9C0F9216DF63B00A620B7 /* Application.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Application.swift; sourceTree = "<group>"; };
+		11D9C0FE216DF91A00A620B7 /* Logger.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
+		11D9C100216DFB2D00A620B7 /* MD5.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MD5.swift; sourceTree = "<group>"; };
 		11FBD1E4215BDDCA00370C61 /* CoreTestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreTestCase.swift; sourceTree = "<group>"; };
 		11FBD1E7215BEEB400370C61 /* THE RIEMANN HYPOTHESIS.zip */ = {isa = PBXFileReference; lastKnownFileType = archive.zip; path = "THE RIEMANN HYPOTHESIS.zip"; sourceTree = "<group>"; };
+		11FD150D21742CCD008389D4 /* Polyfill.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Polyfill.h; sourceTree = "<group>"; };
+		11FD150F21742CD3008389D4 /* Polyfill.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Polyfill.m; sourceTree = "<group>"; };
+		11FD151321743A09008389D4 /* Lazyload.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Lazyload.swift; sourceTree = "<group>"; };
 		8334561B1CE589E500D42725 /* EngineTestCase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EngineTestCase.swift; sourceTree = "<group>"; };
 		8342FCBB1C7B13A700C3CF15 /* LeanCloud.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = LeanCloud.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		8342FCC01C7B13A700C3CF15 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -165,11 +182,9 @@
 		835F5D511D7E6808004D1A0E /* String.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = String.swift; sourceTree = "<group>"; };
 		835F5D521D7E6808004D1A0E /* User.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
 		835F5D531D7E6808004D1A0E /* Engine.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Engine.swift; sourceTree = "<group>"; };
-		835F5D541D7E6808004D1A0E /* Error.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Error.swift; sourceTree = "<group>"; };
 		835F5D551D7E6808004D1A0E /* Extension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Extension.swift; sourceTree = "<group>"; };
 		835F5D561D7E6808004D1A0E /* LeanCloud.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LeanCloud.h; sourceTree = "<group>"; };
 		835F5D571D7E6808004D1A0E /* LeanCloud.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LeanCloud.swift; sourceTree = "<group>"; };
-		835F5D591D7E6808004D1A0E /* MD5.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MD5.swift; sourceTree = "<group>"; };
 		835F5D5A1D7E6808004D1A0E /* ObjectProfiler.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ObjectProfiler.swift; sourceTree = "<group>"; };
 		835F5D5B1D7E6808004D1A0E /* ObjectUpdater.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ObjectUpdater.swift; sourceTree = "<group>"; };
 		835F5D5C1D7E6808004D1A0E /* Operation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Operation.swift; sourceTree = "<group>"; };
@@ -184,7 +199,6 @@
 		835F5D651D7E6808004D1A0E /* Value.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Value.swift; sourceTree = "<group>"; };
 		8365CFA71D79849D006B856E /* TypeTestCase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TypeTestCase.swift; sourceTree = "<group>"; };
 		837E04E31CABA688008CC3FF /* Alamofire.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Alamofire.xcodeproj; path = Alamofire/Alamofire.xcodeproj; sourceTree = "<group>"; };
-		83B4DB221DB8618A00E36067 /* Logger.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
 		83BC11D51CDD76E900D7E7A6 /* ACLTestCase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ACLTestCase.swift; sourceTree = "<group>"; };
 		83D0DE6E1CC7B3FF00FC204E /* QueryTestCase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QueryTestCase.swift; sourceTree = "<group>"; };
 		83D5923D1CD88846007177C5 /* BridgingHeader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BridgingHeader.h; sourceTree = "<group>"; };
@@ -220,12 +234,34 @@
 			path = LocalStorage;
 			sourceTree = "<group>";
 		};
+		11D9C0F7216DF63B00A620B7 /* Foundation */ = {
+			isa = PBXGroup;
+			children = (
+				11FD150021742CAF008389D4 /* Polyfill */,
+				11D9C100216DFB2D00A620B7 /* MD5.swift */,
+				11D9C0F8216DF63B00A620B7 /* Error.swift */,
+				11FD151321743A09008389D4 /* Lazyload.swift */,
+				11D9C0F9216DF63B00A620B7 /* Application.swift */,
+				11D9C0FE216DF91A00A620B7 /* Logger.swift */,
+			);
+			path = Foundation;
+			sourceTree = "<group>";
+		};
 		11FBD1E6215BEEB400370C61 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
 				11FBD1E7215BEEB400370C61 /* THE RIEMANN HYPOTHESIS.zip */,
 			);
 			path = Resources;
+			sourceTree = "<group>";
+		};
+		11FD150021742CAF008389D4 /* Polyfill */ = {
+			isa = PBXGroup;
+			children = (
+				11FD150D21742CCD008389D4 /* Polyfill.h */,
+				11FD150F21742CD3008389D4 /* Polyfill.m */,
+			);
+			path = Polyfill;
 			sourceTree = "<group>";
 		};
 		8342FCB11C7B13A600C3CF15 = {
@@ -273,6 +309,7 @@
 				8352B5221D2BAAE600531785 /* RelationTestCase.swift */,
 				834EA7141D2A139A00108DDC /* UserTestCase.swift */,
 				114E1E842153A3ED00DA7DB0 /* FileTestCase.swift */,
+				118763AE2176EA3A0078645B /* InstallationTestCase.swift */,
 				8342FCCC1C7B13A700C3CF15 /* Info.plist */,
 			);
 			path = LeanCloudTests;
@@ -281,8 +318,9 @@
 		835F5D3F1D7E6808004D1A0E /* Sources */ = {
 			isa = PBXGroup;
 			children = (
-				835F5D401D7E6808004D1A0E /* Storage */,
+				11D9C0F7216DF63B00A620B7 /* Foundation */,
 				11A166CB214F56F00094AF13 /* LocalStorage */,
+				835F5D401D7E6808004D1A0E /* Storage */,
 			);
 			path = Sources;
 			sourceTree = "<group>";
@@ -290,20 +328,19 @@
 		835F5D401D7E6808004D1A0E /* Storage */ = {
 			isa = PBXGroup;
 			children = (
-				835F5D581D7E6808004D1A0E /* Library */,
 				835F5D441D7E6808004D1A0E /* DataType */,
 				835F5D561D7E6808004D1A0E /* LeanCloud.h */,
 				835F5D571D7E6808004D1A0E /* LeanCloud.swift */,
-				11CD228A213545A1007E270A /* Application.swift */,
 				835F5D651D7E6808004D1A0E /* Value.swift */,
 				835F5D551D7E6808004D1A0E /* Extension.swift */,
 				835F5D621D7E6808004D1A0E /* Runtime.swift */,
 				835F5D641D7E6808004D1A0E /* Utility.swift */,
-				83B4DB221DB8618A00E36067 /* Logger.swift */,
 				835F5D601D7E6808004D1A0E /* HTTPClient.swift */,
 				1178D131214019F800429131 /* HTTPRouter.swift */,
 				11A166E121509F020094AF13 /* AppRouterCache.swift */,
 				11A166E62150A39F0094AF13 /* AppRouterCache.xcdatamodeld */,
+				118763AC2176DF440078645B /* StorageContextCache.swift */,
+				118763A92176DF110078645B /* StorageContext.xcdatamodeld */,
 				835F5D5C1D7E6808004D1A0E /* Operation.swift */,
 				835F5D5A1D7E6808004D1A0E /* ObjectProfiler.swift */,
 				835F5D5B1D7E6808004D1A0E /* ObjectUpdater.swift */,
@@ -312,7 +349,6 @@
 				835F5D411D7E6808004D1A0E /* BatchRequest.swift */,
 				835F5D5F1D7E6808004D1A0E /* Response.swift */,
 				835F5D611D7E6808004D1A0E /* Result.swift */,
-				835F5D541D7E6808004D1A0E /* Error.swift */,
 				835F5D5D1D7E6808004D1A0E /* Query.swift */,
 				835F5D431D7E6808004D1A0E /* CQLClient.swift */,
 				835F5D531D7E6808004D1A0E /* Engine.swift */,
@@ -339,16 +375,9 @@
 				835F5D511D7E6808004D1A0E /* String.swift */,
 				835F5D521D7E6808004D1A0E /* User.swift */,
 				114E1E762151FFB600DA7DB0 /* File.swift */,
+				117A2D0B21704620007C509A /* Installation.swift */,
 			);
 			path = DataType;
-			sourceTree = "<group>";
-		};
-		835F5D581D7E6808004D1A0E /* Library */ = {
-			isa = PBXGroup;
-			children = (
-				835F5D591D7E6808004D1A0E /* MD5.swift */,
-			);
-			path = Library;
 			sourceTree = "<group>";
 		};
 		837E04E41CABA688008CC3FF /* Products */ = {
@@ -373,6 +402,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				835F5D7A1D7E6808004D1A0E /* LeanCloud.h in Headers */,
+				11FD150E21742CCE008389D4 /* Polyfill.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -427,11 +457,12 @@
 				TargetAttributes = {
 					8342FCBA1C7B13A700C3CF15 = {
 						CreatedOnToolsVersion = 7.2;
-						LastSwiftMigration = 0900;
+						LastSwiftMigration = 1000;
 					};
 					8342FCC41C7B13A700C3CF15 = {
 						CreatedOnToolsVersion = 7.2;
-						LastSwiftMigration = 0800;
+						DevelopmentTeam = Y6X8P44TM5;
+						LastSwiftMigration = 1000;
 					};
 				};
 			};
@@ -536,46 +567,51 @@
 			files = (
 				835F5D6C1D7E6808004D1A0E /* Data.swift in Sources */,
 				835F5D691D7E6808004D1A0E /* ACL.swift in Sources */,
-				11CD228B213545A1007E270A /* Application.swift in Sources */,
 				835F5D6A1D7E6808004D1A0E /* Array.swift in Sources */,
 				835F5D731D7E6808004D1A0E /* Relation.swift in Sources */,
 				835F5D6D1D7E6808004D1A0E /* Date.swift in Sources */,
 				11A166DE214F5E440094AF13 /* PersistentController.swift in Sources */,
 				835F5D881D7E6808004D1A0E /* Value.swift in Sources */,
 				835F5D6F1D7E6808004D1A0E /* GeoPoint.swift in Sources */,
+				11FD151421743A09008389D4 /* Lazyload.swift in Sources */,
 				835F5D841D7E6808004D1A0E /* Result.swift in Sources */,
 				835F5D771D7E6808004D1A0E /* Engine.swift in Sources */,
 				835F5D761D7E6808004D1A0E /* User.swift in Sources */,
 				114E1E772151FFB600DA7DB0 /* File.swift in Sources */,
+				11D9C0FA216DF63B00A620B7 /* Error.swift in Sources */,
 				835F5D701D7E6808004D1A0E /* Null.swift in Sources */,
-				835F5D7C1D7E6808004D1A0E /* MD5.swift in Sources */,
+				11D9C101216DFB2D00A620B7 /* MD5.swift in Sources */,
 				835F5D6E1D7E6808004D1A0E /* Dictionary.swift in Sources */,
 				114E1E812152500200DA7DB0 /* FileUploader.swift in Sources */,
 				835F5D711D7E6808004D1A0E /* Number.swift in Sources */,
 				835F5D871D7E6808004D1A0E /* Utility.swift in Sources */,
+				117A2D0C21704620007C509A /* Installation.swift in Sources */,
 				835F5D7F1D7E6808004D1A0E /* Operation.swift in Sources */,
 				11A166CD214F57360094AF13 /* LocalStorage.swift in Sources */,
 				835F5D661D7E6808004D1A0E /* BatchRequest.swift in Sources */,
 				835F5D851D7E6808004D1A0E /* Runtime.swift in Sources */,
 				835F5D721D7E6808004D1A0E /* Object.swift in Sources */,
 				1178D132214019F800429131 /* HTTPRouter.swift in Sources */,
+				118763AB2176DF110078645B /* StorageContext.xcdatamodeld in Sources */,
+				11D9C0FF216DF91A00A620B7 /* Logger.swift in Sources */,
 				835F5D811D7E6808004D1A0E /* Request.swift in Sources */,
 				835F5D681D7E6808004D1A0E /* CQLClient.swift in Sources */,
+				118763AD2176DF440078645B /* StorageContextCache.swift in Sources */,
 				11A166E82150A39F0094AF13 /* AppRouterCache.xcdatamodeld in Sources */,
 				835F5D791D7E6808004D1A0E /* Extension.swift in Sources */,
 				835F5D7D1D7E6808004D1A0E /* ObjectProfiler.swift in Sources */,
+				11FD151021742CD3008389D4 /* Polyfill.m in Sources */,
 				835F5D821D7E6808004D1A0E /* Response.swift in Sources */,
-				83B4DB231DB8618A00E36067 /* Logger.swift in Sources */,
 				835F5D861D7E6808004D1A0E /* SMSClient.swift in Sources */,
 				835F5D7E1D7E6808004D1A0E /* ObjectUpdater.swift in Sources */,
 				835F5D831D7E6808004D1A0E /* HTTPClient.swift in Sources */,
 				835F5D801D7E6808004D1A0E /* Query.swift in Sources */,
+				11D9C0FB216DF63B00A620B7 /* Application.swift in Sources */,
 				835F5D6B1D7E6808004D1A0E /* Bool.swift in Sources */,
 				835F5D751D7E6808004D1A0E /* String.swift in Sources */,
 				835F5D7B1D7E6808004D1A0E /* LeanCloud.swift in Sources */,
 				835F5D741D7E6808004D1A0E /* Role.swift in Sources */,
 				11A166E221509F020094AF13 /* AppRouterCache.swift in Sources */,
-				835F5D781D7E6808004D1A0E /* Error.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -594,6 +630,7 @@
 				1178D10F213F7B9600429131 /* APITestCase.swift in Sources */,
 				8334561C1CE589E500D42725 /* EngineTestCase.swift in Sources */,
 				116A682621427442004141A5 /* RouterTestCase.swift in Sources */,
+				118763AF2176EA3A0078645B /* InstallationTestCase.swift in Sources */,
 				8365CFA81D79849D006B856E /* TypeTestCase.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -735,9 +772,9 @@
 				PRODUCT_BUNDLE_IDENTIFIER = cn.leancloud.LeanCloud;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
+				SWIFT_INCLUDE_PATHS = "\"$(SRCROOT)\"/**";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
-				SWIFT_SWIFT3_OBJC_INFERENCE = Default;
-				SWIFT_VERSION = 4.0;
+				SWIFT_VERSION = 4.2;
 			};
 			name = Debug;
 		};
@@ -757,38 +794,36 @@
 				PRODUCT_BUNDLE_IDENTIFIER = cn.leancloud.LeanCloud;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
-				SWIFT_SWIFT3_OBJC_INFERENCE = Default;
-				SWIFT_VERSION = 4.0;
+				SWIFT_INCLUDE_PATHS = "\"$(SRCROOT)\"/**";
+				SWIFT_VERSION = 4.2;
 			};
 			name = Release;
 		};
 		8342FCD31C7B13A700C3CF15 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = Y6X8P44TM5;
 				INFOPLIST_FILE = LeanCloudTests/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = cn.leancloud.LeanCloudTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = LeanCloudTests/BridgingHeader.h;
-				SWIFT_SWIFT3_OBJC_INFERENCE = Default;
-				SWIFT_VERSION = 4.0;
+				SWIFT_VERSION = 4.2;
 			};
 			name = Debug;
 		};
 		8342FCD41C7B13A700C3CF15 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = Y6X8P44TM5;
 				INFOPLIST_FILE = LeanCloudTests/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = cn.leancloud.LeanCloudTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = LeanCloudTests/BridgingHeader.h;
-				SWIFT_SWIFT3_OBJC_INFERENCE = Default;
-				SWIFT_VERSION = 4.0;
+				SWIFT_VERSION = 4.2;
 			};
 			name = Release;
 		};
@@ -825,6 +860,16 @@
 /* End XCConfigurationList section */
 
 /* Begin XCVersionGroup section */
+		118763A92176DF110078645B /* StorageContext.xcdatamodeld */ = {
+			isa = XCVersionGroup;
+			children = (
+				118763AA2176DF110078645B /* StorageContext.xcdatamodel */,
+			);
+			currentVersion = 118763AA2176DF110078645B /* StorageContext.xcdatamodel */;
+			path = StorageContext.xcdatamodeld;
+			sourceTree = "<group>";
+			versionGroupType = wrapper.xcdatamodel;
+		};
 		11A166E62150A39F0094AF13 /* AppRouterCache.xcdatamodeld */ = {
 			isa = XCVersionGroup;
 			children = (

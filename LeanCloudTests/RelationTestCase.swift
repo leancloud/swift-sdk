@@ -35,7 +35,7 @@ class RelationTestCase: BaseTestCase {
         let object = LCObject()
         let friend = TestObject()
 
-        object.insertRelation("relationField", object: friend)
+        try! object.insertRelation("relationField", object: friend)
         XCTAssertTrue(object.save().isSuccess)
 
         let shadow = LCObject(objectId: object.objectId!.value)
@@ -56,11 +56,11 @@ class RelationTestCase: BaseTestCase {
         let friend = object.relationForKey("relationField")
         let query  = friend.query
 
-        friend.insert(child)
+        try! friend.insert(child)
         XCTAssertTrue(object.save().isSuccess)
         XCTAssertTrue(query.find().objects!.contains(child))
 
-        friend.remove(child)
+        try! friend.remove(child)
         XCTAssertTrue(object.save().isSuccess)
         XCTAssertFalse(query.find().objects!.contains(child))
     }

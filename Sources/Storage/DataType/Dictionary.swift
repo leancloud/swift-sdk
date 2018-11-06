@@ -13,6 +13,7 @@ import Foundation
 
  It is a wrapper of `Swift.Dictionary` type, used to store a dictionary value.
  */
+@dynamicMemberLookup
 public final class LCDictionary: NSObject, LCValue, LCValueExtension, Collection, ExpressibleByDictionaryLiteral {
     public typealias Key   = String
     public typealias Value = LCValue
@@ -31,6 +32,11 @@ public final class LCDictionary: NSObject, LCValue, LCValueExtension, Collection
         self.value = value
     }
 
+    public convenience init(_ value: [Key: LCValueConvertible]) {
+        self.init()
+        self.value = value.mapValue { value in value.lcValue }
+    }
+
     /**
      Create copy of dictionary.
 
@@ -45,10 +51,17 @@ public final class LCDictionary: NSObject, LCValue, LCValueExtension, Collection
         self.init(Dictionary<Key, Value>(elements: elements))
     }
 
-    public convenience init(unsafeObject: [Key: AnyObject]) {
+    public convenience init(unsafeObject: Any) throws {
         self.init()
-        value = unsafeObject.mapValue { value in
-            try! ObjectProfiler.object(jsonValue: value)
+
+        guard let object = unsafeObject as? [Key: Any] else {
+            throw LCError(
+                code: .malformedData,
+                reason: "Failed to construct LCDictionary with non-dictionary object.")
+        }
+
+        value = try object.mapValue { value in
+            try ObjectProfiler.shared.object(jsonValue: value)
         }
     }
 
@@ -102,6 +115,15 @@ public final class LCDictionary: NSObject, LCValue, LCValueExtension, Collection
         }
     }
 
+    public subscript(dynamicMember key: String) -> LCValueConvertible? {
+        get {
+            return self[key]
+        }
+        set {
+            self[key] = newValue?.lcValue
+        }
+    }
+
     /**
      Removes the given key and its associated value from dictionary.
 
@@ -118,20 +140,37 @@ public final class LCDictionary: NSObject, LCValue, LCValueExtension, Collection
         self.value[key] = value
     }
 
-    public var jsonValue: AnyObject {
-        return value.mapValue { value in value.jsonValue } as AnyObject
+    public var jsonValue: Any {
+        return value.compactMapValue { value in value.jsonValue }
+    }
+
+    func formattedJSONString(indentLevel: Int, numberOfSpacesForOneIndentLevel: Int = 4) -> String {
+        if value.isEmpty {
+            return "{}"
+        }
+
+        let lastIndent = " " * (numberOfSpacesForOneIndentLevel * indentLevel)
+        let bodyIndent = " " * (numberOfSpacesForOneIndentLevel * (indentLevel + 1))
+        let body = value
+            .map    { (key, value)  in (key, (value as! LCValueExtension).formattedJSONString(indentLevel: indentLevel + 1, numberOfSpacesForOneIndentLevel: numberOfSpacesForOneIndentLevel)) }
+            .sorted { (left, right) in left.0 < right.0 }
+            .map    { (key, value)  in "\"\(key.doubleQuoteEscapedString)\": \(value)" }
+            .joined(separator: ",\n" + bodyIndent)
+
+        return "{\n\(bodyIndent)\(body)\n\(lastIndent)}"
     }
 
     public var jsonString: String {
-        return ObjectProfiler.getJSONString(self)
+        return formattedJSONString(indentLevel: 0)
     }
 
     public var rawValue: LCValueConvertible {
-        return value.mapValue { value in value.rawValue }
+        let dictionary = value.mapValue { value in value.rawValue }
+        return dictionary as! LCValueConvertible
     }
 
-    var lconValue: AnyObject? {
-        return value.mapValue { value in (value as! LCValueExtension).lconValue! } as AnyObject
+    var lconValue: Any? {
+        return value.compactMapValue { value in (value as? LCValueExtension)?.lconValue }
     }
 
     static func instance() -> LCValue {

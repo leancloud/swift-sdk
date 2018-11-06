@@ -60,7 +60,7 @@ class ObjectTestCase: BaseTestCase {
 
         newbornOrphan3.arrayField = [newbornOrphan5]
 
-        object.insertRelation("relationField", object: newbornOrphan4)
+        try! object.insertRelation("relationField", object: newbornOrphan4)
 
         XCTAssertTrue(object.save().isSuccess)
 
@@ -127,7 +127,7 @@ class ObjectTestCase: BaseTestCase {
         let object  = TestObject()
         let element = TestObject()
 
-        object.append("arrayField", element: element)
+        try! object.append("arrayField", element: element)
 
         XCTAssertTrue(object.save().isSuccess)
         XCTAssertNotNil(element.objectId)
@@ -164,7 +164,7 @@ class ObjectTestCase: BaseTestCase {
         let object = TestObject()
         let friend = TestObject()
 
-        object.insertRelation("relationField", object: friend)
+        try! object.insertRelation("relationField", object: friend)
 
         XCTAssertTrue(object.save().isSuccess)
         XCTAssertNotNil(friend.objectId)
@@ -283,5 +283,48 @@ class ObjectTestCase: BaseTestCase {
         let shadow = LCObject(className: className, objectId: object.objectId!)
         XCTAssertTrue(shadow.fetch().isSuccess)
         XCTAssertEqual(shadow["stringField"] as? LCString, stringValue)
+    }
+
+    func testDynamicMemberLookup() {
+        let object = LCObject()
+        let dictionary = LCDictionary()
+
+        object.foo = "bar"
+        XCTAssertEqual(object.foo?.stringValue, "bar")
+
+        dictionary.foo = "bar"
+        XCTAssertEqual(dictionary.foo?.stringValue, "bar")
+    }
+
+    func testJSONString() {
+        XCTAssertEqual(LCNull().jsonString, "null")
+        XCTAssertEqual(LCNumber(1).jsonString, "1")
+        XCTAssertEqual(LCNumber(3.14).jsonString, "3.14")
+        XCTAssertEqual(LCBool(true).jsonString, "true")
+        XCTAssertEqual(LCString("foo").jsonString, "\"foo\"")
+        XCTAssertEqual(try LCArray(unsafeObject: [1, true, [0, false]]).jsonString, """
+        [
+            1,
+            true,
+            [
+                0,
+                false
+            ]
+        ]
+        """)
+        XCTAssertEqual(try LCDictionary(unsafeObject: ["foo": "bar", "bar": ["bar": "baz"]]).jsonString, """
+        {
+            "bar": {
+                "bar": "baz"
+            },
+            "foo": "bar"
+        }
+        """)
+        XCTAssertEqual(LCObject().jsonString, """
+        {
+            "__type": "Object",
+            "className": "LCObject"
+        }
+        """)
     }
 }

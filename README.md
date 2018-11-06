@@ -8,9 +8,9 @@
   * [x] Object Query
   * [x] Cloud Engine
   * [x] Short Message
+  * [x] File Hosting
 
 ## Wanted Features
-  * [ ] File Storage
   * [ ] Push Notification
   * [ ] Search Query
   * [ ] Analytics

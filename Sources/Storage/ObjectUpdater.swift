@@ -14,7 +14,7 @@ import Foundation
  This class can be used to create, update and delete object.
  */
 class ObjectUpdater {
-    typealias BatchResponse = [String: [String: AnyObject]]
+    typealias BatchResponse = [String: [String: Any]]
 
     /**
      Update objects with response of batch request.
@@ -35,7 +35,7 @@ class ObjectUpdater {
             }
 
             filtered.forEach { object in
-                ObjectProfiler.updateObject(object, value)
+                ObjectProfiler.shared.updateObject(object, value)
             }
         }
     }
@@ -49,7 +49,7 @@ class ObjectUpdater {
      */
     private static func createSaveBatchRequests(objects: [LCObject]) throws -> [Any] {
         var requests: [BatchRequest] = []
-        let toposort = try ObjectProfiler.toposort(objects)
+        let toposort = try ObjectProfiler.shared.toposort(objects)
 
         toposort.forEach { object in
             requests.append(contentsOf: BatchRequestBuilder.buildRequests(object))
@@ -88,6 +88,7 @@ class ObjectUpdater {
 
                 objects.forEach { object in
                     object.discardChanges()
+                    object.objectDidSave()
                 }
             case .failure:
                 break
@@ -108,7 +109,7 @@ class ObjectUpdater {
      */
     private static func saveIndependentObjects(_ objects: [LCObject], completionInBackground completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
         do {
-            let family = try ObjectProfiler.family(objects)
+            let family = try ObjectProfiler.shared.family(objects)
             return saveInOneBatchRequest(family, completionInBackground: completion)
         } catch let error {
             return HTTPClient.default.request(error: error, completionHandler: completion)
@@ -127,7 +128,7 @@ class ObjectUpdater {
      - returns: The response of request.
      */
     private static func saveNewbornOrphans(_ objects: [LCObject], completionInBackground completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
-        let newbornOrphans = ObjectProfiler.deepestNewbornOrphans(objects)
+        let newbornOrphans = ObjectProfiler.shared.deepestNewbornOrphans(objects)
 
         if newbornOrphans.isEmpty {
             return HTTPClient.default.request(object: .success) { result in
@@ -179,7 +180,7 @@ class ObjectUpdater {
         let objects = objects.unique
 
         do {
-            family = try ObjectProfiler.family(objects)
+            family = try ObjectProfiler.shared.family(objects)
 
             try family.forEach { object in
                 try object.validateBeforeSaving()
@@ -260,7 +261,7 @@ class ObjectUpdater {
         }
 
         matchedObjects.forEach { object in
-            ObjectProfiler.updateObject(object, dictionary as [String : AnyObject])
+            ObjectProfiler.shared.updateObject(object, dictionary)
             object.discardChanges()
         }
 

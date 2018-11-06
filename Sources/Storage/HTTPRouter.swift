@@ -8,6 +8,18 @@
 
 import Foundation
 
+extension LCError {
+
+    static let appRouterUrlNotFound = LCError(
+        code: .inconsistency,
+        reason: "App router URL not found.")
+
+    static let applicationNotInitialized = LCError(
+        code: .inconsistency,
+        reason: "Application not initialized.")
+
+}
+
 /**
  HTTP router for application.
  */
@@ -64,6 +76,8 @@ class HTTPRouter {
         self.configuration = configuration
     }
 
+    /// HTTPClient and HTTPRouter is not really circular referenced.
+    /// Here, router retains a **newly created** client, not the client which retains current router.
     private lazy var httpClient = HTTPClient(application: application, configuration: .default)
 
     private let appRouterURL = URL(string: "https://app-router.leancloud.cn/2/route")
