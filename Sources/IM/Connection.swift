@@ -112,7 +112,7 @@ class Connection {
             let values: Dictionary<UInt16, CommandCallback>.Values = self.commandCallbackCollection.values
             if values.count > 0 {
                 self.commandCallbackQueue.async {
-                    let error = LCError(code: 0)
+                    let error = LCError(code: .connectionLost)
                     for item in values {
                         item.closure(.error(error))
                     }
@@ -158,7 +158,8 @@ class Connection {
                 } else {
                     self.commandCallbackCollection.removeValue(forKey: indexKey)
                     self.commandCallbackQueue.async {
-                        commandCallback.closure(.error(LCError(code: 0)))
+                        let error = LCError(code: .commandTimeout)
+                        commandCallback.closure(.error(error))
                     }
                 }
             }
@@ -267,9 +268,11 @@ class Connection {
         let operationQueue = OperationQueue()
         operationQueue.underlyingQueue = self.serialQueue
         self.enterBackgroundObserver = NotificationCenter.default.addObserver(forName: UIApplication.didEnterBackgroundNotification, object: nil, queue: operationQueue) { [weak self] _ in
+            Logger.shared.verbose("Application did enter background")
             self?.applicationStateChanged(with: .background)
         }
         self.enterForegroundObserver = NotificationCenter.default.addObserver(forName: UIApplication.willEnterForegroundNotification, object: nil, queue: operationQueue) { [weak self] _ in
+            Logger.shared.verbose("Application will enter foreground")
             self?.applicationStateChanged(with: .foreground)
         }
         #endif
@@ -279,6 +282,7 @@ class Connection {
         self.previousReachabilityStatus = self.reachabilityManager?.networkReachabilityStatus ?? .unknown
         self.reachabilityManager?.listenerQueue = self.serialQueue
         self.reachabilityManager?.listener = { [weak self] newStatus in
+            Logger.shared.verbose("Network status change to \(newStatus)")
             self?.networkReachabilityStatusChanged(with: newStatus)
         }
         self.reachabilityManager?.startListening()
@@ -332,40 +336,46 @@ class Connection {
             guard let socket: WebSocket = self.socket, let timer: Timer = self.timer else {
                 if let callback = callback {
                     self.delegateQueue.async {
-                        callback(.error(LCError(code: 0)))
-                    }
-                }
-                return
-            }
-            var command = command
-            if callback != nil {
-                command.i = Int32(self.nextSerialIndex)
-            }
-            let serializedData: Data
-            do {
-                serializedData = try command.serializedData()
-            } catch {
-                if let callback = callback {
-                    self.delegateQueue.async {
+                        let error = LCError(code: .connectionLost)
                         callback(.error(error))
                     }
                 }
                 return
             }
+            var outCommand = command
+            if callback != nil {
+                outCommand.i = Int32(self.nextSerialIndex)
+            }
+            let serializedData: Data
+            do {
+                serializedData = try outCommand.serializedData()
+            } catch {
+                if let callback = callback {
+                    self.delegateQueue.async {
+                        let serializingError = LCError(underlyingError: error)
+                        callback(.error(serializingError))
+                    }
+                }
+                Logger.shared.error(error)
+                return
+            }
             guard serializedData.count <= 5000 else {
                 if let callback = callback {
                     self.delegateQueue.async {
-                        callback(.error(LCError(code: 0)))
+                        let error = LCError(code: .commandDataLengthTooLong)
+                        callback(.error(error))
                     }
                 }
                 return
             }
             if let callback = callback {
                 let commandCallback = CommandCallback(closure: callback, timeToLive: self.commandTTL)
-                let index: UInt16 = UInt16(command.i)
+                let index: UInt16 = UInt16(outCommand.i)
                 timer.insert(commandCallback: commandCallback, index: index)
             }
-            socket.write(data: serializedData)
+            socket.write(data: serializedData) {
+                Logger.shared.debug("\n\n------ BEGIN LeanCloud Out Command\n\(socket)\n\(outCommand)------ END\n")
+            }
         }
     }
     
@@ -447,6 +457,7 @@ extension Connection {
                     self.delegateQueue.async {
                         self.delegate?.connectionInConnecting(connection: self)
                     }
+                    Logger.shared.verbose("\(socket) connecting URL<\"\(url)\"> with protocol<\"\(self.lcimProtocol.rawValue)\">")
                 case .failure(error: let error):
                     self.delegateQueue.async {
                         self.delegate?.connection(connection: self, didFailInConnecting: .error(error))
@@ -479,7 +490,8 @@ extension Connection {
             if let url = URL(string: server), url.scheme != nil {
                 callback(.success(value: url))
             } else {
-                callback(.failure(error: LCError(code: 0)))
+                let error = LCError(code: .inconsistency, reason: "Custom RTM URL invalid")
+                callback(.failure(error: error))
             }
         } else {
             self.rtmRouter.route { (result: LCGenericResult<RTMRoutingTable>) in
@@ -505,8 +517,11 @@ extension Connection: WebSocketDelegate, WebSocketPongDelegate {
     func websocketDidConnect(socket: WebSocketClient) {
         assert(self.specificAssertion)
         assert(self.socket === socket && self.timer == nil)
-        self.timer = Timer(timerQueue: self.serialQueue, commandCallbackQueue: self.delegateQueue) { _ in
-            socket.write(ping: Data())
+        Logger.shared.verbose("\(socket) connect success")
+        self.timer = Timer(timerQueue: self.serialQueue, commandCallbackQueue: self.delegateQueue) { (timer) in
+            socket.write(ping: Data()) {
+                Logger.shared.verbose("\(socket) ping sent")
+            }
         }
         self.delegateQueue.async {
             self.delegate?.connectionDidConnect(connection: self)
@@ -516,11 +531,18 @@ extension Connection: WebSocketDelegate, WebSocketPongDelegate {
     func websocketDidDisconnect(socket: WebSocketClient, error: Error?) {
         assert(self.specificAssertion)
         assert(self.socket === socket)
+        Logger.shared.verbose("\(socket) disconnect with error: \(String(describing: error))")
+        let disconnectError: LCError
+        if let error = error {
+            disconnectError = LCError(underlyingError: error)
+        } else {
+            disconnectError = LCError(code: .connectionLost)
+        }
         if self.timer != nil {
-            self.tryClearConnection(with: .error(error ?? LCError(code: 0)))
+            self.tryClearConnection(with: .error(disconnectError))
         } else {
             self.delegateQueue.async {
-                self.delegate?.connection(connection: self, didFailInConnecting: .error(error ?? LCError(code: 0)))
+                self.delegate?.connection(connection: self, didFailInConnecting: .error(disconnectError))
             }
             self.socket?.delegate = nil
             self.socket?.pongDelegate = nil
@@ -534,14 +556,15 @@ extension Connection: WebSocketDelegate, WebSocketPongDelegate {
     
     func websocketDidReceiveData(socket: WebSocketClient, data: Data) {
         assert(self.specificAssertion)
-        assert(self.socket === socket)
+        assert(self.socket === socket && self.timer != nil)
         let inCommand: IMGenericCommand
         do {
             inCommand = try IMGenericCommand(serializedData: data)
         } catch {
-            print(error)
+            Logger.shared.error(error)
             return
         }
+        Logger.shared.debug("\n\n------ BEGIN LeanCloud In Command\n\(socket)\n\(inCommand)------ END\n")
         if inCommand.hasI {
             self.timer?.handle(callbackCommand: inCommand)
         } else {
@@ -553,12 +576,13 @@ extension Connection: WebSocketDelegate, WebSocketPongDelegate {
     
     func websocketDidReceivePong(socket: WebSocketClient, data: Data?) {
         assert(self.specificAssertion)
-        assert(self.socket === socket)
+        assert(self.socket === socket && self.timer != nil)
+        Logger.shared.verbose("\(socket) pong received")
         self.timer?.lastPongReceivedTimestamp = Date().timeIntervalSince1970
     }
     
     func websocketDidReceiveMessage(socket: WebSocketClient, text: String) {
-        fatalError("should not be invoked.")
+        fatalError("should never be invoked.")
     }
     
 }
