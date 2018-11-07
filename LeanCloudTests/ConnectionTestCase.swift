@@ -39,62 +39,64 @@ class ConnectionTestCase: BaseTestCase {
     
     func testTimerPingTimeout() {
         
-        var endTestPingTimeout: Bool = false
-        let timer = Connection.Timer(timerQueue: timerQueue, commandCallbackQueue: commandCallbackQueue, pingTimeout: 5) { timer in
+        let interval: TimeInterval = 5
+        let expectation = self.expectation(description: "Get ping sent callback")
+        
+        let timer = Connection.Timer(timerQueue: timerQueue, commandCallbackQueue: commandCallbackQueue, pingTimeout: interval) { timer in
             XCTAssertEqual(DispatchQueue.getSpecific(key: self.timerQueueSpecificKey), self.timerQueueSpecificValue)
             if timer.lastPingSentTimestamp != 0 {
                 let timeout: TimeInterval = Date().timeIntervalSince1970 - timer.lastPingSentTimestamp
-                print(timeout)
                 XCTAssertTrue(timeout < timer.pingTimeout + self.timerTimeIntervalError)
                 XCTAssertTrue(timeout > timer.pingTimeout - self.timerTimeIntervalError)
-                endTestPingTimeout = true
+                expectation.fulfill()
             }
         }
-        self.busywait(interval: 1) { () -> Bool in
-            return endTestPingTimeout
-        }
+        
+        self.waitForExpectations(timeout: interval * 2, handler: nil)
         
         timer.cancel()
     }
     
     func testTimerPingpongInterval() {
         
-        var endTestPingPong: Bool = false
-        let timer = Connection.Timer(timerQueue: timerQueue, commandCallbackQueue: commandCallbackQueue, pingpongInterval: 5) { timer in
+        let interval: TimeInterval = 5
+        let expectation = self.expectation(description: "Get ping sent callback")
+        
+        let timer = Connection.Timer(timerQueue: timerQueue, commandCallbackQueue: commandCallbackQueue, pingpongInterval: interval) { timer in
             XCTAssertEqual(DispatchQueue.getSpecific(key: self.timerQueueSpecificKey), self.timerQueueSpecificValue)
             self.timerQueue.async {
                 timer.lastPongReceivedTimestamp = Date().timeIntervalSince1970
             }
             if timer.lastPongReceivedTimestamp != 0 {
                 let pingpongInterval: TimeInterval = Date().timeIntervalSince1970 - timer.lastPongReceivedTimestamp
-                print(pingpongInterval)
                 XCTAssertTrue(pingpongInterval < timer.pingpongInterval + self.timerTimeIntervalError)
                 XCTAssertTrue(pingpongInterval > timer.pingpongInterval - self.timerTimeIntervalError)
-                endTestPingPong = true
+                expectation.fulfill()
             }
         }
-        self.busywait(interval: 1) { () -> Bool in
-            return endTestPingPong
-        }
+
+        self.waitForExpectations(timeout: interval * 2, handler: nil)
         
         timer.cancel()
     }
     
     func testTimerCheckCommandCallback() {
         
-        var endTestCommandTimeout: Int = 0
+        let interval: TimeInterval = 5
+        let expectation = self.expectation(description: "Get command callback")
+        expectation.expectedFulfillmentCount = 3
+        
         let timer = Connection.Timer(timerQueue: timerQueue, commandCallbackQueue: commandCallbackQueue) { _ in }
         timerQueue.async {
             let commandCallbackInsertTimestamp: TimeInterval = Date().timeIntervalSince1970
             // test callback timeout 1
             let index1: UInt16 = 1
-            let commandTTL1: TimeInterval = 5
+            let commandTTL1: TimeInterval = interval
             timer.insert(commandCallback: Connection.CommandCallback(closure: { (result) in
                 XCTAssertEqual(DispatchQueue.getSpecific(key: self.commandCallbackQueueSpecificKey), self.commandCallbackQueueSpecificValue)
                 switch result {
                 case .error(_):
                     let interval: TimeInterval = Date().timeIntervalSince1970 - commandCallbackInsertTimestamp
-                    print(interval)
                     XCTAssertTrue(interval < commandTTL1 + self.timerTimeIntervalError)
                     XCTAssertTrue(interval > commandTTL1 - self.timerTimeIntervalError)
                 case .inCommand(_):
@@ -103,18 +105,17 @@ class ConnectionTestCase: BaseTestCase {
                 self.timerQueue.async {
                     XCTAssertEqual(timer.commandIndexSequence.contains(index1), false)
                     XCTAssertNil(timer.commandCallbackCollection[index1])
-                    endTestCommandTimeout += 1
+                    expectation.fulfill()
                 }
             }, timeToLive: commandTTL1), index: index1)
             // test callback timeout 2
             let index2: UInt16 = 2
-            let commandTTL2: TimeInterval = 10
+            let commandTTL2: TimeInterval = interval * 2
             timer.insert(commandCallback: Connection.CommandCallback(closure: { (result) in
                 XCTAssertEqual(DispatchQueue.getSpecific(key: self.commandCallbackQueueSpecificKey), self.commandCallbackQueueSpecificValue)
                 switch result {
                 case .error(_):
                     let interval: TimeInterval = Date().timeIntervalSince1970 - commandCallbackInsertTimestamp
-                    print(interval)
                     XCTAssertTrue(interval < commandTTL2 + self.timerTimeIntervalError)
                     XCTAssertTrue(interval > commandTTL2 - self.timerTimeIntervalError)
                 case .inCommand(_):
@@ -123,7 +124,7 @@ class ConnectionTestCase: BaseTestCase {
                 self.timerQueue.async {
                     XCTAssertEqual(timer.commandIndexSequence.contains(index2), false)
                     XCTAssertNil(timer.commandCallbackCollection[index2])
-                    endTestCommandTimeout += 1
+                    expectation.fulfill()
                 }
             }, timeToLive: commandTTL2), index: index2)
             // test callback succeeded
@@ -139,25 +140,26 @@ class ConnectionTestCase: BaseTestCase {
                 self.timerQueue.async {
                     XCTAssertEqual(timer.commandIndexSequence.contains(index3), false)
                     XCTAssertNil(timer.commandCallbackCollection[index3])
-                    endTestCommandTimeout += 1
+                    expectation.fulfill()
                 }
-            }, timeToLive: 30), index: index3)
+            }, timeToLive: interval * 6), index: index3)
             timer.handle(callbackCommand: {
                 var command = IMGenericCommand()
                 command.i = Int32(index3)
                 return command
             }())
         }
-        self.busywait(interval: 1) { () -> Bool in
-            return endTestCommandTimeout == 3
-        }
+        
+        self.waitForExpectations(timeout: interval * 6, handler: nil)
         
         timer.cancel()
     }
     
     func testTimerCancel() {
         
-        var endTestCancelTimer: Bool = false
+        let timeout: TimeInterval = 30
+        let expectation = self.expectation(description: "Get command callback")
+        
         let timer = Connection.Timer(timerQueue: timerQueue, commandCallbackQueue: commandCallbackQueue) { _ in }
         timerQueue.async {
             timer.insert(commandCallback: Connection.CommandCallback(closure: { (result) in
@@ -168,13 +170,12 @@ class ConnectionTestCase: BaseTestCase {
                 case .inCommand(_):
                     XCTFail()
                 }
-                endTestCancelTimer = true
-            }, timeToLive: 30), index: 1)
+                expectation.fulfill()
+            }, timeToLive: timeout), index: 1)
             timer.cancel()
         }
-        self.busywait(interval: 1) { () -> Bool in
-            return endTestCancelTimer
-        }
+
+        self.waitForExpectations(timeout: timeout, handler: nil)
     }
     
     func testConnection() {
@@ -183,59 +184,73 @@ class ConnectionTestCase: BaseTestCase {
         let clientId1 = String(#function[..<#function.index(of: "(")!]) + "1"
         let clientId2 = String(#function[..<#function.index(of: "(")!]) + "2"
         
-        var endTestConnect: Int = 0
         let delegator = ConnectionDelegator()
-        let connection = Connection(application: application, delegate: delegator, lcimProtocol: .protobuf1, customRTMServer: "wss://rtm51.leancloud.cn", delegateQueue: delegateQueue)
-        delegator.connectionInConnectingClosure = { (connection) in
+        let connection = Connection(application: application, delegate: delegator, lcimProtocol: .protobuf1, delegateQueue: delegateQueue)
+        
+        let unexpectation = self.expectation(description: "No")
+        unexpectation.isInverted = true
+        
+        let expectationForConnect = self.expectation(description: "Connect success")
+        expectationForConnect.expectedFulfillmentCount = 2
+        expectationForConnect.assertForOverFulfill = true
+        
+        delegator.connectionInConnectingClosure = { (_) in
             XCTAssertEqual(DispatchQueue.getSpecific(key: self.delegateQueueSpecificKey), self.delegateQueueSpecificValue)
-            endTestConnect += 1
+            expectationForConnect.fulfill()
         }
-        delegator.connectionDidConnectClosure = { (connection) in
+        delegator.connectionDidConnectClosure = { (_) in
             XCTAssertEqual(DispatchQueue.getSpecific(key: self.delegateQueueSpecificKey), self.delegateQueueSpecificValue)
-            endTestConnect += 1
+            expectationForConnect.fulfill()
+        }
+        delegator.connectionDidFailInConnectingClosure = { (_, _) in
+            XCTAssertEqual(DispatchQueue.getSpecific(key: self.delegateQueueSpecificKey), self.delegateQueueSpecificValue)
+            unexpectation.fulfill()
+        }
+        delegator.connectionDidDisconnectClosure = { (_, _) in
+            XCTAssertEqual(DispatchQueue.getSpecific(key: self.delegateQueueSpecificKey), self.delegateQueueSpecificValue)
+            unexpectation.fulfill()
         }
         connection.connect()
-        self.busywait() { () -> Bool in
-            return endTestConnect == 2
-        }
         
-        var endTestSendCommand: Bool = false
+        self.wait(for: [unexpectation, expectationForConnect], timeout: 5)
+        
+        let expectationForCommandCallback = self.expectation(description: "Command callback success")
+        
         connection.send(command: {
             var sessionCommand = IMSessionCommand()
             sessionCommand.deviceToken = UUID().uuidString
-            sessionCommand.ua = "swift-sdk/\(LeanCloud.version)"
+            sessionCommand.ua = HTTPClient.default.configuration.userAgent
             var command = IMGenericCommand()
             command.cmd = .session
             command.op = .open
             command.appID = application.id
             command.peerID = clientId1
             command.sessionMessage = sessionCommand
-            print(command.debugDescription)
             return command
         }()) { (result) in
             XCTAssertEqual(DispatchQueue.getSpecific(key: self.delegateQueueSpecificKey), self.delegateQueueSpecificValue)
             switch result {
             case .inCommand(let command):
-                print(command.debugDescription)
                 XCTAssertTrue(command.hasSessionMessage)
                 XCTAssertTrue(command.sessionMessage.hasSt)
                 XCTAssertTrue(command.sessionMessage.hasStTtl)
             case .error(_):
                 XCTFail()
             }
-            endTestSendCommand = true
-        }
-        self.busywait() { () -> Bool in
-            return endTestSendCommand
+            expectationForCommandCallback.fulfill()
         }
         
-        var endTestCreateConversation: Int = 0
+        self.wait(for: [expectationForCommandCallback], timeout: 60)
+        
+        let expectationForCommandReceive = self.expectation(description: "Command receive success")
+        expectationForCommandReceive.expectedFulfillmentCount = 3
+        expectationForCommandReceive.assertForOverFulfill = true
+        
         delegator.connectionDidReceiveCommandClosure = { (connection, command) in
             XCTAssertEqual(DispatchQueue.getSpecific(key: self.delegateQueueSpecificKey), self.delegateQueueSpecificValue)
             if command.cmd == .conv {
                 if command.op == .joined || command.op == .membersJoined {
-                    print(command.debugDescription)
-                    endTestCreateConversation += 1
+                    expectationForCommandReceive.fulfill()
                 }
             }
         }
@@ -246,23 +261,20 @@ class ConnectionTestCase: BaseTestCase {
             command.cmd = .conv
             command.op = .start
             command.convMessage = convCommand
-            print(command.debugDescription)
             return command
         }()) { (result) in
             XCTAssertEqual(DispatchQueue.getSpecific(key: self.delegateQueueSpecificKey), self.delegateQueueSpecificValue)
             switch result {
             case .inCommand(let command):
-                print(command.debugDescription)
                 XCTAssertTrue(command.hasConvMessage)
                 XCTAssertTrue(command.convMessage.hasCid)
             case .error(_):
                 XCTFail()
             }
-            endTestCreateConversation += 1
+            expectationForCommandReceive.fulfill()
         }
-        self.busywait() { () -> Bool in
-            return endTestCreateConversation == 3
-        }
+        
+        self.wait(for: [expectationForCommandReceive], timeout: 60)
         
         connection.disconnect()
     }
