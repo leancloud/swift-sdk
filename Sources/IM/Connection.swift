@@ -190,6 +190,7 @@ class Connection {
     let delegateQueue: DispatchQueue
     let commandTTL: TimeInterval
     
+    private let rtmRouter: RTMRouter
     private let serialQueue: DispatchQueue = DispatchQueue(label: "LeanCloud.Connection.serialQueue")
     private var socket: WebSocket? = nil
     private var timer: Timer? = nil
@@ -258,6 +259,8 @@ class Connection {
         self.customRTMServer = customRTMServer
         self.delegateQueue = delegateQueue
         self.commandTTL = commandTTL
+        
+        self.rtmRouter = RTMRouter(application: application)
         
         #if os(iOS) || os(tvOS)
         self.previousAppState = (UIApplication.shared.applicationState == .background ? .background : .foreground)
@@ -423,24 +426,31 @@ extension Connection {
     
     private func tryConnecting() {
         assert(self.specificAssertion)
-        if let cannotEvent: Event = self.checkIfCanDoConnecting() {
-            self.delegateQueue.async {
-                self.delegate?.connection(connection: self, didFailInConnecting: cannotEvent)
+        self.getRTMServer { (result: LCGenericResult<URL>) in
+            assert(self.specificAssertion)
+            guard self.socket == nil else {
+                return
             }
-        } else {
-            if let server: String = self.customRTMServer, let url = URL(string: server) {
-                let socket = WebSocket(url: url, protocols: [self.lcimProtocol.rawValue])
-                socket.delegate = self
-                socket.pongDelegate = self
-                socket.callbackQueue = self.serialQueue
-                socket.connect()
-                self.socket = socket
+            if let cannotEvent: Event = self.checkIfCanDoConnecting() {
                 self.delegateQueue.async {
-                    self.delegate?.connectionInConnecting(connection: self)
+                    self.delegate?.connection(connection: self, didFailInConnecting: cannotEvent)
                 }
             } else {
-                self.delegateQueue.async {
-                    self.delegate?.connection(connection: self, didFailInConnecting: .error(LCError(code: 0)))
+                switch result {
+                case .success(value: let url):
+                    let socket = WebSocket(url: url, protocols: [self.lcimProtocol.rawValue])
+                    socket.delegate = self
+                    socket.pongDelegate = self
+                    socket.callbackQueue = self.serialQueue
+                    socket.connect()
+                    self.socket = socket
+                    self.delegateQueue.async {
+                        self.delegate?.connectionInConnecting(connection: self)
+                    }
+                case .failure(error: let error):
+                    self.delegateQueue.async {
+                        self.delegate?.connection(connection: self, didFailInConnecting: .error(error))
+                    }
                 }
             }
         }
@@ -460,6 +470,29 @@ extension Connection {
         if let timer: Timer = self.timer {
             timer.cancel()
             self.timer = nil
+        }
+    }
+    
+    private func getRTMServer(_ callback: @escaping (LCGenericResult<URL>) -> Void) {
+        assert(self.specificAssertion)
+        if let server: String = self.customRTMServer {
+            if let url = URL(string: server), url.scheme != nil {
+                callback(.success(value: url))
+            } else {
+                callback(.failure(error: LCError(code: 0)))
+            }
+        } else {
+            self.rtmRouter.route { (result: LCGenericResult<RTMRoutingTable>) in
+                self.serialQueue.async {
+                    switch result {
+                    case .success(value: let table):
+                        let url: URL = (self.useSecondaryServer ? table.secondary : table.primary) ?? table.primary
+                        callback(.success(value: url))
+                    case .failure(error: let error):
+                        callback(.failure(error: error))
+                    }
+                }
+            }
         }
     }
     
