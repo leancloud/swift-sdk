@@ -75,19 +75,6 @@ public final class LCApplication: NSObject {
         public static func < (lhs: LogLevel, rhs: LogLevel) -> Bool {
             return lhs.rawValue < rhs.rawValue
         }
-        
-        var description: String {
-            switch self {
-            case .error:
-                return "Error"
-            case .debug:
-                return "Debug"
-            case .verbose:
-                return "Verbose"
-            default:
-                return ""
-            }
-        }
 
     }
 

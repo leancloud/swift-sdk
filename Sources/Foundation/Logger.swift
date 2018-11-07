@@ -35,7 +35,7 @@ class Logger {
         let date = Logger.dateFormatter.string(from: Date())
         let file = NSURL(string: file)?.lastPathComponent ?? "Unknown"
         
-        var info = "[\(level.description)][LeanCloud][\(date) \(file) #\(line) \(function)]:"
+        var info = "[\(level)][LeanCloud][\(date) \(file) #\(line) \(function)]:"
         #if os(iOS) || os(macOS) || os(tvOS) || os(watchOS)
         switch level {
         case .error:
