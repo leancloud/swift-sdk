@@ -18,12 +18,50 @@ public struct LCError: Error {
     /// Underlying error.
     public private(set) var underlyingError: Error?
 
+    /// ref: https://github.com/leancloud/paas/wiki/SDK-Internal-Error-Definition
     enum InternalErrorCode: Int {
-        case notFound           = 9973
-        case invalidType        = 9974
-        case malformedData      = 9975
-        case inconsistency      = 9976
-        case underlyingError    = 9977
+        // session/client
+        case commandTimeout             = 9000
+        case connectionLost             = 9001
+        case clientNotOpen              = 9002
+        case commandInvalid             = 9003
+        case commandDataLengthTooLong   = 9008
+        // conversation
+        case conversationNotFound       = 9100
+        case updatingMessageNotAllowed  = 9120
+        case updatingMessageNotSent     = 9121
+        case ownerPromotionNotAllowed   = 9130
+        // other
+        case notFound                   = 9973
+        case invalidType                = 9974
+        case malformedData              = 9975
+        case inconsistency              = 9976
+        case underlyingError            = 9977
+        
+        var description: String? {
+            switch self {
+            case .commandTimeout:
+                return "Out command timeout"
+            case .connectionLost:
+                return "Connection lost"
+            case .clientNotOpen:
+                return "IM client not open"
+            case .commandInvalid:
+                return "In command invalid"
+            case .commandDataLengthTooLong:
+                return "Data length of out command is too long"
+            case .conversationNotFound:
+                return "Conversation not found"
+            case .updatingMessageNotAllowed:
+                return "Updating message from others is not allowed"
+            case .updatingMessageNotSent:
+                return "Message is not sent"
+            case .ownerPromotionNotAllowed:
+                return "Updating a member's role to owner is not allowed"
+            default:
+                return nil
+            }
+        }
     }
 
     enum ServerErrorCode: Int {
@@ -52,7 +90,7 @@ public struct LCError: Error {
     }
 
     init(code: InternalErrorCode, reason: String? = nil, userInfo: UserInfo? = nil) {
-        self = LCError(code: code.rawValue, reason: reason, userInfo: userInfo)
+        self = LCError(code: code.rawValue, reason: (reason ?? code.description), userInfo: userInfo)
     }
 
     init(code: ServerErrorCode, reason: String? = nil, userInfo: UserInfo? = nil) {
