@@ -69,6 +69,7 @@ public final class LCApplication: NSObject {
         case off
         case error
         case debug
+        case verbose
         case all
 
         public static func < (lhs: LogLevel, rhs: LogLevel) -> Bool {
@@ -81,6 +82,8 @@ public final class LCApplication: NSObject {
                 return "Error"
             case .debug:
                 return "Debug"
+            case .verbose:
+                return "Verbose"
             default:
                 return ""
             }

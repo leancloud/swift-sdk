@@ -42,6 +42,8 @@ class Logger {
             info = "[❤️]" + info
         case .debug:
             info = "[💙]" + info
+        case .verbose:
+            info = "[💛]" + info
         default:
             break
         }
@@ -66,6 +68,15 @@ class Logger {
         _ line: Int = #line)
     {
         log(.error, value, file, function, line)
+    }
+
+    func verbose<T>(
+        _ value: @autoclosure () -> T,
+        _ file: String = #file,
+        _ function: String = #function,
+        _ line: Int = #line)
+    {
+        log(.verbose, value, file, function, line)
     }
     
 }
