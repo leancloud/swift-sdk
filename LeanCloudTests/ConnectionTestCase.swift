@@ -99,8 +99,7 @@ class ConnectionTestCase: BaseTestCase {
                     let interval: TimeInterval = Date().timeIntervalSince1970 - commandCallbackInsertTimestamp
                     XCTAssertTrue(interval < commandTTL1 + self.timerTimeIntervalError)
                     XCTAssertTrue(interval > commandTTL1 - self.timerTimeIntervalError)
-                    let error = error as? LCError
-                    XCTAssertEqual(error?.code, LCError.InternalErrorCode.commandTimeout.rawValue)
+                    XCTAssertEqual(error.code, LCError.InternalErrorCode.commandTimeout.rawValue)
                 case .inCommand(_):
                     XCTFail()
                 }
@@ -120,8 +119,7 @@ class ConnectionTestCase: BaseTestCase {
                     let interval: TimeInterval = Date().timeIntervalSince1970 - commandCallbackInsertTimestamp
                     XCTAssertTrue(interval < commandTTL2 + self.timerTimeIntervalError)
                     XCTAssertTrue(interval > commandTTL2 - self.timerTimeIntervalError)
-                    let error = error as? LCError
-                    XCTAssertEqual(error?.code, LCError.InternalErrorCode.commandTimeout.rawValue)
+                    XCTAssertEqual(error.code, LCError.InternalErrorCode.commandTimeout.rawValue)
                 case .inCommand(_):
                     XCTFail()
                 }
@@ -170,8 +168,7 @@ class ConnectionTestCase: BaseTestCase {
                 XCTAssertEqual(DispatchQueue.getSpecific(key: self.commandCallbackQueueSpecificKey), self.commandCallbackQueueSpecificValue)
                 switch result {
                 case .error(let error):
-                    let error = error as? LCError
-                    XCTAssertEqual(error?.code, LCError.InternalErrorCode.connectionLost.rawValue)
+                    XCTAssertEqual(error.code, LCError.InternalErrorCode.connectionLost.rawValue)
                 case .inCommand(_):
                     XCTFail()
                 }
