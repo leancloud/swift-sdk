@@ -350,13 +350,13 @@ class Connection {
             do {
                 serializedData = try outCommand.serializedData()
             } catch {
+                Logger.shared.error(error)
                 if let callback = callback {
                     self.delegateQueue.async {
                         let serializingError = LCError(underlyingError: error)
                         callback(.error(serializingError))
                     }
                 }
-                Logger.shared.error(error)
                 return
             }
             guard serializedData.count <= 5000 else {
@@ -460,6 +460,7 @@ extension Connection {
                     }
                     Logger.shared.verbose("\(socket) connecting URL<\"\(url)\"> with protocol<\"\(self.lcimProtocol.rawValue)\">")
                 case .failure(error: let error):
+                    Logger.shared.verbose("Get RTM server URL failed: \(error)")
                     self.delegateQueue.async {
                         self.delegate?.connection(connection: self, didFailInConnecting: .error(error))
                     }
