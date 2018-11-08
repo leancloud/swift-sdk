@@ -305,7 +305,6 @@ class Connection {
     func connect() {
         self.serialQueue.async {
             if self.socket != nil && self.isAutoReconnectionEnabled {
-                // ignore connect-action when socket exists or auto-reconnection enabled.
                 return
             }
             self.tryConnecting()
@@ -439,6 +438,7 @@ extension Connection {
         self.getRTMServer { (result: LCGenericResult<URL>) in
             assert(self.specificAssertion)
             guard self.socket == nil else {
+                // if socket exists, means in connecting or did connect.
                 return
             }
             if let cannotEvent: Event = self.checkIfCanDoConnecting() {
@@ -532,22 +532,42 @@ extension Connection: WebSocketDelegate, WebSocketPongDelegate {
         assert(self.specificAssertion)
         assert(self.socket === socket)
         Logger.shared.verbose("\(socket) disconnect with error: \(String(describing: error))")
+        var shouldChangeServer: Bool = false
         let disconnectError: LCError
         if let error = error {
             disconnectError = LCError(underlyingError: error)
+            if let wsError: WSError = error as? WSError {
+                if wsError.type == .protocolError {
+                    // WebSocket protocol error, unexpectation error.
+                    self.tryClearConnection(with: .error(disconnectError))
+                    return
+                } else if wsError.type == .invalidSSLError || wsError.type == .upgradeError {
+                    // SSL or HTTP upgrade failed, maybe should use another server.
+                    shouldChangeServer = true
+                }
+            }
         } else {
             disconnectError = LCError(code: .connectionLost)
         }
         if self.timer != nil {
+            // timer exists means the connected socket was disconnected.
             self.tryClearConnection(with: .error(disconnectError))
+            // if no error, means NSStreamEventEndEncountered, the connection maybe closed by server, so just clear it.
+            // if has error, in high probability it is about network, so try reconnecting.
+            if error != nil && self.isAutoReconnectionEnabled {
+                self.tryConnecting()
+            }
         } else {
+            // timer not exists means connecting failed.
             self.delegateQueue.async {
                 self.delegate?.connection(connection: self, didFailInConnecting: .error(disconnectError))
             }
             self.socket?.delegate = nil
             self.socket?.pongDelegate = nil
             self.socket = nil
-            self.useSecondaryServer.toggle()
+            if shouldChangeServer {
+                self.useSecondaryServer.toggle()
+            }
             if self.isAutoReconnectionEnabled {
                 self.tryConnecting()
             }
