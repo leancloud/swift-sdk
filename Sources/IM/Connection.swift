@@ -191,7 +191,8 @@ class Connection {
     let delegateQueue: DispatchQueue
     let commandTTL: TimeInterval
     
-    private let rtmRouter: RTMRouter
+    let rtmRouter: RTMRouter
+    
     private let serialQueue: DispatchQueue = DispatchQueue(label: "LeanCloud.Connection.serialQueue")
     private var socket: WebSocket? = nil
     private var timer: Timer? = nil
@@ -461,6 +462,9 @@ extension Connection {
                 case .failure(error: let error):
                     self.delegateQueue.async {
                         self.delegate?.connection(connection: self, didFailInConnecting: .error(error))
+                    }
+                    if (error as NSError).domain == NSURLErrorDomain && self.isAutoReconnectionEnabled {
+                        self.tryConnecting()
                     }
                 }
             }
