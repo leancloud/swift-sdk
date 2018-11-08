@@ -95,10 +95,12 @@ class ConnectionTestCase: BaseTestCase {
             timer.insert(commandCallback: Connection.CommandCallback(closure: { (result) in
                 XCTAssertEqual(DispatchQueue.getSpecific(key: self.commandCallbackQueueSpecificKey), self.commandCallbackQueueSpecificValue)
                 switch result {
-                case .error(_):
+                case .error(let error):
                     let interval: TimeInterval = Date().timeIntervalSince1970 - commandCallbackInsertTimestamp
                     XCTAssertTrue(interval < commandTTL1 + self.timerTimeIntervalError)
                     XCTAssertTrue(interval > commandTTL1 - self.timerTimeIntervalError)
+                    let error = error as? LCError
+                    XCTAssertEqual(error?.code, LCError.InternalErrorCode.commandTimeout.rawValue)
                 case .inCommand(_):
                     XCTFail()
                 }
@@ -114,10 +116,12 @@ class ConnectionTestCase: BaseTestCase {
             timer.insert(commandCallback: Connection.CommandCallback(closure: { (result) in
                 XCTAssertEqual(DispatchQueue.getSpecific(key: self.commandCallbackQueueSpecificKey), self.commandCallbackQueueSpecificValue)
                 switch result {
-                case .error(_):
+                case .error(let error):
                     let interval: TimeInterval = Date().timeIntervalSince1970 - commandCallbackInsertTimestamp
                     XCTAssertTrue(interval < commandTTL2 + self.timerTimeIntervalError)
                     XCTAssertTrue(interval > commandTTL2 - self.timerTimeIntervalError)
+                    let error = error as? LCError
+                    XCTAssertEqual(error?.code, LCError.InternalErrorCode.commandTimeout.rawValue)
                 case .inCommand(_):
                     XCTFail()
                 }
@@ -165,8 +169,9 @@ class ConnectionTestCase: BaseTestCase {
             timer.insert(commandCallback: Connection.CommandCallback(closure: { (result) in
                 XCTAssertEqual(DispatchQueue.getSpecific(key: self.commandCallbackQueueSpecificKey), self.commandCallbackQueueSpecificValue)
                 switch result {
-                case .error(_):
-                    break
+                case .error(let error):
+                    let error = error as? LCError
+                    XCTAssertEqual(error?.code, LCError.InternalErrorCode.connectionLost.rawValue)
                 case .inCommand(_):
                     XCTFail()
                 }
