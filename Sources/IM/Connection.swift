@@ -537,7 +537,6 @@ extension Connection: WebSocketDelegate, WebSocketPongDelegate {
         assert(self.specificAssertion)
         assert(self.socket === socket)
         Logger.shared.verbose("\(socket) disconnect with error: \(String(describing: error))")
-        var shouldChangeServer: Bool = false
         let disconnectError: Error = error ?? LCError(code: .connectionLost)
         if let wsError: WSError = disconnectError as? WSError {
             if wsError.type == .protocolError {
@@ -546,7 +545,7 @@ extension Connection: WebSocketDelegate, WebSocketPongDelegate {
                 return
             } else if wsError.type == .invalidSSLError || wsError.type == .upgradeError {
                 // SSL or HTTP upgrade failed, maybe should use another server.
-                shouldChangeServer = true
+                self.useSecondaryServer.toggle()
             }
         }
         if self.timer != nil {
@@ -565,9 +564,6 @@ extension Connection: WebSocketDelegate, WebSocketPongDelegate {
             self.socket?.delegate = nil
             self.socket?.pongDelegate = nil
             self.socket = nil
-            if shouldChangeServer {
-                self.useSecondaryServer.toggle()
-            }
             if self.isAutoReconnectionEnabled {
                 self.tryConnecting()
             }
