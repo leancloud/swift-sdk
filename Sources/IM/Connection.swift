@@ -538,21 +538,16 @@ extension Connection: WebSocketDelegate, WebSocketPongDelegate {
         assert(self.socket === socket)
         Logger.shared.verbose("\(socket) disconnect with error: \(String(describing: error))")
         var shouldChangeServer: Bool = false
-        let disconnectError: LCError
-        if let error = error {
-            disconnectError = LCError(underlyingError: error)
-            if let wsError: WSError = error as? WSError {
-                if wsError.type == .protocolError {
-                    // WebSocket protocol error, unexpectation error.
-                    self.tryClearConnection(with: .error(disconnectError))
-                    return
-                } else if wsError.type == .invalidSSLError || wsError.type == .upgradeError {
-                    // SSL or HTTP upgrade failed, maybe should use another server.
-                    shouldChangeServer = true
-                }
+        let disconnectError: Error = error ?? LCError(code: .connectionLost)
+        if let wsError: WSError = disconnectError as? WSError {
+            if wsError.type == .protocolError {
+                // WebSocket protocol error, unexpectation error.
+                self.tryClearConnection(with: .error(disconnectError))
+                return
+            } else if wsError.type == .invalidSSLError || wsError.type == .upgradeError {
+                // SSL or HTTP upgrade failed, maybe should use another server.
+                shouldChangeServer = true
             }
-        } else {
-            disconnectError = LCError(code: .connectionLost)
         }
         if self.timer != nil {
             // timer exists means the connected socket was disconnected.
