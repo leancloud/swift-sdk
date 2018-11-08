@@ -65,7 +65,7 @@ class Connection {
         
         enum Result {
             case inCommand(IMGenericCommand)
-            case error(Error)
+            case error(LCError)
         }
         
         let closure: ((Result) -> Void)
