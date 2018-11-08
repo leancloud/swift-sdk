@@ -8,4 +8,8 @@
 
 import Foundation
 
-public let version = "14.0.0"
+struct LeanCloudConstant {
+    
+    public static let version = "14.0.0"
+    
+}
