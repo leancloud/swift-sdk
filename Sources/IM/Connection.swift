@@ -7,7 +7,9 @@
 //
 
 import Foundation
+#if os(iOS) || os(tvOS)
 import UIKit
+#endif
 import Alamofire
 
 protocol ConnectionDelegate: class {
