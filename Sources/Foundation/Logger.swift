@@ -9,6 +9,7 @@
 import Foundation
 
 class Logger {
+    
     static let shared = Logger()
 
     static let dateFormatter: DateFormatter = {
@@ -33,8 +34,22 @@ class Logger {
 
         let date = Logger.dateFormatter.string(from: Date())
         let file = NSURL(string: file)?.lastPathComponent ?? "Unknown"
+        
+        var info = "[\(level)][LeanCloud][\(date) \(file) #\(line) \(function)]:"
+        #if os(iOS) || os(macOS) || os(tvOS) || os(watchOS)
+        switch level {
+        case .error:
+            info = "[❤️]" + info
+        case .debug:
+            info = "[💙]" + info
+        case .verbose:
+            info = "[💛]" + info
+        default:
+            break
+        }
+        #endif
 
-        print("[LeanCloud \(date) \(file) #\(line) \(function)]:", value())
+        print(info, value())
     }
 
     func debug<T>(
@@ -54,4 +69,14 @@ class Logger {
     {
         log(.error, value, file, function, line)
     }
+
+    func verbose<T>(
+        _ value: @autoclosure () -> T,
+        _ file: String = #file,
+        _ function: String = #function,
+        _ line: Int = #line)
+    {
+        log(.verbose, value, file, function, line)
+    }
+    
 }

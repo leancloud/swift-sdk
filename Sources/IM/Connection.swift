@@ -7,7 +7,9 @@
 //
 
 import Foundation
+#if os(iOS) || os(tvOS)
 import UIKit
+#endif
 import Alamofire
 
 protocol ConnectionDelegate: class {
@@ -65,7 +67,7 @@ class Connection {
         
         enum Result {
             case inCommand(IMGenericCommand)
-            case error(Error)
+            case error(LCError)
         }
         
         let closure: ((Result) -> Void)
@@ -112,7 +114,7 @@ class Connection {
             let values: Dictionary<UInt16, CommandCallback>.Values = self.commandCallbackCollection.values
             if values.count > 0 {
                 self.commandCallbackQueue.async {
-                    let error = LCError(code: 0)
+                    let error = LCError(code: .connectionLost)
                     for item in values {
                         item.closure(.error(error))
                     }
@@ -158,7 +160,8 @@ class Connection {
                 } else {
                     self.commandCallbackCollection.removeValue(forKey: indexKey)
                     self.commandCallbackQueue.async {
-                        commandCallback.closure(.error(LCError(code: 0)))
+                        let error = LCError(code: .commandTimeout)
+                        commandCallback.closure(.error(error))
                     }
                 }
             }
@@ -189,6 +192,8 @@ class Connection {
     let customRTMServer: String?
     let delegateQueue: DispatchQueue
     let commandTTL: TimeInterval
+    
+    let rtmRouter: RTMRouter
     
     private let serialQueue: DispatchQueue = DispatchQueue(label: "LeanCloud.Connection.serialQueue")
     private var socket: WebSocket? = nil
@@ -259,14 +264,18 @@ class Connection {
         self.delegateQueue = delegateQueue
         self.commandTTL = commandTTL
         
+        self.rtmRouter = RTMRouter(application: application)
+        
         #if os(iOS) || os(tvOS)
         self.previousAppState = (UIApplication.shared.applicationState == .background ? .background : .foreground)
         let operationQueue = OperationQueue()
         operationQueue.underlyingQueue = self.serialQueue
         self.enterBackgroundObserver = NotificationCenter.default.addObserver(forName: UIApplication.didEnterBackgroundNotification, object: nil, queue: operationQueue) { [weak self] _ in
+            Logger.shared.verbose("Application did enter background")
             self?.applicationStateChanged(with: .background)
         }
         self.enterForegroundObserver = NotificationCenter.default.addObserver(forName: UIApplication.willEnterForegroundNotification, object: nil, queue: operationQueue) { [weak self] _ in
+            Logger.shared.verbose("Application will enter foreground")
             self?.applicationStateChanged(with: .foreground)
         }
         #endif
@@ -276,6 +285,7 @@ class Connection {
         self.previousReachabilityStatus = self.reachabilityManager?.networkReachabilityStatus ?? .unknown
         self.reachabilityManager?.listenerQueue = self.serialQueue
         self.reachabilityManager?.listener = { [weak self] newStatus in
+            Logger.shared.verbose("Network status change to \(newStatus)")
             self?.networkReachabilityStatusChanged(with: newStatus)
         }
         self.reachabilityManager?.startListening()
@@ -298,7 +308,6 @@ class Connection {
     func connect() {
         self.serialQueue.async {
             if self.socket != nil && self.isAutoReconnectionEnabled {
-                // ignore connect-action when socket exists or auto-reconnection enabled.
                 return
             }
             self.tryConnecting()
@@ -329,22 +338,25 @@ class Connection {
             guard let socket: WebSocket = self.socket, let timer: Timer = self.timer else {
                 if let callback = callback {
                     self.delegateQueue.async {
-                        callback(.error(LCError(code: 0)))
+                        let error = LCError(code: .connectionLost)
+                        callback(.error(error))
                     }
                 }
                 return
             }
-            var command = command
+            var outCommand = command
             if callback != nil {
-                command.i = Int32(self.nextSerialIndex)
+                outCommand.i = Int32(self.nextSerialIndex)
             }
             let serializedData: Data
             do {
-                serializedData = try command.serializedData()
+                serializedData = try outCommand.serializedData()
             } catch {
+                Logger.shared.error(error)
                 if let callback = callback {
                     self.delegateQueue.async {
-                        callback(.error(error))
+                        let serializingError = LCError(underlyingError: error)
+                        callback(.error(serializingError))
                     }
                 }
                 return
@@ -352,17 +364,20 @@ class Connection {
             guard serializedData.count <= 5000 else {
                 if let callback = callback {
                     self.delegateQueue.async {
-                        callback(.error(LCError(code: 0)))
+                        let error = LCError(code: .commandDataLengthTooLong)
+                        callback(.error(error))
                     }
                 }
                 return
             }
             if let callback = callback {
                 let commandCallback = CommandCallback(closure: callback, timeToLive: self.commandTTL)
-                let index: UInt16 = UInt16(command.i)
+                let index: UInt16 = UInt16(outCommand.i)
                 timer.insert(commandCallback: commandCallback, index: index)
             }
-            socket.write(data: serializedData)
+            socket.write(data: serializedData) {
+                Logger.shared.debug("\n\n------ BEGIN LeanCloud Out Command\n\(socket)\n\(outCommand)------ END\n")
+            }
         }
     }
     
@@ -423,24 +438,37 @@ extension Connection {
     
     private func tryConnecting() {
         assert(self.specificAssertion)
-        if let cannotEvent: Event = self.checkIfCanDoConnecting() {
-            self.delegateQueue.async {
-                self.delegate?.connection(connection: self, didFailInConnecting: cannotEvent)
+        self.getRTMServer { (result: LCGenericResult<URL>) in
+            assert(self.specificAssertion)
+            guard self.socket == nil else {
+                // if socket exists, means in connecting or did connect.
+                return
             }
-        } else {
-            if let server: String = self.customRTMServer, let url = URL(string: server) {
-                let socket = WebSocket(url: url, protocols: [self.lcimProtocol.rawValue])
-                socket.delegate = self
-                socket.pongDelegate = self
-                socket.callbackQueue = self.serialQueue
-                socket.connect()
-                self.socket = socket
+            if let cannotEvent: Event = self.checkIfCanDoConnecting() {
                 self.delegateQueue.async {
-                    self.delegate?.connectionInConnecting(connection: self)
+                    self.delegate?.connection(connection: self, didFailInConnecting: cannotEvent)
                 }
             } else {
-                self.delegateQueue.async {
-                    self.delegate?.connection(connection: self, didFailInConnecting: .error(LCError(code: 0)))
+                switch result {
+                case .success(value: let url):
+                    let socket = WebSocket(url: url, protocols: [self.lcimProtocol.rawValue])
+                    socket.delegate = self
+                    socket.pongDelegate = self
+                    socket.callbackQueue = self.serialQueue
+                    socket.connect()
+                    self.socket = socket
+                    self.delegateQueue.async {
+                        self.delegate?.connectionInConnecting(connection: self)
+                    }
+                    Logger.shared.verbose("\(socket) connecting URL<\"\(url)\"> with protocol<\"\(self.lcimProtocol.rawValue)\">")
+                case .failure(error: let error):
+                    Logger.shared.verbose("Get RTM server URL failed: \(error)")
+                    self.delegateQueue.async {
+                        self.delegate?.connection(connection: self, didFailInConnecting: .error(error))
+                    }
+                    if (error as NSError).domain == NSURLErrorDomain && self.isAutoReconnectionEnabled {
+                        self.tryConnecting()
+                    }
                 }
             }
         }
@@ -463,6 +491,30 @@ extension Connection {
         }
     }
     
+    private func getRTMServer(_ callback: @escaping (LCGenericResult<URL>) -> Void) {
+        assert(self.specificAssertion)
+        if let server: String = self.customRTMServer {
+            if let url = URL(string: server), url.scheme != nil {
+                callback(.success(value: url))
+            } else {
+                let error = LCError(code: .inconsistency, reason: "Custom RTM URL invalid")
+                callback(.failure(error: error))
+            }
+        } else {
+            self.rtmRouter.route { (result: LCGenericResult<RTMRoutingTable>) in
+                self.serialQueue.async {
+                    switch result {
+                    case .success(value: let table):
+                        let url: URL = (self.useSecondaryServer ? table.secondary : table.primary) ?? table.primary
+                        callback(.success(value: url))
+                    case .failure(error: let error):
+                        callback(.failure(error: error))
+                    }
+                }
+            }
+        }
+    }
+    
 }
 
 // MARK: - WebSocketDelegate
@@ -472,8 +524,11 @@ extension Connection: WebSocketDelegate, WebSocketPongDelegate {
     func websocketDidConnect(socket: WebSocketClient) {
         assert(self.specificAssertion)
         assert(self.socket === socket && self.timer == nil)
-        self.timer = Timer(timerQueue: self.serialQueue, commandCallbackQueue: self.delegateQueue) { _ in
-            socket.write(ping: Data())
+        Logger.shared.verbose("\(socket) connect success")
+        self.timer = Timer(timerQueue: self.serialQueue, commandCallbackQueue: self.delegateQueue) { (timer) in
+            socket.write(ping: Data()) {
+                Logger.shared.verbose("\(socket) ping sent")
+            }
         }
         self.delegateQueue.async {
             self.delegate?.connectionDidConnect(connection: self)
@@ -483,16 +538,34 @@ extension Connection: WebSocketDelegate, WebSocketPongDelegate {
     func websocketDidDisconnect(socket: WebSocketClient, error: Error?) {
         assert(self.specificAssertion)
         assert(self.socket === socket)
+        Logger.shared.verbose("\(socket) disconnect with error: \(String(describing: error))")
+        let disconnectError: Error = error ?? LCError(code: .connectionLost)
+        if let wsError: WSError = disconnectError as? WSError {
+            if wsError.type == .protocolError {
+                // WebSocket protocol error, unexpectation error.
+                self.tryClearConnection(with: .error(disconnectError))
+                return
+            } else if wsError.type == .invalidSSLError || wsError.type == .upgradeError {
+                // SSL or HTTP upgrade failed, maybe should use another server.
+                self.useSecondaryServer.toggle()
+            }
+        }
         if self.timer != nil {
-            self.tryClearConnection(with: .error(error ?? LCError(code: 0)))
+            // timer exists means the connected socket was disconnected.
+            self.tryClearConnection(with: .error(disconnectError))
+            // if no error, means NSStreamEventEndEncountered, the connection maybe closed by server, so just clear it.
+            // if has error, in high probability it is about network, so try reconnecting.
+            if error != nil && self.isAutoReconnectionEnabled {
+                self.tryConnecting()
+            }
         } else {
+            // timer not exists means connecting failed.
             self.delegateQueue.async {
-                self.delegate?.connection(connection: self, didFailInConnecting: .error(error ?? LCError(code: 0)))
+                self.delegate?.connection(connection: self, didFailInConnecting: .error(disconnectError))
             }
             self.socket?.delegate = nil
             self.socket?.pongDelegate = nil
             self.socket = nil
-            self.useSecondaryServer.toggle()
             if self.isAutoReconnectionEnabled {
                 self.tryConnecting()
             }
@@ -501,14 +574,15 @@ extension Connection: WebSocketDelegate, WebSocketPongDelegate {
     
     func websocketDidReceiveData(socket: WebSocketClient, data: Data) {
         assert(self.specificAssertion)
-        assert(self.socket === socket)
+        assert(self.socket === socket && self.timer != nil)
         let inCommand: IMGenericCommand
         do {
             inCommand = try IMGenericCommand(serializedData: data)
         } catch {
-            print(error)
+            Logger.shared.error(error)
             return
         }
+        Logger.shared.debug("\n\n------ BEGIN LeanCloud In Command\n\(socket)\n\(inCommand)------ END\n")
         if inCommand.hasI {
             self.timer?.handle(callbackCommand: inCommand)
         } else {
@@ -520,12 +594,13 @@ extension Connection: WebSocketDelegate, WebSocketPongDelegate {
     
     func websocketDidReceivePong(socket: WebSocketClient, data: Data?) {
         assert(self.specificAssertion)
-        assert(self.socket === socket)
+        assert(self.socket === socket && self.timer != nil)
+        Logger.shared.verbose("\(socket) pong received")
         self.timer?.lastPongReceivedTimestamp = Date().timeIntervalSince1970
     }
     
     func websocketDidReceiveMessage(socket: WebSocketClient, text: String) {
-        fatalError("should not be invoked.")
+        fatalError("should never be invoked.")
     }
     
 }

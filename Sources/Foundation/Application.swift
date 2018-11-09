@@ -67,8 +67,9 @@ public final class LCApplication: NSObject {
     public enum LogLevel: Int, Comparable {
 
         case off
-        case debug
         case error
+        case debug
+        case verbose
         case all
 
         public static func < (lhs: LogLevel, rhs: LogLevel) -> Bool {
