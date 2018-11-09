@@ -8,6 +8,7 @@
 
 import Foundation
 import UIKit
+@testable import LeanCloud
 
 class ConnectionTestViewController: UIViewController {
     
