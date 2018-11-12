@@ -542,7 +542,7 @@ extension Connection: WebSocketDelegate, WebSocketPongDelegate {
         let disconnectError: Error = error ?? LCError(code: .connectionLost)
         if let wsError: WSError = disconnectError as? WSError {
             if wsError.type == .protocolError {
-                // WebSocket protocol error, unexpectation error.
+                // unexpectation error or close by server.
                 self.tryClearConnection(with: .error(disconnectError))
                 return
             } else if wsError.type == .invalidSSLError || wsError.type == .upgradeError {
@@ -553,11 +553,6 @@ extension Connection: WebSocketDelegate, WebSocketPongDelegate {
         if self.timer != nil {
             // timer exists means the connected socket was disconnected.
             self.tryClearConnection(with: .error(disconnectError))
-            // if no error, means NSStreamEventEndEncountered, the connection maybe closed by server, so just clear it.
-            // if has error, in high probability it is about network, so try reconnecting.
-            if error != nil && self.isAutoReconnectionEnabled {
-                self.tryConnecting()
-            }
         } else {
             // timer not exists means connecting failed.
             self.delegateQueue.async {
@@ -566,9 +561,10 @@ extension Connection: WebSocketDelegate, WebSocketPongDelegate {
             self.socket?.delegate = nil
             self.socket?.pongDelegate = nil
             self.socket = nil
-            if self.isAutoReconnectionEnabled {
-                self.tryConnecting()
-            }
+        }
+        if self.isAutoReconnectionEnabled {
+            // all condition but 'error or closing of WebSocket-Protocol', should try reconnecting.
+            self.tryConnecting()
         }
     }
     
