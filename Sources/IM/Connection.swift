@@ -252,7 +252,8 @@ class Connection {
          lcimProtocol: LCIMProtocol,
          customRTMServer: String? = nil,
          delegateQueue: DispatchQueue = .main,
-         commandTTL: TimeInterval = 30.0)
+         commandTTL: TimeInterval = 30.0,
+         isAutoReconnectionEnabled: Bool = true)
     {
         #if DEBUG
         self.serialQueue.setSpecific(key: self.specificKey, value: self.specificValue)
@@ -263,6 +264,7 @@ class Connection {
         self.customRTMServer = customRTMServer
         self.delegateQueue = delegateQueue
         self.commandTTL = commandTTL
+        self.isAutoReconnectionEnabled = isAutoReconnectionEnabled
         
         self.rtmRouter = RTMRouter(application: application)
         
