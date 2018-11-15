@@ -22,6 +22,9 @@ struct RTMRoutingTable {
     /// Expiration date, it's a local date.
     let expiration: Date
 
+    /// Creation date, it's a local date.
+    let createdAt: Date
+    
 }
 
 /**
@@ -79,7 +82,7 @@ final class RTMRouter {
 
         let expirationDate = Date(timeIntervalSinceNow: ttl)
 
-        let routingTable = RTMRoutingTable(primary: primaryURL, secondary: secondaryURL, expiration: expirationDate)
+        let routingTable = RTMRoutingTable(primary: primaryURL, secondary: secondaryURL, expiration: expirationDate, createdAt: Date())
 
         return .success(value: routingTable)
     }

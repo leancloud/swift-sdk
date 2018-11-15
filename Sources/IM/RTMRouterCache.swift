@@ -32,6 +32,7 @@ final class RTMRouterCache: LocalStorage, LocalStorageProtocol {
                 let primaryURLString = entity.primary,
                 let primaryURL = URL(string: primaryURLString),
                 let expiration = entity.expiration,
+                let createdAt = entity.createdAt,
                 Date() < expiration
             else {
                 try deleteAllObjects(type: RTMRoutingTableEntity.self)
@@ -45,7 +46,7 @@ final class RTMRouterCache: LocalStorage, LocalStorageProtocol {
                 secondaryURL = URL(string: secondaryURLString)
             }
 
-            let routingTable = RTMRoutingTable(primary: primaryURL, secondary: secondaryURL, expiration: expiration)
+            let routingTable = RTMRoutingTable(primary: primaryURL, secondary: secondaryURL, expiration: expiration, createdAt: createdAt)
 
             return routingTable
         }
@@ -62,6 +63,7 @@ final class RTMRouterCache: LocalStorage, LocalStorageProtocol {
                 entity.primary = routingTable.primary.absoluteString
                 entity.secondary = routingTable.secondary?.absoluteString
                 entity.expiration = routingTable.expiration
+                entity.createdAt = routingTable.createdAt
             }
 
             try save()
