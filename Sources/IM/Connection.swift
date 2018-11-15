@@ -200,6 +200,7 @@ class Connection {
     private var timer: Timer? = nil
     private var isAutoReconnectionEnabled: Bool = false
     private var useSecondaryServer: Bool = false
+    private var afterWorkItemForReconnection: DispatchWorkItem? = nil
     private var serialIndex: UInt16 = 1
     private var nextSerialIndex: UInt16 {
         let index: UInt16 = self.serialIndex
@@ -306,6 +307,7 @@ class Connection {
         #endif
         self.socket?.disconnect()
         self.timer?.cancel()
+        self.afterWorkItemForReconnection?.cancel()
     }
     
     /// Try connecting RTM server, if websocket exists and auto reconnection is enabled, then this action will be ignored.
@@ -440,8 +442,30 @@ extension Connection {
         return nil
     }
     
+    private func check(isServerError error: Error?) -> Bool {
+        if error == nil {
+            // Result: Stream end encountered, Socket Connection reset by remote peer.
+            // Reason: Maybe due to Network Environment, maybe due to LeanCloud Server Error.
+            // Handling: Anyway, SDK regrad it as LeanCloud Server Error.
+            return true
+        } else if let wsError: WSError = error as? WSError {
+            switch wsError.type {
+            case .protocolError, .invalidSSLError, .upgradeError:
+                // 99.99% is LeanCloud Server Error.
+                return true
+            default:
+                break
+            }
+        }
+        return false
+    }
+    
     private func tryConnecting() {
         assert(self.specificAssertion)
+        if let workItem: DispatchWorkItem = self.afterWorkItemForReconnection {
+            workItem.cancel()
+            self.afterWorkItemForReconnection = nil
+        }
         self.getRTMServer { (result: LCGenericResult<URL>) in
             assert(self.specificAssertion)
             guard self.socket == nil else {
@@ -480,6 +504,10 @@ extension Connection {
     
     private func tryClearConnection(with event: Event) {
         assert(self.specificAssertion)
+        if let workItem: DispatchWorkItem = self.afterWorkItemForReconnection {
+            workItem.cancel()
+            self.afterWorkItemForReconnection = nil
+        }
         if let socket: WebSocket = self.socket {
             socket.delegate = nil
             socket.pongDelegate = nil
@@ -519,6 +547,36 @@ extension Connection {
         }
     }
     
+    private func handleDisconnectForServerError() {
+        assert(self.specificAssertion)
+        let secondaryServerEncounteredError: Bool = self.useSecondaryServer
+        self.useSecondaryServer.toggle()
+        if secondaryServerEncounteredError {
+            // Primary & Secondary Server both encountered error
+            do {
+                let routerCache: RTMRouterCache = self.rtmRouter.cache
+                if let routingTable = try routerCache.getRoutingTable(),
+                    Date().timeIntervalSince1970 - routingTable.createdAt.timeIntervalSince1970 > 60
+                {
+                    try routerCache.clear()
+                }
+            } catch {
+                Logger.shared.error(error)
+            }
+            if self.isAutoReconnectionEnabled {
+                let workItem = DispatchWorkItem() { [weak self] in
+                    self?.afterWorkItemForReconnection = nil
+                    self?.tryConnecting()
+                }
+                self.afterWorkItemForReconnection = workItem
+                self.serialQueue.asyncAfter(deadline: .now() + 10, execute: workItem)
+            }
+        } else {
+            // Primary Server encountered error
+            self.tryConnecting()
+        }
+    }
+    
 }
 
 // MARK: - WebSocketDelegate
@@ -543,32 +601,31 @@ extension Connection: WebSocketDelegate, WebSocketPongDelegate {
         assert(self.specificAssertion)
         assert(self.socket === socket)
         Logger.shared.verbose("\(socket) disconnect with error: \(String(describing: error))")
+        let isServerError: Bool = self.check(isServerError: error)
         let disconnectError: Error = error ?? LCError(code: .connectionLost)
-        if let wsError: WSError = disconnectError as? WSError {
-            if wsError.type == .protocolError {
-                // unexpectation error or close by server.
-                self.tryClearConnection(with: .error(disconnectError))
-                return
-            } else if wsError.type == .invalidSSLError || wsError.type == .upgradeError {
-                // SSL or HTTP upgrade failed, maybe should use another server.
-                self.useSecondaryServer.toggle()
-            }
-        }
         if self.timer != nil {
             // timer exists means the connected socket was disconnected.
             self.tryClearConnection(with: .error(disconnectError))
         } else {
             // timer not exists means connecting failed.
-            self.delegateQueue.async {
-                self.delegate?.connection(connection: self, didFailInConnecting: .error(disconnectError))
-            }
             self.socket?.delegate = nil
             self.socket?.pongDelegate = nil
             self.socket = nil
+            if isServerError && !self.useSecondaryServer {
+                // Primary Server Error in connecting
+                // Should try Secondary Server and no need to notify delegator.
+            } else {
+                self.delegateQueue.async {
+                    self.delegate?.connection(connection: self, didFailInConnecting: .error(disconnectError))
+                }
+            }
         }
-        if self.isAutoReconnectionEnabled {
-            // all condition but 'error or closing of WebSocket-Protocol', should try reconnecting.
-            self.tryConnecting()
+        if isServerError {
+            self.handleDisconnectForServerError()
+        } else {
+            if self.isAutoReconnectionEnabled {
+                self.tryConnecting()
+            }
         }
     }
     
