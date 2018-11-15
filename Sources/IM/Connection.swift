@@ -269,7 +269,9 @@ class Connection {
         self.rtmRouter = RTMRouter(application: application)
         
         #if os(iOS) || os(tvOS)
-        self.previousAppState = (UIApplication.shared.applicationState == .background ? .background : .foreground)
+        self.previousAppState = mainQueueSync {
+            (UIApplication.shared.applicationState == .background ? .background : .foreground)
+        }
         let operationQueue = OperationQueue()
         operationQueue.underlyingQueue = self.serialQueue
         self.enterBackgroundObserver = NotificationCenter.default.addObserver(forName: UIApplication.didEnterBackgroundNotification, object: nil, queue: operationQueue) { [weak self] _ in
