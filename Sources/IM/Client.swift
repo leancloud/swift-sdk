@@ -148,7 +148,7 @@ public final class LCClient: NSObject {
         lcimProtocol: options.lcimProtocol,
         customRTMServer: customServer?.absoluteString,
         delegateQueue: serialDispatchQueue,
-        isAutoReconnectionEnabled: options.isAutoReconnectionEnabled)
+        isAutoReconnectionEnabled: false)
 
     /**
      Initialize client with identifier and tag.
@@ -234,12 +234,9 @@ public final class LCClient: NSObject {
     }
 
     /**
-     Reset state before open.
+     Reset auto-connection.
      */
-    private func resetStateBeforeOpen() {
-        isClosedByCaller = false
-
-        // We need reset auto-connection because it may be disabled when closed by caller.
+    private func resetAutoConnection() {
         connection.setAutoReconnectionEnabled(with: options.isAutoReconnectionEnabled)
     }
 
@@ -252,7 +249,7 @@ public final class LCClient: NSObject {
      */
     public func open(completion: @escaping (LCBooleanResult) -> Void) {
         synchronize(on: self) {
-            resetStateBeforeOpen()
+            isClosedByCaller = false
 
             let id = openingCompletionCount &+ 1
 
@@ -304,6 +301,8 @@ public final class LCClient: NSObject {
         switch result {
         case .inCommand(let command):
             synchronize(on: self) {
+                resetAutoConnection() // Auto-connection is disabled before first session did open.
+
                 updateSessionState(.opened)
 
                 if let delegate = delegate {
