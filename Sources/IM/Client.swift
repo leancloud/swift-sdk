@@ -224,6 +224,8 @@ public final class LCClient: NSObject {
      */
     private func fireTimeout(openingCompletionID id: UInt64) {
         synchronize(on: self) {
+            connection.setAutoReconnectionEnabled(with: false)
+
             guard let openingCompletion = openingCompletionTable.removeValue(forKey: id) else {
                 return
             }
@@ -234,7 +236,7 @@ public final class LCClient: NSObject {
     }
 
     /**
-     Reset auto-connection.
+     Reset auto-reconnection.
      */
     private func resetAutoConnection() {
         connection.setAutoReconnectionEnabled(with: options.isAutoReconnectionEnabled)
@@ -250,6 +252,9 @@ public final class LCClient: NSObject {
     public func open(completion: @escaping (LCBooleanResult) -> Void) {
         synchronize(on: self) {
             isClosedByCaller = false
+
+            /* Enable auto-reconnection for opening WebSocket connection to send session command. */
+            connection.setAutoReconnectionEnabled(with: true)
 
             let id = openingCompletionCount &+ 1
 
@@ -301,7 +306,7 @@ public final class LCClient: NSObject {
         switch result {
         case .inCommand(let command):
             synchronize(on: self) {
-                resetAutoConnection() // Auto-connection is disabled before first session did open.
+                resetAutoConnection()
 
                 updateSessionState(.opened)
 
@@ -319,6 +324,11 @@ public final class LCClient: NSObject {
             let error = SessionError.error(error)
 
             synchronize(on: self) {
+                /*
+                 Disable auto-reconnection until session opened.
+                 */
+                connection.setAutoReconnectionEnabled(with: false)
+
                 updateSessionState(.closed)
 
                 if let delegate = delegate {
@@ -450,7 +460,7 @@ public final class LCClient: NSObject {
             case .closedByCaller:
                 isClosedByCaller = true
                 /*
-                 Disable auto-connection if session closed.
+                 Disable auto-reconnection if session is closed by caller.
                  The connection will closed by server after 1 minute.
                  */
                 connection.setAutoReconnectionEnabled(with: false)
