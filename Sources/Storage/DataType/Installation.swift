@@ -126,6 +126,17 @@ public final class LCInstallation: LCObject {
         }
     }
 
+    override func validateBeforeSaving() throws {
+        try super.validateBeforeSaving()
+
+        guard let _ = deviceToken else {
+            throw LCError(code: .inconsistency, reason: "Installation device token not found.")
+        }
+        guard let _ = apnsTeamId else {
+            throw LCError(code: .inconsistency, reason: "Installation APNs team ID not found.")
+        }
+    }
+
     override func objectDidSave() {
         super.objectDidSave()
 
