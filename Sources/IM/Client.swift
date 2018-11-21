@@ -125,7 +125,19 @@ public final class LCClient: NSObject {
     /// The client session state.
     public var sessionState: SessionState = .closed
 
+    /// If session is closed by caller
     private var isClosedByCaller = false
+
+    /// The incoming command of opening session.
+    private var openingSessionIncomingCommand: IMGenericCommand?
+
+    /// Should delegate session state.
+    private var shouldDelegateSessionState: Bool {
+        return synchronize(on: self) {
+            /* Only delegate session state after session did open. */
+            return openingSessionIncomingCommand != nil
+        }
+    }
 
     /// The delegate object.
     public weak var delegate: LCClientDelegate?
@@ -173,65 +185,55 @@ public final class LCClient: NSObject {
         self.application = application
     }
 
-    /// The total count of opening completions.
-    private var openingCompletionCount: UInt64 = 0
-
-    /// A table of opening completion handler indexed by ID.
-    private var openingCompletionTable: [UInt64: (LCBooleanResult) -> Void] = [:]
+    /// The opening completion.
+    private var openingCompletion: ((LCBooleanResult) -> Void)?
 
     /// Timeout interval of opening completion.
     private let openingCompletionTimeout: TimeInterval = 60
 
     /**
-     Flush opening completions with result.
+     Call opening completion with result.
+
+     It will also reset the opening completion to ensure that it can be called only once.
 
      - parameter result: The boolean result.
      */
-    private func flushOpeningCompletions(with result: LCBooleanResult) {
+    private func callOpeningCompletion(with result: LCBooleanResult) {
         synchronize(on: self) {
-            let openingCompletionTable = self.openingCompletionTable
-
-            mainQueueAsync {
-                openingCompletionTable.forEach { (_, completion) in
-                    completion(result)
-                }
+            guard let openingCompletion = openingCompletion else {
+                return
             }
 
-            self.openingCompletionTable = [:]
+            self.openingCompletion = nil
+
+            mainQueueAsync {
+                openingCompletion(result)
+            }
         }
     }
 
     /**
-     Set timeout for an opening completion.
-
-     - parameter id: The opening completion ID.
+     Set timeout for opening completion.
      */
-    private func setTimeout(openingCompletionID id: UInt64) {
+    private func setTimeoutForOpeningCompletion() {
         let deadline: DispatchTime = .now() + openingCompletionTimeout
 
         sessionTimeoutDispatchQueue.asyncAfter(deadline: deadline) { [weak self] in
             guard let client = self else {
                 return
             }
-            client.fireTimeout(openingCompletionID: id)
+            client.fireTimeoutForOpeningCompletion()
         }
     }
 
     /**
-     Fire timeout for an opening completion.
-
-     - parameter id: The opening completion ID.
+     Fire timeout for opening completion.
      */
-    private func fireTimeout(openingCompletionID id: UInt64) {
+    private func fireTimeoutForOpeningCompletion() {
         synchronize(on: self) {
             connection.setAutoReconnectionEnabled(with: false)
 
-            guard let openingCompletion = openingCompletionTable.removeValue(forKey: id) else {
-                return
-            }
-            mainQueueAsync {
-                openingCompletion(.failure(error: SessionError.timedOut))
-            }
+            callOpeningCompletion(with: .failure(error: SessionError.timedOut))
         }
     }
 
@@ -251,25 +253,35 @@ public final class LCClient: NSObject {
      */
     public func open(completion: @escaping (LCBooleanResult) -> Void) {
         synchronize(on: self) {
+            guard openingCompletion == nil else {
+                let error = LCError(
+                    code: .inconsistency,
+                    reason: "Cannot open session before previous operation finish.")
+
+                mainQueueAsync {
+                    completion(.failure(error: error))
+                }
+
+                return
+            }
+
+            openingCompletion = completion
+
             isClosedByCaller = false
+
+            openingSessionIncomingCommand = nil
 
             /* Enable auto-reconnection for opening WebSocket connection to send session command. */
             connection.setAutoReconnectionEnabled(with: true)
 
-            let id = openingCompletionCount &+ 1
-
-            /* Stash completion handler first. It will be called later. */
-            openingCompletionTable[id] = completion
-            openingCompletionCount = id
-
             /* Set timeout to ensure that completion handler can be called finally. */
-            setTimeout(openingCompletionID: id)
+            setTimeoutForOpeningCompletion()
 
-            /* Flush completion handler if session is opened already.
+            /* Call completion handler directly if session is opened already.
                Otherwise, try to connect and open session. */
             switch sessionState {
             case .opened:
-                flushOpeningCompletions(with: .success)
+                callOpeningCompletion(with: .success)
             default:
                 connection.connect()
             }
@@ -306,19 +318,19 @@ public final class LCClient: NSObject {
         switch result {
         case .inCommand(let command):
             synchronize(on: self) {
+                processOpeningSessionIncomingCommand(command)
+
                 resetAutoConnection()
 
-                updateSessionState(.opened)
-
-                if let delegate = delegate {
-                    mainQueueAsync {
-                        delegate.clientDidOpenSession(self)
+                if updateSessionState(.opened) {
+                    if let delegate = delegate {
+                        mainQueueAsync {
+                            delegate.clientDidOpenSession(self)
+                        }
                     }
                 }
 
-                processOpeningSessionIncomingCommand(command)
-
-                flushOpeningCompletions(with: .success)
+                callOpeningCompletion(with: .success)
             }
         case .error(let error):
             let error = SessionError.error(error)
@@ -329,15 +341,15 @@ public final class LCClient: NSObject {
                  */
                 connection.setAutoReconnectionEnabled(with: false)
 
-                updateSessionState(.closed)
-
-                if let delegate = delegate {
-                    mainQueueAsync {
-                        delegate.clientDidCloseSession(self, error: error)
+                if updateSessionState(.closed) {
+                    if let delegate = delegate {
+                        mainQueueAsync {
+                            delegate.clientDidCloseSession(self, error: error)
+                        }
                     }
                 }
 
-                flushOpeningCompletions(with: .failure(error: error))
+                callOpeningCompletion(with: .failure(error: error))
             }
         }
     }
@@ -348,7 +360,9 @@ public final class LCClient: NSObject {
      - parameter command: The opening session incoming command.
      */
     private func processOpeningSessionIncomingCommand(_ command: IMGenericCommand) {
-        // TODO: Process Command
+        synchronize(on: self) {
+            openingSessionIncomingCommand = command
+        }
     }
 
     /**
@@ -398,10 +412,22 @@ public final class LCClient: NSObject {
         }
     }
 
-    /// Update session state.
-    private func updateSessionState(_ sessionState: SessionState) {
-        synchronize(on: self) {
+    /*
+     Update session state.
+
+     - parameter sessionState: The new session state.
+     */
+    private func updateSessionState(_ sessionState: SessionState) -> Bool {
+        return synchronize(on: self) {
+            guard shouldDelegateSessionState else {
+                return false
+            }
+
+            // TODO: Validate State Transition
+
             self.sessionState = sessionState
+
+            return true
         }
     }
 
@@ -456,27 +482,27 @@ public final class LCClient: NSObject {
                 return
             }
 
+            if updateSessionState(.closed) {
+                if let delegate = delegate {
+                    mainQueueAsync {
+                        delegate.clientDidCloseSession(self, error: error)
+                    }
+                }
+            }
+
             switch error {
             case .closedByCaller:
                 isClosedByCaller = true
-                /*
-                 Disable auto-reconnection if session is closed by caller.
-                 The connection will closed by server after 1 minute.
-                 */
+
+                openingSessionIncomingCommand = nil
+
+                /* Disable auto-reconnection if session is closed by caller. */
                 connection.setAutoReconnectionEnabled(with: false)
             default:
                 break
             }
 
-            updateSessionState(.closed)
-
-            flushOpeningCompletions(with: .failure(error: error))
-
-            if let delegate = delegate {
-                mainQueueAsync {
-                    delegate.clientDidCloseSession(self, error: error)
-                }
-            }
+            callOpeningCompletion(with: .failure(error: error))
         }
     }
 
@@ -489,11 +515,11 @@ extension LCClient: ConnectionDelegate {
             if isClosedByCaller {
                 return
             }
-            updateSessionState(.opening)
-
-            if let delegate = delegate {
-                mainQueueAsync {
-                    delegate.clientWillOpenSession(self)
+            if updateSessionState(.opening) {
+                if let delegate = delegate {
+                    mainQueueAsync {
+                        delegate.clientWillOpenSession(self)
+                    }
                 }
             }
         }
