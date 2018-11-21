@@ -30,7 +30,8 @@ public final class LCClient: NSObject {
         public static let `default`: Options = []
 
         /// Manage session state manually.
-        public static let manageSessionStateManually = Options(rawValue: 1 << 0)
+        /// Maybe we can public this property someday.
+        static let manageSessionStateManually = Options(rawValue: 1 << 0)
 
         /// Receive unread message count after session did open.
         public static let receiveUnreadMessageCountAfterSessionDidOpen = Options(rawValue: 1 << 1)
