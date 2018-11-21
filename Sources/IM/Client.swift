@@ -60,11 +60,11 @@ public final class LCClient: NSObject {
      */
     public enum SessionState {
 
-        /// Session is about to open but not opened
-        case opening
-
         /// Session is opened
         case opened
+
+        /// Session is resuming
+        case resuming
 
         /// Session is closed
         case closed
@@ -515,10 +515,10 @@ extension LCClient: ConnectionDelegate {
             if isClosedByCaller {
                 return
             }
-            if updateSessionState(.opening) {
+            if updateSessionState(.resuming) {
                 if let delegate = delegate {
                     mainQueueAsync {
-                        delegate.clientWillOpenSession(self)
+                        delegate.clientDidBecomeResumeSession(self)
                     }
                 }
             }
@@ -553,18 +553,18 @@ extension LCClient: ConnectionDelegate {
 public protocol LCClientDelegate: NSObjectProtocol {
 
     /**
-     Notify that client will open session.
-
-     - parameter client: The client who will open session.
-     */
-    func clientWillOpenSession(_ client: LCClient)
-
-    /**
      Notify that client did open session.
 
      - parameter client: The client who did open session.
      */
     func clientDidOpenSession(_ client: LCClient)
+
+    /**
+     Notify that client did become resume session.
+
+     - parameter client: The client who did become resume session.
+     */
+    func clientDidBecomeResumeSession(_ client: LCClient)
 
     /**
      Notify that client did close session.
@@ -577,11 +577,11 @@ public protocol LCClientDelegate: NSObjectProtocol {
 
 extension LCClientDelegate {
 
-    func clientWillOpenSession(_ client: LCClient) {
+    func clientDidOpenSession(_ client: LCClient) {
         /* Nop */
     }
 
-    func clientDidOpenSession(_ client: LCClient) {
+    func clientDidBecomeResumeSession(_ client: LCClient) {
         /* Nop */
     }
 
