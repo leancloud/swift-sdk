@@ -240,7 +240,7 @@ public final class LCClient: NSObject {
     /**
      Reset auto-reconnection.
      */
-    private func resetAutoConnection() {
+    private func resetAutoReconnection() {
         connection.setAutoReconnectionEnabled(with: options.isAutoReconnectionEnabled)
     }
 
@@ -318,9 +318,9 @@ public final class LCClient: NSObject {
         switch result {
         case .inCommand(let command):
             synchronize(on: self) {
-                processOpeningSessionIncomingCommand(command)
+                resetAutoReconnection()
 
-                resetAutoConnection()
+                processOpeningSessionIncomingCommand(command)
 
                 if updateSessionState(.opened) {
                     if let delegate = delegate {
@@ -336,10 +336,7 @@ public final class LCClient: NSObject {
             let error = SessionError.error(error)
 
             synchronize(on: self) {
-                /*
-                 Disable auto-reconnection until session opened.
-                 */
-                connection.setAutoReconnectionEnabled(with: false)
+                resetAutoReconnection()
 
                 if updateSessionState(.closed) {
                     if let delegate = delegate {
