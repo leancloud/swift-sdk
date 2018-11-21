@@ -191,6 +191,12 @@ public final class LCClient: NSObject {
     /// Timeout interval of opening completion.
     private let openingCompletionTimeout: TimeInterval = 60
 
+    /// The timeout work item.
+    private var timeoutWorkItem: DispatchWorkItem?
+
+    /// A flag indicates whether opening session is timed out.
+    private var isTimedOut = false
+
     /**
      Call opening completion with result.
 
@@ -216,13 +222,36 @@ public final class LCClient: NSObject {
      Set timeout for opening completion.
      */
     private func setTimeoutForOpeningCompletion() {
+        if let workItem = timeoutWorkItem {
+            workItem.cancel()
+        }
+
         let deadline: DispatchTime = .now() + openingCompletionTimeout
 
-        sessionTimeoutDispatchQueue.asyncAfter(deadline: deadline) { [weak self] in
+        let workItem = DispatchWorkItem { [weak self] in
             guard let client = self else {
                 return
             }
             client.fireTimeoutForOpeningCompletion()
+        }
+
+        sessionTimeoutDispatchQueue.asyncAfter(deadline: deadline, execute: workItem)
+
+        timeoutWorkItem = workItem
+    }
+
+    /**
+     Cancel and remove timeout work item.
+     */
+    private func cancelAndRemoveTimeoutWorkItem() {
+        synchronize(on: self) {
+            guard let workItem = timeoutWorkItem else {
+                return
+            }
+
+            timeoutWorkItem = nil
+
+            workItem.cancel()
         }
     }
 
@@ -234,6 +263,10 @@ public final class LCClient: NSObject {
             connection.setAutoReconnectionEnabled(with: false)
 
             callOpeningCompletion(with: .failure(error: SessionError.timedOut))
+
+            timeoutWorkItem = nil
+
+            isTimedOut = true
         }
     }
 
@@ -271,10 +304,13 @@ public final class LCClient: NSObject {
 
             openingSessionIncomingCommand = nil
 
+            isTimedOut = false
+
             /* Enable auto-reconnection for opening WebSocket connection to send session command. */
             connection.setAutoReconnectionEnabled(with: true)
 
             /* Set timeout to ensure that completion handler can be called finally. */
+            cancelAndRemoveTimeoutWorkItem()
             setTimeoutForOpeningCompletion()
 
             /* Call completion handler directly if session is opened already.
@@ -315,11 +351,18 @@ public final class LCClient: NSObject {
      - parameter result: The result of opening session.
      */
     private func processOpeningSessionResult(_ result: Connection.CommandCallback.Result) {
-        switch result {
-        case .inCommand(let command):
-            synchronize(on: self) {
-                resetAutoReconnection()
+        synchronize(on: self) {
+            if isTimedOut {
+                // If session is timed out, do nothing.
+                return
+            }
 
+            cancelAndRemoveTimeoutWorkItem()
+
+            resetAutoReconnection()
+
+            switch result {
+            case .inCommand(let command):
                 processOpeningSessionIncomingCommand(command)
 
                 if updateSessionState(.opened) {
@@ -331,12 +374,8 @@ public final class LCClient: NSObject {
                 }
 
                 callOpeningCompletion(with: .success)
-            }
-        case .error(let error):
-            let error = SessionError.error(error)
-
-            synchronize(on: self) {
-                resetAutoReconnection()
+            case .error(let error):
+                let error = SessionError.error(error)
 
                 if updateSessionState(.closed) {
                     if let delegate = delegate {
