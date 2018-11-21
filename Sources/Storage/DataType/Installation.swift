@@ -26,10 +26,10 @@ public final class LCInstallation: LCObject {
     @objc public dynamic var deviceType: LCString?
 
     /// The device token used to push notification.
-    @objc public dynamic var deviceToken: LCString?
+    @objc public private(set) dynamic var deviceToken: LCString?
 
     /// The device profile. You can use this property to select one from mutiple push certificates or configurations.
-    @objc public dynamic var deviceProfile: LCString?
+    @objc public private(set) dynamic var deviceProfile: LCString?
 
     /// The installation ID of device, it's mainly for Android device.
     @objc public dynamic var installationId: LCString?
@@ -38,7 +38,7 @@ public final class LCInstallation: LCObject {
     @objc public dynamic var apnsTopic: LCString?
 
     /// The APNs Team ID of installation.
-    @objc public dynamic var apnsTeamId: LCString?
+    @objc public private(set) dynamic var apnsTeamId: LCString?
 
     public override class func objectClassName() -> String {
         return "_Installation"
@@ -82,6 +82,27 @@ public final class LCInstallation: LCObject {
         #endif
     }
 
+    /**
+     Set required properties for installation.
+
+     - parameter deviceToken: The device token.
+     - parameter deviceProfile: The device profile.
+     - parameter apnsTeamId: The Team ID of your Apple Developer Account.
+     */
+    public func set(
+        deviceToken: LCDeviceTokenConvertible,
+        deviceProfile: LCStringConvertible? = nil,
+        apnsTeamId: LCStringConvertible)
+    {
+        self.deviceToken = deviceToken.lcDeviceToken
+
+        if let deviceProfile = deviceProfile {
+            self.deviceProfile = deviceProfile.lcString
+        }
+
+        self.apnsTeamId = apnsTeamId.lcString
+    }
+
     override func preferredBatchRequest(method: HTTPClient.Method, path: String, internalId: String) throws -> [String : Any]? {
         switch method {
         case .post, .put:
@@ -105,6 +126,17 @@ public final class LCInstallation: LCObject {
         }
     }
 
+    override func validateBeforeSaving() throws {
+        try super.validateBeforeSaving()
+
+        guard let _ = deviceToken else {
+            throw LCError(code: .inconsistency, reason: "Installation device token not found.")
+        }
+        guard let _ = apnsTeamId else {
+            throw LCError(code: .inconsistency, reason: "Installation APNs team ID not found.")
+        }
+    }
+
     override func objectDidSave() {
         super.objectDidSave()
 
@@ -123,6 +155,47 @@ extension LCApplication {
         return lc_lazyload("currentInstallation", .OBJC_ASSOCIATION_RETAIN) {
             storageContextCache.installation ?? LCInstallation()
         }
+    }
+
+}
+
+
+public protocol LCDeviceTokenConvertible {
+
+    var lcDeviceToken: LCString { get }
+
+}
+
+extension String: LCDeviceTokenConvertible {
+
+    public var lcDeviceToken: LCString {
+        return lcString
+    }
+
+}
+
+extension NSString: LCDeviceTokenConvertible {
+
+    public var lcDeviceToken: LCString {
+        return (self as String).lcDeviceToken
+    }
+
+}
+
+extension Data: LCDeviceTokenConvertible {
+
+    public var lcDeviceToken: LCString {
+        let string = map { String(format: "%02.2hhx", $0) }.joined()
+
+        return LCString(string)
+    }
+
+}
+
+extension NSData: LCDeviceTokenConvertible {
+
+    public var lcDeviceToken: LCString {
+        return (self as Data).lcDeviceToken
     }
 
 }
