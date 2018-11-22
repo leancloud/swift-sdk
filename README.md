@@ -9,11 +9,10 @@
   * [x] Cloud Engine
   * [x] Short Message
   * [x] File Hosting
+  * [x] Push Notification
 
 ## Wanted Features
-  * [ ] Push Notification
   * [ ] Search Query
-  * [ ] Analytics
   * [ ] Instant Messaging
   * [ ] Your good idea we are looking forward to :)
 
