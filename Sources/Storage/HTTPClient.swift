@@ -327,7 +327,7 @@ class HTTPClient {
         completionHandler: @escaping (LCBooleanResult) -> Void) -> LCRequest
     {
         return request(object: error, completionDispatchQueue: completionDispatchQueue) { error in
-            completionHandler(.failure(error: error))
+            completionHandler(.failure(error: LCError(error: error)))
         }
     }
 
@@ -346,7 +346,7 @@ class HTTPClient {
         completionHandler: @escaping (LCValueResult<T>) -> Void) -> LCRequest
     {
         return request(object: error, completionDispatchQueue: completionDispatchQueue) { error in
-            completionHandler(.failure(error: error))
+            completionHandler(.failure(error: LCError(error: error)))
         }
     }
 

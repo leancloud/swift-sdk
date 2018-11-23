@@ -27,6 +27,10 @@ final class LCResponse {
         return error == nil
     }
 
+    var data: Data? {
+        return response.data
+    }
+
     var value: Any? {
         return response.result.value
     }

@@ -291,7 +291,7 @@ class FileUploader {
                     let value = TouchResult(plainTokens: plainTokens, typedTokens: typedTokens)
                     completion(.success(value: value))
                 } catch let error {
-                    completion(.failure(error: error))
+                    completion(.failure(error: LCError(error: error)))
                 }
             case .failure(let error):
                 completion(.failure(error: error))
@@ -362,7 +362,7 @@ class FileUploader {
                     }
                     request.response { response in
                         if let error = response.error {
-                            completion(.failure(error: error))
+                            completion(.failure(error: LCError(error: error)))
                         } else {
                             completion(.success)
                         }
@@ -370,7 +370,7 @@ class FileUploader {
                     sequenceRequest.setCurrentRequest(request)
                     request.resume()
                 case let .failure(error):
-                    completion(.failure(error: error))
+                    completion(.failure(error: LCError(error: error)))
                 }
             })
 
@@ -412,7 +412,7 @@ class FileUploader {
                     }
                     request.response { response in
                         if let error = response.error {
-                            completion(.failure(error: error))
+                            completion(.failure(error: LCError(error: error)))
                         } else {
                             completion(.success)
                         }
@@ -420,7 +420,7 @@ class FileUploader {
                     sequenceRequest.setCurrentRequest(request)
                     request.resume()
                 case let .failure(error):
-                    completion(.failure(error: error))
+                    completion(.failure(error: LCError(error: error)))
                 }
             })
 
@@ -455,7 +455,7 @@ class FileUploader {
         }
         uploadRequest.response { response in
             if let error = response.error {
-                completion(.failure(error: error))
+                completion(.failure(error: LCError(error: error)))
             } else {
                 completion(.success)
             }

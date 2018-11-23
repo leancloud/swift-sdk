@@ -9,7 +9,7 @@
 import Foundation
 
 public protocol LCResultType {
-    var error: Error? { get }
+    var error: LCError? { get }
     var isSuccess: Bool { get }
     var isFailure: Bool { get }
 }
@@ -22,9 +22,9 @@ extension LCResultType {
 
 public enum LCBooleanResult: LCResultType {
     case success
-    case failure(error: Error)
+    case failure(error: LCError)
 
-    public var error: Error? {
+    public var error: LCError? {
         switch self {
         case .success:
             return nil
@@ -41,7 +41,7 @@ public enum LCBooleanResult: LCResultType {
     }
 
     init(response: LCResponse) {
-        if let error = response.error {
+        if let error = LCError(response: response) {
             self = .failure(error: error)
         } else {
             self = .success
@@ -51,9 +51,9 @@ public enum LCBooleanResult: LCResultType {
 
 enum LCGenericResult<T>: LCResultType {
     case success(value: T)
-    case failure(error: Error)
+    case failure(error: LCError)
 
-    public var error: Error? {
+    public var error: LCError? {
         switch self {
         case .success:
             return nil
@@ -75,10 +75,10 @@ enum LCGenericResult<T>: LCResultType {
  */
 public enum LCValueResult<T: LCValue>: LCResultType {
     case success(object: T)
-    case failure(error: Error)
+    case failure(error: LCError)
 
     init(response: LCResponse) {
-        if let error = response.error {
+        if let error = LCError(response: response) {
             self = .failure(error: error)
             return
         }
@@ -103,7 +103,7 @@ public enum LCValueResult<T: LCValue>: LCResultType {
 
             value = try ObjectProfiler.shared.object(jsonValue: jsonValue)
         } catch let error {
-            self = .failure(error: error)
+            self = .failure(error: LCError(error: error))
             return
         }
 
@@ -115,7 +115,7 @@ public enum LCValueResult<T: LCValue>: LCResultType {
         self = .success(object: object)
     }
 
-    public var error: Error? {
+    public var error: LCError? {
         switch self {
         case .success:
             return nil
@@ -146,10 +146,10 @@ public enum LCValueResult<T: LCValue>: LCResultType {
  */
 public enum LCValueOptionalResult: LCResultType {
     case success(object: LCValue?)
-    case failure(error: Error)
+    case failure(error: LCError)
 
     init(response: LCResponse, keyPath: String) {
-        if let error = response.error {
+        if let error = LCError(response: response) {
             self = .failure(error: error)
             return
         }
@@ -161,7 +161,7 @@ public enum LCValueOptionalResult: LCResultType {
         }
     }
 
-    public var error: Error? {
+    public var error: LCError? {
         switch self {
         case .success:
             return nil
@@ -189,9 +189,9 @@ public enum LCValueOptionalResult: LCResultType {
 
 public enum LCQueryResult<T: LCObject>: LCResultType {
     case success(objects: [T])
-    case failure(error: Error)
+    case failure(error: LCError)
 
-    public var error: Error? {
+    public var error: LCError? {
         switch self {
         case .success:
             return nil
@@ -219,17 +219,17 @@ public enum LCQueryResult<T: LCObject>: LCResultType {
 
 public enum LCCountResult: LCResultType {
     case success(count: Int)
-    case failure(error: Error)
+    case failure(error: LCError)
 
     init(response: LCResponse) {
-        if let error = response.error {
+        if let error = LCError(response: response) {
             self = .failure(error: error)
         } else {
             self = .success(count: response.count)
         }
     }
 
-    public var error: Error? {
+    public var error: LCError? {
         switch self {
         case .success:
             return nil
@@ -257,17 +257,17 @@ public enum LCCountResult: LCResultType {
 
 public enum LCCQLResult: LCResultType {
     case success(value: LCCQLValue)
-    case failure(error: Error)
+    case failure(error: LCError)
 
     init(response: LCResponse) {
-        if let error = response.error {
+        if let error = LCError(response: response) {
             self = .failure(error: error)
         } else {
             self = .success(value: LCCQLValue(response: response))
         }
     }
 
-    public var error: Error? {
+    public var error: LCError? {
         switch self {
         case .success:
             return nil
