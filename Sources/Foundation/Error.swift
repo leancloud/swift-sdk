@@ -33,25 +33,16 @@ public struct LCError: Error {
     /**
      Convert an error to LCError.
 
+     The non-LCError will be wrapped into an underlying LCError.
+
      - parameter error: The error to be converted.
      */
     init(error: Error) {
         if let error = error as? LCError {
             self = error
         } else {
-            self = LCError(error: error as NSError)
+            self = LCError(underlyingError: error)
         }
-    }
-
-    /**
-     Initialize with a NSError object.
-
-     - parameter error: The NSError object.
-     */
-    init(error: NSError) {
-        self.code = error.code
-        self.reason = error.localizedDescription
-        self.userInfo = error.userInfo
     }
 
     /**
@@ -115,12 +106,6 @@ public struct LCError: Error {
 
     init(code: ServerErrorCode, reason: String? = nil, userInfo: UserInfo? = nil) {
         self = LCError(code: code.rawValue, reason: reason, userInfo: userInfo)
-    }
-
-    init(dictionary: [String: Any]) {
-        code = dictionary["code"] as? Int ?? 0
-        reason = dictionary["error"] as? String
-        userInfo = dictionary
     }
 
     /**
