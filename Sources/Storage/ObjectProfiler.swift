@@ -83,7 +83,22 @@ class ObjectProfiler {
      */
     func registerClasses() {
         /* Only register builtin classes. */
-        let builtinClasses = [LCObject.self, LCRole.self, LCUser.self, LCFile.self, LCInstallation.self]
+        var builtinClasses = [LCObject.self, LCRole.self, LCUser.self, LCFile.self, LCInstallation.self]
+
+        var typePrefix = ""
+        let components = String(cString: class_getName(LCObject.self)).components(separatedBy: ".")
+
+        if components.count > 1 {
+            typePrefix = Array(components.dropLast()).joined(separator: ".") + "."
+        }
+
+        let otherBuiltinClasseNames = ["LCConversation"]
+
+        otherBuiltinClasseNames.forEach { className in
+            if let type = objc_getClass("\(typePrefix)\(className)") as? LCObject.Type {
+                builtinClasses.append(type)
+            }
+        }
 
         builtinClasses.forEach { type in
             registerClass(type)
