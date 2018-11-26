@@ -281,7 +281,7 @@ class HTTPRouter {
                 do {
                     try cacheAppRouter(object)
                 } catch let error {
-                    booleanResult = .failure(error: error)
+                    booleanResult = .failure(error: LCError(error: error))
                 }
             case .failure(let error):
                 booleanResult = .failure(error: error)

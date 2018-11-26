@@ -392,7 +392,7 @@ final public class LCQuery: NSObject, NSCopying, NSCoding {
     @discardableResult
     private func find<T>(completionInBackground completion: @escaping (LCQueryResult<T>) -> Void) -> LCRequest {
         return HTTPClient.default.request(.get, endpoint, parameters: parameters) { response in
-            if let error = response.error {
+            if let error = LCError(response: response) {
                 completion(.failure(error: error))
             } else {
                 let className: String? = response["className"]

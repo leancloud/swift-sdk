@@ -727,7 +727,7 @@ open class LCUser: LCObject {
         let headers = [HTTPClient.HeaderFieldName.session: sessionToken.value]
 
         let request = HTTPClient.default.request(.put, "\(endpoint)/updatePassword", parameters: parameters, headers: headers) { response in
-            if let error = response.error {
+            if let error = LCError(response: response) {
                 completion(.failure(error: error))
             } else {
                 if let dictionary = response.value as? [String: Any] {

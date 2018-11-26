@@ -66,7 +66,7 @@ class APITestCase: BaseTestCase {
         busywait { result != nil }
 
         XCTAssertFalse(result!.isSuccess)
-        XCTAssertEqual(result!.error?._code, NSURLErrorCancelled)
+        XCTAssertEqual(result!.error?.underlyingError?._code, NSURLErrorCancelled)
     }
 
 }
