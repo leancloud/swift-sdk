@@ -65,7 +65,7 @@ public struct LCError: Error {
      - parameter underlyingError: The underlying error.
      */
     init(underlyingError: Error) {
-        var error = LCError(code: .underlyingError, reason: nil, userInfo: nil)
+        var error = LCError(code: InternalErrorCode.underlyingError, reason: nil, userInfo: nil)
         error.underlyingError = underlyingError
         self = error
     }
