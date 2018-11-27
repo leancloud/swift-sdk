@@ -300,7 +300,7 @@ class Connection {
     }
     
     /// Switch for auto reconnection.
-    func setAutoReconnectionEnabled(with enabled: Bool) {
+    func setAutoReconnectionEnabled(_ enabled: Bool) {
         self.serialQueue.async {
             self.isAutoReconnectionEnabled = enabled
         }
@@ -340,7 +340,7 @@ class Connection {
                 Logger.shared.error(error)
                 if let callback = callback {
                     self.delegateQueue.async {
-                        let serializingError = LCError(underlyingError: error)
+                        let serializingError = LCError(error: error)
                         callback(.error(serializingError))
                     }
                 }
@@ -381,7 +381,7 @@ extension Connection {
         case (.background, .foreground):
             self.tryConnecting()
         case (.foreground, .background):
-            self.tryClearConnection(with: .appInBackground)
+            self.tryClearConnection(with: LCError.appInBackground)
         default:
             break
         }
@@ -471,9 +471,10 @@ extension Connection {
                 case .failure(error: let error):
                     Logger.shared.verbose("Get RTM server URL failed: \(error)")
                     self.delegateQueue.async {
-                        self.delegate?.connection(self, didDisconnect: LCError(underlyingError: error))
+                        self.delegate?.connection(self, didDisconnect: error)
                     }
-                    if (error as NSError).domain == NSURLErrorDomain {
+                    if let nsError: NSError = error.underlyingError as NSError?,
+                        nsError.domain == NSURLErrorDomain {
                         self.tryConnecting()
                     }
                 }
@@ -586,7 +587,7 @@ extension Connection: WebSocketDelegate, WebSocketPongDelegate {
         assert(self.socket === socket)
         Logger.shared.verbose("\(socket) disconnect with error: \(String(describing: error))")
         let isServerError: Bool = self.check(isServerError: error)
-        let disconnectError: LCError = LCError(underlyingError: error ?? LCError.closedByRemote)
+        let disconnectError: LCError = LCError(error: error ?? LCError.closedByRemote)
         if self.timer != nil {
             // timer exists means the connected socket was disconnected.
             self.tryClearConnection(with: disconnectError)
