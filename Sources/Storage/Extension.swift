@@ -195,6 +195,59 @@ extension LCApplication {
 
 }
 
+extension LCError {
+
+    /**
+     Initialize with an LCResponse object.
+
+     - parameter response: The response object.
+     */
+    init?(response: LCResponse) {
+        /*
+         Guard response has error.
+         If error not found, it means that the response is OK, there's no need to create error.
+         */
+        guard let error = response.error else {
+            return nil
+        }
+
+        guard let data = response.data else {
+            self = LCError(underlyingError: error)
+            return
+        }
+
+        let body: Any
+
+        do {
+            body = try JSONSerialization.jsonObject(with: data, options: [])
+        } catch
+            /*
+             We discard the deserialization error,
+             because it's not the real error that user should care about.
+             */
+            _
+        {
+            self = LCError(underlyingError: error)
+            return
+        }
+
+        /*
+         Try to extract error from HTTP body,
+         which contains the error defined in https://leancloud.cn/docs/error_code.html
+         */
+        if
+            let body = body as? [String: Any],
+            let code = body["code"] as? Int,
+            let reason = body["error"] as? String
+        {
+            self = LCError(code: code, reason: reason, userInfo: nil)
+        } else {
+            self = LCError(underlyingError: error)
+        }
+    }
+
+}
+
 /**
  Synchronize on an object and do something.
 
