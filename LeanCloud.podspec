@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name         = 'LeanCloud'
-  s.version      = '14.0.0'
+  s.version      = '15.0.0'
   s.license      = { :type => 'Apache License, Version 2.0', :file => 'LICENSE' }
   s.summary      = 'LeanCloud Swift SDK'
   s.homepage     = 'https://leancloud.cn/'
@@ -27,7 +27,7 @@ Pod::Spec.new do |s|
   end
 
   s.subspec 'Storage' do |ss|
-    ss.dependency 'Alamofire', '~> 4.7.3'
+    ss.dependency 'Alamofire', '~> 4.8.0'
 
     ss.dependency 'LeanCloud/Foundation'
     ss.dependency 'LeanCloud/LocalStorage'
