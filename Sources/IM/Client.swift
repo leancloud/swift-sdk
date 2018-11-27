@@ -358,7 +358,6 @@ private extension LCClient {
         outCommand.appID = self.application.id
         outCommand.peerID = self.id
         var sessionCommand = IMSessionCommand()
-        outCommand.sessionMessage = sessionCommand
         #if os(iOS) || os(tvOS)
         sessionCommand.deviceToken = UIDevice.current.identifierForVendor?.uuidString ?? UUID().uuidString
         #else
@@ -368,6 +367,7 @@ private extension LCClient {
         if let tag: String = self.tag {
             sessionCommand.tag = tag
         }
+        outCommand.sessionMessage = sessionCommand
         return outCommand
     }
     
