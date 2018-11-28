@@ -98,6 +98,9 @@ public final class LCClient: NSObject {
     /// The application that the client belongs to.
     public let application: LCApplication
     
+    /// Application's current installation
+    @objc internal var installation: LCInstallation
+    
     /// The delegate object.
     public weak var delegate: LCClientDelegate?
     
@@ -177,6 +180,7 @@ public final class LCClient: NSObject {
         self.eventQueue = eventQueue
         self.customServer = customServer
         self.application = application
+        self.installation = application.currentInstallation
         self.connection = Connection(
             application: application,
             lcimProtocol: options.lcimProtocol,
@@ -184,7 +188,7 @@ public final class LCClient: NSObject {
             customRTMServerURL: customServer)
         super.init()
         self.deviceTokenObservation = self.observe(
-            \.application.currentInstallation.deviceToken,
+            \.installation.deviceToken,
             options: [.old, .new, .initial]
         ) { (client, change) in
             let oldToken: String? = change.oldValue??.value
