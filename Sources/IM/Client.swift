@@ -9,6 +9,8 @@
 import Foundation
 #if os(iOS) || os(tvOS)
 import UIKit
+#elseif os(macOS)
+import IOKit
 #endif
 
 /**
@@ -180,6 +182,23 @@ public final class LCClient: NSObject {
             lcimProtocol: options.lcimProtocol,
             delegateQueue: serialDispatchQueue,
             customRTMServerURL: customServer)
+        super.init()
+        self.deviceTokenObservation = self.observe(
+            \.application.currentInstallation.deviceToken,
+            options: [.old, .new, .initial]
+        ) { (client, change) in
+            let oldToken: String? = change.oldValue??.value
+            let newToken: String? = change.newValue??.value
+            guard let token: String = newToken, oldToken != newToken else {
+                return
+            }
+            client.serialDispatchQueue.async {
+                client.currentDeviceToken = token
+                if client.sessionState == .opened {
+                    client.report(deviceToken: token)
+                }
+            }
+        }
     }
     
     /// The incoming command of opening session.
@@ -195,6 +214,25 @@ public final class LCClient: NSObject {
     private var openingCompletion: ((LCBooleanResult) -> Void)?
     private var openingTimeoutWorkItem: DispatchWorkItem?
     private var openingAction: SessionOpenAction?
+    
+    /// Device Token and fallback-UDID
+    private var deviceTokenObservation: NSKeyValueObservation?
+    private var currentDeviceToken: String?
+    private lazy var fallbackUDID: String = {
+        var udid: String = ""
+        #if os(iOS) || os(tvOS)
+        if let identifierForVendor: String = UIDevice.current.identifierForVendor?.uuidString {
+            udid = identifierForVendor
+        }
+        #elseif os(macOS)
+        let platformExpert: io_service_t = IOServiceGetMatchingService(kIOMasterPortDefault, IOServiceMatching("IOPlatformExpertDevice") )
+        if let serialNumber: String = IORegistryEntryCreateCFProperty(platformExpert, kIOPlatformSerialNumberKey as CFString, kCFAllocatorDefault, 0).takeUnretainedValue() as? String {
+            udid = serialNumber
+        }
+        IOObjectRelease(platformExpert)
+        #endif
+        return udid
+    }()
     
     /**
      Open a session to IM system.
@@ -358,17 +396,33 @@ private extension LCClient {
         outCommand.appID = self.application.id
         outCommand.peerID = self.id
         var sessionCommand = IMSessionCommand()
-        #if os(iOS) || os(tvOS)
-        sessionCommand.deviceToken = UIDevice.current.identifierForVendor?.uuidString ?? UUID().uuidString
-        #else
-        sessionCommand.deviceID = UUID().uuidString
-        #endif
+        sessionCommand.deviceToken = self.currentDeviceToken ?? self.fallbackUDID
         sessionCommand.ua = HTTPClient.default.configuration.userAgent
         if let tag: String = self.tag {
             sessionCommand.tag = tag
         }
         outCommand.sessionMessage = sessionCommand
         return outCommand
+    }
+    
+    private func report(deviceToken token: String) {
+        assert(self.specificAssertion)
+        assert(self.sessionState == .opened)
+        var outCommand = IMGenericCommand()
+        outCommand.cmd = .report
+        outCommand.op = .upload
+        var reportCommand = IMReportCommand()
+        reportCommand.initiative = true
+        reportCommand.type = "token"
+        reportCommand.data = token
+        outCommand.reportMessage = reportCommand
+        self.connection.send(command: outCommand) { result in
+            if case let .inCommand(inCommand) = result {
+                if !(inCommand.cmd == .report && inCommand.op == .uploaded) {
+                    Logger.shared.error(inCommand)
+                }
+            }
+        }
     }
     
     private func handle(openCommandCallback inCommand: IMGenericCommand, openingCompletion: ((LCBooleanResult) -> Void)?) {
@@ -448,6 +502,13 @@ extension LCClient: ConnectionDelegate {
                 case .inCommand(let inCommand):
                     self.clearOpeningConfig()
                     self.handle(openCommandCallback: inCommand, openingCompletion: openingCompletion)
+                    if let token: String = self.currentDeviceToken,
+                        self.sessionState == .opened,
+                        openCommand.sessionMessage.hasDeviceToken,
+                        openCommand.sessionMessage.deviceToken != token {
+                        // if Device-Token changed in Opening Period, reporting after open success.
+                        self.report(deviceToken: token)
+                    }
                 case .error(let error):
                     // no need handle it, just log info.
                     Logger.shared.debug(error)
