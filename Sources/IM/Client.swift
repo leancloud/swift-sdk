@@ -20,6 +20,11 @@ import IOKit
  */
 public final class LCClient: NSObject {
     
+    #if DEBUG
+    /// for unit test
+    internal static let TestReportDeviceTokenNotification = Notification.Name.init("TestReportDeviceTokenNotification")
+    #endif
+    
     /**
      Options that can modify behaviors of client.
      */
@@ -122,6 +127,9 @@ public final class LCClient: NSObject {
         }
     }
     private var underlyingSessionState: SessionState = .closed
+    private var isSessionOpened: Bool {
+        return self.sessionState == .opened
+    }
     
     /// The client serial dispatch queue.
     private let serialDispatchQueue = DispatchQueue(
@@ -181,6 +189,7 @@ public final class LCClient: NSObject {
         self.customServer = customServer
         self.application = application
         self.installation = application.currentInstallation
+        // directly init `connection` is better, lazy init is not a good choice.
         self.connection = Connection(
             application: application,
             lcimProtocol: options.lcimProtocol,
@@ -197,10 +206,14 @@ public final class LCClient: NSObject {
                 return
             }
             client.serialDispatchQueue.async {
-                client.currentDeviceToken = token
-                if client.sessionState == .opened {
-                    client.report(deviceToken: token)
+                guard client.currentDeviceToken != token else {
+                    return
                 }
+                client.currentDeviceToken = token
+                guard client.isSessionOpened else {
+                    return
+                }
+                client.report(deviceToken: token)
             }
         }
     }
@@ -289,7 +302,7 @@ public final class LCClient: NSObject {
      */
     public func close(completion: @escaping (LCBooleanResult) -> Void) {
         self.serialDispatchQueue.async {
-            guard self.sessionState == .opened else {
+            guard self.isSessionOpened else {
                 var reason: String
                 if self.sessionState == .closing {
                     reason = "In closing, cannot do repetitive operation."
@@ -333,7 +346,7 @@ public final class LCClient: NSObject {
     
 }
 
-internal extension LCClient {
+extension LCClient {
     
     /**
      Enqueue serial task asynchronously.
@@ -361,7 +374,7 @@ internal extension LCClient {
     {
         enqueueSerialTask { client in
             
-            guard self.sessionState == .opened else {
+            guard self.isSessionOpened else {
                 let error = LCError(code: .clientNotOpen)
                 completion(client, .error(error))
                 return
@@ -411,7 +424,7 @@ private extension LCClient {
     
     private func report(deviceToken token: String) {
         assert(self.specificAssertion)
-        assert(self.sessionState == .opened)
+        assert(self.isSessionOpened)
         var outCommand = IMGenericCommand()
         outCommand.cmd = .report
         outCommand.op = .upload
@@ -426,6 +439,14 @@ private extension LCClient {
                     Logger.shared.error(inCommand)
                 }
             }
+            #if DEBUG
+            /// for unit test
+            NotificationCenter.default.post(
+                name: LCClient.TestReportDeviceTokenNotification,
+                object: self,
+                userInfo: ["result" : result]
+            )
+            #endif
         }
     }
     
@@ -507,10 +528,10 @@ extension LCClient: ConnectionDelegate {
                     self.clearOpeningConfig()
                     self.handle(openCommandCallback: inCommand, openingCompletion: openingCompletion)
                     if let token: String = self.currentDeviceToken,
-                        self.sessionState == .opened,
+                        self.isSessionOpened,
                         openCommand.sessionMessage.hasDeviceToken,
                         openCommand.sessionMessage.deviceToken != token {
-                        // if Device-Token changed in Opening Period, reporting after open success.
+                        // if Device-Token changed in Opening-Period, reporting after open success.
                         self.report(deviceToken: token)
                     }
                 case .error(let error):
@@ -568,7 +589,7 @@ extension LCClient: ConnectionDelegate {
     
 }
 
-public protocol LCClientDelegate: NSObjectProtocol {
+public protocol LCClientDelegate: class {
     
     /**
      Notify that client did open session.
