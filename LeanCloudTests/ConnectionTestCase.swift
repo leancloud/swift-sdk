@@ -180,134 +180,37 @@ class ConnectionTestCase: BaseTestCase {
         self.waitForExpectations(timeout: timeout, handler: nil)
     }
     
-    func testConnection() {
+    func testConnectionDeinit() {
         
-        let application = LCApplication.default
-        let clientId1 = String(#function[..<#function.index(of: "(")!]) + "1"
-        let clientId2 = String(#function[..<#function.index(of: "(")!]) + "2"
+        var connection: Connection? = Connection(application: LCApplication.default, lcimProtocol: .protobuf1)
         
-        let delegator = ConnectionDelegator()
-        let connection = Connection(application: application, delegate: delegator, lcimProtocol: .protobuf1, delegateQueue: delegateQueue)
+        connection = nil
         
-        let unexpectation = self.expectation(description: "No")
-        unexpectation.isInverted = true
-        
-        let expectationForConnect = self.expectation(description: "Connect success")
-        expectationForConnect.expectedFulfillmentCount = 2
-        expectationForConnect.assertForOverFulfill = true
-        
-        delegator.connectionInConnectingClosure = { (_) in
-            XCTAssertEqual(DispatchQueue.getSpecific(key: self.delegateQueueSpecificKey), self.delegateQueueSpecificValue)
-            expectationForConnect.fulfill()
-        }
-        delegator.connectionDidConnectClosure = { (_) in
-            XCTAssertEqual(DispatchQueue.getSpecific(key: self.delegateQueueSpecificKey), self.delegateQueueSpecificValue)
-            expectationForConnect.fulfill()
-        }
-        delegator.connectionDidFailInConnectingClosure = { (_, _) in
-            XCTAssertEqual(DispatchQueue.getSpecific(key: self.delegateQueueSpecificKey), self.delegateQueueSpecificValue)
-            unexpectation.fulfill()
-        }
-        delegator.connectionDidDisconnectClosure = { (_, _) in
-            XCTAssertEqual(DispatchQueue.getSpecific(key: self.delegateQueueSpecificKey), self.delegateQueueSpecificValue)
-            unexpectation.fulfill()
-        }
-        connection.connect()
-        
-        self.wait(for: [unexpectation, expectationForConnect], timeout: 5)
-        
-        let expectationForCommandCallback = self.expectation(description: "Command callback success")
-        
-        connection.send(command: {
-            var sessionCommand = IMSessionCommand()
-            sessionCommand.deviceToken = UUID().uuidString
-            sessionCommand.ua = HTTPClient.default.configuration.userAgent
-            var command = IMGenericCommand()
-            command.cmd = .session
-            command.op = .open
-            command.appID = application.id
-            command.peerID = clientId1
-            command.sessionMessage = sessionCommand
-            return command
-        }()) { (result) in
-            XCTAssertEqual(DispatchQueue.getSpecific(key: self.delegateQueueSpecificKey), self.delegateQueueSpecificValue)
-            switch result {
-            case .inCommand(let command):
-                XCTAssertTrue(command.hasSessionMessage)
-                XCTAssertTrue(command.sessionMessage.hasSt)
-                XCTAssertTrue(command.sessionMessage.hasStTtl)
-            case .error(_):
-                XCTFail()
-            }
-            expectationForCommandCallback.fulfill()
-        }
-        
-        self.wait(for: [expectationForCommandCallback], timeout: 60)
-        
-        let expectationForCommandReceive = self.expectation(description: "Command receive success")
-        expectationForCommandReceive.expectedFulfillmentCount = 3
-        expectationForCommandReceive.assertForOverFulfill = true
-        
-        delegator.connectionDidReceiveCommandClosure = { (connection, command) in
-            XCTAssertEqual(DispatchQueue.getSpecific(key: self.delegateQueueSpecificKey), self.delegateQueueSpecificValue)
-            if command.cmd == .conv {
-                if command.op == .joined || command.op == .membersJoined {
-                    expectationForCommandReceive.fulfill()
-                }
-            }
-        }
-        connection.send(command: {
-            var convCommand = IMConvCommand()
-            convCommand.m = [clientId1, clientId2]
-            var command = IMGenericCommand()
-            command.cmd = .conv
-            command.op = .start
-            command.convMessage = convCommand
-            return command
-        }()) { (result) in
-            XCTAssertEqual(DispatchQueue.getSpecific(key: self.delegateQueueSpecificKey), self.delegateQueueSpecificValue)
-            switch result {
-            case .inCommand(let command):
-                XCTAssertTrue(command.hasConvMessage)
-                XCTAssertTrue(command.convMessage.hasCid)
-            case .error(_):
-                XCTFail()
-            }
-            expectationForCommandReceive.fulfill()
-        }
-        
-        self.wait(for: [expectationForCommandReceive], timeout: 60)
-        
-        connection.disconnect()
+        XCTAssertNil(connection)
     }
 
 }
 
 class ConnectionDelegator: ConnectionDelegate {
     
-    var connectionInConnectingClosure: ((Connection) -> Void)?
-    func connectionInConnecting(connection: Connection) {
-        connectionInConnectingClosure?(connection)
+    var inConnecting: ((Connection) -> Void)?
+    func connection(inConnecting connection: Connection) {
+        inConnecting?(connection)
     }
     
-    var connectionDidConnectClosure: ((Connection) -> Void)?
-    func connectionDidConnect(connection: Connection) {
-        connectionDidConnectClosure?(connection)
+    var didConnect: ((Connection) -> Void)?
+    func connection(didConnect connection: Connection) {
+        didConnect?(connection)
     }
     
-    var connectionDidFailInConnectingClosure: ((Connection, Connection.Event) -> Void)?
-    func connection(connection: Connection, didFailInConnecting event: Connection.Event) {
-        connectionDidFailInConnectingClosure?(connection, event)
+    var didDisconnect: ((Connection, LCError) -> Void)?
+    func connection(_ connection: Connection, didDisconnect error: LCError) {
+        didDisconnect?(connection, error)
     }
     
-    var connectionDidDisconnectClosure: ((Connection, Connection.Event) -> Void)?
-    func connection(connection: Connection, didDisconnect event: Connection.Event) {
-        connectionDidDisconnectClosure?(connection, event)
-    }
-    
-    var connectionDidReceiveCommandClosure: ((Connection, IMGenericCommand) -> Void)?
-    func connection(connection: Connection, didReceiveCommand inCommand: IMGenericCommand) {
-        connectionDidReceiveCommandClosure?(connection, inCommand)
+    var didReceiveCommand: ((Connection, IMGenericCommand) -> Void)?
+    func connection(_ connection: Connection, didReceiveCommand inCommand: IMGenericCommand) {
+        didReceiveCommand?(connection, inCommand)
     }
     
 }
