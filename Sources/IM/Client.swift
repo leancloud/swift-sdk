@@ -303,14 +303,15 @@ public final class LCClient: NSObject {
     public func close(completion: @escaping (LCBooleanResult) -> Void) {
         self.serialDispatchQueue.async {
             guard self.isSessionOpened else {
-                var reason: String
+                var error: LCError
                 if self.sessionState == .closing {
-                    reason = "In closing, cannot do repetitive operation."
+                    error = LCError(
+                        code: .inconsistency,
+                        reason: "In closing, cannot do repetitive operation.")
                 } else {
-                    reason = "Session not opened."
+                    error = LCError(code: .clientNotOpen)
                 }
                 self.eventQueue.async {
-                    let error = LCError(code: .inconsistency, reason: reason)
                     completion(.failure(error: error))
                 }
                 return
