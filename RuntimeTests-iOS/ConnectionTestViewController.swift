@@ -12,38 +12,59 @@ import UIKit
 
 class ConnectionTestViewController: UIViewController {
     
-    var connection: Connection!
+    @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
+    @IBOutlet weak var label: UILabel!
+    var client: LCClient!
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        connection = Connection(application: LCApplication.default, delegate: self, lcimProtocol: .protobuf1)
-        connection.setAutoReconnectionEnabled(with: true)
-        connection.connect()
+        self.client = try! LCClient(id: "ConnectionTestViewController", delegate: self)
+        self.client.open { (result) in
+            self.label.isHidden.toggle()
+            self.activityIndicator.stopAnimating()
+            switch result {
+            case .success:
+                self.showConnected()
+            case .failure(error: let error):
+                self.showError(error)
+            }
+        }
+    }
+    
+    func showError(_ error: Error) {
+        self.label.text = "\(error)"
+        self.label.textColor = .red
+    }
+    
+    func showConnecting() {
+        self.label.text = "Connecting ..."
+        self.label.textColor = .blue
+    }
+    
+    func showConnected() {
+        self.label.text = "Connected!"
+        self.label.textColor = .green
     }
     
 }
 
-extension ConnectionTestViewController: ConnectionDelegate {
+extension ConnectionTestViewController: LCClientDelegate {
     
-    func connectionInConnecting(connection: Connection) {
-        
+    func client(didOpenSession client: LCClient) {
+        self.showConnected()
     }
     
-    func connectionDidConnect(connection: Connection) {
-        
+    func client(didBecomeResumeSession client: LCClient) {
+        self.showConnecting()
     }
     
-    func connection(connection: Connection, didFailInConnecting event: Connection.Event) {
-        
+    func client(_ client: LCClient, didCloseSession error: LCError) {
+        self.showError(error)
     }
     
-    func connection(connection: Connection, didDisconnect event: Connection.Event) {
-        
-    }
-    
-    func connection(connection: Connection, didReceiveCommand inCommand: IMGenericCommand) {
-        
+    func client(_ client: LCClient, didPauseSession error: LCError) {
+        self.showError(error)
     }
     
 }
