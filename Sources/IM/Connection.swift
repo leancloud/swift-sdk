@@ -48,6 +48,20 @@ class Connection {
         enum Result {
             case inCommand(IMGenericCommand)
             case error(LCError)
+            
+            var command: IMGenericCommand? {
+                switch self {
+                case .inCommand(let c): return c
+                case .error: return nil
+                }
+            }
+            
+            var error: LCError? {
+                switch self {
+                case .inCommand: return nil
+                case .error(let e): return e
+                }
+            }
         }
         
         let closure: ((Result) -> Void)
