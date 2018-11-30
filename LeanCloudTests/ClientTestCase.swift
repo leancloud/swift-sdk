@@ -90,13 +90,13 @@ class ClientTestCase: BaseTestCase {
         exp3.expectedFulfillmentCount = 2
         exp3.assertForOverFulfill = true
         
-        client1.open(action: .resume) { (result) in
+        client1.open(options: []) { (result) in
             
             XCTAssertEqual(result.error?.code, 4111)
             exp3.fulfill()
             
             application1.currentInstallation.set(deviceToken: deviceToken2, apnsTeamId: "")
-            client1.open(action: .resume) { (result) in
+            client1.open(options: []) { (result) in
                 
                 XCTAssertNil(result.error)
                 exp3.fulfill()
