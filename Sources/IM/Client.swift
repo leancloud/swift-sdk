@@ -104,7 +104,7 @@ public final class LCClient: NSObject {
     public let application: LCApplication
     
     /// Application's current installation
-    @objc internal var installation: LCInstallation
+    internal let installation: LCInstallation
     
     /// The delegate object.
     public weak var delegate: LCClientDelegate?
@@ -196,24 +196,24 @@ public final class LCClient: NSObject {
             delegateQueue: serialDispatchQueue,
             customRTMServerURL: customServer)
         super.init()
-        self.deviceTokenObservation = self.observe(
-            \.installation.deviceToken,
+        self.deviceTokenObservation = self.installation.observe(
+            \.deviceToken,
             options: [.old, .new, .initial]
-        ) { (client, change) in
+        ) { [weak self] (_, change) in
             let oldToken: String? = change.oldValue??.value
             let newToken: String? = change.newValue??.value
             guard let token: String = newToken, oldToken != newToken else {
                 return
             }
-            client.serialDispatchQueue.async {
-                guard client.currentDeviceToken != token else {
+            self?.serialDispatchQueue.async {
+                guard let self = self, self.currentDeviceToken != token else {
                     return
                 }
-                client.currentDeviceToken = token
-                guard client.isSessionOpened else {
+                self.currentDeviceToken = token
+                guard self.isSessionOpened else {
                     return
                 }
-                client.report(deviceToken: token)
+                self.report(deviceToken: token)
             }
         }
     }
