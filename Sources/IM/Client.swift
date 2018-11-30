@@ -435,9 +435,9 @@ private extension LCClient {
         reportCommand.data = token
         outCommand.reportMessage = reportCommand
         self.connection.send(command: outCommand) { result in
-            if case let .inCommand(inCommand) = result {
-                if !(inCommand.cmd == .report && inCommand.op == .uploaded) {
-                    Logger.shared.error(inCommand)
+            if let command: IMGenericCommand = result.command {
+                if !(command.cmd == .report && command.op == .uploaded) {
+                    Logger.shared.error(command)
                 }
             }
             #if DEBUG

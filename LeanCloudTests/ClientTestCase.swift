@@ -125,13 +125,8 @@ class ClientTestCase: BaseTestCase {
         let _ = NotificationCenter.default.addObserver(forName: LCClient.TestReportDeviceTokenNotification, object: client, queue: OperationQueue.main) { (notification) in
             
             let result = notification.userInfo?["result"] as! Connection.CommandCallback.Result
-            switch result {
-            case .error(let error):
-                XCTFail("\(error)")
-            case .inCommand(let command):
-                XCTAssertEqual(command.cmd, .report)
-                XCTAssertEqual(command.op, .uploaded)
-            }
+            XCTAssertEqual(result.command?.cmd, .report)
+            XCTAssertEqual(result.command?.op, .uploaded)
             exp.fulfill()
         }
         
