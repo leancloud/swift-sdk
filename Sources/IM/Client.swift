@@ -54,6 +54,26 @@ public final class LCClient: NSObject {
     }
     
     /**
+     Options that can modify behaviors of session open operation.
+     */
+    public struct SessionOpenOptions: OptionSet {
+        
+        public let rawValue: Int
+        
+        public init(rawValue: Int) {
+            self.rawValue = rawValue
+        }
+        
+        /// Default options is forced.
+        public static let `default`: SessionOpenOptions = [.forced]
+        
+        /// For two sessions of one client with same tag, the later one will force to make previous one offline.
+        public static let forced = SessionOpenOptions(rawValue: 1 << 0)
+        
+        var r: Bool { return !contains(.forced) }
+    }
+    
+    /**
      Client session state.
      */
     public enum SessionState {
@@ -75,26 +95,11 @@ public final class LCClient: NSObject {
         
     }
     
-    /**
-     Client session open action for Single-Device-Login mode.
-     @related tag property
-     */
-    public enum SessionOpenAction {
-        
-        /// In Single-Device-Online mode, this action always success
-        case force
-        
-        /// In Single-Device-Online mode, this action may fail
-        case resume
-        
-    }
-    
     /// The client identifier.
     public let id: String
     
     /// The client tag, which represents what kind of session that current client will open.
-    /// For two sessions of one client with same tag, the later one will force to make previous one offline.
-    /// @related `SessionOpenAction`
+    /// @related `SessionOpenOptions`
     public let tag: String?
     
     /// The client options.
@@ -230,7 +235,7 @@ public final class LCClient: NSObject {
     /// Some config about opening
     private var openingCompletion: ((LCBooleanResult) -> Void)?
     private var openingTimeoutWorkItem: DispatchWorkItem?
-    private var openingAction: SessionOpenAction?
+    private var openingOptions: SessionOpenOptions?
     
     /// Device Token and fallback-UDID
     private var deviceTokenObservation: NSKeyValueObservation?
@@ -254,11 +259,11 @@ public final class LCClient: NSObject {
     /**
      Open a session to IM system.
      
-     - parameter action: @see `SessionOpenAction`, default is force.
+     - parameter options: @see `SessionOpenOptions`.
      - parameter timeout: Timeout for opening, default is 60 seconds.
      - parameter completion: The completion handler.
      */
-    public func open(action: SessionOpenAction = .force, timeout: TimeInterval = 60.0, completion: @escaping (LCBooleanResult) -> Void) {
+    public func open(options: SessionOpenOptions = .default, timeout: TimeInterval = 60.0, completion: @escaping (LCBooleanResult) -> Void) {
         self.serialDispatchQueue.async {
             guard self.openingCompletion == nil && self.sessionOpenedCommand == nil else {
                 var reason: String = "cannot do repetitive operation."
@@ -275,7 +280,7 @@ public final class LCClient: NSObject {
             }
             
             self.openingCompletion = completion
-            self.openingAction = action
+            self.openingOptions = options
             
             let timeoutWorkItem = DispatchWorkItem() { [weak self] in
                 guard let self = self, let openingCompletion = self.openingCompletion else {
@@ -403,7 +408,7 @@ private extension LCClient {
         self.openingTimeoutWorkItem?.cancel()
         self.openingTimeoutWorkItem = nil
         self.openingCompletion = nil
-        self.openingAction = nil
+        self.openingOptions = nil
     }
     
     private func newOpenCommand() -> IMGenericCommand {
@@ -518,8 +523,8 @@ extension LCClient: ConnectionDelegate {
     func connection(didConnect connection: Connection) {
         assert(self.specificAssertion)
         var openCommand: IMGenericCommand = self.newOpenCommand()
-        if let _ = self.openingCompletion, let openingAction = self.openingAction {
-            openCommand.sessionMessage.r = (openingAction == .resume)
+        if let _ = self.openingCompletion, let openingOptions = self.openingOptions {
+            openCommand.sessionMessage.r = openingOptions.r
             self.connection.send(command: openCommand) { [weak self] (result) in
                 guard let self = self, let openingCompletion = self.openingCompletion else {
                     return
