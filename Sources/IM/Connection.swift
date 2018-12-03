@@ -14,29 +14,24 @@ import Alamofire
 
 protocol ConnectionDelegate: class {
     
-    /// Invoked when websocket is connecting server.
-    func connectionInConnecting(connection: Connection)
+    /// Invoked when websocket is connecting server or when geting RTM server.
+    /// @note This function maybe be called multiple times in single-try-connecting.
+    func connection(inConnecting connection: Connection)
     
     /// Invoked when websocket connected server.
-    func connectionDidConnect(connection: Connection)
-    
-    /// Invoked when encounter some can't-start-websocket-connecting event or websocket connecting failed.
-    ///
-    /// - Parameters:
-    ///   - event: @see Connection.Event
-    func connection(connection: Connection, didFailInConnecting event: Connection.Event)
+    func connection(didConnect connection: Connection)
     
     /// Invoked when the connected websocket encounter some should-disconnect event or other network error.
     ///
     /// - Parameters:
     ///   - event: @see Connection.Event
-    func connection(connection: Connection, didDisconnect event: Connection.Event)
+    func connection(_ connection: Connection, didDisconnect error: LCError)
     
     /// Invoked when the connected websocket receive direct-in-protobuf-command.
     ///
     /// - Parameters:
     ///   - inCommand: protobuf-command without serial ID.
-    func connection(connection: Connection, didReceiveCommand inCommand: IMGenericCommand)
+    func connection(_ connection: Connection, didReceiveCommand inCommand: IMGenericCommand)
 }
 
 class Connection {
@@ -47,27 +42,26 @@ class Connection {
         case protobuf3 = "lc.protobuf2.3"
     }
     
-    /// Event for ConnectionDelegate
-    ///
-    /// - disconnectInvoked: The connected or in-connecting Connection-Instance was invoked disconnect().
-    /// - appInBackground: The connected or in-connecting Connection-Instance was disconencted due to APP enter background, or Connection-Instance can't start connecting.
-    /// - networkNotReachable: The connected or in-connecting Connection-Instance was disconencted due to network not reachable, or Connection-Instance can't start connecting.
-    /// - networkChanged: The connected or in-connecting Connection-Instance was disconencted due to network's primary interface changed.
-    /// - error: maybe LeanCloud error, websocket error or other network error.
-    enum Event {
-        case disconnectInvoked
-        case appInBackground
-        case networkNotReachable
-        case networkChanged
-        case error(Error)
-    }
-    
     /// private for Connection Class but internal for test, so should never use it.
     class CommandCallback {
         
         enum Result {
             case inCommand(IMGenericCommand)
             case error(LCError)
+            
+            var command: IMGenericCommand? {
+                switch self {
+                case .inCommand(let c): return c
+                case .error: return nil
+                }
+            }
+            
+            var error: LCError? {
+                switch self {
+                case .inCommand: return nil
+                case .error(let e): return e
+                }
+            }
         }
         
         let closure: ((Result) -> Void)
@@ -189,7 +183,7 @@ class Connection {
     let application: LCApplication
     weak var delegate: ConnectionDelegate?
     let lcimProtocol: LCIMProtocol
-    let customRTMServer: String?
+    let customRTMServerURL: URL?
     let delegateQueue: DispatchQueue
     let commandTTL: TimeInterval
     
@@ -243,18 +237,17 @@ class Connection {
     ///
     /// - Parameters:
     ///   - application: LeanCloud Application, @see LCApplication.
-    ///   - delegate: @see ConnectionDelegate.
     ///   - lcimProtocol: @see LCIMProtocol.
-    ///   - customRTMServer: The custom RTM server, if set, Connection will ignore RTM Router, if not set, Connection will use the server return by RTM Router.
+    ///   - delegate: @see ConnectionDelegate.
     ///   - delegateQueue: The queue where ConnectionDelegate's fuctions and command's callback be invoked.
     ///   - commandTTL: Time-To-Live of command's callback.
+    ///   - customRTMServerURL: The custom RTM server, if set, Connection will ignore RTM Router, if not set, Connection will use the server return by RTM Router.
     init(application: LCApplication,
-         delegate: ConnectionDelegate,
          lcimProtocol: LCIMProtocol,
-         customRTMServer: String? = nil,
+         delegate: ConnectionDelegate? = nil,
          delegateQueue: DispatchQueue = .main,
          commandTTL: TimeInterval = 30.0,
-         isAutoReconnectionEnabled: Bool = true)
+         customRTMServerURL: URL? = nil)
     {
         #if DEBUG
         self.serialQueue.setSpecific(key: self.specificKey, value: self.specificValue)
@@ -262,10 +255,9 @@ class Connection {
         self.application = application
         self.delegate = delegate
         self.lcimProtocol = lcimProtocol
-        self.customRTMServer = customRTMServer
+        self.customRTMServerURL = customRTMServerURL
         self.delegateQueue = delegateQueue
         self.commandTTL = commandTTL
-        self.isAutoReconnectionEnabled = isAutoReconnectionEnabled
         
         self.rtmRouter = RTMRouter(application: application)
         
@@ -310,18 +302,19 @@ class Connection {
         self.afterWorkItemForReconnection?.cancel()
     }
     
-    /// Try connecting RTM server, if websocket exists and auto reconnection is enabled, then this action will be ignored.
+    /// Try connecting RTM server, if websocket exists, then this action will be ignored.
     func connect() {
         self.serialQueue.async {
-            if self.socket != nil && self.isAutoReconnectionEnabled {
+            guard self.socket == nil else {
+                // if socket exists, means in connecting or did connect.
                 return
             }
-            self.tryConnecting()
+            self.tryConnecting(forcing: true)
         }
     }
     
     /// Switch for auto reconnection.
-    func setAutoReconnectionEnabled(with enabled: Bool) {
+    func setAutoReconnectionEnabled(_ enabled: Bool) {
         self.serialQueue.async {
             self.isAutoReconnectionEnabled = enabled
         }
@@ -330,7 +323,7 @@ class Connection {
     /// Try close websocket, cancel timer and purge command callback.
     func disconnect() {
         self.serialQueue.async {
-            self.tryClearConnection(with: .disconnectInvoked)
+            self.tryClearConnection(with: LCError.closedByLocal)
         }
     }
     
@@ -361,7 +354,7 @@ class Connection {
                 Logger.shared.error(error)
                 if let callback = callback {
                     self.delegateQueue.async {
-                        let serializingError = LCError(underlyingError: error)
+                        let serializingError = LCError(error: error)
                         callback(.error(serializingError))
                     }
                 }
@@ -400,11 +393,9 @@ extension Connection {
         self.previousAppState = newState
         switch (oldState, newState) {
         case (.background, .foreground):
-            if self.isAutoReconnectionEnabled {
-                self.tryConnecting()
-            }
+            self.tryConnecting()
         case (.foreground, .background):
-            self.tryClearConnection(with: .appInBackground)
+            self.tryClearConnection(with: LCError.appInBackground)
         default:
             break
         }
@@ -417,26 +408,24 @@ extension Connection {
         let oldStatus = self.previousReachabilityStatus
         self.previousReachabilityStatus = newStatus
         if oldStatus != .notReachable && newStatus == .notReachable {
-            self.tryClearConnection(with: .networkNotReachable)
+            self.tryClearConnection(with: LCError.networkUnavailable)
         } else if oldStatus != newStatus && newStatus != .notReachable {
-            self.tryClearConnection(with: .networkChanged)
-            if self.isAutoReconnectionEnabled {
-                self.tryConnecting()
-            }
+            self.tryClearConnection(with: LCError.networkChanged)
+            self.tryConnecting()
         }
     }
     #endif
     
-    private func checkIfCanDoConnecting() -> Event? {
+    private func checkIfCanDoConnecting() -> LCError? {
         assert(self.specificAssertion)
         #if os(iOS) || os(tvOS)
         guard self.previousAppState == .foreground else {
-            return Event.appInBackground
+            return LCError.appInBackground
         }
         #endif
         #if !os(watchOS)
         guard self.previousReachabilityStatus != .notReachable else {
-            return Event.networkNotReachable
+            return LCError.networkUnavailable
         }
         #endif
         return nil
@@ -460,8 +449,12 @@ extension Connection {
         return false
     }
     
-    private func tryConnecting() {
+    private func tryConnecting(forcing: Bool = false) {
         assert(self.specificAssertion)
+        guard self.isAutoReconnectionEnabled || forcing else {
+            // if auto-reconnection not enabled and not forcing, then not try connecting.
+            return
+        }
         if let workItem: DispatchWorkItem = self.afterWorkItemForReconnection {
             workItem.cancel()
             self.afterWorkItemForReconnection = nil
@@ -472,9 +465,9 @@ extension Connection {
                 // if socket exists, means in connecting or did connect.
                 return
             }
-            if let cannotEvent: Event = self.checkIfCanDoConnecting() {
+            if let cannotError: LCError = self.checkIfCanDoConnecting() {
                 self.delegateQueue.async {
-                    self.delegate?.connection(connection: self, didFailInConnecting: cannotEvent)
+                    self.delegate?.connection(self, didDisconnect: cannotError)
                 }
             } else {
                 switch result {
@@ -486,15 +479,16 @@ extension Connection {
                     socket.connect()
                     self.socket = socket
                     self.delegateQueue.async {
-                        self.delegate?.connectionInConnecting(connection: self)
+                        self.delegate?.connection(inConnecting: self)
                     }
                     Logger.shared.verbose("\(socket) connecting URL<\"\(url)\"> with protocol<\"\(self.lcimProtocol.rawValue)\">")
                 case .failure(error: let error):
                     Logger.shared.verbose("Get RTM server URL failed: \(error)")
                     self.delegateQueue.async {
-                        self.delegate?.connection(connection: self, didFailInConnecting: .error(error))
+                        self.delegate?.connection(self, didDisconnect: error)
                     }
-                    if (error as NSError).domain == NSURLErrorDomain && self.isAutoReconnectionEnabled {
+                    if let nsError: NSError = error.underlyingError as NSError?,
+                        nsError.domain == NSURLErrorDomain {
                         self.tryConnecting()
                     }
                 }
@@ -502,7 +496,7 @@ extension Connection {
         }
     }
     
-    private func tryClearConnection(with event: Event) {
+    private func tryClearConnection(with error: LCError) {
         assert(self.specificAssertion)
         if let workItem: DispatchWorkItem = self.afterWorkItemForReconnection {
             workItem.cancel()
@@ -514,7 +508,7 @@ extension Connection {
             socket.disconnect()
             self.socket = nil
             self.delegateQueue.async {
-                self.delegate?.connection(connection: self, didDisconnect: event)
+                self.delegate?.connection(self, didDisconnect: error)
             }
         }
         if let timer: Timer = self.timer {
@@ -525,14 +519,14 @@ extension Connection {
     
     private func getRTMServer(_ callback: @escaping (LCGenericResult<URL>) -> Void) {
         assert(self.specificAssertion)
-        if let server: String = self.customRTMServer {
-            if let url = URL(string: server), url.scheme != nil {
-                callback(.success(value: url))
-            } else {
-                let error = LCError(code: .inconsistency, reason: "Custom RTM URL invalid")
-                callback(.failure(error: error))
-            }
+        if let serverURL: URL = self.customRTMServerURL {
+            callback(.success(value: serverURL))
         } else {
+            if self.socket == nil && self.checkIfCanDoConnecting() == nil {
+                self.delegateQueue.async {
+                    self.delegate?.connection(inConnecting: self)
+                }
+            }
             self.rtmRouter.route { (result: LCGenericResult<RTMRoutingTable>) in
                 self.serialQueue.async {
                     switch result {
@@ -564,6 +558,11 @@ extension Connection {
                 Logger.shared.error(error)
             }
             if self.isAutoReconnectionEnabled {
+                if self.socket == nil && self.checkIfCanDoConnecting() == nil {
+                    self.delegateQueue.async {
+                        self.delegate?.connection(inConnecting: self)
+                    }
+                }
                 let workItem = DispatchWorkItem() { [weak self] in
                     self?.afterWorkItemForReconnection = nil
                     self?.tryConnecting()
@@ -593,7 +592,7 @@ extension Connection: WebSocketDelegate, WebSocketPongDelegate {
             }
         }
         self.delegateQueue.async {
-            self.delegate?.connectionDidConnect(connection: self)
+            self.delegate?.connection(didConnect: self)
         }
     }
     
@@ -602,10 +601,10 @@ extension Connection: WebSocketDelegate, WebSocketPongDelegate {
         assert(self.socket === socket)
         Logger.shared.verbose("\(socket) disconnect with error: \(String(describing: error))")
         let isServerError: Bool = self.check(isServerError: error)
-        let disconnectError: Error = error ?? LCError(code: .connectionLost)
+        let disconnectError: LCError = LCError(error: error ?? LCError.closedByRemote)
         if self.timer != nil {
             // timer exists means the connected socket was disconnected.
-            self.tryClearConnection(with: .error(disconnectError))
+            self.tryClearConnection(with: disconnectError)
         } else {
             // timer not exists means connecting failed.
             self.socket?.delegate = nil
@@ -616,16 +615,14 @@ extension Connection: WebSocketDelegate, WebSocketPongDelegate {
                 // Should try Secondary Server and no need to notify delegator.
             } else {
                 self.delegateQueue.async {
-                    self.delegate?.connection(connection: self, didFailInConnecting: .error(disconnectError))
+                    self.delegate?.connection(self, didDisconnect: disconnectError)
                 }
             }
         }
         if isServerError {
             self.handleDisconnectForServerError()
         } else {
-            if self.isAutoReconnectionEnabled {
-                self.tryConnecting()
-            }
+            self.tryConnecting()
         }
     }
     
@@ -644,7 +641,7 @@ extension Connection: WebSocketDelegate, WebSocketPongDelegate {
             self.timer?.handle(callbackCommand: inCommand)
         } else {
             self.delegateQueue.async {
-                self.delegate?.connection(connection: self, didReceiveCommand: inCommand)
+                self.delegate?.connection(self, didReceiveCommand: inCommand)
             }
         }
     }
@@ -659,5 +656,34 @@ extension Connection: WebSocketDelegate, WebSocketPongDelegate {
     func websocketDidReceiveMessage(socket: WebSocketClient, text: String) {
         fatalError("should never be invoked.")
     }
+    
+}
+
+extension LCError {
+    
+    static let appInBackground: LCError = LCError(
+        code: .connectionLost,
+        reason: "Due to application did enter background, connection lost."
+    )
+    
+    static let networkUnavailable: LCError = LCError(
+        code: .connectionLost,
+        reason: "Due to network unavailable, connection lost."
+    )
+    
+    static let networkChanged: LCError = LCError(
+        code: .connectionLost,
+        reason: "Due to network interface did change, connection lost."
+    )
+    
+    static let closedByLocal: LCError = LCError(
+        code: .connectionLost,
+        reason: "Connection did close by local peer."
+    )
+    
+    static let closedByRemote: LCError = LCError(
+        code: .connectionLost,
+        reason: "Connection did close by remote peer."
+    )
     
 }

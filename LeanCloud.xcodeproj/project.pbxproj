@@ -88,6 +88,7 @@
 		D324CD9221774A9B003FA35F /* Connection.swift in Sources */ = {isa = PBXBuildFile; fileRef = D324CD9121774A9B003FA35F /* Connection.swift */; };
 		D3301279217727870007286A /* Command.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3301278217727870007286A /* Command.pb.swift */; };
 		D3AA135B216E0D3A008FECA6 /* WebSocket.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3AA1352216E0D3A008FECA6 /* WebSocket.swift */; };
+		D3AC7BA821AE9C1A00C6C557 /* ClientTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3AC7BA721AE9C1A00C6C557 /* ClientTestCase.swift */; };
 		D3DAD03C218DA402008BCD37 /* ConnectionTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3DAD03B218DA402008BCD37 /* ConnectionTestCase.swift */; };
 		D3E1F48D2193EDF3007B6FFB /* ConnectionTestViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3E1F48C2193EDF3007B6FFB /* ConnectionTestViewController.swift */; };
 		D3E1F4AE21940E8E007B6FFB /* SwiftProtobuf.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D3872641217726B500DD8FBF /* SwiftProtobuf.framework */; };
@@ -327,6 +328,7 @@
 		D3301278217727870007286A /* Command.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Command.pb.swift; sourceTree = "<group>"; };
 		D387262A217726B500DD8FBF /* SwiftProtobuf.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = SwiftProtobuf.xcodeproj; path = SwiftProtobuf/SwiftProtobuf.xcodeproj; sourceTree = "<group>"; };
 		D3AA1352216E0D3A008FECA6 /* WebSocket.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebSocket.swift; sourceTree = "<group>"; };
+		D3AC7BA721AE9C1A00C6C557 /* ClientTestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClientTestCase.swift; sourceTree = "<group>"; };
 		D3DAD03B218DA402008BCD37 /* ConnectionTestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionTestCase.swift; sourceTree = "<group>"; };
 		D3E1F48C2193EDF3007B6FFB /* ConnectionTestViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionTestViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -444,6 +446,7 @@
 			isa = PBXGroup;
 			children = (
 				11FBD1E6215BEEB400370C61 /* Resources */,
+				8342FCCC1C7B13A700C3CF15 /* Info.plist */,
 				83D5923D1CD88846007177C5 /* BridgingHeader.h */,
 				8342FCCA1C7B13A700C3CF15 /* BaseTestCase.swift */,
 				11FBD1E4215BDDCA00370C61 /* CoreTestCase.swift */,
@@ -460,7 +463,7 @@
 				118763AE2176EA3A0078645B /* InstallationTestCase.swift */,
 				D3DAD03B218DA402008BCD37 /* ConnectionTestCase.swift */,
 				1123922B2191669100ECCBCC /* RTMTestCase.swift */,
-				8342FCCC1C7B13A700C3CF15 /* Info.plist */,
+				D3AC7BA721AE9C1A00C6C557 /* ClientTestCase.swift */,
 			);
 			path = LeanCloudTests;
 			sourceTree = "<group>";
@@ -929,6 +932,7 @@
 				83BC11D61CDD76E900D7E7A6 /* ACLTestCase.swift in Sources */,
 				1178D10F213F7B9600429131 /* APITestCase.swift in Sources */,
 				8334561C1CE589E500D42725 /* EngineTestCase.swift in Sources */,
+				D3AC7BA821AE9C1A00C6C557 /* ClientTestCase.swift in Sources */,
 				116A682621427442004141A5 /* RouterTestCase.swift in Sources */,
 				1123922C2191669100ECCBCC /* RTMTestCase.swift in Sources */,
 				118763AF2176EA3A0078645B /* InstallationTestCase.swift in Sources */,

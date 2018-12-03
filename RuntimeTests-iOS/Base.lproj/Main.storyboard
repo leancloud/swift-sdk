@@ -71,9 +71,32 @@
                     <view key="view" contentMode="scaleToFill" id="VMO-Rp-q9Z">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <activityIndicatorView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" hidesWhenStopped="YES" animating="YES" style="whiteLarge" translatesAutoresizingMaskIntoConstraints="NO" id="34g-0Z-kfD">
+                                <rect key="frame" x="169" y="325" width="37" height="37"/>
+                                <color key="color" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                            </activityIndicatorView>
+                            <label hidden="YES" opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="FMD-R6-Tea">
+                                <rect key="frame" x="0.0" y="333.5" width="375" height="20.5"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                        </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                        <constraints>
+                            <constraint firstItem="FMD-R6-Tea" firstAttribute="centerX" secondItem="UKA-7b-7J7" secondAttribute="centerX" id="I71-GX-ad1"/>
+                            <constraint firstItem="34g-0Z-kfD" firstAttribute="centerY" secondItem="UKA-7b-7J7" secondAttribute="centerY" id="UiG-Zj-t7x"/>
+                            <constraint firstItem="FMD-R6-Tea" firstAttribute="centerY" secondItem="UKA-7b-7J7" secondAttribute="centerY" id="mro-Xh-ZTT"/>
+                            <constraint firstItem="34g-0Z-kfD" firstAttribute="centerX" secondItem="UKA-7b-7J7" secondAttribute="centerX" id="tlB-YM-VZ9"/>
+                            <constraint firstItem="FMD-R6-Tea" firstAttribute="width" secondItem="VMO-Rp-q9Z" secondAttribute="width" id="zuC-ry-5kI"/>
+                        </constraints>
                         <viewLayoutGuide key="safeArea" id="UKA-7b-7J7"/>
                     </view>
+                    <connections>
+                        <outlet property="activityIndicator" destination="34g-0Z-kfD" id="hTb-dK-u80"/>
+                        <outlet property="label" destination="FMD-R6-Tea" id="4d9-NY-ZG6"/>
+                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="h1b-N7-Hzv" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
