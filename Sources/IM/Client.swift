@@ -453,7 +453,8 @@ public final class LCClient: NSObject {
                 do {
                     let conversation: T = try client.createConversation(
                         incomingConvCommand: incomingCommand.convMessage,
-                        outcomingConvCommand: outcomingCommand.convMessage)
+                        outcomingConvCommand: outcomingCommand.convMessage,
+                        attributes: attributes)
 
                     client.eventQueue.async {
                         completion(.success(value: conversation))
@@ -478,7 +479,8 @@ public final class LCClient: NSObject {
      */
     func createConversation<T: LCConversation>(
         incomingConvCommand: IMConvCommand,
-        outcomingConvCommand: IMConvCommand) throws -> T
+        outcomingConvCommand: IMConvCommand,
+        attributes: LCDictionary?) throws -> T
     {
         guard incomingConvCommand.hasCid else {
             throw LCError(
@@ -503,7 +505,15 @@ public final class LCClient: NSObject {
             conversation["createdAt"] = LCDate(isoString: incomingConvCommand.cdate)
         }
 
+        if let attributes = attributes {
+            attributes.forEach { (key, value) in
+                conversation.update(key, value)
+            }
+        }
+
         // TODO: Assign attributes to conversation.
+
+        conversation.discardChanges()
 
         guard let result = conversation as? T else {
             throw LCError(
