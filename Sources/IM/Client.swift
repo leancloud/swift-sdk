@@ -305,6 +305,7 @@ public final class LCClient: NSObject {
 
      - parameter clientIds: An array of client ID.
      - parameter attributes: The initial conversation attributes.
+     - parameter isUnique: A flag indicates whether create an unique conversation.
      - parameter completion: The completion handler.
      */
     public func createConversation(
@@ -344,6 +345,7 @@ public final class LCClient: NSObject {
 
      - parameter clientIds: An array of client ID.
      - parameter attributes: The initial conversation attributes.
+     - parameter timeToLive: The time to live, in seconds.
      - parameter completion: The completion handler.
      */
     public func createTemporaryConversation(
