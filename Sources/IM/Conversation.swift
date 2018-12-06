@@ -25,6 +25,10 @@ public class LCConversation: LCObject {
      */
     public private(set) var client: LCClient?
 
+    public final override class func objectClassName() -> String {
+        return "_Conversation"
+    }
+
 }
 
 /**
