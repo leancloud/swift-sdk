@@ -23,7 +23,7 @@ public class LCConversation: LCObject {
 
      - note: Conversation retain a strong reference to client.
      */
-    public private(set) var client: LCClient?
+    public internal(set) var client: LCClient?
 
     public final override class func objectClassName() -> String {
         return "_Conversation"

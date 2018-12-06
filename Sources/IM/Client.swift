@@ -495,6 +495,8 @@ public final class LCClient: NSObject {
             conversation = LCConversation(objectId: objectId)
         }
 
+        conversation.client = self
+
         if incomingConvCommand.hasCdate {
             conversation["createdAt"] = LCDate(isoString: incomingConvCommand.cdate)
         }
