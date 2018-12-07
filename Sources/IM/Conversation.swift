@@ -13,10 +13,25 @@ import Foundation
 
  Conversations are used to group clients and messages.
  */
-public class LCConversation: LCObject {
+public class LCConversation {
+
+    /// Conversation ID.
+    public let id: String
 
     /// Conversation name.
-    @objc open dynamic var name: LCString?
+    public internal(set) var name: String?
+
+    /// Creation date.
+    public internal(set) var createdAt: Date?
+
+    /**
+     Initialize conversation.
+
+     - parameter id: The conversation ID.
+     */
+    init(id: String) {
+        self.id = id
+    }
 
     /**
      Current client.
@@ -24,10 +39,6 @@ public class LCConversation: LCObject {
      - note: Conversation retain a strong reference to client.
      */
     public internal(set) var client: LCClient?
-
-    public final override class func objectClassName() -> String {
-        return "_Conversation"
-    }
 
 }
 

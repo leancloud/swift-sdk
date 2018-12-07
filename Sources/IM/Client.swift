@@ -492,28 +492,20 @@ public final class LCClient: NSObject {
         let objectId = incomingConvCommand.cid
 
         if outcomingConvCommand.transient {
-            conversation = LCChatRoomConversation(objectId: objectId)
+            conversation = LCChatRoomConversation(id: objectId)
         } else if outcomingConvCommand.tempConv {
-            conversation = LCTemporaryConversation(objectId: objectId)
+            conversation = LCTemporaryConversation(id: objectId)
         } else {
-            conversation = LCConversation(objectId: objectId)
+            conversation = LCConversation(id: objectId)
         }
 
         conversation.client = self
 
         if incomingConvCommand.hasCdate {
-            conversation["createdAt"] = LCDate(isoString: incomingConvCommand.cdate)
-        }
-
-        if let attributes = attributes {
-            attributes.forEach { (key, value) in
-                conversation.update(key, value)
-            }
+            conversation.createdAt = LCDate(isoString: incomingConvCommand.cdate)?.value
         }
 
         // TODO: Assign attributes to conversation.
-
-        conversation.discardChanges()
 
         guard let result = conversation as? T else {
             throw LCError(
