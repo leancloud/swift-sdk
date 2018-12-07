@@ -55,7 +55,7 @@ public enum LCBooleanResult: LCResultType {
     }
 }
 
-enum LCGenericResult<T>: LCResultType {
+public enum LCGenericResult<T>: LCResultType {
     case success(value: T)
     case failure(error: LCError)
 

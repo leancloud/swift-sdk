@@ -299,6 +299,222 @@ public final class LCClient: NSObject {
             self.connection.connect()
         }
     }
+
+    /**
+     Create a normal conversation.
+
+     - parameter clientIds: An array of client ID.
+     - parameter attributes: The initial conversation attributes.
+     - parameter isUnique: A flag indicates whether create an unique conversation.
+     - parameter completion: The completion handler.
+     */
+    public func createConversation(
+        clientIds: [String],
+        attributes: LCDictionary? = nil,
+        isUnique: Bool = true,
+        completion: @escaping (LCGenericResult<LCConversation>) -> Void)
+    {
+        createConversation(
+            clientIds: clientIds,
+            attributes: attributes,
+            option: isUnique ? .normalAndUnique : .normal,
+            completion: completion)
+    }
+
+    /**
+     Create a chat room conversation.
+
+     - parameter clientIds: An array of client ID.
+     - parameter attributes: The initial conversation attributes.
+     - parameter completion: The completion handler.
+     */
+    public func createChatRoomConversation(
+        clientIds: [String],
+        attributes: LCDictionary? = nil,
+        completion: @escaping (LCGenericResult<LCChatRoomConversation>) -> Void)
+    {
+        createConversation(
+            clientIds: clientIds,
+            attributes: attributes,
+            option: .transient,
+            completion: completion)
+    }
+
+    /**
+     Create a temporary conversation.
+
+     - parameter clientIds: An array of client ID.
+     - parameter attributes: The initial conversation attributes.
+     - parameter timeToLive: The time to live, in seconds.
+     - parameter completion: The completion handler.
+     */
+    public func createTemporaryConversation(
+        clientIds: [String],
+        attributes: LCDictionary? = nil,
+        timeToLive: Int32,
+        completion: @escaping (LCGenericResult<LCTemporaryConversation>) -> Void)
+    {
+        createConversation(
+            clientIds: clientIds,
+            attributes: attributes,
+            option: .temporary(ttl: timeToLive),
+            completion: completion)
+    }
+
+    /**
+     Conversation creation option.
+     */
+    private enum ConversationCreationOption {
+
+        /// Normal conversation.
+        case normal
+
+        /// Normal and unique conversation.
+        case normalAndUnique
+
+        /// Transient conversation.
+        case transient
+
+        /// Temporary conversation.
+        case temporary(ttl: Int32)
+
+    }
+
+    /// Maximum length of client ID.
+    private let maximumLengthOfClientID = 64
+
+    /**
+     Create a conversation with creation option.
+
+     - parameter clientIds: An array of client ID.
+     - parameter attributes: The initial conversation attributes.
+     - parameter option: The conversation creation option.
+     - parameter completion: The completion handler.
+     */
+    private func createConversation<T: LCConversation>(
+        clientIds: [String],
+        attributes: LCDictionary? = nil,
+        option: ConversationCreationOption,
+        completion: @escaping (LCGenericResult<T>) -> Void)
+    {
+        let clientIds = Array(Set(clientIds))
+
+        // Validate each client ID.
+        for clientId in clientIds {
+            guard (1...maximumLengthOfClientID).contains(clientId.count) else {
+                eventQueue.async {
+                    let error = LCError(code: .malformedData, reason: "Invalid client ID.")
+                    completion(.failure(error: error))
+                }
+                return
+            }
+        }
+
+        sendCommand(
+        constructor: { (client, command) in
+            command.cmd = .conv
+            command.op = .start
+
+            var convMessage = IMConvCommand()
+
+            switch option {
+            case .normal:
+                break
+            case .normalAndUnique:
+                convMessage.unique = true
+            case .transient:
+                convMessage.transient = true
+            case .temporary(let ttl):
+                convMessage.tempConv = true
+
+                if ttl > 0 {
+                    convMessage.tempConvTtl = ttl
+                }
+            }
+
+            convMessage.m = clientIds
+
+            if let attributes = attributes {
+                var attrMessage = IMJsonObjectMessage()
+
+                attrMessage.data = attributes.jsonString
+                convMessage.attr = attrMessage
+            }
+
+            command.convMessage = convMessage
+        },
+        completion: { (client, result, outcomingCommand) in
+            switch result {
+            case .error(let error):
+                client.eventQueue.async {
+                    completion(.failure(error: error))
+                }
+            case .inCommand(let incomingCommand):
+                do {
+                    let conversation: T = try client.createConversation(
+                        incomingConvCommand: incomingCommand.convMessage,
+                        outcomingConvCommand: outcomingCommand.convMessage,
+                        attributes: attributes)
+
+                    client.eventQueue.async {
+                        completion(.success(value: conversation))
+                    }
+                } catch let error as LCError {
+                    client.eventQueue.async {
+                        completion(.failure(error: error))
+                    }
+                } catch let error {
+                    let error = LCError(underlyingError: error)
+
+                    client.eventQueue.async {
+                        completion(.failure(error: error))
+                    }
+                }
+            }
+        })
+    }
+
+    /**
+     Create conversation object.
+     */
+    func createConversation<T: LCConversation>(
+        incomingConvCommand: IMConvCommand,
+        outcomingConvCommand: IMConvCommand,
+        attributes: LCDictionary?) throws -> T
+    {
+        guard incomingConvCommand.hasCid else {
+            throw LCError(
+                code: .commandInvalid,
+                reason: "Failed to create conversation.")
+        }
+
+        let conversation: LCConversation
+        let objectId = incomingConvCommand.cid
+
+        if outcomingConvCommand.transient {
+            conversation = LCChatRoomConversation(id: objectId)
+        } else if outcomingConvCommand.tempConv {
+            conversation = LCTemporaryConversation(id: objectId)
+        } else {
+            conversation = LCConversation(id: objectId)
+        }
+
+        conversation.client = self
+
+        if incomingConvCommand.hasCdate {
+            conversation.createdAt = LCDate(isoString: incomingConvCommand.cdate)?.value
+        }
+
+        // TODO: Assign attributes to conversation.
+
+        guard let result = conversation as? T else {
+            throw LCError(
+                code: .inconsistency,
+                reason: "Failed to create conversation.")
+        }
+
+        return result
+    }
     
     /**
      Close with completion handler.
@@ -376,25 +592,28 @@ extension LCClient {
      */
     func sendCommand(
         constructor: @escaping (LCClient, inout IMGenericCommand) -> Void,
-        completion: @escaping (LCClient, Connection.CommandCallback.Result) -> Void)
+        completion: @escaping (LCClient, Connection.CommandCallback.Result, IMGenericCommand) -> Void)
     {
         enqueueSerialTask { client in
             
-            guard self.isSessionOpened else {
-                let error = LCError(code: .clientNotOpen)
-                completion(client, .error(error))
-                return
-            }
-            
             var command = IMGenericCommand()
+
+            command.appID = client.application.id
+            command.peerID = client.id
             
             constructor(client, &command)
+
+            guard client.isSessionOpened else {
+                let error = LCError(code: .clientNotOpen)
+                completion(client, .error(error), command)
+                return
+            }
             
             client.connection.send(command: command) { [weak client] result in
                 guard let client = client else {
                     return
                 }
-                completion(client, result)
+                completion(client, result, command)
             }
         }
     }
