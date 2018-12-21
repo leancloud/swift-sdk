@@ -194,7 +194,6 @@ class Connection {
     private var timer: Timer? = nil
     private var isAutoReconnectionEnabled: Bool = false
     private var useSecondaryServer: Bool = false
-    private var afterWorkItemForReconnection: DispatchWorkItem? = nil
     private var serialIndex: UInt16 = 1
     private var nextSerialIndex: UInt16 {
         let index: UInt16 = self.serialIndex
@@ -299,7 +298,6 @@ class Connection {
         #endif
         self.socket?.disconnect()
         self.timer?.cancel()
-        self.afterWorkItemForReconnection?.cancel()
     }
     
     /// Try connecting RTM server, if websocket exists, then this action will be ignored.
@@ -309,7 +307,11 @@ class Connection {
                 // if socket exists, means in connecting or did connect.
                 return
             }
-            self.tryConnecting(forcing: true)
+            if let error: LCError = self.checkIfCanDoConnecting() {
+                self.tryClearConnection(with: error)
+            } else {
+                self.tryConnecting(forcing: true)
+            }
         }
     }
     
@@ -449,27 +451,36 @@ extension Connection {
         return false
     }
     
-    private func tryConnecting(forcing: Bool = false) {
+    private func tryConnecting(forcing: Bool = false, delay: Int = 0) {
         assert(self.specificAssertion)
-        guard self.isAutoReconnectionEnabled || forcing else {
-            // if auto-reconnection not enabled and not forcing, then not try connecting.
+        guard (self.isAutoReconnectionEnabled || forcing) else {
+            // if auto-reconnection not enabled and not forcing,
+            // then not try connecting.
             return
         }
-        if let workItem: DispatchWorkItem = self.afterWorkItemForReconnection {
-            workItem.cancel()
-            self.afterWorkItemForReconnection = nil
-        }
-        self.getRTMServer { (result: LCGenericResult<URL>) in
-            assert(self.specificAssertion)
-            guard self.socket == nil else {
-                // if socket exists, means in connecting or did connect.
+        let workItem = DispatchWorkItem { [weak self] in
+            guard let self = self else {
                 return
             }
-            if let cannotError: LCError = self.checkIfCanDoConnecting() {
-                self.delegateQueue.async {
-                    self.delegate?.connection(self, didDisconnect: cannotError)
+            assert(self.specificAssertion)
+            guard (self.isAutoReconnectionEnabled || forcing) && self.checkIfCanDoConnecting() == nil else {
+                // if auto-reconnection not enabled and not forcing and can't do connecting,
+                // then not try connecting.
+                return
+            }
+            self.getRTMServer { (result: LCGenericResult<URL>) in
+                assert(self.specificAssertion)
+                guard (self.isAutoReconnectionEnabled || forcing) &&
+                    self.checkIfCanDoConnecting() == nil &&
+                    self.socket == nil
+                    else
+                {
+                    // if auto-reconnection not enabled and not forcing and can't do connecting,
+                    // then not try connecting.
+                    // if socket exists, means in connecting or did connect,
+                    // so just return.
+                    return
                 }
-            } else {
                 switch result {
                 case .success(value: let url):
                     let socket = WebSocket(url: url, protocols: [self.lcimProtocol.rawValue])
@@ -484,32 +495,38 @@ extension Connection {
                     Logger.shared.verbose("\(socket) connecting URL<\"\(url)\"> with protocol<\"\(self.lcimProtocol.rawValue)\">")
                 case .failure(error: let error):
                     Logger.shared.verbose("Get RTM server URL failed: \(error)")
-                    self.delegateQueue.async {
-                        self.delegate?.connection(self, didDisconnect: error)
-                    }
+                    self.tryClearConnection(with: error)
                     if let nsError: NSError = error.underlyingError as NSError?,
                         nsError.domain == NSURLErrorDomain {
-                        self.tryConnecting()
+                        self.tryConnecting(delay: 1)
                     }
                 }
             }
+        }
+        if delay <= 0 {
+            workItem.perform()
+        } else {
+            if self.socket == nil && self.checkIfCanDoConnecting() == nil {
+                // Although now is not real in-connecting, but due to delay,
+                // so need to notify delegator in-connecting-event when socket not exists and can do connecting.
+                self.delegateQueue.async {
+                    self.delegate?.connection(inConnecting: self)
+                }
+            }
+            self.serialQueue.asyncAfter(deadline: .now() + .seconds(delay), execute: workItem)
         }
     }
     
     private func tryClearConnection(with error: LCError) {
         assert(self.specificAssertion)
-        if let workItem: DispatchWorkItem = self.afterWorkItemForReconnection {
-            workItem.cancel()
-            self.afterWorkItemForReconnection = nil
-        }
         if let socket: WebSocket = self.socket {
             socket.delegate = nil
             socket.pongDelegate = nil
             socket.disconnect()
             self.socket = nil
-            self.delegateQueue.async {
-                self.delegate?.connection(self, didDisconnect: error)
-            }
+        }
+        self.delegateQueue.async {
+            self.delegate?.connection(self, didDisconnect: error)
         }
         if let timer: Timer = self.timer {
             timer.cancel()
@@ -522,7 +539,9 @@ extension Connection {
         if let serverURL: URL = self.customRTMServerURL {
             callback(.success(value: serverURL))
         } else {
-            if self.socket == nil && self.checkIfCanDoConnecting() == nil {
+            if self.socket == nil {
+                // because RTMRouter maybe get URL from Server,
+                // so need to notify delegator in-connecting-event if socket not exists.
                 self.delegateQueue.async {
                     self.delegate?.connection(inConnecting: self)
                 }
@@ -557,19 +576,7 @@ extension Connection {
             } catch {
                 Logger.shared.error(error)
             }
-            if self.isAutoReconnectionEnabled {
-                if self.socket == nil && self.checkIfCanDoConnecting() == nil {
-                    self.delegateQueue.async {
-                        self.delegate?.connection(inConnecting: self)
-                    }
-                }
-                let workItem = DispatchWorkItem() { [weak self] in
-                    self?.afterWorkItemForReconnection = nil
-                    self?.tryConnecting()
-                }
-                self.afterWorkItemForReconnection = workItem
-                self.serialQueue.asyncAfter(deadline: .now() + 10, execute: workItem)
-            }
+            self.tryConnecting(delay: 10)
         } else {
             // Primary Server encountered error
             self.tryConnecting()
@@ -600,29 +607,11 @@ extension Connection: WebSocketDelegate, WebSocketPongDelegate {
         assert(self.specificAssertion)
         assert(self.socket === socket)
         Logger.shared.verbose("\(socket) disconnect with error: \(String(describing: error))")
-        let isServerError: Bool = self.check(isServerError: error)
-        let disconnectError: LCError = LCError(error: error ?? LCError.closedByRemote)
-        if self.timer != nil {
-            // timer exists means the connected socket was disconnected.
-            self.tryClearConnection(with: disconnectError)
-        } else {
-            // timer not exists means connecting failed.
-            self.socket?.delegate = nil
-            self.socket?.pongDelegate = nil
-            self.socket = nil
-            if isServerError && !self.useSecondaryServer {
-                // Primary Server Error in connecting
-                // Should try Secondary Server and no need to notify delegator.
-            } else {
-                self.delegateQueue.async {
-                    self.delegate?.connection(self, didDisconnect: disconnectError)
-                }
-            }
-        }
-        if isServerError {
+        self.tryClearConnection(with: LCError(error: error ?? LCError.closedByRemote))
+        if self.check(isServerError: error) {
             self.handleDisconnectForServerError()
         } else {
-            self.tryConnecting()
+            self.tryConnecting(delay: 1)
         }
     }
     
