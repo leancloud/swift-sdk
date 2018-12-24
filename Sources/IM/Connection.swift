@@ -483,7 +483,9 @@ extension Connection {
                 }
                 switch result {
                 case .success(value: let url):
-                    let socket = WebSocket(url: url, protocols: [self.lcimProtocol.rawValue])
+                    var request = URLRequest(url: url)
+                    request.timeoutInterval = self.commandTTL
+                    let socket = WebSocket(request: request, protocols: [self.lcimProtocol.rawValue])
                     socket.delegate = self
                     socket.pongDelegate = self
                     socket.callbackQueue = self.serialQueue
