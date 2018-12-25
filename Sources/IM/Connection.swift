@@ -463,7 +463,10 @@ extension Connection {
                 return
             }
             assert(self.specificAssertion)
-            guard (self.isAutoReconnectionEnabled || forcing) && self.checkIfCanDoConnecting() == nil else {
+            guard (self.isAutoReconnectionEnabled || forcing) &&
+                self.checkIfCanDoConnecting() == nil
+                else
+            {
                 // if auto-reconnection not enabled and not forcing and can't do connecting,
                 // then not try connecting.
                 return
@@ -483,9 +486,7 @@ extension Connection {
                 }
                 switch result {
                 case .success(value: let url):
-                    var request = URLRequest(url: url)
-                    request.timeoutInterval = self.commandTTL
-                    let socket = WebSocket(request: request, protocols: [self.lcimProtocol.rawValue])
+                    let socket = WebSocket(url: url, protocols: [self.lcimProtocol.rawValue])
                     socket.delegate = self
                     socket.pongDelegate = self
                     socket.callbackQueue = self.serialQueue
