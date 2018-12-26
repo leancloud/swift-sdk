@@ -20,8 +20,10 @@ import IOKit
  */
 public final class LCClient {
     
-    /// Maximum length of client ID.
+    /// length range of client ID.
     public static let lengthRangeOfClientID = 1...64
+    
+    /// reserved value of tag
     public static let reservedValueOfTag: String = "default"
     
     #if DEBUG
@@ -166,16 +168,18 @@ public final class LCClient {
     /// Internal mutex
     private let mutex = NSLock()
     
-    /**
-     Initialize client with identifier and tag.
-     
-     - parameter id: The client identifier. Length should in [1...64].
-     - parameter tag: The client tag. "default" string should not be used.
-     - parameter options: The client options.
-     - parameter eventQueue: @see property `eventQueue`, default is main.
-     - parameter customServer: The custom server URL for private deployment.
-     - parameter application: The application that the client belongs to.
-     */
+    /// Initialize client with identifier and tag.
+    ///
+    /// - Parameters:
+    ///   - id: The client identifier. Length should in [1...64].
+    ///   - tag: The client tag. "default" string should not be used.
+    ///   - options: @see `LCClient.Options`.
+    ///   - delegate: @see `LCClientDelegate`.
+    ///   - eventQueue: @see property `eventQueue`, default is main.
+    ///   - timeoutInterval: timeout interval of command.
+    ///   - customServer: The custom server URL for private deployment.
+    ///   - application: The application that the client belongs to.
+    /// - Throws: if `id` or `tag` invalid, then throw error.
     public init(
         id: String,
         tag: String? = nil,
@@ -238,7 +242,7 @@ public final class LCClient {
         }
     }
     
-    /// Session Token & Opening config
+    /// Session Token & Opening Config
     private var sessionToken: String?
     private var sessionTokenExpiration: Date?
     private var openingCompletion: ((LCBooleanResult) -> Void)?
@@ -268,7 +272,7 @@ public final class LCClient {
     /**
      Open a session to IM system.
      
-     - parameter options: @see `SessionOpenOptions`.
+     - parameter options: @see `LCClient.SessionOpenOptions`.
      - parameter completion: The completion handler.
      */
     public func open(options: SessionOpenOptions = .default, completion: @escaping (LCBooleanResult) -> Void) {
