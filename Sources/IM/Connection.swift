@@ -137,7 +137,11 @@ class Connection {
                 self.commandIndexSequence.remove(at: index)
             }
             self.commandCallbackQueue.async {
-                commandCallback.closure(.inCommand(command))
+                if let error: LCError = command.encounteredError {
+                    commandCallback.closure(.error(error))
+                } else {
+                    commandCallback.closure(.inCommand(command))
+                }
             }
         }
         
@@ -677,5 +681,29 @@ extension LCError {
         code: .connectionLost,
         reason: "Connection did close by remote peer."
     )
+    
+}
+
+extension IMGenericCommand {
+    
+    func check(type: IMCommandType, op: IMOpType) -> Bool {
+        return (self.cmd == type && self.op == op)
+    }
+    
+    var encounteredError: LCError? {
+        guard self.cmd == .error else {
+            return nil
+        }
+        let errMsg = self.errorMessage
+        guard errMsg.hasCode else {
+            return LCError(code: .commandInvalid)
+        }
+        let code: Int = Int(errMsg.code)
+        let reason: String? = (errMsg.hasReason ? errMsg.reason : nil)
+        var userInfo: LCError.UserInfo = [:]
+        if errMsg.hasAppCode { userInfo["appCode"] = errMsg.appCode }
+        if errMsg.hasDetail { userInfo["detail"] = errMsg.detail }
+        return LCError(code: code, reason: reason, userInfo: userInfo)
+    }
     
 }
