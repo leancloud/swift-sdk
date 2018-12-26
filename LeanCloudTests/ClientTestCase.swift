@@ -18,7 +18,7 @@ class ClientTestCase: BaseTestCase {
         for _ in 0..<3 {
             
             let exp = self.expectation(description: "client open success")
-            exp.expectedFulfillmentCount = 2
+            exp.expectedFulfillmentCount = 3
             exp.assertForOverFulfill = true
             
             client.open { (result) in
@@ -27,11 +27,17 @@ class ClientTestCase: BaseTestCase {
                 XCTAssertNil(result.error)
                 exp.fulfill()
                 
-                client.close() { (result) in
-                
-                    XCTAssertTrue(Thread.isMainThread)
-                    XCTAssertNil(result.error)
+                client.open { (result) in
+                    
+                    XCTAssertNotNil(result.error)
                     exp.fulfill()
+                    
+                    client.close() { (result) in
+                        
+                        XCTAssertTrue(Thread.isMainThread)
+                        XCTAssertNil(result.error)
+                        exp.fulfill()
+                    }
                 }
             }
             
