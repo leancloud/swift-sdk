@@ -66,6 +66,8 @@ public struct LCError: Error {
 
     enum ServerErrorCode: Int {
         case objectNotFound = 101
+        case sessionConflict = 4111
+        case sessionTokenExpired = 4112
     }
 
     /**
