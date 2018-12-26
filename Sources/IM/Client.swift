@@ -18,7 +18,11 @@ import IOKit
  
  Clients and messages are organized by conversation, that is, a client can only send and receive messages in context of conversation.
  */
-public final class LCClient: NSObject {
+public final class LCClient {
+    
+    /// Maximum length of client ID.
+    public static let lengthRangeOfClientID = 1...64
+    public static let reservedValueOfTag: String = "default"
     
     #if DEBUG
     /// for unit test
@@ -123,12 +127,16 @@ public final class LCClient: NSObject {
     /// The client session state.
     public private(set) var sessionState: SessionState {
         set(newValue) {
-            synchronize(on: self) {
-                self.underlyingSessionState = newValue
-            }
+            self.mutex.lock()
+            self.underlyingSessionState = newValue
+            self.mutex.unlock()
         }
         get {
-            return self.underlyingSessionState
+            let value: SessionState
+            self.mutex.lock()
+            value = self.underlyingSessionState
+            self.mutex.unlock()
+            return value
         }
     }
     private var underlyingSessionState: SessionState = .closed
@@ -137,9 +145,7 @@ public final class LCClient: NSObject {
     }
     
     /// The client serial dispatch queue.
-    private let serialDispatchQueue = DispatchQueue(
-        label: "LeanCloud.ClientSerialDispatchQueue",
-        qos: .userInteractive)
+    private let serialQueue = DispatchQueue(label: "LeanCloud.LCClient.serialQueue", qos: .userInitiated)
     
     #if DEBUG
     private let specificKey = DispatchSpecificKey<Int>()
@@ -157,6 +163,9 @@ public final class LCClient: NSObject {
     /// The session connection.
     private let connection: Connection
     
+    /// Internal mutex
+    private let mutex = NSLock()
+    
     /**
      Initialize client with identifier and tag.
      
@@ -173,18 +182,25 @@ public final class LCClient: NSObject {
         options: Options = .default,
         delegate: LCClientDelegate? = nil,
         eventQueue: DispatchQueue = .main,
+        timeoutInterval: TimeInterval = 30.0,
         customServer: URL? = nil,
         application: LCApplication = .default)
         throws
     {
-        guard !id.isEmpty && id.count <= 64 else {
-            throw LCError(code: .inconsistency, reason: "Length of client identifier should in [1...64]")
+        guard LCClient.lengthRangeOfClientID.contains(id.count) else {
+            throw LCError(
+                code: .inconsistency,
+                reason: "Length of client ID should in \(LCClient.lengthRangeOfClientID)"
+            )
         }
-        guard tag != "default" else {
-            throw LCError(code: .inconsistency, reason: "\"default\" string should not be used on tag")
+        guard tag != LCClient.reservedValueOfTag else {
+            throw LCError(
+                code: .inconsistency,
+                reason: "\"\(LCClient.reservedValueOfTag)\" string should not be used on tag"
+            )
         }
         #if DEBUG
-        self.serialDispatchQueue.setSpecific(key: self.specificKey, value: self.specificValue)
+        self.serialQueue.setSpecific(key: self.specificKey, value: self.specificValue)
         #endif
         self.id = id
         self.tag = tag
@@ -195,12 +211,14 @@ public final class LCClient: NSObject {
         self.application = application
         self.installation = application.currentInstallation
         // directly init `connection` is better, lazy init is not a good choice.
+        // because connection should get App State in main thread.
         self.connection = Connection(
             application: application,
             lcimProtocol: options.lcimProtocol,
-            delegateQueue: serialDispatchQueue,
-            customRTMServerURL: customServer)
-        super.init()
+            delegateQueue: self.serialQueue,
+            commandTTL: timeoutInterval,
+            customRTMServerURL: customServer
+        )
         self.deviceTokenObservation = self.installation.observe(
             \.deviceToken,
             options: [.old, .new, .initial]
@@ -210,38 +228,27 @@ public final class LCClient: NSObject {
             guard let token: String = newToken, oldToken != newToken else {
                 return
             }
-            self?.serialDispatchQueue.async {
+            self?.serialQueue.async {
                 guard let self = self, self.currentDeviceToken != token else {
                     return
                 }
                 self.currentDeviceToken = token
-                guard self.isSessionOpened else {
-                    return
-                }
                 self.report(deviceToken: token)
             }
         }
     }
     
-    /// The incoming command of opening session.
-    private var sessionOpenedCommand: IMSessionCommand?
-    
-    /// Should delegate session state.
-    private var shouldDelegateSessionState: Bool {
-        assert(self.specificAssertion)
-        return self.sessionOpenedCommand != nil
-    }
-    
-    /// Some config about opening
+    /// Session Token & Opening config
+    private var sessionToken: String?
+    private var sessionTokenExpiration: Date?
     private var openingCompletion: ((LCBooleanResult) -> Void)?
-    private var openingTimeoutWorkItem: DispatchWorkItem?
     private var openingOptions: SessionOpenOptions?
     
     /// Device Token and fallback-UDID
     private var deviceTokenObservation: NSKeyValueObservation?
     private var currentDeviceToken: String?
     private lazy var fallbackUDID: String = {
-        var udid: String = ""
+        var udid: String = UUID().uuidString
         #if os(iOS) || os(tvOS)
         if let identifierForVendor: String = UIDevice.current.identifierForVendor?.uuidString {
             udid = identifierForVendor
@@ -256,16 +263,17 @@ public final class LCClient: NSObject {
         return udid
     }()
     
+    // MARK: - Open & Close
+    
     /**
      Open a session to IM system.
      
      - parameter options: @see `SessionOpenOptions`.
-     - parameter timeout: Timeout for opening, default is 60 seconds.
      - parameter completion: The completion handler.
      */
-    public func open(options: SessionOpenOptions = .default, timeout: TimeInterval = 60.0, completion: @escaping (LCBooleanResult) -> Void) {
-        self.serialDispatchQueue.async {
-            guard self.openingCompletion == nil && self.sessionOpenedCommand == nil else {
+    public func open(options: SessionOpenOptions = .default, completion: @escaping (LCBooleanResult) -> Void) {
+        self.serialQueue.async {
+            guard self.openingCompletion == nil && self.sessionToken == nil else {
                 var reason: String = "cannot do repetitive operation."
                 if let _ = self.openingCompletion {
                     reason = "In opening, \(reason)"
@@ -282,23 +290,66 @@ public final class LCClient: NSObject {
             self.openingCompletion = completion
             self.openingOptions = options
             
-            let timeoutWorkItem = DispatchWorkItem() { [weak self] in
-                guard let self = self, let openingCompletion = self.openingCompletion else {
-                    return
-                }
-                self.clearOpeningConfig()
-                let error = LCError(code: .commandTimeout, reason: "Session open operation timed out.")
-                self.sessionClosed(with: .failure(error: error), completion: openingCompletion)
-            }
-            self.openingTimeoutWorkItem = timeoutWorkItem
-            self.serialDispatchQueue.asyncAfter(deadline: .now() + timeout, execute: timeoutWorkItem)
-            
             /* Enable auto-reconnection for opening WebSocket connection to send session command. */
             self.connection.delegate = self
-            self.connection.setAutoReconnectionEnabled(true)
             self.connection.connect()
         }
     }
+    
+    /**
+     Close with completion handler.
+     
+     - parameter completion: The completion handler.
+     */
+    public func close(completion: @escaping (LCBooleanResult) -> Void) {
+        self.serialQueue.async {
+            guard self.isSessionOpened else {
+                var error: LCError
+                if self.sessionState == .closing {
+                    error = LCError(
+                        code: .inconsistency,
+                        reason: "In closing, cannot do repetitive operation."
+                    )
+                } else {
+                    error = LCError(code: .clientNotOpen)
+                }
+                self.eventQueue.async {
+                    completion(.failure(error: error))
+                }
+                return
+            }
+            
+            self.sessionState = .closing
+            
+            var outCommand = IMGenericCommand()
+            outCommand.cmd = .session
+            outCommand.op = .close
+            outCommand.sessionMessage = IMSessionCommand()
+            
+            self.connection.send(command: outCommand) { [weak self] (result) in
+                guard let self = self else {
+                    return
+                }
+                switch result {
+                case .inCommand(let inCommand):
+                    if inCommand.check(type: .session, op: .closed) {
+                        self.sessionClosed(with: .success, completion: completion)
+                    } else {
+                        self.eventQueue.async {
+                            let error = LCError(code: .commandInvalid)
+                            completion(.failure(error: error))
+                        }
+                    }
+                case .error(let error):
+                    self.eventQueue.async {
+                        completion(.failure(error: error))
+                    }
+                }
+            }
+        }
+    }
+    
+    // MARK: - Create Conversation
 
     /**
      Create a normal conversation.
@@ -380,9 +431,6 @@ public final class LCClient: NSObject {
 
     }
 
-    /// Maximum length of client ID.
-    private let maximumLengthOfClientID = 64
-
     /**
      Create a conversation with creation option.
 
@@ -401,7 +449,7 @@ public final class LCClient: NSObject {
 
         // Validate each client ID.
         for clientId in clientIds {
-            guard (1...maximumLengthOfClientID).contains(clientId.count) else {
+            guard LCClient.lengthRangeOfClientID.contains(clientId.count) else {
                 eventQueue.async {
                     let error = LCError(code: .malformedData, reason: "Invalid client ID.")
                     completion(.failure(error: error))
@@ -516,56 +564,6 @@ public final class LCClient: NSObject {
         return result
     }
     
-    /**
-     Close with completion handler.
-     
-     - parameter completion: The completion handler.
-     */
-    public func close(completion: @escaping (LCBooleanResult) -> Void) {
-        self.serialDispatchQueue.async {
-            guard self.isSessionOpened else {
-                var error: LCError
-                if self.sessionState == .closing {
-                    error = LCError(
-                        code: .inconsistency,
-                        reason: "In closing, cannot do repetitive operation.")
-                } else {
-                    error = LCError(code: .clientNotOpen)
-                }
-                self.eventQueue.async {
-                    completion(.failure(error: error))
-                }
-                return
-            }
-            
-            self.sessionState = .closing
-            
-            var outCommand = IMGenericCommand()
-            outCommand.cmd = .session
-            outCommand.op = .close
-            outCommand.sessionMessage = IMSessionCommand()
-            
-            self.connection.send(command: outCommand) { [weak self] (result) in
-                guard let self = self else {
-                    return
-                }
-                switch result {
-                case .inCommand(let inCommand):
-                    if inCommand.cmd == .session && inCommand.op == .closed {
-                        self.sessionClosed(with: .success, completion: completion)
-                    } else {
-                        let error = LCError(code: .commandInvalid)
-                        self.sessionClosed(with: .failure(error: error), completion: completion)
-                    }
-                case .error(let error):
-                    self.eventQueue.async {
-                        completion(.failure(error: error))
-                    }
-                }
-            }
-        }
-    }
-    
 }
 
 extension LCClient {
@@ -576,7 +574,7 @@ extension LCClient {
      - parameter task: The task to be enqueued.
      */
     func enqueueSerialTask(_ task: @escaping (LCClient) -> Void) {
-        serialDispatchQueue.async { [weak self] in
+        serialQueue.async { [weak self] in
             guard let client = self else {
                 return
             }
@@ -622,14 +620,6 @@ extension LCClient {
 
 private extension LCClient {
     
-    private func clearOpeningConfig() {
-        assert(self.specificAssertion)
-        self.openingTimeoutWorkItem?.cancel()
-        self.openingTimeoutWorkItem = nil
-        self.openingCompletion = nil
-        self.openingOptions = nil
-    }
-    
     private func newOpenCommand() -> IMGenericCommand {
         assert(self.specificAssertion)
         var outCommand = IMGenericCommand()
@@ -647,9 +637,38 @@ private extension LCClient {
         return outCommand
     }
     
-    private func report(deviceToken token: String) {
+    private func send(reopenCommand command: IMGenericCommand) {
         assert(self.specificAssertion)
-        assert(self.isSessionOpened)
+        self.connection.send(command: command) { [weak self] (result) in
+            guard let self = self else { return }
+            switch result {
+            case .inCommand(let inCommand):
+                self.handle(openCommandCallback: inCommand)
+            case .error(let error):
+                if error.code == LCError.InternalErrorCode.commandTimeout.rawValue {
+                    self.send(reopenCommand: command)
+                } else if error.code == LCError.ServerErrorCode.sessionTokenExpired.rawValue {
+                    var openCommand = self.newOpenCommand()
+                    openCommand.sessionMessage.r = true
+                    self.send(reopenCommand: openCommand)
+                } else {
+                    Logger.shared.debug(error)
+                }
+            }
+        }
+    }
+    
+    private func report(deviceToken token: String?, openCommand: IMGenericCommand? = nil) {
+        assert(self.specificAssertion)
+        guard let token: String = token, self.isSessionOpened else {
+            return
+        }
+        if let openCommand = openCommand {
+            // if Device-Token changed in Opening-Period, reporting after open success.
+            guard openCommand.sessionMessage.deviceToken != token else {
+                return
+            }
+        }
         var outCommand = IMGenericCommand()
         outCommand.cmd = .report
         outCommand.op = .upload
@@ -659,11 +678,6 @@ private extension LCClient {
         reportCommand.data = token
         outCommand.reportMessage = reportCommand
         self.connection.send(command: outCommand) { result in
-            if let command: IMGenericCommand = result.command {
-                if !(command.cmd == .report && command.op == .uploaded) {
-                    Logger.shared.error(command)
-                }
-            }
             #if DEBUG
             /// for unit test
             NotificationCenter.default.post(
@@ -675,36 +689,44 @@ private extension LCClient {
         }
     }
     
-    private func handle(openCommandCallback inCommand: IMGenericCommand, openingCompletion: ((LCBooleanResult) -> Void)?) {
+    private func handle(openCommandCallback command: IMGenericCommand, completion: ((LCBooleanResult) -> Void)? = nil) {
         assert(self.specificAssertion)
-        if inCommand.cmd == .session && inCommand.hasSessionMessage {
-            let sessionCommand: IMSessionCommand = inCommand.sessionMessage
-            if inCommand.op == .opened && sessionCommand.hasSt && sessionCommand.hasStTtl {
-                self.sessionOpenedCommand = sessionCommand
-                self.sessionState = .opened
-                self.eventQueue.async {
-                    if let completion = openingCompletion {
-                        completion(.success)
-                    } else {
-                        self.delegate?.client(didOpenSession: self)
-                    }
-                }
-                return
-            } else if inCommand.op == .closed {
-                self.process(sessionClosedCommand: sessionCommand, completion: openingCompletion)
-                return
+        switch (command.cmd, command.op) {
+        case (.session, .opened):
+            let sessionMessage = command.sessionMessage
+            if sessionMessage.hasSt && sessionMessage.hasStTtl {
+                self.sessionToken = sessionMessage.st
+                self.sessionTokenExpiration = Date(timeIntervalSinceNow: TimeInterval(sessionMessage.stTtl))
             }
+            if let _ = completion {
+                self.connection.setAutoReconnectionEnabled(true)
+            }
+            self.sessionState = .opened
+            self.eventQueue.async {
+                if let completion = completion {
+                    completion(.success)
+                } else {
+                    self.delegate?.client(didOpenSession: self)
+                }
+            }
+        case (.session, .closed):
+            let sessionMessage = command.sessionMessage
+            self.process(sessionClosedCommand: sessionMessage, completion: completion)
+        default:
+            let error = LCError(code: .commandInvalid)
+            self.sessionClosed(with: .failure(error: error), completion: completion)
         }
-        let error = LCError(code: .commandInvalid)
-        self.sessionClosed(with: .failure(error: error), completion: openingCompletion)
     }
     
-    private func sessionClosed(with result: LCBooleanResult, completion: ((LCBooleanResult) -> Void)?) {
+    private func sessionClosed(with result: LCBooleanResult, completion: ((LCBooleanResult) -> Void)? = nil) {
         assert(self.specificAssertion)
         self.connection.delegate = nil
         self.connection.setAutoReconnectionEnabled(false)
         self.connection.disconnect()
-        self.sessionOpenedCommand = nil
+        self.sessionToken = nil
+        self.sessionTokenExpiration = nil
+        self.openingCompletion = nil
+        self.openingOptions = nil
         self.sessionState = .closed
         self.eventQueue.async {
             if let completion = completion {
@@ -715,10 +737,10 @@ private extension LCClient {
         }
     }
     
-    private func process(sessionClosedCommand sessionCommand: IMSessionCommand, completion: ((LCBooleanResult) -> Void)?) {
+    private func process(sessionClosedCommand sessionCommand: IMSessionCommand, completion: ((LCBooleanResult) -> Void)? = nil) {
         assert(self.specificAssertion)
         let code: Int = Int(sessionCommand.code)
-        let reason: String = sessionCommand.reason
+        let reason: String? = (sessionCommand.hasReason ? sessionCommand.reason : nil)
         let userInfo: LCError.UserInfo? = (sessionCommand.hasDetail ? ["detail" : sessionCommand.detail] : nil)
         let error = LCError(code: code, reason: reason, userInfo: userInfo)
         self.sessionClosed(with: .failure(error: error), completion: completion)
@@ -730,7 +752,7 @@ extension LCClient: ConnectionDelegate {
     
     func connection(inConnecting connection: Connection) {
         assert(self.specificAssertion)
-        guard shouldDelegateSessionState, self.sessionState != .resuming else {
+        guard let _ = self.sessionToken, self.sessionState != .resuming else {
             return
         }
         self.sessionState = .resuming
@@ -741,55 +763,42 @@ extension LCClient: ConnectionDelegate {
     
     func connection(didConnect connection: Connection) {
         assert(self.specificAssertion)
-        var openCommand: IMGenericCommand = self.newOpenCommand()
-        if let _ = self.openingCompletion, let openingOptions = self.openingOptions {
+        var openCommand = self.newOpenCommand()
+        if let openingCompletion = self.openingCompletion,
+            let openingOptions = self.openingOptions
+        {
             openCommand.sessionMessage.r = openingOptions.r
             self.connection.send(command: openCommand) { [weak self] (result) in
-                guard let self = self, let openingCompletion = self.openingCompletion else {
-                    return
-                }
+                guard let self = self else { return }
+                self.openingCompletion = nil
+                self.openingOptions = nil
                 switch result {
                 case .inCommand(let inCommand):
-                    self.clearOpeningConfig()
-                    self.handle(openCommandCallback: inCommand, openingCompletion: openingCompletion)
-                    if let token: String = self.currentDeviceToken,
-                        self.isSessionOpened,
-                        openCommand.sessionMessage.hasDeviceToken,
-                        openCommand.sessionMessage.deviceToken != token {
-                        // if Device-Token changed in Opening-Period, reporting after open success.
-                        self.report(deviceToken: token)
+                    self.handle(openCommandCallback: inCommand, completion: openingCompletion)
+                    self.report(deviceToken: self.currentDeviceToken, openCommand: openCommand)
+                case .error(let error):
+                    self.eventQueue.async {
+                        openingCompletion(.failure(error: error))
                     }
-                case .error(let error):
-                    // no need handle it, just log info.
-                    Logger.shared.debug(error)
                 }
             }
-        } else if let currentSessionOpenedCommand: IMSessionCommand = self.sessionOpenedCommand {
+        }
+        else if let sessionToken = self.sessionToken
+        {
             openCommand.sessionMessage.r = true
-            openCommand.sessionMessage.st = currentSessionOpenedCommand.st
-            self.connection.send(command: openCommand) { [weak self] (result) in
-                guard let self = self else {
-                    return
-                }
-                switch result {
-                case .inCommand(let inCommand):
-                    self.handle(openCommandCallback: inCommand, openingCompletion: nil)
-                case .error(let error):
-                    // no need handle it, just log info.
-                    Logger.shared.debug(error)
-                }
-            }
+            openCommand.sessionMessage.st = sessionToken
+            self.send(reopenCommand: openCommand)
         }
     }
     
     func connection(_ connection: Connection, didDisconnect error: LCError) {
         assert(self.specificAssertion)
         let routerError = LCError.malformedRTMRouterResponse
-        if error.code == routerError.code && error.reason == routerError.reason {
-            let openingCompletion = self.openingCompletion
-            self.clearOpeningConfig()
+        if error.code == routerError.code, error.reason == routerError.reason {
+            self.sessionClosed(with: .failure(error: error), completion: self.openingCompletion)
+        } else if let openingCompletion = self.openingCompletion {
             self.sessionClosed(with: .failure(error: error), completion: openingCompletion)
-        } else if self.shouldDelegateSessionState {
+        } else if let _ = self.sessionToken, self.sessionState != .paused {
             self.sessionState = .paused
             self.eventQueue.async {
                 self.delegate?.client(self, didPauseSession: error)
@@ -803,7 +812,7 @@ extension LCClient: ConnectionDelegate {
         case .session:
             switch inCommand.op {
             case .closed:
-                self.process(sessionClosedCommand: inCommand.sessionMessage, completion: nil)
+                self.process(sessionClosedCommand: inCommand.sessionMessage)
             default:
                 break
             }
