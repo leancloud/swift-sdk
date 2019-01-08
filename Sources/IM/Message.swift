@@ -8,6 +8,7 @@
 
 import Foundation
 
+/// IM Message
 public class LCMessage: NSObject {
     
     public enum IOType {
@@ -17,7 +18,7 @@ public class LCMessage: NSObject {
     
     public var ioType: IOType {
         if
-            let fromClientID: String = self.fromClientId,
+            let fromClientID: String = self.fromClientID,
             let localClientID: String = self.localClientID,
             fromClientID == localClientID
         { return .out }
@@ -34,30 +35,31 @@ public class LCMessage: NSObject {
         case read = 5
     }
     
-    public private(set) var status: Status = .none
+    public internal(set) var status: Status = .none
     
-    public private(set) var id: String?
+    public internal(set) var ID: String?
     
-    public private(set) var fromClientId: String?
+    public internal(set) var fromClientID: String?
+    internal var localClientID: String?
     
-    public private(set) var conversationId: String?
+    public internal(set) var conversationID: String?
     
-    public private(set) var sentTimestamp: Int64?
+    public internal(set) var sentTimestamp: Int64?
     public var sentDate: Date? {
         return date(fromMillisecond: sentTimestamp)
     }
     
-    public private(set) var deliveredTimestamp: Int64?
+    public internal(set) var deliveredTimestamp: Int64?
     public var deliveredDate: Date? {
         return date(fromMillisecond: deliveredTimestamp)
     }
     
-    public private(set) var readTimestamp: Int64?
+    public internal(set) var readTimestamp: Int64?
     public var readDate: Date? {
         return date(fromMillisecond: readTimestamp)
     }
     
-    public private(set) var patchedTimestamp: Int64?
+    public internal(set) var patchedTimestamp: Int64?
     public var patchedDate: Date? {
         return date(fromMillisecond: patchedTimestamp)
     }
@@ -112,13 +114,11 @@ public class LCMessage: NSObject {
         super.init()
     }
     
-    var isTransient: Bool? = nil
+    var isTransient: Bool?
     
-    var localClientID: String? = nil
+    var isOffline: Bool?
     
-    var isOffline: Bool? = nil
-    
-    var hasMore: Bool? = nil
+    var hasMore: Bool?
     
 }
 
