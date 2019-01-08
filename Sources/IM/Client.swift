@@ -13,12 +13,23 @@ import UIKit
 import IOKit
 #endif
 
-/**
- An LCClient represents an entity which can send and receive messages in IM system.
- 
- Clients and messages are organized by conversation, that is, a client can only send and receive messages in context of conversation.
- */
+/// IM Client
 public final class LCClient {
+    
+    #if DEBUG
+    /// for unit test
+    internal static let TestReportDeviceTokenNotification = Notification.Name.init("TestReportDeviceTokenNotification")
+    internal let specificKey = DispatchSpecificKey<Int>()
+    // whatever random Int is OK.
+    internal let specificValue: Int = Int.random(in: 1...999)
+    private var specificAssertion: Bool {
+        return self.specificValue == DispatchQueue.getSpecific(key: self.specificKey)
+    }
+    #else
+    private var specificAssertion: Bool {
+        return true
+    }
+    #endif
     
     /// length range of client ID.
     public static let lengthRangeOfClientID = 1...64
@@ -26,10 +37,72 @@ public final class LCClient {
     /// reserved value of tag
     public static let reservedValueOfTag: String = "default"
     
-    #if DEBUG
-    /// for unit test
-    internal static let TestReportDeviceTokenNotification = Notification.Name.init("TestReportDeviceTokenNotification")
-    #endif
+    /// The client identifier.
+    public let ID: String
+    
+    /// The client tag, which represents what kind of session that current client will open.
+    /// @related `SessionOpenOptions`
+    public let tag: String?
+    
+    /// The client options.
+    public let options: Options
+    
+    /// The application that the client belongs to.
+    public let application: LCApplication
+    
+    /// Application's current installation
+    internal let installation: LCInstallation
+    
+    /// The delegate object.
+    public weak var delegate: LCClientDelegate?
+    
+    /// The dispatch queue on which the event about IM are called. Default is main.
+    public let eventQueue: DispatchQueue
+    
+    /// The custom server URL.
+    public let customServer: URL?
+    
+    /**
+     Client session state.
+     */
+    public enum SessionState {
+        
+        /// Session is opened
+        case opened
+        
+        /// Session is resuming
+        case resuming
+        
+        /// Session is paused
+        case paused
+        
+        /// Session is closing
+        case closing
+        
+        /// Session is closed
+        case closed
+        
+    }
+    
+    /// The client session state.
+    public private(set) var sessionState: SessionState {
+        set {
+            self.mutex.lock()
+            self.underlyingSessionState = newValue
+            self.mutex.unlock()
+        }
+        get {
+            let value: SessionState
+            self.mutex.lock()
+            value = self.underlyingSessionState
+            self.mutex.unlock()
+            return value
+        }
+    }
+    private var underlyingSessionState: SessionState = .closed
+    private var isSessionOpened: Bool {
+        return self.sessionState == .opened
+    }
     
     /**
      Options that can modify behaviors of client.
@@ -59,119 +132,10 @@ public final class LCClient {
         
     }
     
-    /**
-     Options that can modify behaviors of session open operation.
-     */
-    public struct SessionOpenOptions: OptionSet {
-        
-        public let rawValue: Int
-        
-        public init(rawValue: Int) {
-            self.rawValue = rawValue
-        }
-        
-        /// Default options is forced.
-        public static let `default`: SessionOpenOptions = [.forced]
-        
-        /// For two sessions of one client with same tag, the later one will force to make previous one offline.
-        public static let forced = SessionOpenOptions(rawValue: 1 << 0)
-        
-        var r: Bool { return !contains(.forced) }
-    }
-    
-    /**
-     Client session state.
-     */
-    public enum SessionState {
-        
-        /// Session is opened
-        case opened
-        
-        /// Session is resuming
-        case resuming
-        
-        /// Session is paused
-        case paused
-        
-        /// Session is closing
-        case closing
-        
-        /// Session is closed
-        case closed
-        
-    }
-    
-    /// The client identifier.
-    public let id: String
-    
-    /// The client tag, which represents what kind of session that current client will open.
-    /// @related `SessionOpenOptions`
-    public let tag: String?
-    
-    /// The client options.
-    public let options: Options
-    
-    /// The application that the client belongs to.
-    public let application: LCApplication
-    
-    /// Application's current installation
-    internal let installation: LCInstallation
-    
-    /// The delegate object.
-    public weak var delegate: LCClientDelegate?
-    
-    /// The dispatch queue on which the event about IM are called. Default is main.
-    public let eventQueue: DispatchQueue
-    
-    /// The custom server URL.
-    public let customServer: URL?
-    
-    /// The client session state.
-    public private(set) var sessionState: SessionState {
-        set(newValue) {
-            self.mutex.lock()
-            self.underlyingSessionState = newValue
-            self.mutex.unlock()
-        }
-        get {
-            let value: SessionState
-            self.mutex.lock()
-            value = self.underlyingSessionState
-            self.mutex.unlock()
-            return value
-        }
-    }
-    private var underlyingSessionState: SessionState = .closed
-    private var isSessionOpened: Bool {
-        return self.sessionState == .opened
-    }
-    
-    /// The client serial dispatch queue.
-    private let serialQueue = DispatchQueue(label: "LeanCloud.LCClient.serialQueue", qos: .userInitiated)
-    
-    #if DEBUG
-    private let specificKey = DispatchSpecificKey<Int>()
-    // whatever random Int is OK.
-    private let specificValue: Int = Int.random(in: 1...999)
-    private var specificAssertion: Bool {
-        return self.specificValue == DispatchQueue.getSpecific(key: self.specificKey)
-    }
-    #else
-    private var specificAssertion: Bool {
-        return true
-    }
-    #endif
-    
-    /// The session connection.
-    private let connection: Connection
-    
-    /// Internal mutex
-    private let mutex = NSLock()
-    
     /// Initialize client with identifier and tag.
     ///
     /// - Parameters:
-    ///   - id: The client identifier. Length should in [1...64].
+    ///   - ID: The client identifier. Length should in [1...64].
     ///   - tag: The client tag. "default" string should not be used.
     ///   - options: @see `LCClient.Options`.
     ///   - delegate: @see `LCClientDelegate`.
@@ -179,9 +143,9 @@ public final class LCClient {
     ///   - timeoutInterval: timeout interval of command.
     ///   - customServer: The custom server URL for private deployment.
     ///   - application: The application that the client belongs to.
-    /// - Throws: if `id` or `tag` invalid, then throw error.
+    /// - Throws: if `ID` or `tag` invalid, then throw error.
     public init(
-        id: String,
+        ID: String,
         tag: String? = nil,
         options: Options = .default,
         delegate: LCClientDelegate? = nil,
@@ -191,22 +155,16 @@ public final class LCClient {
         application: LCApplication = .default)
         throws
     {
-        guard LCClient.lengthRangeOfClientID.contains(id.count) else {
-            throw LCError(
-                code: .inconsistency,
-                reason: "Length of client ID should in \(LCClient.lengthRangeOfClientID)"
-            )
+        guard LCClient.lengthRangeOfClientID.contains(ID.count) else {
+            throw LCError.invalidClientIDError
         }
         guard tag != LCClient.reservedValueOfTag else {
-            throw LCError(
-                code: .inconsistency,
-                reason: "\"\(LCClient.reservedValueOfTag)\" string should not be used on tag"
-            )
+            throw LCError.invalidClientTagError
         }
         #if DEBUG
         self.serialQueue.setSpecific(key: self.specificKey, value: self.specificValue)
         #endif
-        self.id = id
+        self.ID = ID
         self.tag = tag
         self.options = options
         self.delegate = delegate
@@ -242,6 +200,15 @@ public final class LCClient {
         }
     }
     
+    /// The client serial dispatch queue.
+    private let serialQueue = DispatchQueue(label: "LeanCloud.LCClient.serialQueue", qos: .userInitiated)
+    
+    /// The session connection.
+    private let connection: Connection
+    
+    /// Internal mutex
+    private let mutex = NSLock()
+    
     /// Session Token & Opening Config
     private var sessionToken: String?
     private var sessionTokenExpiration: Date?
@@ -267,7 +234,34 @@ public final class LCClient {
         return udid
     }()
     
-    // MARK: - Open & Close
+    /// Conversation Container
+    private var convCollection: [String: LCConversation] = [:]
+    
+}
+
+// MARK: - Open & Close
+
+extension LCClient {
+    
+    /**
+     Options that can modify behaviors of session open operation.
+     */
+    public struct SessionOpenOptions: OptionSet {
+        
+        public let rawValue: Int
+        
+        public init(rawValue: Int) {
+            self.rawValue = rawValue
+        }
+        
+        /// Default options is forced.
+        public static let `default`: SessionOpenOptions = [.forced]
+        
+        /// For two sessions of one client with same tag, the later one will force to make previous one offline.
+        public static let forced = SessionOpenOptions(rawValue: 1 << 0)
+        
+        var r: Bool { return !contains(.forced) }
+    }
     
     /**
      Open a session to IM system.
@@ -353,274 +347,306 @@ public final class LCClient {
         }
     }
     
-    // MARK: - Create Conversation
-
-    /**
-     Create a normal conversation.
-
-     - parameter clientIds: An array of client ID.
-     - parameter attributes: The initial conversation attributes.
-     - parameter isUnique: A flag indicates whether create an unique conversation.
-     - parameter completion: The completion handler.
-     */
-    public func createConversation(
-        clientIds: [String],
-        attributes: LCDictionary? = nil,
-        isUnique: Bool = true,
-        completion: @escaping (LCGenericResult<LCConversation>) -> Void)
-    {
-        createConversation(
-            clientIds: clientIds,
-            attributes: attributes,
-            option: isUnique ? .normalAndUnique : .normal,
-            completion: completion)
-    }
-
-    /**
-     Create a chat room conversation.
-
-     - parameter clientIds: An array of client ID.
-     - parameter attributes: The initial conversation attributes.
-     - parameter completion: The completion handler.
-     */
-    public func createChatRoomConversation(
-        clientIds: [String],
-        attributes: LCDictionary? = nil,
-        completion: @escaping (LCGenericResult<LCChatRoomConversation>) -> Void)
-    {
-        createConversation(
-            clientIds: clientIds,
-            attributes: attributes,
-            option: .transient,
-            completion: completion)
-    }
-
-    /**
-     Create a temporary conversation.
-
-     - parameter clientIds: An array of client ID.
-     - parameter attributes: The initial conversation attributes.
-     - parameter timeToLive: The time to live, in seconds.
-     - parameter completion: The completion handler.
-     */
-    public func createTemporaryConversation(
-        clientIds: [String],
-        attributes: LCDictionary? = nil,
-        timeToLive: Int32,
-        completion: @escaping (LCGenericResult<LCTemporaryConversation>) -> Void)
-    {
-        createConversation(
-            clientIds: clientIds,
-            attributes: attributes,
-            option: .temporary(ttl: timeToLive),
-            completion: completion)
-    }
-
-    /**
-     Conversation creation option.
-     */
-    private enum ConversationCreationOption {
-
-        /// Normal conversation.
-        case normal
-
-        /// Normal and unique conversation.
-        case normalAndUnique
-
-        /// Transient conversation.
-        case transient
-
-        /// Temporary conversation.
-        case temporary(ttl: Int32)
-
-    }
-
-    /**
-     Create a conversation with creation option.
-
-     - parameter clientIds: An array of client ID.
-     - parameter attributes: The initial conversation attributes.
-     - parameter option: The conversation creation option.
-     - parameter completion: The completion handler.
-     */
-    private func createConversation<T: LCConversation>(
-        clientIds: [String],
-        attributes: LCDictionary? = nil,
-        option: ConversationCreationOption,
-        completion: @escaping (LCGenericResult<T>) -> Void)
-    {
-        let clientIds = Array(Set(clientIds))
-
-        // Validate each client ID.
-        for clientId in clientIds {
-            guard LCClient.lengthRangeOfClientID.contains(clientId.count) else {
-                eventQueue.async {
-                    let error = LCError(code: .malformedData, reason: "Invalid client ID.")
-                    completion(.failure(error: error))
-                }
-                return
-            }
-        }
-
-        sendCommand(
-        constructor: { (client, command) in
-            command.cmd = .conv
-            command.op = .start
-
-            var convMessage = IMConvCommand()
-
-            switch option {
-            case .normal:
-                break
-            case .normalAndUnique:
-                convMessage.unique = true
-            case .transient:
-                convMessage.transient = true
-            case .temporary(let ttl):
-                convMessage.tempConv = true
-
-                if ttl > 0 {
-                    convMessage.tempConvTtl = ttl
-                }
-            }
-
-            convMessage.m = clientIds
-
-            if let attributes = attributes {
-                var attrMessage = IMJsonObjectMessage()
-
-                attrMessage.data = attributes.jsonString
-                convMessage.attr = attrMessage
-            }
-
-            command.convMessage = convMessage
-        },
-        completion: { (client, result, outcomingCommand) in
-            switch result {
-            case .error(let error):
-                client.eventQueue.async {
-                    completion(.failure(error: error))
-                }
-            case .inCommand(let incomingCommand):
-                do {
-                    let conversation: T = try client.createConversation(
-                        incomingConvCommand: incomingCommand.convMessage,
-                        outcomingConvCommand: outcomingCommand.convMessage,
-                        attributes: attributes)
-
-                    client.eventQueue.async {
-                        completion(.success(value: conversation))
-                    }
-                } catch let error as LCError {
-                    client.eventQueue.async {
-                        completion(.failure(error: error))
-                    }
-                } catch let error {
-                    let error = LCError(underlyingError: error)
-
-                    client.eventQueue.async {
-                        completion(.failure(error: error))
-                    }
-                }
-            }
-        })
-    }
-
-    /**
-     Create conversation object.
-     */
-    func createConversation<T: LCConversation>(
-        incomingConvCommand: IMConvCommand,
-        outcomingConvCommand: IMConvCommand,
-        attributes: LCDictionary?) throws -> T
-    {
-        guard incomingConvCommand.hasCid else {
-            throw LCError(
-                code: .commandInvalid,
-                reason: "Failed to create conversation.")
-        }
-
-        let conversation: LCConversation
-        let objectId = incomingConvCommand.cid
-
-        if outcomingConvCommand.transient {
-            conversation = LCChatRoomConversation(id: objectId)
-        } else if outcomingConvCommand.tempConv {
-            conversation = LCTemporaryConversation(id: objectId)
-        } else {
-            conversation = LCConversation(id: objectId)
-        }
-
-        conversation.client = self
-
-        if incomingConvCommand.hasCdate {
-            conversation.createdAt = LCDate(isoString: incomingConvCommand.cdate)?.value
-        }
-
-        // TODO: Assign attributes to conversation.
-
-        guard let result = conversation as? T else {
-            throw LCError(
-                code: .inconsistency,
-                reason: "Failed to create conversation.")
-        }
-
-        return result
-    }
-    
 }
+
+// MARK: - Create Conversation
 
 extension LCClient {
     
-    /**
-     Enqueue serial task asynchronously.
-     
-     - parameter task: The task to be enqueued.
-     */
-    func enqueueSerialTask(_ task: @escaping (LCClient) -> Void) {
-        serialQueue.async { [weak self] in
-            guard let client = self else {
-                return
+    /// Create a normal conversation.
+    ///
+    /// - Parameters:
+    ///   - clientIDs: An array of client ID. it's the members of the conversation which will be created. the initialized members always contains this client's ID.
+    ///   - name: The name of the conversation
+    ///   - attributes: The custom attributes of the conversation
+    ///   - isUnique: if true, the created conversation will has a unique ID which is related to members's ID. you can use this parameter to create a new unique conversation or get an exists unique conversation.
+    ///     e.g.
+    ///     at first, create conversation with members ["a", "b"] and `isUnique` is true
+    ///     then, backend will have a new unique conversation which `ID` is 'qweasdzxc'
+    ///     after that, create conversation with members ["a", "b"] and `isUnique` is true (same with the firstly)
+    ///     finally, you will get the exists unique conversation which `ID` is 'qweasdzxc' and backend will not create new one.
+    ///   - completion: callback
+    /// - Throws: if `clientIDs`, `name` or `attributes` invalid, then throw error.
+    public func createConversation(
+        clientIDs: Set<String>,
+        name: String? = nil,
+        attributes: [String: Any]? = nil,
+        isUnique: Bool = false,
+        completion: @escaping (LCGenericResult<LCConversation>) -> Void)
+        throws
+    {
+        try self.createConversation(
+            clientIDs: clientIDs,
+            name: name,
+            attributes: attributes,
+            option: (isUnique ? .normalAndUnique : .normal),
+            completion: completion
+        )
+    }
+    
+    /// Create a chat room.
+    ///
+    /// - Parameters:
+    ///   - name: The name of the chat room
+    ///   - attributes: The custom attributes of the chat room
+    ///   - completion: callback
+    /// - Throws: if `name` or `attributes` invalid, then throw error.
+    public func createChatRoom(
+        name: String? = nil,
+        attributes: [String: Any]? = nil,
+        completion: @escaping (LCGenericResult<LCChatRoom>) -> Void)
+        throws
+    {
+        try self.createConversation(
+            clientIDs: [],
+            name: name,
+            attributes: attributes,
+            option: .transient,
+            completion: completion
+        )
+    }
+    
+    /// Create a temporary conversation.
+    ///
+    /// - Parameters:
+    ///   - clientIDs: An array of client ID. it's the members of the conversation which will be created. the initialized members always contains this client's ID.
+    ///   - timeToLive: After time to live, the temporary conversation will be deleted by backend automatically.
+    ///   - completion: callback
+    /// - Throws: if `clientIDs` invalid, then throw error.
+    public func createTemporaryConversation(
+        clientIDs: Set<String>,
+        timeToLive: Int32,
+        completion: @escaping (LCGenericResult<LCTemporaryConversation>) -> Void)
+        throws
+    {
+        try self.createConversation(
+            clientIDs: clientIDs,
+            option: .temporary(ttl: timeToLive),
+            completion: completion
+        )
+    }
+    
+    private enum ConversationCreationOption {
+        case normal
+        case normalAndUnique
+        case transient
+        case temporary(ttl: Int32)
+        
+        var isUnique: Bool {
+            switch self {
+            case .normalAndUnique: return true
+            default: return false
             }
-            task(client)
         }
     }
     
-    /**
-     Send a command to server side.
-     
-     - parameter constructor: The command constructor.
-     - parameter completion: The completion handler.
-     */
-    func sendCommand(
-        constructor: @escaping (LCClient, inout IMGenericCommand) -> Void,
-        completion: @escaping (LCClient, Connection.CommandCallback.Result, IMGenericCommand) -> Void)
+    private func createConversation<T: LCConversation>(
+        clientIDs: Set<String>,
+        name: String? = nil,
+        attributes: [String: Any]? = nil,
+        option: ConversationCreationOption,
+        completion: @escaping (LCGenericResult<T>) -> Void)
+        throws
     {
-        enqueueSerialTask { client in
-            
-            var command = IMGenericCommand()
-
-            command.appID = client.application.id
-            command.peerID = client.id
-            
-            constructor(client, &command)
-
-            guard client.isSessionOpened else {
-                let error = LCError(code: .clientNotOpen)
-                completion(client, .error(error), command)
-                return
+        let tuple = try self.preprocessConversationCreation(
+            clientIDs: clientIDs,
+            name: name,
+            attributes: attributes
+        )
+        let members: [String] = tuple.members
+        let attrJSON: [String: Any] = tuple.attrJSON
+        let attrString: String? = tuple.attrString
+        
+        var type: LCConversation.LCType = .normal
+        
+        self.sendCommand(constructor: { () -> IMGenericCommand in
+            var outCommand = IMGenericCommand()
+            outCommand.cmd = .conv
+            outCommand.op = .start
+            var convMessage = IMConvCommand()
+            convMessage.m = members
+            switch option {
+            case .normal: break
+            case .normalAndUnique: convMessage.unique = true
+            case .transient:
+                convMessage.transient = true
+                type = .transient
+            case .temporary(ttl: let ttl):
+                convMessage.tempConv = true
+                if ttl > 0 {
+                    convMessage.tempConvTtl = ttl
+                }
+                type = .temporary
             }
-            
-            client.connection.send(command: command) { [weak client] result in
-                guard let client = client else {
+            if let dataString: String = attrString {
+                var attrMessage = IMJsonObjectMessage()
+                attrMessage.data = dataString
+                convMessage.attr = attrMessage
+            }
+            outCommand.convMessage = convMessage
+            return outCommand
+        }) { (result) in
+            switch result {
+            case .inCommand(let inCommand):
+                guard inCommand.cmd == .conv,
+                    inCommand.op == .started,
+                    inCommand.hasConvMessage,
+                    inCommand.convMessage.hasCid
+                    else
+                {
+                    self.eventQueue.async {
+                        let error = LCError(code: .commandInvalid)
+                        completion(.failure(error: error))
+                    }
                     return
                 }
-                completion(client, result, command)
+                do {
+                    let conversation: T = try self.conversationInstance(
+                        convMessage: inCommand.convMessage,
+                        members: members,
+                        attrJSON: attrJSON,
+                        attrString: attrString,
+                        option: option,
+                        type: type
+                    )
+                    self.eventQueue.async {
+                        completion(.success(value: conversation))
+                    }
+                } catch {
+                    self.eventQueue.async {
+                        let err = LCError(error: error)
+                        completion(.failure(error: err))
+                    }
+                }
+            case .error(let error):
+                self.eventQueue.async {
+                    completion(.failure(error: error))
+                }
             }
+        }
+    }
+    
+    private func preprocessConversationCreation(
+        clientIDs: Set<String>,
+        name: String?,
+        attributes: [String: Any]?)
+        throws -> (members: [String], attrJSON: [String: Any], attrString: String?)
+    {
+        for item in clientIDs {
+            guard LCClient.lengthRangeOfClientID.contains(item.count) else {
+                throw LCError.invalidClientIDError
+            }
+        }
+        
+        var members: [String] = Array<String>(clientIDs)
+        if !clientIDs.contains(self.ID) {
+            members.append(self.ID)
+        }
+        
+        var attrJSON: [String: Any] = [:]
+        if let name: String = name {
+            attrJSON[LCConversation.Key.name.rawValue] = name
+        }
+        if let attributes: [String: Any] = attributes {
+            attrJSON[LCConversation.Key.attributes.rawValue] = attributes
+        }
+        var attrString: String? = nil
+        if !attrJSON.isEmpty {
+            let data = try JSONSerialization.data(withJSONObject: attrJSON, options: [])
+            attrString = String(data: data, encoding: .utf8)
+        }
+        
+        return (members, attrJSON, attrString)
+    }
+    
+    private func conversationInstance<T: LCConversation>(
+        convMessage: IMConvCommand,
+        members: [String],
+        attrJSON: [String: Any],
+        attrString: String?,
+        option: ConversationCreationOption,
+        type: LCConversation.LCType)
+        throws -> T
+    {
+        /*
+         @Note: Why use JSONSerialization encoding and decoding `[String: Any]` ?
+         
+         because a `[String: Any]` is Strict-Type-Checking,
+         e.g.
+         let dic: [String: Any] = ["foo": Int32(1)]
+         (dic["foo"] as? Int) == nil
+         (dic["foo"] as? Int32) == 1
+         so use JSONSerialization to convert `dic` to JSON Object: `json`,
+         then (json["foo"] as? Int) == 1 && (json["foo"] as? Int32) == 1
+         
+         This will make data better for SDK to handle it.
+         */
+        
+        assert(self.specificAssertion)
+        let id: String = convMessage.cid
+        let conversation: LCConversation
+        if let conv: LCConversation = self.convCollection[id] {
+            if let attr: String = attrString {
+                let json: [String: Any]? = try attr.json()
+                conv.safeUpdatingRawData(merging: json)
+            }
+            conversation = conv
+        } else {
+            var json: [String: Any] = attrJSON
+            json[LCConversation.Key.convType.rawValue] = type.rawValue
+            json[LCConversation.Key.members.rawValue] = members
+            json[LCConversation.Key.creator.rawValue] = self.ID
+            if option.isUnique {
+                json[LCConversation.Key.unique.rawValue] = true
+            }
+            if convMessage.hasCdate {
+                json[LCConversation.Key.createdAt.rawValue] = convMessage.cdate
+            }
+            if convMessage.hasUniqueID {
+                json[LCConversation.Key.uniqueId.rawValue] = convMessage.uniqueID
+            }
+            if convMessage.hasTempConvTtl {
+                json[LCConversation.Key.temporaryTTL.rawValue] = convMessage.tempConvTtl
+            }
+            let data: Data = try JSONSerialization.data(withJSONObject: json)
+            if let rawData = try JSONSerialization.jsonObject(with: data) as? LCConversation.RawData {
+                conversation = LCConversation.instance(ID: id, rawData: rawData, client: self)
+            } else {
+                throw LCError(code: .malformedData)
+            }
+        }
+        if let conversation = conversation as? T {
+            return conversation
+        } else {
+            throw LCError(
+                code: .inconsistency,
+                reason: "Conversation Type invalid."
+            )
         }
     }
     
 }
+
+// MARK: - Internal
+
+extension LCClient {
+    
+    func sendCommand(
+        constructor: () -> IMGenericCommand,
+        completion: ((Connection.CommandCallback.Result) -> Void)? = nil)
+    {
+        let outCommand: IMGenericCommand = constructor()
+        guard self.isSessionOpened else {
+            let error = LCError(code: .clientNotOpen)
+            completion?(.error(error))
+            return
+        }
+        self.connection.send(command: outCommand, callback: completion)
+    }
+    
+}
+
+// MARK: - Private
 
 private extension LCClient {
     
@@ -630,7 +656,7 @@ private extension LCClient {
         outCommand.cmd = .session
         outCommand.op = .open
         outCommand.appID = self.application.id
-        outCommand.peerID = self.id
+        outCommand.peerID = self.ID
         var sessionCommand = IMSessionCommand()
         sessionCommand.deviceToken = self.currentDeviceToken ?? self.fallbackUDID
         sessionCommand.ua = HTTPClient.default.configuration.userAgent
@@ -751,6 +777,8 @@ private extension LCClient {
     }
     
 }
+
+// MARK: - Connection Delegate
 
 extension LCClient: ConnectionDelegate {
     
@@ -878,5 +906,19 @@ extension LCClientDelegate {
     func client(_ client: LCClient, didCloseSession error: LCError) {
         /* Nop */
     }
+    
+}
+
+extension LCError {
+    
+    static let invalidClientIDError: LCError = LCError(
+        code: .inconsistency,
+        reason: "Length of client ID should in \(LCClient.lengthRangeOfClientID)"
+    )
+    
+    static let invalidClientTagError: LCError = LCError(
+        code: .inconsistency,
+        reason: "\"\(LCClient.reservedValueOfTag)\" string should not be used on tag"
+    )
     
 }
