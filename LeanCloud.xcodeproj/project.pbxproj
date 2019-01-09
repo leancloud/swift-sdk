@@ -91,6 +91,7 @@
 		D393EDBE21D38206001CBB2B /* Message.swift in Sources */ = {isa = PBXBuildFile; fileRef = D393EDBD21D38206001CBB2B /* Message.swift */; };
 		D3AA135B216E0D3A008FECA6 /* WebSocket.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3AA1352216E0D3A008FECA6 /* WebSocket.swift */; };
 		D3AC7BA821AE9C1A00C6C557 /* ClientTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3AC7BA721AE9C1A00C6C557 /* ClientTestCase.swift */; };
+		D3C3782F21E48D3C00EA9AC9 /* ConversationQuery.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3C3782E21E48D3C00EA9AC9 /* ConversationQuery.swift */; };
 		D3DAD03C218DA402008BCD37 /* ConnectionTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3DAD03B218DA402008BCD37 /* ConnectionTestCase.swift */; };
 		D3E1F48D2193EDF3007B6FFB /* ConnectionTestViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3E1F48C2193EDF3007B6FFB /* ConnectionTestViewController.swift */; };
 		D3E1F4AE21940E8E007B6FFB /* SwiftProtobuf.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D3872641217726B500DD8FBF /* SwiftProtobuf.framework */; };
@@ -333,6 +334,7 @@
 		D393EDBD21D38206001CBB2B /* Message.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Message.swift; sourceTree = "<group>"; };
 		D3AA1352216E0D3A008FECA6 /* WebSocket.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebSocket.swift; sourceTree = "<group>"; };
 		D3AC7BA721AE9C1A00C6C557 /* ClientTestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClientTestCase.swift; sourceTree = "<group>"; };
+		D3C3782E21E48D3C00EA9AC9 /* ConversationQuery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationQuery.swift; sourceTree = "<group>"; };
 		D3DAD03B218DA402008BCD37 /* ConnectionTestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionTestCase.swift; sourceTree = "<group>"; };
 		D3E1F48C2193EDF3007B6FFB /* ConnectionTestViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionTestViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -592,6 +594,7 @@
 				119D16AE219A7FCE0023BFEF /* Client.swift */,
 				1113D80321AB963B000677BD /* Conversation.swift */,
 				D393EDBD21D38206001CBB2B /* Message.swift */,
+				D3C3782E21E48D3C00EA9AC9 /* ConversationQuery.swift */,
 			);
 			path = IM;
 			sourceTree = "<group>";
@@ -903,6 +906,7 @@
 				835F5D681D7E6808004D1A0E /* CQLClient.swift in Sources */,
 				118763AD2176DF440078645B /* StorageContextCache.swift in Sources */,
 				11A166E82150A39F0094AF13 /* AppRouterCache.xcdatamodeld in Sources */,
+				D3C3782F21E48D3C00EA9AC9 /* ConversationQuery.swift in Sources */,
 				835F5D791D7E6808004D1A0E /* Extension.swift in Sources */,
 				835F5D7D1D7E6808004D1A0E /* ObjectProfiler.swift in Sources */,
 				11FD151021742CD3008389D4 /* Polyfill.m in Sources */,
