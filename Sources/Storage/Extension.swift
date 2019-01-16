@@ -209,7 +209,7 @@ extension String {
         return String(prefix(upTo: index(startIndex, offsetBy: end)))
     }
     
-    func json<T>(using encoding: String.Encoding = .utf8, options: JSONSerialization.ReadingOptions = []) throws -> T? {
+    func jsonObject<T>(using encoding: String.Encoding = .utf8, options: JSONSerialization.ReadingOptions = []) throws -> T? {
         guard !self.isEmpty else { return nil }
         if let data: Data = self.data(using: encoding) {
             return try JSONSerialization.jsonObject(with: data, options: options) as? T
