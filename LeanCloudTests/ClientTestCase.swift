@@ -13,7 +13,7 @@ class ClientTestCase: BaseTestCase {
 
     func testClientOpenClose() {
         
-        let client = try! LCClient(id: String(#function[..<#function.index(of: "(")!]))
+        let client = try! LCClient(ID: String(#function[..<#function.index(of: "(")!]))
         
         for _ in 0..<3 {
             
@@ -54,13 +54,13 @@ class ClientTestCase: BaseTestCase {
         let deviceToken1 = UUID().uuidString
         application1.currentInstallation.set(deviceToken: deviceToken1, apnsTeamId: "")
         let delegator1 = ClientDelegator()
-        let client1 = try! LCClient(id: id, tag: tag, delegate: delegator1, application: application1)
+        let client1 = try! LCClient(ID: id, tag: tag, delegate: delegator1, application: application1)
         
         let application2 = LCApplication(id: LCApplication.default.id, key: LCApplication.default.key)
         let deviceToken2 = UUID().uuidString
         application2.currentInstallation.set(deviceToken: deviceToken2, apnsTeamId: "")
         let delegator2 = ClientDelegator()
-        let client2 = try! LCClient(id: id, tag: tag, delegate: delegator2, application: application2)
+        let client2 = try! LCClient(ID: id, tag: tag, delegate: delegator2, application: application2)
         
         let exp1 = self.expectation(description: "client1 open success")
         
@@ -114,7 +114,7 @@ class ClientTestCase: BaseTestCase {
     
     func testClientReportDeviceToken() {
         
-        let client = try! LCClient(id: String(#function[..<#function.index(of: "(")!]))
+        let client = try! LCClient(ID: String(#function[..<#function.index(of: "(")!]))
         
         let exp = self.expectation(description: "client report device token success")
         exp.expectedFulfillmentCount = 2
@@ -142,6 +142,15 @@ class ClientTestCase: BaseTestCase {
 }
 
 class ClientDelegator: NSObject, LCClientDelegate {
+    
+    func client(_ client: LCClient, event: LCClientEvent) {
+        
+    }
+    
+    func client(_ client: LCClient, conversation: LCConversation, event: LCConversationEvent) {
+        
+    }
+    
     
     var didOpenSession: ((LCClient) -> Void)?
     func client(didOpenSession client: LCClient) {
