@@ -28,7 +28,7 @@ public final class LCConversationQuery {
     }
     #endif
     
-    private weak var client: LCClient?
+    private let client: LCClient
     
     private let eventQueue: DispatchQueue?
     
@@ -100,8 +100,8 @@ private extension LCConversationQuery {
         if !isTemporary {
             whereString = try self.whereString(IDs: IDs)
         }
-        var outCommand = IMGenericCommand()
-        self.client?.sendCommand(constructor: { () -> IMGenericCommand in
+        self.client.sendCommand(constructor: { () -> IMGenericCommand in
+            var outCommand = IMGenericCommand()
             outCommand.cmd = .conv
             outCommand.op = .query
             var convCommand = IMConvCommand()
@@ -126,9 +126,8 @@ private extension LCConversationQuery {
             switch commandCallbackResult {
             case .inCommand(let inCommand):
                 assert(self.specificAssertion)
-                guard let client = self.client else { return }
                 do {
-                    let conversations: [T] = try self.conversations(command: inCommand, client: client)
+                    let conversations: [T] = try self.conversations(command: inCommand, client: self.client)
                     let result = LCGenericResult<[T]>.success(value: conversations)
                     callback(result)
                 } catch {
@@ -159,12 +158,13 @@ private extension LCConversationQuery {
     }
     
     func conversations<T: LCConversation>(command: IMGenericCommand, client: LCClient) throws -> [T] {
+        assert(self.specificAssertion)
         let convMessage: IMConvCommand? = (command.hasConvMessage ? command.convMessage : nil)
         let jsonMessage: IMJsonObjectMessage? = ((convMessage?.hasResults ?? false) ? convMessage?.results : nil)
         guard let jsonString: String = ((jsonMessage?.hasData ?? false) ? jsonMessage?.data : nil) else {
             throw LCError(code: .commandInvalid)
         }
-        guard let rawDatas: [LCConversation.RawData] = try jsonString.json(), !rawDatas.isEmpty else {
+        guard let rawDatas: [LCConversation.RawData] = try jsonString.jsonObject(), !rawDatas.isEmpty else {
             throw LCError(code: .conversationNotFound)
         }
         var conversations: [T] = []
@@ -172,7 +172,14 @@ private extension LCConversationQuery {
             guard let objectId: String = rawData[LCConversation.Key.objectId.rawValue] as? String else {
                 throw LCError.conversationIDNotFound
             }
-            let instance = LCConversation.instance(ID: objectId, rawData: rawData, client: client)
+            let instance: LCConversation
+            if let existConversation: LCConversation = client.convCollection[objectId] {
+                existConversation.safeChangingRawData(operation: .rawDataReplaced(by: rawData))
+                instance = existConversation
+            } else {
+                instance = LCConversation.instance(ID: objectId, rawData: rawData, client: client)
+                client.convCollection[objectId] = instance
+            }
             guard let conversation: T = instance as? T else {
                 throw LCError(
                     code: .invalidType,
