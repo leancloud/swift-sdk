@@ -686,24 +686,24 @@ extension LCError {
 
 extension IMGenericCommand {
     
-    func check(type: IMCommandType, op: IMOpType) -> Bool {
-        return (self.cmd == type && self.op == op)
-    }
-    
-    var encounteredError: LCError? {
-        guard self.cmd == .error else {
+    fileprivate var encounteredError: LCError? {
+        if self.cmd == .error, self.hasErrorMessage {
+            let errorCommand = self.errorMessage
+            let code: Int = Int(errorCommand.code)
+            let reason: String? = (errorCommand.hasReason ? errorCommand.reason : nil)
+            var userInfo: LCError.UserInfo? = [:]
+            if errorCommand.hasAppCode { userInfo?["appCode"] = errorCommand.appCode }
+            if errorCommand.hasDetail { userInfo?["detail"] = errorCommand.detail }
+            do {
+                userInfo = try userInfo?.jsonObject()
+            } catch {
+                Logger.shared.error(error)
+                userInfo = nil
+            }
+            return LCError(code: code, reason: reason, userInfo: userInfo)
+        } else {
             return nil
         }
-        let errMsg = self.errorMessage
-        guard errMsg.hasCode else {
-            return LCError(code: .commandInvalid)
-        }
-        let code: Int = Int(errMsg.code)
-        let reason: String? = (errMsg.hasReason ? errMsg.reason : nil)
-        var userInfo: LCError.UserInfo = [:]
-        if errMsg.hasAppCode { userInfo["appCode"] = errMsg.appCode }
-        if errMsg.hasDetail { userInfo["detail"] = errMsg.detail }
-        return LCError(code: code, reason: reason, userInfo: userInfo)
     }
     
 }
