@@ -132,6 +132,39 @@ extension Dictionary {
         }
         return Dictionary<Key, T>(elements: elements)
     }
+    
+    /*
+     Maybe you will think: Why use JSONSerialization encoding and decoding `Dictionary` ?
+     
+     Because a Swift Raw Data Type `[String: Any]` is Strong-Type-Checking.
+     
+     e.g.
+     ```
+     var dic: [String: Any] = ["foo": Int32(1)]
+     (dic["foo"] as? Int) == nil
+     (dic["foo"] as? Int32) == Optional(1)
+     ```
+     
+     But after JSONSerialization's encoding and decoding.
+     
+     The Swift Type `[String: Any]` has been converted to a Real JSON Object.
+     
+     ```
+     dic = try! dic.jsonObject()
+     (dic["foo"] as? Int) == Optional(1)
+     (dic["foo"] as? Int32) == Optional(1)
+     ```
+     
+     This will make data better for SDK to handle it.
+     */
+    func jsonObject() throws -> [Key: Value]? {
+        let data: Data = try JSONSerialization.data(withJSONObject: self)
+        if let json: [Key: Value] = try JSONSerialization.jsonObject(with: data) as? [Key: Value] {
+            return json
+        } else {
+            return nil
+        }
+    }
 }
 
 extension String {
