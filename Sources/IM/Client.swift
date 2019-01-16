@@ -156,10 +156,10 @@ public final class LCClient {
         throws
     {
         guard LCClient.lengthRangeOfClientID.contains(ID.count) else {
-            throw LCError.invalidClientIDError
+            throw LCError.clientIDInvalid
         }
         guard tag != LCClient.reservedValueOfTag else {
-            throw LCError.invalidClientTagError
+            throw LCError.clientTagInvalid
         }
         #if DEBUG
         self.serialQueue.setSpecific(key: self.specificKey, value: self.specificValue)
@@ -235,7 +235,17 @@ public final class LCClient {
     }()
     
     /// Conversation Container
-    private var convCollection: [String: LCConversation] = [:]
+    /// use it to manage all instance of LCConversation belong to this client
+    var convCollection: [String: LCConversation] = [:]
+    
+    /// Single-Conversation Query Callback Container
+    /// use it to merge concurrent Single-Conversation Query
+    var convQueryCallbackCollection: [String: Array<(LCGenericResult<LCConversation>) -> Void>] = [:]
+    
+    /// ref: https://github.com/leancloud/avoscloud-push/blob/develop/push-server/doc/protocol.md#sessionopen
+    /// parameter: `lastUnreadNotifTime`, `lastPatchTime`
+    private var lastUnreadNotifTime: Int64? = nil
+    private var lastPatchTime: Int64? = nil
     
 }
 
@@ -260,6 +270,8 @@ extension LCClient {
         /// For two sessions of one client with same tag, the later one will force to make previous one offline.
         public static let forced = SessionOpenOptions(rawValue: 1 << 0)
         
+        /// ref: https://github.com/leancloud/avoscloud-push/blob/develop/push-server/doc/protocol.md#sessionopen
+        /// parameter: `r` 
         var r: Bool { return !contains(.forced) }
     }
     
@@ -330,7 +342,7 @@ extension LCClient {
                 }
                 switch result {
                 case .inCommand(let inCommand):
-                    if inCommand.check(type: .session, op: .closed) {
+                    if inCommand.cmd == .session, inCommand.op == .closed {
                         self.sessionClosed(with: .success, completion: completion)
                     } else {
                         self.eventQueue.async {
@@ -466,16 +478,16 @@ extension LCClient {
             var convMessage = IMConvCommand()
             convMessage.m = members
             switch option {
-            case .normal: break
-            case .normalAndUnique: convMessage.unique = true
+            case .normal:
+                break
+            case .normalAndUnique:
+                convMessage.unique = true
             case .transient:
                 convMessage.transient = true
                 type = .transient
             case .temporary(ttl: let ttl):
                 convMessage.tempConv = true
-                if ttl > 0 {
-                    convMessage.tempConvTtl = ttl
-                }
+                if ttl > 0 { convMessage.tempConvTtl = ttl }
                 type = .temporary
             }
             if let dataString: String = attrString {
@@ -488,7 +500,8 @@ extension LCClient {
         }) { (result) in
             switch result {
             case .inCommand(let inCommand):
-                guard inCommand.cmd == .conv,
+                guard
+                    inCommand.cmd == .conv,
                     inCommand.op == .started,
                     inCommand.hasConvMessage,
                     inCommand.convMessage.hasCid
@@ -507,7 +520,7 @@ extension LCClient {
                         attrJSON: attrJSON,
                         attrString: attrString,
                         option: option,
-                        type: type
+                        convType: type
                     )
                     self.eventQueue.async {
                         completion(.success(value: conversation))
@@ -534,7 +547,7 @@ extension LCClient {
     {
         for item in clientIDs {
             guard LCClient.lengthRangeOfClientID.contains(item.count) else {
-                throw LCError.invalidClientIDError
+                throw LCError.clientIDInvalid
             }
         }
         
@@ -565,35 +578,21 @@ extension LCClient {
         attrJSON: [String: Any],
         attrString: String?,
         option: ConversationCreationOption,
-        type: LCConversation.LCType)
+        convType: LCConversation.LCType)
         throws -> T
     {
-        /*
-         @Note: Why use JSONSerialization encoding and decoding `[String: Any]` ?
-         
-         because a `[String: Any]` is Strict-Type-Checking,
-         e.g.
-         let dic: [String: Any] = ["foo": Int32(1)]
-         (dic["foo"] as? Int) == nil
-         (dic["foo"] as? Int32) == 1
-         so use JSONSerialization to convert `dic` to JSON Object: `json`,
-         then (json["foo"] as? Int) == 1 && (json["foo"] as? Int32) == 1
-         
-         This will make data better for SDK to handle it.
-         */
-        
         assert(self.specificAssertion)
+
         let id: String = convMessage.cid
         let conversation: LCConversation
         if let conv: LCConversation = self.convCollection[id] {
-            if let attr: String = attrString {
-                let json: [String: Any]? = try attr.json()
-                conv.safeUpdatingRawData(merging: json)
+            if let json: [String: Any] = try attrString?.jsonObject() {
+                conv.safeChangingRawData(operation: .rawDataMerging(data: json))
             }
             conversation = conv
         } else {
             var json: [String: Any] = attrJSON
-            json[LCConversation.Key.convType.rawValue] = type.rawValue
+            json[LCConversation.Key.convType.rawValue] = convType.rawValue
             json[LCConversation.Key.members.rawValue] = members
             json[LCConversation.Key.creator.rawValue] = self.ID
             if option.isUnique {
@@ -608,9 +607,9 @@ extension LCClient {
             if convMessage.hasTempConvTtl {
                 json[LCConversation.Key.temporaryTTL.rawValue] = convMessage.tempConvTtl
             }
-            let data: Data = try JSONSerialization.data(withJSONObject: json)
-            if let rawData = try JSONSerialization.jsonObject(with: data) as? LCConversation.RawData {
+            if let rawData: LCConversation.RawData = try json.jsonObject() {
                 conversation = LCConversation.instance(ID: id, rawData: rawData, client: self)
+                self.convCollection[id] = conversation
             } else {
                 throw LCError(code: .malformedData)
             }
@@ -619,10 +618,21 @@ extension LCClient {
             return conversation
         } else {
             throw LCError(
-                code: .inconsistency,
-                reason: "Conversation Type invalid."
+                code: .invalidType,
+                reason: "conversation<T: \(type(of: conversation))> can't cast to type: \(T.self)."
             )
         }
+    }
+    
+}
+
+// MARK: - Create Conversation Query
+
+extension LCClient {
+    
+    /// Create a new conversation query
+    public var conversationQuery: LCConversationQuery {
+        return LCConversationQuery(client: self, eventQueue: self.eventQueue)
     }
     
 }
@@ -650,7 +660,7 @@ extension LCClient {
 
 private extension LCClient {
     
-    private func newOpenCommand() -> IMGenericCommand {
+    func newOpenCommand() -> IMGenericCommand {
         assert(self.specificAssertion)
         var outCommand = IMGenericCommand()
         outCommand.cmd = .session
@@ -663,11 +673,17 @@ private extension LCClient {
         if let tag: String = self.tag {
             sessionCommand.tag = tag
         }
+        if let lastUnreadNotifTime: Int64 = self.lastUnreadNotifTime {
+            sessionCommand.lastUnreadNotifTime = lastUnreadNotifTime
+        }
+        if let lastPatchTime: Int64 = self.lastPatchTime {
+            sessionCommand.lastPatchTime = lastPatchTime
+        }
         outCommand.sessionMessage = sessionCommand
         return outCommand
     }
     
-    private func send(reopenCommand command: IMGenericCommand) {
+    func send(reopenCommand command: IMGenericCommand) {
         assert(self.specificAssertion)
         self.connection.send(command: command) { [weak self] (result) in
             guard let self = self else { return }
@@ -688,7 +704,7 @@ private extension LCClient {
         }
     }
     
-    private func report(deviceToken token: String?, openCommand: IMGenericCommand? = nil) {
+    func report(deviceToken token: String?, openCommand: IMGenericCommand? = nil) {
         assert(self.specificAssertion)
         guard let token: String = token, self.isSessionOpened else {
             return
@@ -713,13 +729,13 @@ private extension LCClient {
             NotificationCenter.default.post(
                 name: LCClient.TestReportDeviceTokenNotification,
                 object: self,
-                userInfo: ["result" : result]
+                userInfo: ["result": result]
             )
             #endif
         }
     }
     
-    private func handle(openCommandCallback command: IMGenericCommand, completion: ((LCBooleanResult) -> Void)? = nil) {
+    func handle(openCommandCallback command: IMGenericCommand, completion: ((LCBooleanResult) -> Void)? = nil) {
         assert(self.specificAssertion)
         switch (command.cmd, command.op) {
         case (.session, .opened):
@@ -736,7 +752,7 @@ private extension LCClient {
                 if let completion = completion {
                     completion(.success)
                 } else {
-                    self.delegate?.client(didOpenSession: self)
+                    self.delegate?.client(self, event: .sessionDidOpen)
                 }
             }
         case (.session, .closed):
@@ -748,7 +764,7 @@ private extension LCClient {
         }
     }
     
-    private func sessionClosed(with result: LCBooleanResult, completion: ((LCBooleanResult) -> Void)? = nil) {
+    func sessionClosed(with result: LCBooleanResult, completion: ((LCBooleanResult) -> Void)? = nil) {
         assert(self.specificAssertion)
         self.connection.delegate = nil
         self.connection.setAutoReconnectionEnabled(false)
@@ -762,18 +778,313 @@ private extension LCClient {
             if let completion = completion {
                 completion(result)
             } else if let error = result.error {
-                self.delegate?.client(self, didCloseSession: error)
+                self.delegate?.client(self, event: .sessionDidClose(error: error))
             }
         }
     }
     
-    private func process(sessionClosedCommand sessionCommand: IMSessionCommand, completion: ((LCBooleanResult) -> Void)? = nil) {
+    func process(sessionClosedCommand sessionCommand: IMSessionCommand, completion: ((LCBooleanResult) -> Void)? = nil) {
         assert(self.specificAssertion)
         let code: Int = Int(sessionCommand.code)
         let reason: String? = (sessionCommand.hasReason ? sessionCommand.reason : nil)
-        let userInfo: LCError.UserInfo? = (sessionCommand.hasDetail ? ["detail" : sessionCommand.detail] : nil)
+        var userInfo: LCError.UserInfo? = [:]
+        if sessionCommand.hasDetail { userInfo?["detail"] = sessionCommand.detail }
+        do {
+            userInfo = try userInfo?.jsonObject()
+        } catch {
+            Logger.shared.error(error)
+        }
         let error = LCError(code: code, reason: reason, userInfo: userInfo)
         self.sessionClosed(with: .failure(error: error), completion: completion)
+    }
+    
+    func getConversation(by ID: String, completion: @escaping (LCGenericResult<LCConversation>) -> Void) {
+        assert(self.specificAssertion)
+        if let existConversation: LCConversation = self.convCollection[ID] {
+            completion(.success(value: existConversation))
+            return
+        }
+        if var callbacks: Array<(LCGenericResult<LCConversation>) -> Void> = self.convQueryCallbackCollection[ID] {
+            callbacks.append(completion)
+            self.convQueryCallbackCollection[ID] = callbacks
+            return
+        } else {
+            self.convQueryCallbackCollection[ID] = [completion]
+        }
+        let callback: (LCGenericResult<LCConversation>) -> Void = { result in
+            guard let callbacks: Array<(LCGenericResult<LCConversation>) -> Void> = self.convQueryCallbackCollection[ID] else {
+                return
+            }
+            self.convQueryCallbackCollection.removeValue(forKey: ID)
+            for closure in callbacks {
+                closure(result)
+            }
+        }
+        /// for internal, no need to set event queue.
+        let query = LCConversationQuery(client: self)
+        do {
+            if ID.hasPrefix(LCTemporaryConversation.prefixOfID) {
+                try query.getTemporaryConversations(by: [ID], completion: { (result) in
+                    assert(self.specificAssertion)
+                    switch result {
+                    case .success(value: let conversations):
+                        if let first: LCConversation = conversations.first {
+                            callback(.success(value: first))
+                        } else {
+                            callback(.failure(error: LCError(code: .conversationNotFound)))
+                        }
+                    case .failure(error: let error):
+                        callback(.failure(error: error))
+                    }
+                })
+            } else {
+                try query.getConversation(by: ID, completion: { (result) in
+                    assert(self.specificAssertion)
+                    callback(result)
+                })
+            }
+        } catch {
+            assert(self.specificAssertion)
+            callback(.failure(error: LCError(error: error)))
+        }
+    }
+    
+    func getConversations(by IDs: Set<String>, completion: @escaping (LCGenericResult<[LCConversation]>) -> Void) {
+        assert(self.specificAssertion)
+        if IDs.count == 1, let ID: String = IDs.first {
+            self.getConversation(by: ID) { (result) in
+                assert(self.specificAssertion)
+                switch result {
+                case .success(value: let conversation):
+                    completion(.success(value: [conversation]))
+                case .failure(error: let error):
+                    completion(.failure(error: error))
+                }
+            }
+        } else {
+            /// for internal, no need to set event queue.
+            let query = LCConversationQuery(client: self)
+            do {
+                try query.getConversations(by: IDs, completion: { (result) in
+                    assert(self.specificAssertion)
+                    completion(result)
+                })
+            } catch {
+                assert(self.specificAssertion)
+                completion(.failure(error: LCError(error: error)))
+            }
+        }
+    }
+    
+    func getTemporaryConversations(by IDs: Set<String>, completion: @escaping (LCGenericResult<[LCConversation]>) -> Void) {
+        assert(self.specificAssertion)
+        if IDs.count == 1, let ID: String = IDs.first {
+            self.getConversation(by: ID) { (result) in
+                assert(self.specificAssertion)
+                switch result {
+                case .success(value: let conversation):
+                    completion(.success(value: [conversation]))
+                case .failure(error: let error):
+                    completion(.failure(error: error))
+                }
+            }
+        } else {
+            /// for internal, no need to set event queue.
+            let query = LCConversationQuery(client: self)
+            do {
+                try query.getTemporaryConversations(by: IDs, completion: { (result) in
+                    assert(self.specificAssertion)
+                    switch result {
+                    case .success(value: let conversations):
+                        completion(.success(value: conversations))
+                    case .failure(error: let error):
+                        completion(.failure(error: error))
+                    }
+                })
+            } catch {
+                assert(self.specificAssertion)
+                completion(.failure(error: LCError(error: error)))
+            }
+        }
+    }
+    
+    func process(convCommand command: IMConvCommand, op: IMOpType) {
+        assert(self.specificAssertion)
+        guard let conversationID: String = (command.hasCid ? command.cid : nil) else {
+            return
+        }
+        self.getConversation(by: conversationID) { (result) in
+            assert(self.specificAssertion)
+            switch result {
+            case .success(value: let conversation):
+                let byClientID: String? = (command.hasInitBy ? command.initBy : nil)
+                let members: [String] = command.m
+                let event: LCConversationEvent
+                let rawDataOperation: LCConversation.RawDataChangeOperation
+                switch op {
+                case .joined:
+                    event = .joined(byClientID: byClientID)
+                    rawDataOperation = .append(members: [self.ID])
+                case .left:
+                    event = .left(byClientID: byClientID)
+                    rawDataOperation = .remove(members: [self.ID])
+                case .membersJoined:
+                    event = .membersJoined(tuple: (members, byClientID))
+                    rawDataOperation = .append(members: members)
+                case .membersLeft:
+                    event = .membersLeft(tuple: (members, byClientID))
+                    rawDataOperation = .remove(members: members)
+                default:
+                    return
+                }
+                conversation.safeChangingRawData(operation: rawDataOperation)
+                self.eventQueue.async {
+                    self.delegate?.client(self, conversation: conversation, event: event)
+                }
+            case .failure(error: let error):
+                Logger.shared.error(error)
+            }
+        }
+    }
+    
+    func acknowledging(message: LCMessage, conversation: LCConversation) {
+        guard
+            message.notTransientMessage,
+            conversation.notTransientConversation,
+            let conversationID: String = message.conversationID,
+            let messageID: String = message.ID
+            else
+        { return }
+        self.sendCommand(constructor: { () -> IMGenericCommand in
+            var outCommand = IMGenericCommand()
+            outCommand.cmd = .ack
+            var ackMessage = IMAckCommand()
+            ackMessage.cid = conversationID
+            ackMessage.mid = messageID
+            /*
+             why not use the `timestamp` ?
+             becase server just use ack to handle unread-message-queue(max limit is 100),
+             so use `conversationID` and `messageID` can find the message,
+             of course there is a very little probability that multiple messageID is same in the unread-message-queue,
+             but it's nearly ZERO, so just do it, take it easy, it's fine.
+             */
+            outCommand.ackMessage = ackMessage
+            return outCommand
+        })
+    }
+    
+    func process(directCommand command: IMDirectCommand) {
+        assert(self.specificAssertion)
+        guard let conversationID: String = (command.hasCid ? command.cid : nil) else {
+            return
+        }
+        self.getConversation(by: conversationID) { (result) in
+            assert(self.specificAssertion)
+            switch result {
+            case .success(value: let conversation):
+                guard
+                    let timestamp: Int64 = (command.hasTimestamp ? command.timestamp : nil),
+                    let messageID: String = (command.hasID ? command.id : nil)
+                    else
+                { return }
+                var content: LCMessage.Content? = nil
+                if command.hasMsg {
+                    content = .string(command.msg)
+                } else if command.hasBinaryMsg {
+                    content = .data(command.binaryMsg)
+                }
+                let message = LCMessage.instance(
+                    isTransient: (command.hasTransient ? command.transient : false),
+                    conversationID: conversationID,
+                    localClientID: self.ID,
+                    fromClientID: (command.hasFromPeerID ? command.fromPeerID : nil),
+                    timestamp: timestamp,
+                    patchedTimestamp: (command.hasPatchTimestamp ? command.patchTimestamp : nil),
+                    messageID: messageID,
+                    content: content,
+                    isAllMembersMentioned: (command.hasMentionAll ? command.mentionAll : nil),
+                    mentionedMembers: (command.mentionPids.isEmpty ? nil : command.mentionPids),
+                    status: .sent
+                )
+                self.acknowledging(message: message, conversation: conversation)
+                conversation.safeUpdatingLastMessage(newMessage: message)
+                self.eventQueue.async {
+                    let messageEvent = LCMessageEvent.received(message: message)
+                    let event = LCConversationEvent.message(event: messageEvent)
+                    self.delegate?.client(self, conversation: conversation, event: event)
+                }
+            case .failure(error: let error):
+                Logger.shared.error(error)
+            }
+        }
+    }
+    
+    func process(unreadCommand: IMUnreadCommand) {
+        assert(self.specificAssertion)
+        var conversationIDMap: [String: IMUnreadTuple] = [:]
+        var temporaryConversationIDMap: [String: IMUnreadTuple] = [:]
+        for unreadTuple in unreadCommand.convs {
+            guard let conversationID: String = (unreadTuple.hasCid ? unreadTuple.cid : nil) else {
+                continue
+            }
+            if let existingConversation = self.convCollection[conversationID] {
+                existingConversation.process(unreadTuple: unreadTuple)
+            } else {
+                if conversationID.hasPrefix(LCTemporaryConversation.prefixOfID) {
+                    temporaryConversationIDMap[conversationID] = unreadTuple
+                } else {
+                    conversationIDMap[conversationID] = unreadTuple
+                }
+            }
+        }
+        let group = DispatchGroup()
+        var groupFlags: [Bool] = []
+        let handleResult: (LCGenericResult<[LCConversation]>, [String: IMUnreadTuple]) -> Void = { (result, map) in
+            switch result {
+            case .success(value: let conversations):
+                groupFlags.append(true)
+                for conversation in conversations {
+                    if let unreadTuple: IMUnreadTuple = map[conversation.ID] {
+                        conversation.process(unreadTuple: unreadTuple)
+                    }
+                }
+            case .failure(error: let error):
+                groupFlags.append(false)
+                Logger.shared.error(error)
+            }
+        }
+        if !conversationIDMap.isEmpty {
+            group.enter()
+            let IDs = Set<String>(conversationIDMap.keys)
+            self.getConversations(by: IDs) { (result) in
+                assert(self.specificAssertion)
+                handleResult(result, conversationIDMap)
+                group.leave()
+            }
+        }
+        if !temporaryConversationIDMap.isEmpty {
+            group.enter()
+            let IDs = Set<String>(temporaryConversationIDMap.keys)
+            self.getTemporaryConversations(by: IDs) { (result) in
+                assert(self.specificAssertion)
+                handleResult(result, temporaryConversationIDMap)
+                group.leave()
+            }
+        }
+        if !conversationIDMap.isEmpty || !temporaryConversationIDMap.isEmpty {        
+            group.notify(queue: self.serialQueue) {
+                var bothTrue = true
+                for flag in groupFlags {
+                    guard flag else {
+                        bothTrue = false
+                        break
+                    }
+                }
+                if bothTrue, unreadCommand.hasNotifTime {
+                    self.lastUnreadNotifTime = unreadCommand.notifTime
+                }
+            }
+        }
     }
     
 }
@@ -789,7 +1100,7 @@ extension LCClient: ConnectionDelegate {
         }
         self.sessionState = .resuming
         self.eventQueue.async {
-            self.delegate?.client(didBecomeResumeSession: self)
+            self.delegate?.client(self, event: LCClientEvent.sessionDidResume)
         }
     }
     
@@ -833,7 +1144,7 @@ extension LCClient: ConnectionDelegate {
         } else if let _ = self.sessionToken, self.sessionState != .paused {
             self.sessionState = .paused
             self.eventQueue.async {
-                self.delegate?.client(self, didPauseSession: error)
+                self.delegate?.client(self, event: .sessionDidPause(error: error))
             }
         }
     }
@@ -848,6 +1159,12 @@ extension LCClient: ConnectionDelegate {
             default:
                 break
             }
+        case .direct:
+            self.process(directCommand: inCommand.directMessage)
+        case .unread:
+            self.process(unreadCommand: inCommand.unreadMessage)
+        case .conv:
+            self.process(convCommand: inCommand.convMessage, op: inCommand.op)
         default:
             break
         }
@@ -855,70 +1172,81 @@ extension LCClient: ConnectionDelegate {
     
 }
 
-public protocol LCClientDelegate: class {
+public enum LCClientEvent {
     
-    /**
-     Notify that client did open session.
-     
-     - parameter client: The client who did open session.
-     */
-    func client(didOpenSession client: LCClient)
+    case sessionDidOpen
     
-    /**
-     Notify that client did become resume session.
-     
-     - parameter client: The client who did become resume session.
-     */
-    func client(didBecomeResumeSession client: LCClient)
+    case sessionDidResume
     
-    /**
-     Notify that client did pause session.
-     
-     - parameter client: The client who did close session.
-     - parameter error: Reason of pause.
-     */
-    func client(_ client: LCClient, didPauseSession error: LCError)
+    case sessionDidPause(error: LCError)
     
-    /**
-     Notify that client did close session.
-     
-     - parameter client: The client who did close session.
-     - parameter error: Reason of close.
-     */
-    func client(_ client: LCClient, didCloseSession error: LCError)
+    case sessionDidClose(error: LCError)
     
 }
 
-extension LCClientDelegate {
+public enum LCConversationEvent {
     
-    func client(didOpenSession client: LCClient) {
-        /* Nop */
-    }
+    case joined(byClientID: String?)
     
-    func client(didBecomeResumeSession client: LCClient) {
-        /* Nop */
-    }
+    case left(byClientID: String?)
     
-    func client(_ client: LCClient, didPauseSession error: LCError) {
-        /* Nop */
-    }
+    case membersJoined(tuple: (members: [String], byClientID: String?))
     
-    func client(_ client: LCClient, didCloseSession error: LCError) {
-        /* Nop */
-    }
+    case membersLeft(tuple: (members: [String], byClientID: String?))
+    
+    case userDefinedDataUpdated
+    
+    case message(event: LCMessageEvent)
+    
+}
+
+public enum LCMessageEvent {
+    
+    case received(message: LCMessage)
+    
+    case updated(updatedMessage: LCMessage)
+    
+    case lastMessageUpdated
+    
+    case unreadMessageCountUpdated
+    
+    case lastMessageAndUnreadMessageCountUpdated
+    
+}
+
+public protocol LCClientDelegate: class {
+    
+    /// Notification of the event about the client.
+    ///
+    /// - Parameters:
+    ///   - client: Which the event belong to.
+    ///   - event: @see `LCClientEvent`
+    func client(_ client: LCClient, event: LCClientEvent)
+    
+    /// Notification of the event about the conversation.
+    ///
+    /// - Parameters:
+    ///   - client: Which the conversation belong to.
+    ///   - conversation: Which the event belong to.
+    ///   - event: @see `LCConversationEvent`
+    func client(_ client: LCClient, conversation: LCConversation, event: LCConversationEvent)
     
 }
 
 extension LCError {
     
-    static let invalidClientIDError: LCError = LCError(
-        code: .inconsistency,
-        reason: "Length of client ID should in \(LCClient.lengthRangeOfClientID)"
-    )
+    static var clientIDInvalid: LCError {
+        return LCError(
+            code: .inconsistency,
+            reason: "Length of client ID should in \(LCClient.lengthRangeOfClientID)"
+        )
+    }
     
-    static let invalidClientTagError: LCError = LCError(
-        code: .inconsistency,
-        reason: "\"\(LCClient.reservedValueOfTag)\" string should not be used on tag"
-    )
+    static var clientTagInvalid: LCError {
+        return LCError(
+            code: .inconsistency,
+            reason: "\"\(LCClient.reservedValueOfTag)\" string should not be used on tag"
+        )
+    }
     
 }
