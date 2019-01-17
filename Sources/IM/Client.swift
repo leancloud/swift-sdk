@@ -948,6 +948,7 @@ private extension LCClient {
     }
     
     func acknowledging(message: LCMessage, conversation: LCConversation) {
+        assert(self.specificAssertion)
         guard
             message.notTransientMessage,
             conversation.notTransientConversation,
@@ -1006,12 +1007,14 @@ private extension LCClient {
                     mentionedMembers: (command.mentionPids.isEmpty ? nil : command.mentionPids),
                     status: .sent
                 )
-                self.acknowledging(message: message, conversation: conversation)
                 conversation.safeUpdatingLastMessage(newMessage: message)
                 self.eventQueue.async {
                     let messageEvent = LCMessageEvent.received(message: message)
                     let event = LCConversationEvent.message(event: messageEvent)
                     self.delegate?.client(self, conversation: conversation, event: event)
+                    self.serialQueue.async {
+                        self.acknowledging(message: message, conversation: conversation)
+                    }
                 }
             case .failure(error: let error):
                 Logger.shared.error(error)
