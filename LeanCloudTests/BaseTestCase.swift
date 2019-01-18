@@ -26,6 +26,8 @@ class TestObject: LCObject {
 
 class BaseTestCase: XCTestCase {
     
+    let timeout: TimeInterval = 60.0
+    
     override func setUp() {
         super.setUp()
 
