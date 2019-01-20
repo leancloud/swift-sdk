@@ -422,9 +422,9 @@ internal extension LCConversation {
         
         case rawDataReplaced(by: RawData)
         
-        case append(members: [String])
+        case append(members: Set<String>)
         
-        case remove(members: [String])
+        case remove(members: Set<String>)
         
     }
     

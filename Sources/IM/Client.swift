@@ -936,7 +936,7 @@ private extension LCClient {
             switch result {
             case .success(value: let conversation):
                 let byClientID: String? = (command.hasInitBy ? command.initBy : nil)
-                let members: [String] = command.m
+                let members: Set<String> = Set<String>(command.m)
                 let event: LCConversationEvent
                 let rawDataOperation: LCConversation.RawDataChangeOperation
                 switch op {
@@ -1212,9 +1212,9 @@ public enum LCConversationEvent {
     
     case left(byClientID: String?)
     
-    case membersJoined(tuple: (members: [String], byClientID: String?))
+    case membersJoined(tuple: (members: Set<String>, byClientID: String?))
     
-    case membersLeft(tuple: (members: [String], byClientID: String?))
+    case membersLeft(tuple: (members: Set<String>, byClientID: String?))
     
     case userDefinedDataUpdated
     
