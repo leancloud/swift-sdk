@@ -58,6 +58,10 @@ public enum LCBooleanResult: LCResultType {
 public enum LCGenericResult<T>: LCResultType {
     case success(value: T)
     case failure(error: LCError)
+    
+    public init(value: T) {
+        self = .success(value: value)
+    }
 
     public init(error: LCError) {
         self = .failure(error: error)
@@ -69,6 +73,15 @@ public enum LCGenericResult<T>: LCResultType {
             return nil
         case let .failure(error):
             return error
+        }
+    }
+    
+    public var value: T? {
+        switch self {
+        case .success(value: let value):
+            return value
+        default:
+            return nil
         }
     }
 
