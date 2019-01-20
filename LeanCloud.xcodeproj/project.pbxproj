@@ -88,6 +88,7 @@
 		D31798452193DC880037DE57 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = D31798432193DC880037DE57 /* LaunchScreen.storyboard */; };
 		D324CD9221774A9B003FA35F /* Connection.swift in Sources */ = {isa = PBXBuildFile; fileRef = D324CD9121774A9B003FA35F /* Connection.swift */; };
 		D3301279217727870007286A /* Command.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3301278217727870007286A /* Command.pb.swift */; };
+		D3783A1221F453C3006F6635 /* ConversationTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3783A1121F453C3006F6635 /* ConversationTestCase.swift */; };
 		D393EDBE21D38206001CBB2B /* Message.swift in Sources */ = {isa = PBXBuildFile; fileRef = D393EDBD21D38206001CBB2B /* Message.swift */; };
 		D3AA135B216E0D3A008FECA6 /* WebSocket.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3AA1352216E0D3A008FECA6 /* WebSocket.swift */; };
 		D3AC7BA821AE9C1A00C6C557 /* ClientTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3AC7BA721AE9C1A00C6C557 /* ClientTestCase.swift */; };
@@ -330,6 +331,7 @@
 		D31798462193DC880037DE57 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		D324CD9121774A9B003FA35F /* Connection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Connection.swift; sourceTree = "<group>"; };
 		D3301278217727870007286A /* Command.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Command.pb.swift; sourceTree = "<group>"; };
+		D3783A1121F453C3006F6635 /* ConversationTestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationTestCase.swift; sourceTree = "<group>"; };
 		D387262A217726B500DD8FBF /* SwiftProtobuf.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = SwiftProtobuf.xcodeproj; path = SwiftProtobuf/SwiftProtobuf.xcodeproj; sourceTree = "<group>"; };
 		D393EDBD21D38206001CBB2B /* Message.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Message.swift; sourceTree = "<group>"; };
 		D3AA1352216E0D3A008FECA6 /* WebSocket.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebSocket.swift; sourceTree = "<group>"; };
@@ -470,6 +472,7 @@
 				D3DAD03B218DA402008BCD37 /* ConnectionTestCase.swift */,
 				1123922B2191669100ECCBCC /* RTMTestCase.swift */,
 				D3AC7BA721AE9C1A00C6C557 /* ClientTestCase.swift */,
+				D3783A1121F453C3006F6635 /* ConversationTestCase.swift */,
 			);
 			path = LeanCloudTests;
 			sourceTree = "<group>";
@@ -938,6 +941,7 @@
 				834EA7151D2A139A00108DDC /* UserTestCase.swift in Sources */,
 				11FBD1E5215BDDCA00370C61 /* CoreTestCase.swift in Sources */,
 				8342FCCB1C7B13A700C3CF15 /* BaseTestCase.swift in Sources */,
+				D3783A1221F453C3006F6635 /* ConversationTestCase.swift in Sources */,
 				8352B5231D2BAAE600531785 /* RelationTestCase.swift in Sources */,
 				83D0DE6F1CC7B3FF00FC204E /* QueryTestCase.swift in Sources */,
 				114E1E852153A3ED00DA7DB0 /* FileTestCase.swift in Sources */,
