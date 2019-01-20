@@ -11,7 +11,7 @@ import XCTest
 
 class LCClientTestCase: BaseTestCase {
     
-    var uuid: String {
+    private var uuid: String {
         return UUID().uuidString.replacingOccurrences(of: "-", with: "")
     }
     

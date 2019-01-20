@@ -35,8 +35,8 @@ class BaseTestCase: XCTestCase {
 
         LCApplication.default.logLevel = .debug
         LCApplication.default.set(
-            id: "nq0awk3lh1dpmbkziz54377mryii8ny4xvp6njoygle5nlyg",
-            key: "6vdnmdkdi4fva9i06lt50s4mcsfhppjpzm3zf5zjc9ty4pdz")
+            id: "S5vDI3IeCk1NLLiM1aFg3262-gzGzoHsz",
+            key: "7g5pPsI55piz2PRLPWK5MPz0")
     }
     
     override func tearDown() {
