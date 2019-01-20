@@ -17,8 +17,9 @@ import IOKit
 public final class LCClient {
     
     #if DEBUG
-    /// for unit test
+    /// Notification for unit test case
     internal static let TestReportDeviceTokenNotification = Notification.Name.init("TestReportDeviceTokenNotification")
+    internal static let TestSessionTokenExpiredNotification = Notification.Name.init("TestSessionTokenExpiredNotification")
     internal let specificKey = DispatchSpecificKey<Int>()
     // whatever random Int is OK.
     internal let specificValue: Int = Int.random(in: 1...999)
@@ -204,16 +205,29 @@ public final class LCClient {
     private let serialQueue = DispatchQueue(label: "LeanCloud.LCClient.serialQueue", qos: .userInitiated)
     
     /// The session connection.
+    #if DEBUG
+    // internal for test case
+    internal let connection: Connection
+    #else
     private let connection: Connection
+    #endif
     
     /// Internal mutex
     private let mutex = NSLock()
     
     /// Session Token & Opening Config
+    #if DEBUG
+    // internal for test case
+    var sessionToken: String?
+    var sessionTokenExpiration: Date?
+    var openingCompletion: ((LCBooleanResult) -> Void)?
+    var openingOptions: SessionOpenOptions?
+    #else
     private var sessionToken: String?
     private var sessionTokenExpiration: Date?
     private var openingCompletion: ((LCBooleanResult) -> Void)?
     private var openingOptions: SessionOpenOptions?
+    #endif
     
     /// Device Token and fallback-UDID
     private var deviceTokenObservation: NSKeyValueObservation?
@@ -314,7 +328,7 @@ extension LCClient {
     public func close(completion: @escaping (LCBooleanResult) -> Void) {
         self.serialQueue.async {
             guard self.isSessionOpened else {
-                var error: LCError
+                let error: LCError
                 if self.sessionState == .closing {
                     error = LCError(
                         code: .inconsistency,
@@ -328,18 +342,14 @@ extension LCClient {
                 }
                 return
             }
-            
             self.sessionState = .closing
-            
             var outCommand = IMGenericCommand()
             outCommand.cmd = .session
             outCommand.op = .close
             outCommand.sessionMessage = IMSessionCommand()
-            
             self.connection.send(command: outCommand) { [weak self] (result) in
-                guard let self = self else {
-                    return
-                }
+                guard let self = self else { return }
+                assert(self.specificAssertion)
                 switch result {
                 case .inCommand(let inCommand):
                     if inCommand.cmd == .session, inCommand.op == .closed {
@@ -687,6 +697,7 @@ private extension LCClient {
         assert(self.specificAssertion)
         self.connection.send(command: command) { [weak self] (result) in
             guard let self = self else { return }
+            assert(self.specificAssertion)
             switch result {
             case .inCommand(let inCommand):
                 self.handle(openCommandCallback: inCommand)
@@ -694,6 +705,13 @@ private extension LCClient {
                 if error.code == LCError.InternalErrorCode.commandTimeout.rawValue {
                     self.send(reopenCommand: command)
                 } else if error.code == LCError.ServerErrorCode.sessionTokenExpired.rawValue {
+                    #if DEBUG
+                    NotificationCenter.default.post(
+                        name: LCClient.TestSessionTokenExpiredNotification,
+                        object: self,
+                        userInfo: ["error": error]
+                    )
+                    #endif
                     var openCommand = self.newOpenCommand()
                     openCommand.sessionMessage.r = true
                     self.send(reopenCommand: openCommand)
@@ -1116,6 +1134,7 @@ extension LCClient: ConnectionDelegate {
             openCommand.sessionMessage.r = openingOptions.r
             self.connection.send(command: openCommand) { [weak self] (result) in
                 guard let self = self else { return }
+                assert(self.specificAssertion)
                 self.openingCompletion = nil
                 self.openingOptions = nil
                 switch result {
