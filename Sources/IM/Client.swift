@@ -205,34 +205,21 @@ public final class LCClient {
     private let serialQueue = DispatchQueue(label: "LeanCloud.LCClient.serialQueue", qos: .userInitiated)
     
     /// The session connection.
-    #if DEBUG
-    // internal for test case
     internal let connection: Connection
-    #else
-    private let connection: Connection
-    #endif
     
     /// Internal mutex
     private let mutex = NSLock()
     
     /// Session Token & Opening Config
-    #if DEBUG
-    // internal for test case
-    var sessionToken: String?
-    var sessionTokenExpiration: Date?
-    var openingCompletion: ((LCBooleanResult) -> Void)?
-    var openingOptions: SessionOpenOptions?
-    #else
-    private var sessionToken: String?
-    private var sessionTokenExpiration: Date?
-    private var openingCompletion: ((LCBooleanResult) -> Void)?
-    private var openingOptions: SessionOpenOptions?
-    #endif
+    internal var sessionToken: String?
+    private(set) var sessionTokenExpiration: Date?
+    private(set) var openingCompletion: ((LCBooleanResult) -> Void)?
+    private(set) var openingOptions: SessionOpenOptions?
     
     /// Device Token and fallback-UDID
-    private var deviceTokenObservation: NSKeyValueObservation?
-    private var currentDeviceToken: String?
-    private lazy var fallbackUDID: String = {
+    private(set) var deviceTokenObservation: NSKeyValueObservation?
+    private(set) var currentDeviceToken: String?
+    private(set) lazy var fallbackUDID: String = {
         var udid: String = UUID().uuidString
         #if os(iOS) || os(tvOS)
         if let identifierForVendor: String = UIDevice.current.identifierForVendor?.uuidString {
@@ -250,16 +237,16 @@ public final class LCClient {
     
     /// Conversation Container
     /// use it to manage all instance of LCConversation belong to this client
-    var convCollection: [String: LCConversation] = [:]
+    internal var convCollection: [String: LCConversation] = [:]
     
     /// Single-Conversation Query Callback Container
     /// use it to merge concurrent Single-Conversation Query
-    var convQueryCallbackCollection: [String: Array<(LCGenericResult<LCConversation>) -> Void>] = [:]
+    internal var convQueryCallbackCollection: [String: Array<(LCGenericResult<LCConversation>) -> Void>] = [:]
     
     /// ref: https://github.com/leancloud/avoscloud-push/blob/develop/push-server/doc/protocol.md#sessionopen
     /// parameter: `lastUnreadNotifTime`, `lastPatchTime`
-    private var lastUnreadNotifTime: Int64? = nil
-    private var lastPatchTime: Int64? = nil
+    private(set) var lastUnreadNotifTime: Int64? = nil
+    private(set) var lastPatchTime: Int64? = nil
     
 }
 
@@ -460,6 +447,13 @@ extension LCClient {
             default: return false
             }
         }
+        
+        var isTransient: Bool {
+            switch self {
+            case .transient: return true
+            default: return false
+            }
+        }
     }
     
     private func createConversation<T: LCConversation>(
@@ -473,7 +467,8 @@ extension LCClient {
         let tuple = try self.preprocessConversationCreation(
             clientIDs: clientIDs,
             name: name,
-            attributes: attributes
+            attributes: attributes,
+            option: option
         )
         let members: [String] = tuple.members
         let attrJSON: [String: Any] = tuple.attrJSON
@@ -486,7 +481,9 @@ extension LCClient {
             outCommand.cmd = .conv
             outCommand.op = .start
             var convMessage = IMConvCommand()
-            convMessage.m = members
+            if !option.isTransient {
+                convMessage.m = members
+            }
             switch option {
             case .normal:
                 break
@@ -552,18 +549,23 @@ extension LCClient {
     private func preprocessConversationCreation(
         clientIDs: Set<String>,
         name: String?,
-        attributes: [String: Any]?)
+        attributes: [String: Any]?,
+        option: ConversationCreationOption)
         throws -> (members: [String], attrJSON: [String: Any], attrString: String?)
     {
-        for item in clientIDs {
-            guard LCClient.lengthRangeOfClientID.contains(item.count) else {
-                throw LCError.clientIDInvalid
+        var members: [String]
+        if option.isTransient {
+            members = []
+        } else {
+            members = Array<String>(clientIDs)
+            for item in clientIDs {
+                guard LCClient.lengthRangeOfClientID.contains(item.count) else {
+                    throw LCError.clientIDInvalid
+                }
             }
-        }
-        
-        var members: [String] = Array<String>(clientIDs)
-        if !clientIDs.contains(self.ID) {
-            members.append(self.ID)
+            if !clientIDs.contains(self.ID) {
+                members.append(self.ID)
+            }
         }
         
         var attrJSON: [String: Any] = [:]
@@ -603,8 +605,10 @@ extension LCClient {
         } else {
             var json: [String: Any] = attrJSON
             json[LCConversation.Key.convType.rawValue] = convType.rawValue
-            json[LCConversation.Key.members.rawValue] = members
             json[LCConversation.Key.creator.rawValue] = self.ID
+            if !option.isTransient {
+                json[LCConversation.Key.members.rawValue] = members
+            }
             if option.isUnique {
                 json[LCConversation.Key.unique.rawValue] = true
             }
@@ -830,10 +834,9 @@ private extension LCClient {
             self.convQueryCallbackCollection[ID] = [completion]
         }
         let callback: (LCGenericResult<LCConversation>) -> Void = { result in
-            guard let callbacks: Array<(LCGenericResult<LCConversation>) -> Void> = self.convQueryCallbackCollection[ID] else {
+            guard let callbacks = self.convQueryCallbackCollection.removeValue(forKey: ID) else {
                 return
             }
-            self.convQueryCallbackCollection.removeValue(forKey: ID)
             for closure in callbacks {
                 closure(result)
             }
