@@ -63,27 +63,27 @@ public class LCConversation {
         case temporary = 4
     }
     
-    public final private(set) weak var client: LCClient?
+    public private(set) weak var client: LCClient?
 
-    public final let ID: String
+    public let ID: String
     
-    public final let clientID: String
+    public let clientID: String
     
-    public final let type: LCType
+    public let type: LCType
     
-    public final let isUnique: Bool
+    public let isUnique: Bool
     
-    public final let uniqueID: String?
+    public let uniqueID: String?
 
-    public final var name: String? {
+    public var name: String? {
         return safeDecodingRawData(with: .name)
     }
     
-    public final var creator: String? {
+    public var creator: String? {
         return safeDecodingRawData(with: .creator)
     }
 
-    public final var createdAt: Date? {
+    public var createdAt: Date? {
         if let str: String = safeDecodingRawData(with: .createdAt) {
             return LCDate(isoString: str)?.value
         } else {
@@ -91,7 +91,7 @@ public class LCConversation {
         }
     }
     
-    public final var updatedAt: Date? {
+    public var updatedAt: Date? {
         if let str: String = safeDecodingRawData(with: .updatedAt) {
             return LCDate(isoString: str)?.value
         } else {
@@ -99,15 +99,15 @@ public class LCConversation {
         }
     }
     
-    public final var attributes: [String: Any]? {
+    public var attributes: [String: Any]? {
         return safeDecodingRawData(with: .attributes)
     }
     
-    public final var members: [String]? {
+    public var members: [String]? {
         return safeDecodingRawData(with: .members)
     }
     
-    public final var isMuted: Bool {
+    public var isMuted: Bool {
         if let mutedMembers: [String] = safeDecodingRawData(with: .mutedMembers),
             mutedMembers.contains(clientID) {
             return true
@@ -116,7 +116,7 @@ public class LCConversation {
         }
     }
     
-    public final private(set) var isOutdated: Bool {
+    public private(set) var isOutdated: Bool {
         set {
             self.mutex.lock()
             self.underlyingOutdated = newValue
@@ -132,7 +132,7 @@ public class LCConversation {
     }
     private var underlyingOutdated: Bool = false
     
-    public final var lastMessage: LCMessage? {
+    public var lastMessage: LCMessage? {
         var message: LCMessage? = nil
         self.mutex.lock()
         message = self.underlyingLastMessage
@@ -141,7 +141,7 @@ public class LCConversation {
     }
     private var underlyingLastMessage: LCMessage? = nil
     
-    public final var unreadMessageCount: Int {
+    public var unreadMessageCount: Int {
         var count: Int = 0
         self.mutex.lock()
         count = self.underlyingUnreadMessageCount
@@ -150,7 +150,7 @@ public class LCConversation {
     }
     private var underlyingUnreadMessageCount: Int = 0
     
-    public final var isUnreadMessageContainMention: Bool {
+    public var isUnreadMessageContainMention: Bool {
         get {
             var value: Bool
             self.mutex.lock()
@@ -166,7 +166,7 @@ public class LCConversation {
     }
     private var underlyingIsUnreadMessageContainMention: Bool = false
     
-    public final subscript(key: String) -> Any? {
+    public subscript(key: String) -> Any? {
         get { return safeDecodingRawData(with: key) }
     }
     
@@ -246,7 +246,7 @@ extension LCConversation {
         public static let isAutoDeliveringWhenOffline = MessageSendOptions(rawValue: 1 << 2)
     }
     
-    public final func send(
+    public func send(
         message: LCMessage,
         options: MessageSendOptions = .default,
         priority: LCChatRoom.MessagePriority? = nil,
@@ -480,14 +480,20 @@ internal extension LCConversation {
         var messageEvent: LCMessageEvent?
         let updatingClosure: (Bool, Int?) -> Void = { (shouldUpdatingLastMessage, newUnreadCount) in
             if let newCount: Int = newUnreadCount {
+                let oldCount: Int = self.underlyingUnreadMessageCount
                 self.underlyingUnreadMessageCount = newCount
                 if let isMentioned: Bool = unreadMentioned {
                     self.underlyingIsUnreadMessageContainMention = isMentioned
                 }
+                let isUnreadMessageCountUpdated: Bool = (oldCount != newCount)
                 if shouldUpdatingLastMessage {
                     self.underlyingLastMessage = newMessage
-                    messageEvent = .lastMessageAndUnreadMessageCountUpdated
-                } else {
+                    if isUnreadMessageCountUpdated {
+                        messageEvent = .lastMessageAndUnreadMessageCountUpdated
+                    } else {
+                        messageEvent = .lastMessageUpdated
+                    }
+                } else if isUnreadMessageCountUpdated {
                     messageEvent = .unreadMessageCountUpdated
                 }
             } else if shouldUpdatingLastMessage {
@@ -582,15 +588,19 @@ internal extension LCConversation {
                 unreadMentioned: unreadMentioned
             )
         } else {
+            var unreadEvent: LCMessageEvent?
             self.mutex.lock()
+            let oldUnreadCount: Int = self.underlyingUnreadMessageCount
             self.underlyingUnreadMessageCount = unreadCount
             if let isMentioned: Bool = unreadMentioned {
                 self.underlyingIsUnreadMessageContainMention = isMentioned
             }
+            if oldUnreadCount != unreadCount {
+                unreadEvent = .unreadMessageCountUpdated
+            }
             self.mutex.unlock()
-            if let client = self.client {
+            if let client = self.client, let messageEvent = unreadEvent {
                 self.eventQueue.async {
-                    let messageEvent = LCMessageEvent.unreadMessageCountUpdated
                     let event = LCConversationEvent.message(event: messageEvent)
                     client.delegate?.client(client, conversation: self, event: event)
                 }
@@ -675,7 +685,7 @@ public class LCTemporaryConversation: LCConversation {
     
     static let prefixOfID: String = "_tmp:"
     
-    public final var timeToLive: Int? {
+    public var timeToLive: Int? {
         return safeDecodingRawData(with: .temporaryTTL)
     }
     
