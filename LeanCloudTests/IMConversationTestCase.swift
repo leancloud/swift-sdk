@@ -1,5 +1,5 @@
 //
-//  ConversationTestCase.swift
+//  IMConversationTestCase.swift
 //  LeanCloudTests
 //
 //  Created by zapcannon87 on 2019/1/20.
@@ -9,14 +9,14 @@
 import XCTest
 @testable import LeanCloud
 
-class ConversationTestCase: BaseTestCase {
+class IMConversationTestCase: RTMBaseTestCase {
     
     private var uuid: String {
         return UUID().uuidString.replacingOccurrences(of: "-", with: "")
     }
     
-    private func newOpenedClient() -> LCClient? {
-        let client = try! LCClient(ID: uuid)
+    private func newOpenedClient(customRTMURL: URL? = nil) -> LCClient? {
+        let client = try! LCClient(ID: uuid, customServer: customRTMURL)
         let exp = expectation(description: "")
         client.open { (_) in exp.fulfill() }
         wait(for: [exp], timeout: timeout)
@@ -51,9 +51,9 @@ class ConversationTestCase: BaseTestCase {
             let clientB = newOpenedClient()
             else
         { XCTFail(); return }
-        let delegatorA = LCClientTestCase.Delegator()
+        let delegatorA = IMClientTestCase.Delegator()
         clientA.delegate = delegatorA
-        let delegatorB = LCClientTestCase.Delegator()
+        let delegatorB = IMClientTestCase.Delegator()
         clientB.delegate = delegatorB
         
         var convIDSet: Set<String> = []
@@ -182,8 +182,8 @@ class ConversationTestCase: BaseTestCase {
     
     func testCreateNormalAndUniqueConversation() {
         guard
-            let clientA = newOpenedClient(),
-            let clientB = newOpenedClient()
+            let clientA = newOpenedClient(customRTMURL: testableRTMURL),
+            let clientB = newOpenedClient(customRTMURL: testableRTMURL)
             else
         { XCTFail(); return }
         
@@ -250,9 +250,9 @@ class ConversationTestCase: BaseTestCase {
             let clientB = newOpenedClient()
             else
         { XCTFail(); return }
-        let delegatorA = LCClientTestCase.Delegator()
+        let delegatorA = IMClientTestCase.Delegator()
         clientA.delegate = delegatorA
-        let delegatorB = LCClientTestCase.Delegator()
+        let delegatorB = IMClientTestCase.Delegator()
         clientB.delegate = delegatorB
         
         var convIDSet: Set<String> = []

@@ -1,5 +1,5 @@
 //
-//  RTMTestCase.swift
+//  RTMRouterTestCase.swift
 //  LeanCloudTests
 //
 //  Created by Tianyong Tang on 2018/11/6.
@@ -9,7 +9,7 @@
 import XCTest
 @testable import LeanCloud
 
-class RTMTestCase: BaseTestCase {
+class RTMRouterTestCase: RTMBaseTestCase {
 
     func testRouter() {
         let application = LCApplication.default

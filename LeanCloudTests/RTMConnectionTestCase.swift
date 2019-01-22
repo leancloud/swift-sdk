@@ -1,5 +1,5 @@
 //
-//  ConnectionTestCase.swift
+//  RTMConnectionTestCase.swift
 //  LeanCloudTests
 //
 //  Created by zapcannon87 on 2018/11/3.
@@ -9,7 +9,31 @@
 import XCTest
 @testable import LeanCloud
 
-class ConnectionTestCase: BaseTestCase {
+class RTMConnectionTestCase: RTMBaseTestCase {
+    
+    class Delegator: ConnectionDelegate {
+        
+        var inConnecting: ((Connection) -> Void)?
+        func connection(inConnecting connection: Connection) {
+            inConnecting?(connection)
+        }
+        
+        var didConnect: ((Connection) -> Void)?
+        func connection(didConnect connection: Connection) {
+            didConnect?(connection)
+        }
+        
+        var didDisconnect: ((Connection, LCError) -> Void)?
+        func connection(_ connection: Connection, didDisconnect error: LCError) {
+            didDisconnect?(connection, error)
+        }
+        
+        var didReceiveCommand: ((Connection, IMGenericCommand) -> Void)?
+        func connection(_ connection: Connection, didReceiveCommand inCommand: IMGenericCommand) {
+            didReceiveCommand?(connection, inCommand)
+        }
+        
+    }
     
     lazy var delegateQueueSpecificKey = DispatchSpecificKey<Int>()
     lazy var delegateQueueSpecificValue = Int.random(in: 1...999)
@@ -180,37 +204,46 @@ class ConnectionTestCase: BaseTestCase {
         self.waitForExpectations(timeout: timeout, handler: nil)
     }
     
-    func testConnectionDeinit() {
-        
-        var connection: Connection? = Connection(application: LCApplication.default, lcimProtocol: .protobuf1)
-        
+    func testConnectionInitAndDeinit() {
+        var connection: Connection? = Connection(
+            application: .default,
+            lcimProtocol: .protobuf1
+        )
         connection = nil
-        
         XCTAssertNil(connection)
     }
+    
+    func testConnectAndDisconnect() {
+        
+        let delegator = Delegator()
+        let connection = Connection(
+            application: .default,
+            lcimProtocol: .protobuf1,
+            delegate: delegator,
+            delegateQueue: .main,
+            customRTMServerURL: testableRTMURL
+        )
+        
+        let exp1 = expectation(description: "connect")
+        exp1.expectedFulfillmentCount = 2
+        delegator.inConnecting = { conn in
+            XCTAssertTrue(Thread.isMainThread)
+            exp1.fulfill()
+        }
+        delegator.didConnect = { conn in
+            XCTAssertTrue(Thread.isMainThread)
+            exp1.fulfill()
+        }
+        connection.connect()
+        wait(for: [exp1], timeout: timeout)
+        
+        let exp2 = expectation(description: "disconnect")
+        delegator.didDisconnect = { conn, error in
+            XCTAssertTrue(Thread.isMainThread)
+            exp2.fulfill()
+        }
+        connection.disconnect()
+        wait(for: [exp2], timeout: timeout)
+    }
 
-}
-
-class ConnectionDelegator: ConnectionDelegate {
-    
-    var inConnecting: ((Connection) -> Void)?
-    func connection(inConnecting connection: Connection) {
-        inConnecting?(connection)
-    }
-    
-    var didConnect: ((Connection) -> Void)?
-    func connection(didConnect connection: Connection) {
-        didConnect?(connection)
-    }
-    
-    var didDisconnect: ((Connection, LCError) -> Void)?
-    func connection(_ connection: Connection, didDisconnect error: LCError) {
-        didDisconnect?(connection, error)
-    }
-    
-    var didReceiveCommand: ((Connection, IMGenericCommand) -> Void)?
-    func connection(_ connection: Connection, didReceiveCommand inCommand: IMGenericCommand) {
-        didReceiveCommand?(connection, inCommand)
-    }
-    
 }

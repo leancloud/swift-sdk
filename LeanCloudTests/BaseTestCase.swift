@@ -33,15 +33,11 @@ class BaseTestCase: XCTestCase {
 
         TestObject.register()
 
-        LCApplication.default.logLevel = .debug
+        LCApplication.default.logLevel = .all
         LCApplication.default.set(
             id: "S5vDI3IeCk1NLLiM1aFg3262-gzGzoHsz",
-            key: "7g5pPsI55piz2PRLPWK5MPz0")
-    }
-    
-    override func tearDown() {
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
-        super.tearDown()
+            key: "7g5pPsI55piz2PRLPWK5MPz0"
+        )
     }
 
     func busywait(interval: TimeInterval = 0.1, untilTrue: () -> Bool) -> Void {

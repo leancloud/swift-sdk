@@ -1,5 +1,5 @@
 //
-//  ClientTestCase.swift
+//  IMClientTestCase.swift
 //  LeanCloudTests
 //
 //  Created by zapcannon87 on 2018/11/28.
@@ -9,7 +9,7 @@
 import XCTest
 @testable import LeanCloud
 
-class LCClientTestCase: BaseTestCase {
+class IMClientTestCase: RTMBaseTestCase {
     
     private var uuid: String {
         return UUID().uuidString.replacingOccurrences(of: "-", with: "")
