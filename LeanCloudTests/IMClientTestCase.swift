@@ -26,7 +26,7 @@ class IMClientTestCase: RTMBaseTestCase {
         }
     }
     
-    func testClientInit() {
+    func testClientInitAndDeinit() {
         
         do {
             let invalidID: String = Array<String>.init(repeating: "a", count: 65).joined()
@@ -45,7 +45,11 @@ class IMClientTestCase: RTMBaseTestCase {
         }
         
         do {
-            let _ = try LCClient(ID: "qweasd", tag: "mobile")
+            var client: LCClient? = try LCClient(ID: "qweasd", tag: "mobile")
+            XCTAssertNotNil(client?.deviceTokenObservation)
+            XCTAssertNotNil(client?.fallbackUDID)
+            client = nil
+            XCTAssertNil(client)
         } catch {
             XCTFail()
         }
@@ -268,13 +272,18 @@ class IMClientTestCase: RTMBaseTestCase {
     
     func testClientReportDeviceToken() {
         
-        let client: LCClient = try! LCClient(ID: uuid)
+        let application = LCApplication.default
+        let currentDeviceToken = application.currentInstallation.deviceToken?.value
+        let client: LCClient = try! LCClient(ID: uuid, application: application)
+        XCTAssertEqual(currentDeviceToken, client.currentDeviceToken)
         
         let exp = expectation(description: "client report device token success")
         exp.expectedFulfillmentCount = 2
         client.open { (result) in
             XCTAssertTrue(result.isSuccess)
-            client.installation.set(deviceToken: self.uuid, apnsTeamId: "")
+            let uuid: String = self.uuid
+            client.installation.set(deviceToken: uuid, apnsTeamId: "")
+            XCTAssertEqual(uuid, client.currentDeviceToken)
             exp.fulfill()
         }
         let _ = NotificationCenter.default.addObserver(forName: LCClient.TestReportDeviceTokenNotification, object: client, queue: OperationQueue.main) { (notification) in

@@ -56,7 +56,6 @@ class IMConversationTestCase: RTMBaseTestCase {
         let delegatorB = IMClientTestCase.Delegator()
         clientB.delegate = delegatorB
         
-        var convIDSet: Set<String> = []
         let name: String? = "normalConv"
         let attribution: [String: Any]? = [
             "String": "",
@@ -74,6 +73,9 @@ class IMConversationTestCase: RTMBaseTestCase {
             XCTAssertEqual(conv.members?.contains(clientA.ID), true)
             XCTAssertEqual(conv.members?.contains(clientB.ID), true)
             XCTAssertNotNil(conv.client)
+            if let c: LCClient = conv.client {
+                XCTAssertTrue(c === client)
+            }
             XCTAssertEqual(conv.clientID, client.ID)
             XCTAssertFalse(conv.isUnique)
             XCTAssertNil(conv.uniqueID)
@@ -121,7 +123,6 @@ class IMConversationTestCase: RTMBaseTestCase {
         delegatorA.conversationEvent = { client, conv, event in
             XCTAssertTrue(Thread.isMainThread)
             if client === clientA {
-                convIDSet.insert(conv.ID)
                 convAssertion(conv, client)
                 XCTAssertNil(conv.updatedAt)
                 switch event {
@@ -129,12 +130,8 @@ class IMConversationTestCase: RTMBaseTestCase {
                     XCTAssertEqual(cID, clientA.ID)
                     exp.fulfill()
                 case .membersJoined(tuple: let tuple):
-                    XCTAssertEqual(
-                        tuple.byClientID,
-                        clientA.ID)
-                    XCTAssertEqual(
-                        tuple.members,
-                        Set<String>([clientA.ID, clientB.ID]))
+                    XCTAssertEqual(tuple.byClientID, clientA.ID)
+                    XCTAssertEqual(tuple.members, Set<String>([clientA.ID, clientB.ID]))
                     exp.fulfill()
                 default:
                     break
@@ -144,7 +141,6 @@ class IMConversationTestCase: RTMBaseTestCase {
         delegatorB.conversationEvent = { client, conv, event in
             XCTAssertTrue(Thread.isMainThread)
             if client === clientB {
-                convIDSet.insert(conv.ID)
                 convAssertion(conv, client)
                 XCTAssertNotNil(conv.updatedAt)
                 switch event {
@@ -152,12 +148,8 @@ class IMConversationTestCase: RTMBaseTestCase {
                     XCTAssertEqual(cID, clientA.ID)
                     exp.fulfill()
                 case .membersJoined(tuple: let tuple):
-                    XCTAssertEqual(
-                        tuple.byClientID,
-                        clientA.ID)
-                    XCTAssertEqual(
-                        tuple.members,
-                        Set<String>([clientA.ID, clientB.ID]))
+                    XCTAssertEqual(tuple.byClientID, clientA.ID)
+                    XCTAssertEqual(tuple.members, Set<String>([clientA.ID, clientB.ID]))
                     exp.fulfill()
                 default:
                     break
@@ -167,7 +159,6 @@ class IMConversationTestCase: RTMBaseTestCase {
         try? clientA.createConversation(clientIDs: [clientA.ID, clientB.ID], name: name, attributes: attribution) { (result) in
             XCTAssertTrue(Thread.isMainThread)
             if let conv: LCConversation = result.value {
-                convIDSet.insert(conv.ID)
                 convAssertion(conv, clientA)
                 XCTAssertNil(conv.updatedAt)
             } else {
@@ -177,7 +168,14 @@ class IMConversationTestCase: RTMBaseTestCase {
         }
         waitForExpectations(timeout: timeout, handler: nil)
         
-        XCTAssertEqual(convIDSet.count, 1)
+        XCTAssertEqual(clientA.convCollection.count, 1)
+        XCTAssertEqual(clientB.convCollection.count, 1)
+        XCTAssertEqual(
+            clientA.convCollection.first?.value.ID,
+            clientB.convCollection.first?.value.ID
+        )
+        XCTAssertTrue(clientA.convQueryCallbackCollection.isEmpty)
+        XCTAssertTrue(clientB.convQueryCallbackCollection.isEmpty)
     }
     
     func testCreateNormalAndUniqueConversation() {
@@ -187,11 +185,6 @@ class IMConversationTestCase: RTMBaseTestCase {
             else
         { XCTFail(); return }
         
-        var convID1: String?
-        var uniqueID1: String?
-        var convID2: String?
-        var uniqueID2: String?
-        
         let exp1 = expectation(description: "create unique conversation")
         try? clientA.createConversation(clientIDs: [clientA.ID, clientB.ID], isUnique: true, completion: { (result) in
             if let conv: LCConversation = result.value {
@@ -199,8 +192,6 @@ class IMConversationTestCase: RTMBaseTestCase {
                 XCTAssertEqual(conv.type, .normal)
                 XCTAssertTrue(conv.isUnique)
                 XCTAssertNotNil(conv.uniqueID)
-                convID1 = conv.ID
-                uniqueID1 = conv.uniqueID
             } else {
                 XCTFail()
             }
@@ -215,8 +206,6 @@ class IMConversationTestCase: RTMBaseTestCase {
                 XCTAssertEqual(conv.type, .normal)
                 XCTAssertTrue(conv.isUnique)
                 XCTAssertNotNil(conv.uniqueID)
-                convID2 = conv.ID
-                uniqueID2 = conv.uniqueID
             } else {
                 XCTFail()
             }
@@ -224,8 +213,14 @@ class IMConversationTestCase: RTMBaseTestCase {
         })
         wait(for: [exp2], timeout: timeout)
         
-        XCTAssertEqual(convID1, convID2)
-        XCTAssertEqual(uniqueID1, uniqueID2)
+        XCTAssertEqual(
+            clientA.convCollection.first?.value.ID,
+            clientB.convCollection.first?.value.ID
+        )
+        XCTAssertEqual(
+            clientA.convCollection.first?.value.uniqueID,
+            clientB.convCollection.first?.value.uniqueID
+        )
     }
     
     func testCreateChatRoom() {
@@ -239,6 +234,11 @@ class IMConversationTestCase: RTMBaseTestCase {
             XCTAssertTrue(Thread.isMainThread)
             let chatRoom: LCChatRoom? = result.value
             XCTAssertEqual(chatRoom?.type, .transient)
+            if let members = chatRoom?.members {
+                XCTAssertTrue(members.isEmpty)
+            } else {
+                XCTAssertNil(chatRoom?.members)
+            }
             exp.fulfill()
         }
         waitForExpectations(timeout: timeout, handler: nil)
@@ -255,7 +255,6 @@ class IMConversationTestCase: RTMBaseTestCase {
         let delegatorB = IMClientTestCase.Delegator()
         clientB.delegate = delegatorB
         
-        var convIDSet: Set<String> = []
         let ttl: Int32 = 3600
         
         let exp = expectation(description: "create conversation")
@@ -263,7 +262,6 @@ class IMConversationTestCase: RTMBaseTestCase {
         delegatorA.conversationEvent = { client, conv, event in
             XCTAssertTrue(Thread.isMainThread)
             if client === clientA {
-                convIDSet.insert(conv.ID)
                 XCTAssertEqual(conv.type, .temporary)
                 XCTAssertEqual((conv as? LCTemporaryConversation)?.timeToLive, Int(ttl))
                 switch event {
@@ -286,7 +284,6 @@ class IMConversationTestCase: RTMBaseTestCase {
         delegatorB.conversationEvent = { client, conv, event in
             XCTAssertTrue(Thread.isMainThread)
             if client === clientB {
-                convIDSet.insert(conv.ID)
                 XCTAssertEqual(conv.type, .temporary)
                 XCTAssertEqual((conv as? LCTemporaryConversation)?.timeToLive, Int(ttl))
                 switch event {
@@ -309,7 +306,6 @@ class IMConversationTestCase: RTMBaseTestCase {
         try? clientA.createTemporaryConversation(clientIDs: [clientA.ID, clientB.ID], timeToLive: ttl, completion: { (result) in
             XCTAssertTrue(Thread.isMainThread)
             if let conv: LCTemporaryConversation = result.value {
-                convIDSet.insert(conv.ID)
                 XCTAssertEqual(conv.type, .temporary)
                 XCTAssertEqual(conv.timeToLive, Int(ttl))
             } else {
@@ -319,8 +315,14 @@ class IMConversationTestCase: RTMBaseTestCase {
         })
         waitForExpectations(timeout: timeout, handler: nil)
         
-        XCTAssertEqual(convIDSet.count, 1)
-        XCTAssertEqual(convIDSet.first?.hasPrefix(LCTemporaryConversation.prefixOfID), true)
+        XCTAssertEqual(
+            clientA.convCollection.first?.value.ID,
+            clientB.convCollection.first?.value.ID
+        )
+        XCTAssertEqual(
+            clientA.convCollection.first?.value.ID.hasPrefix(LCTemporaryConversation.prefixOfID),
+            true
+        )
     }
     
 }
