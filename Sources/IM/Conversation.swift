@@ -132,21 +132,35 @@ public class LCConversation {
     }
     private var underlyingOutdated: Bool = false
     
-    public var lastMessage: LCMessage? {
-        var message: LCMessage? = nil
-        self.mutex.lock()
-        message = self.underlyingLastMessage
-        self.mutex.unlock()
-        return message
+    public private(set) var lastMessage: LCMessage? {
+        set {
+            self.mutex.lock()
+            self.underlyingLastMessage = newValue
+            self.mutex.unlock()
+        }
+        get {
+            var message: LCMessage? = nil
+            self.mutex.lock()
+            message = self.underlyingLastMessage
+            self.mutex.unlock()
+            return message
+        }
     }
     private var underlyingLastMessage: LCMessage? = nil
     
-    public var unreadMessageCount: Int {
-        var count: Int = 0
-        self.mutex.lock()
-        count = self.underlyingUnreadMessageCount
-        self.mutex.unlock()
-        return count
+    public internal(set) var unreadMessageCount: Int {
+        set {
+            self.mutex.lock()
+            self.underlyingUnreadMessageCount = newValue
+            self.mutex.unlock()
+        }
+        get {
+            var count: Int = 0
+            self.mutex.lock()
+            count = self.underlyingUnreadMessageCount
+            self.mutex.unlock()
+            return count
+        }
     }
     private var underlyingUnreadMessageCount: Int = 0
     
@@ -412,6 +426,35 @@ extension LCConversation {
     
 }
 
+// MARK: - Message Reading
+
+extension LCConversation {
+    
+    public func read(message: LCMessage? = nil) {
+        guard
+            self.notTransientConversation,
+            self.unreadMessageCount > 0,
+            let readMessage: LCMessage = message ?? self.lastMessage,
+            let messageID: String = readMessage.ID,
+            let timestamp: Int64 = readMessage.sentTimestamp
+            else
+        { return }
+        self.client?.sendCommand(constructor: { () -> IMGenericCommand in
+            var outCommand = IMGenericCommand()
+            outCommand.cmd = .read
+            var readMessage = IMReadCommand()
+            var readTuple = IMReadTuple()
+            readTuple.cid = self.ID
+            readTuple.mid = messageID
+            readTuple.timestamp = timestamp
+            readMessage.convs = [readTuple]
+            outCommand.readMessage = readMessage
+            return outCommand
+        })
+    }
+    
+}
+
 // MARK: - Internal
 
 internal extension LCConversation {
@@ -471,90 +514,67 @@ internal extension LCConversation {
         self.mutex.unlock()
     }
     
-    func safeUpdatingLastMessage(newMessage: LCMessage, unreadCount: Int? = nil, unreadMentioned: Bool? = nil) {
+    @discardableResult
+    func safeUpdatingLastMessage(newMessage: LCMessage) -> Bool {
+        assert(self.specificAssertion)
+        var isUnreadMessageIncreased: Bool = false
         guard
             newMessage.notTransientMessage,
             self.notTransientConversation
             else
-        { return }
-        var messageEvent: LCMessageEvent?
-        let updatingClosure: (Bool, Int?) -> Void = { (shouldUpdatingLastMessage, newUnreadCount) in
-            if let newCount: Int = newUnreadCount {
-                let oldCount: Int = self.underlyingUnreadMessageCount
-                self.underlyingUnreadMessageCount = newCount
-                if let isMentioned: Bool = unreadMentioned {
-                    self.underlyingIsUnreadMessageContainMention = isMentioned
-                }
-                let isUnreadMessageCountUpdated: Bool = (oldCount != newCount)
-                if shouldUpdatingLastMessage {
-                    self.underlyingLastMessage = newMessage
-                    if isUnreadMessageCountUpdated {
-                        messageEvent = .lastMessageAndUnreadMessageCountUpdated
-                    } else {
-                        messageEvent = .lastMessageUpdated
-                    }
-                } else if isUnreadMessageCountUpdated {
-                    messageEvent = .unreadMessageCountUpdated
-                }
-            } else if shouldUpdatingLastMessage {
-                self.underlyingLastMessage = newMessage
-                messageEvent = .lastMessageUpdated
+        { return isUnreadMessageIncreased }
+        var messageEvent: LCConversationEvent?
+        let updatingLastMessageClosure: (Bool) -> Void = { oldMessageReplacedByAnother in
+            self.lastMessage = newMessage
+            messageEvent = .lastMessageUpdated
+            if oldMessageReplacedByAnother && newMessage.ioType == .in {
+                isUnreadMessageIncreased = true
             }
         }
-        self.mutex.lock()
-        if let oldMessage = self.underlyingLastMessage,
+        if let oldMessage = self.lastMessage,
             let newTimestamp: Int64 = newMessage.sentTimestamp,
             let oldTimestamp: Int64 = oldMessage.sentTimestamp,
             let newMessageID: String = newMessage.ID,
             let oldMessageID: String = oldMessage.ID {
             if newTimestamp > oldTimestamp {
-                let realUnreadCount: Int = unreadCount ?? (self.underlyingUnreadMessageCount + 1)
-                updatingClosure(true, realUnreadCount)
+                updatingLastMessageClosure(true)
             } else if newTimestamp == oldTimestamp {
-                let timestampCompareResult: ComparisonResult = newMessageID.compare(oldMessageID)
-                if timestampCompareResult == .orderedDescending {
-                    let realUnreadCount: Int = unreadCount ?? (self.underlyingUnreadMessageCount + 1)
-                    updatingClosure(true, realUnreadCount)
-                } else if timestampCompareResult == .orderedSame {
+                let messageIDCompareResult: ComparisonResult = newMessageID.compare(oldMessageID)
+                if messageIDCompareResult == .orderedDescending {
+                    updatingLastMessageClosure(true)
+                } else if messageIDCompareResult == .orderedSame {
                     let newPatchTimestamp: Int64? = newMessage.patchedTimestamp
                     let oldPatchTimestamp: Int64? = oldMessage.patchedTimestamp
                     if let newValue: Int64 = newPatchTimestamp,
                         let oldValue: Int64 = oldPatchTimestamp,
                         newValue > oldValue {
-                        updatingClosure(true, unreadCount)
-                    } else if newPatchTimestamp != nil, oldPatchTimestamp == nil {
-                        updatingClosure(true, unreadCount)
-                    } else {
-                        updatingClosure(false, unreadCount)
+                        updatingLastMessageClosure(false)
+                    } else if let _ = newPatchTimestamp, oldPatchTimestamp == nil {
+                        updatingLastMessageClosure(false)
                     }
-                } else {
-                    updatingClosure(false, unreadCount)
                 }
-            } else {
-                updatingClosure(false, unreadCount)
             }
         } else {
-            let realUnreadCount: Int = unreadCount ?? (self.underlyingUnreadMessageCount + 1)
-            updatingClosure(true, realUnreadCount)
+            updatingLastMessageClosure(true)
         }
-        self.mutex.unlock()
         if let client = self.client, let event = messageEvent {
             self.eventQueue.async {
-                let conversationEvent = LCConversationEvent.message(event: event)
-                client.delegate?.client(client, conversation: self, event: conversationEvent)
+                client.delegate?.client(client, conversation: self, event: event)
             }
         }
+        return isUnreadMessageIncreased
     }
     
     func process(unreadTuple: IMUnreadTuple) {
+        assert(self.specificAssertion)
         guard
             self.notTransientConversation,
             unreadTuple.hasUnread
             else
         { return }
-        let unreadCount: Int = Int(unreadTuple.unread)
-        let unreadMentioned: Bool? = (unreadTuple.hasMentioned ? unreadTuple.mentioned : nil)
-        let lastMessage: LCMessage? = {
+        let newUnreadCount: Int = Int(unreadTuple.unread)
+        let newUnreadMentioned: Bool? = (unreadTuple.hasMentioned ? unreadTuple.mentioned : nil)
+        let newLastMessage: LCMessage? = {
             guard
                 let timestamp: Int64 = (unreadTuple.hasTimestamp ? unreadTuple.timestamp : nil),
                 let messageID: String = (unreadTuple.hasMid ? unreadTuple.mid : nil)
@@ -581,28 +601,17 @@ internal extension LCConversation {
             )
             return message
         }()
-        if let message: LCMessage = lastMessage {
-            self.safeUpdatingLastMessage(
-                newMessage: message,
-                unreadCount: unreadCount,
-                unreadMentioned: unreadMentioned
-            )
-        } else {
-            var unreadEvent: LCMessageEvent?
-            self.mutex.lock()
-            let oldUnreadCount: Int = self.underlyingUnreadMessageCount
-            self.underlyingUnreadMessageCount = unreadCount
-            if let isMentioned: Bool = unreadMentioned {
-                self.underlyingIsUnreadMessageContainMention = isMentioned
+        if let message: LCMessage = newLastMessage {
+            self.safeUpdatingLastMessage(newMessage: message)
+        }
+        if self.unreadMessageCount != newUnreadCount {
+            self.unreadMessageCount = newUnreadCount
+            if let isMentioned: Bool = newUnreadMentioned {
+                self.isUnreadMessageContainMention = isMentioned
             }
-            if oldUnreadCount != unreadCount {
-                unreadEvent = .unreadMessageCountUpdated
-            }
-            self.mutex.unlock()
-            if let client = self.client, let messageEvent = unreadEvent {
+            if let client = self.client {
                 self.eventQueue.async {
-                    let event = LCConversationEvent.message(event: messageEvent)
-                    client.delegate?.client(client, conversation: self, event: event)
+                    client.delegate?.client(client, conversation: self, event: .unreadMessageUpdated)
                 }
             }
         }

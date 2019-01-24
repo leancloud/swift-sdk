@@ -1028,11 +1028,17 @@ private extension LCClient {
                     mentionedMembers: (command.mentionPids.isEmpty ? nil : command.mentionPids),
                     status: .sent
                 )
-                conversation.safeUpdatingLastMessage(newMessage: message)
+                var unreadEvent: LCConversationEvent?
+                let isUnreadMessageIncreased: Bool = conversation.safeUpdatingLastMessage(newMessage: message)
+                if isUnreadMessageIncreased {
+                    conversation.unreadMessageCount += 1
+                    unreadEvent = .unreadMessageUpdated
+                }
                 self.eventQueue.async {
-                    let messageEvent = LCMessageEvent.received(message: message)
-                    let event = LCConversationEvent.message(event: messageEvent)
-                    self.delegate?.client(self, conversation: conversation, event: event)
+                    if let unreadUpdatedEvent = unreadEvent {
+                        self.delegate?.client(self, conversation: conversation, event: unreadUpdatedEvent)
+                    }
+                    self.delegate?.client(self, conversation: conversation, event: .message(event: .received(message: message)))
                     self.serialQueue.async {
                         self.acknowledging(message: message, conversation: conversation)
                     }
@@ -1221,6 +1227,10 @@ public enum LCConversationEvent {
     
     case userDefinedDataUpdated
     
+    case lastMessageUpdated
+    
+    case unreadMessageUpdated
+    
     case message(event: LCMessageEvent)
     
 }
@@ -1230,12 +1240,6 @@ public enum LCMessageEvent {
     case received(message: LCMessage)
     
     case updated(updatedMessage: LCMessage)
-    
-    case lastMessageUpdated
-    
-    case unreadMessageCountUpdated
-    
-    case lastMessageAndUnreadMessageCountUpdated
     
 }
 
