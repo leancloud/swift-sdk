@@ -7,6 +7,7 @@
 //
 
 import XCTest
+import Alamofire
 @testable import LeanCloud
 
 class IMConversationTestCase: RTMBaseTestCase {
@@ -15,12 +16,135 @@ class IMConversationTestCase: RTMBaseTestCase {
         return UUID().uuidString.replacingOccurrences(of: "-", with: "")
     }
     
-    private func newOpenedClient(customRTMURL: URL? = nil) -> LCClient? {
-        let client = try! LCClient(ID: uuid, customServer: customRTMURL)
-        let exp = expectation(description: "")
+    private func newOpenedClient(
+        clientID: String? = nil,
+        options: LCClient.Options = .default,
+        customRTMURL: URL? = nil)
+        -> LCClient?
+    {
+        let client = try! LCClient(ID: clientID ?? uuid, options:options, customServer: customRTMURL)
+        let exp = expectation(description: "open")
         client.open { (_) in exp.fulfill() }
         wait(for: [exp], timeout: timeout)
         return client
+    }
+    
+    private lazy var v2Router = HTTPRouter(
+        application: .default,
+        configuration: HTTPRouter.Configuration(apiVersion: "1.2")
+    )
+    
+    private func newServiceConversation() -> String? {
+        var objectID: String?
+        let exp = expectation(description: "create service conversation")
+        let parameters: Parameters = [
+            "name": uuid
+        ]
+        let headers: HTTPHeaders = [
+            "X-LC-Id": LCApplication.default.id,
+            "X-LC-Key": LCApplication.default.key,
+            "Content-Type": "application/json"
+        ]
+        let request: URLRequest = Alamofire.request(
+            v2Router.route(path: "/rtm/service-conversations", module: .api)!,
+            method: .post,
+            parameters: parameters,
+            encoding: JSONEncoding.default,
+            headers: headers
+            ).request!
+        print("------\n\(request.url!)\n\(parameters)\n------\n")
+        let task = URLSession.shared.dataTask(with: request) { (data, response, error) in
+            let statusCode = (response as? HTTPURLResponse)?.statusCode ?? 0
+            XCTAssertTrue((200..<300).contains(statusCode))
+            if let data = data,
+                let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                let json: [String: Any] = object {
+                print("------\n\(json)\n------\n")
+                objectID = json["objectId"] as? String
+            }
+            exp.fulfill()
+        }
+        task.resume()
+        wait(for: [exp], timeout: timeout)
+        return objectID
+    }
+    
+    private func subscribing(serviceConversation conversationID: String, by clientID: String) -> Bool {
+        var success: Bool = false
+        let exp = expectation(description: "subscribe a service conversation")
+        let parameters: Parameters = [
+            "client_id": clientID
+        ]
+        let headers: HTTPHeaders = [
+            "X-LC-Id": LCApplication.default.id,
+            "X-LC-Key": masterKey,
+            "Content-Type": "application/json"
+        ]
+        let request: URLRequest = Alamofire.request(
+            v2Router.route(path: "/rtm/service-conversations/\(conversationID)/subscribers")!,
+            method: .post,
+            parameters: parameters,
+            encoding: JSONEncoding.default,
+            headers: headers
+            ).request!
+        print("------\n\(request.url!)\n\(parameters)\n------\n")
+        let task = URLSession.shared.dataTask(with: request) { (data, response, error) in
+            let statusCode = (response as? HTTPURLResponse)?.statusCode ?? 0
+            if (200..<300).contains(statusCode) {
+                success = true
+            } else {
+                XCTFail()
+            }
+            if let data = data,
+                let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                let json: [String: Any] = object {
+                print("------\n\(json)\n------\n")
+            }
+            exp.fulfill()
+        }
+        task.resume()
+        wait(for: [exp], timeout: timeout)
+        return success
+    }
+    
+    private func broadcastingMessage(to conversationID: String) -> (String, Int64)? {
+        var tuple: (String, Int64)?
+        let exp = expectation(description: "service conversation broadcasting message")
+        let parameters: Parameters = [
+            "from_client": "master",
+            "message": "test"
+        ]
+        let headers: HTTPHeaders = [
+            "X-LC-Id": LCApplication.default.id,
+            "X-LC-Key": masterKey,
+            "Content-Type": "application/json"
+        ]
+        let request: URLRequest = Alamofire.request(
+            v2Router.route(path: "/rtm/service-conversations/\(conversationID)/broadcasts", module: .api)!,
+            method: .post,
+            parameters: parameters,
+            encoding: JSONEncoding.default,
+            headers: headers
+            ).request!
+        print("------\n\(request.url!)\n\(parameters)\n------\n")
+        let task = URLSession.shared.dataTask(with: request) { (data, response, error) in
+            let statusCode = (response as? HTTPURLResponse)?.statusCode ?? 0
+            XCTAssertTrue((200..<300).contains(statusCode))
+            if let data = data,
+                let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                let json: [String: Any] = object {
+                print("------\n\(json)\n------\n")
+                if let result: [String: Any] = json["result"] as? [String: Any],
+                    let messageID = result["msg-id"] as? String,
+                    let timestamp: Int64 = result["timestamp"] as? Int64 {
+                    tuple = (messageID, timestamp)
+                }
+            }
+            exp.fulfill()
+        }
+        task.resume()
+        wait(for: [exp], timeout: timeout)
+        return tuple
     }
 
     func testCreateConversationErrorThrows() {
@@ -50,7 +174,11 @@ class IMConversationTestCase: RTMBaseTestCase {
             let clientA = newOpenedClient(),
             let clientB = newOpenedClient()
             else
-        { XCTFail(); return }
+        {
+            XCTFail()
+            return
+        }
+        
         let delegatorA = IMClientTestCase.Delegator()
         clientA.delegate = delegatorA
         let delegatorB = IMClientTestCase.Delegator()
@@ -183,7 +311,10 @@ class IMConversationTestCase: RTMBaseTestCase {
             let clientA = newOpenedClient(customRTMURL: testableRTMURL),
             let clientB = newOpenedClient(customRTMURL: testableRTMURL)
             else
-        { XCTFail(); return }
+        {
+            XCTFail()
+            return
+        }
         
         let exp1 = expectation(description: "create unique conversation")
         try? clientA.createConversation(clientIDs: [clientA.ID, clientB.ID], isUnique: true, completion: { (result) in
@@ -224,10 +355,10 @@ class IMConversationTestCase: RTMBaseTestCase {
     }
     
     func testCreateChatRoom() {
-        guard
-            let client = newOpenedClient()
-            else
-        { XCTFail(); return }
+        guard let client = newOpenedClient() else {
+            XCTFail()
+            return
+        }
         
         let exp = expectation(description: "create chat room")
         try? client.createChatRoom() { (result) in
@@ -249,7 +380,10 @@ class IMConversationTestCase: RTMBaseTestCase {
             let clientA = newOpenedClient(),
             let clientB = newOpenedClient()
             else
-        { XCTFail(); return }
+        {
+            XCTFail()
+            return
+        }
         let delegatorA = IMClientTestCase.Delegator()
         clientA.delegate = delegatorA
         let delegatorB = IMClientTestCase.Delegator()
@@ -323,6 +457,273 @@ class IMConversationTestCase: RTMBaseTestCase {
             clientA.convCollection.first?.value.ID.hasPrefix(LCTemporaryConversation.prefixOfID),
             true
         )
+    }
+    
+    func testNormalConversationUnreadEvent() {
+        guard let clientA = newOpenedClient(options: [.receiveUnreadMessageCountAfterSessionDidOpen]) else {
+            XCTFail()
+            return
+        }
+        
+        let otherClientID: String = uuid
+        let message = LCMessage()
+        message.content = .string("test")
+        message.isAllMembersMentioned = true
+        
+        let sendExp = expectation(description: "create conversation and send message")
+        sendExp.expectedFulfillmentCount = 2
+        try? clientA.createConversation(clientIDs: [otherClientID], completion: { (result) in
+            XCTAssertNotNil(result.value)
+            try? result.value?.send(message: message, completion: { (result) in
+                XCTAssertTrue(result.isSuccess)
+                sendExp.fulfill()
+            })
+            sendExp.fulfill()
+        })
+        wait(for: [sendExp], timeout: timeout)
+        
+        let clientB = try! LCClient(ID: otherClientID, options: [.receiveUnreadMessageCountAfterSessionDidOpen])
+        let delegator = IMClientTestCase.Delegator()
+        clientB.delegate = delegator
+        
+        let unreadExp = expectation(description: "opened and get unread event")
+        unreadExp.expectedFulfillmentCount = 3
+        delegator.conversationEvent = { client, conversation, event in
+            if client === clientB, conversation.ID == message.conversationID {
+                switch event {
+                case .lastMessageUpdated:
+                    XCTAssertEqual(conversation.lastMessage?.conversationID, message.conversationID)
+                    XCTAssertEqual(conversation.lastMessage?.sentTimestamp, message.sentTimestamp)
+                    XCTAssertEqual(conversation.lastMessage?.ID, message.ID)
+                    unreadExp.fulfill()
+                case .unreadMessageUpdated:
+                    XCTAssertEqual(conversation.unreadMessageCount, 1)
+                    XCTAssertTrue(conversation.isUnreadMessageContainMention)
+                    unreadExp.fulfill()
+                default:
+                    break
+                }
+            }
+        }
+        clientB.open { (result) in
+            XCTAssertTrue(result.isSuccess)
+            unreadExp.fulfill()
+        }
+        wait(for: [unreadExp], timeout: timeout)
+        
+        let readExp = expectation(description: "read")
+        delegator.conversationEvent = { client, conversation, event in
+            if client === clientB, conversation.ID == message.conversationID {
+                if case .unreadMessageUpdated = event {
+                    XCTAssertEqual(conversation.unreadMessageCount, 0)
+                    readExp.fulfill()
+                }
+            }
+        }
+        for (_, conv) in clientB.convCollection {
+            conv.read()
+        }
+        wait(for: [readExp], timeout: timeout)
+    }
+    
+    func testTemporaryConversationUnreadEvent() {
+        guard let clientA = newOpenedClient(options: [.receiveUnreadMessageCountAfterSessionDidOpen]) else {
+            XCTFail()
+            return
+        }
+        
+        let otherClientID: String = uuid
+        let message = LCMessage()
+        message.content = .string("test")
+        message.isAllMembersMentioned = true
+        
+        let sendExp = expectation(description: "create temporary conversation and send message")
+        sendExp.expectedFulfillmentCount = 2
+        try? clientA.createTemporaryConversation(clientIDs: [otherClientID], timeToLive: 3600, completion: { (result) in
+            XCTAssertNotNil(result.value)
+            try? result.value?.send(message: message, completion: { (result) in
+                XCTAssertTrue(result.isSuccess)
+                sendExp.fulfill()
+            })
+            sendExp.fulfill()
+        })
+        wait(for: [sendExp], timeout: timeout)
+        
+        let clientB = try! LCClient(ID: otherClientID, options: [.receiveUnreadMessageCountAfterSessionDidOpen])
+        let delegator = IMClientTestCase.Delegator()
+        clientB.delegate = delegator
+        
+        let unreadExp = expectation(description: "opened and get unread event")
+        unreadExp.expectedFulfillmentCount = 3
+        delegator.conversationEvent = { client, conversation, event in
+            if client === clientB, conversation.ID == message.conversationID {
+                switch event {
+                case .lastMessageUpdated:
+                    XCTAssertEqual(conversation.lastMessage?.conversationID, message.conversationID)
+                    XCTAssertEqual(conversation.lastMessage?.sentTimestamp, message.sentTimestamp)
+                    XCTAssertEqual(conversation.lastMessage?.ID, message.ID)
+                    unreadExp.fulfill()
+                case .unreadMessageUpdated:
+                    XCTAssertEqual(conversation.unreadMessageCount, 1)
+                    XCTAssertTrue(conversation.isUnreadMessageContainMention)
+                    unreadExp.fulfill()
+                default:
+                    break
+                }
+            }
+        }
+        clientB.open { (result) in
+            XCTAssertTrue(result.isSuccess)
+            unreadExp.fulfill()
+        }
+        wait(for: [unreadExp], timeout: timeout)
+        
+        let readExp = expectation(description: "read")
+        delegator.conversationEvent = { client, conversation, event in
+            if client === clientB, conversation.ID == message.conversationID {
+                if case .unreadMessageUpdated = event {
+                    XCTAssertEqual(conversation.unreadMessageCount, 0)
+                    readExp.fulfill()
+                }
+            }
+        }
+        for (_, conv) in clientB.convCollection {
+            conv.read()
+        }
+        wait(for: [readExp], timeout: timeout)
+    }
+    
+    func testServiceConversationUnreadEvent() {
+        
+        let clientID = uuid
+        
+        guard let serviceConvID: String = newServiceConversation(),
+            subscribing(serviceConversation: serviceConvID, by: clientID),
+            let _ = broadcastingMessage(to: serviceConvID)
+            else
+        {
+            XCTFail()
+            return
+        }
+        
+        let waitExp = expectation(description: "wait 5s after sent message to service conversation")
+        waitExp.isInverted = true
+        wait(for: [waitExp], timeout: 5)
+        
+        let clientA = try! LCClient(ID: clientID, options: [.receiveUnreadMessageCountAfterSessionDidOpen])
+        let delegator = IMClientTestCase.Delegator()
+        clientA.delegate = delegator
+        
+        let unreadExp = expectation(description: "opened and get unread event")
+        unreadExp.expectedFulfillmentCount = 3
+        delegator.conversationEvent = { client, conversation, event in
+            if client === clientA, conversation.ID == serviceConvID {
+                switch event {
+                case .lastMessageUpdated:
+                    unreadExp.fulfill()
+                case .unreadMessageUpdated:
+                    unreadExp.fulfill()
+                default:
+                    break
+                }
+            }
+        }
+        clientA.open { (result) in
+            XCTAssertTrue(result.isSuccess)
+            unreadExp.fulfill()
+        }
+        wait(for: [unreadExp], timeout: timeout)
+        
+        let readExp = expectation(description: "read")
+        delegator.conversationEvent = { client, conversation, event in
+            if client === clientA, conversation.ID == serviceConvID {
+                if case .unreadMessageUpdated = event {
+                    XCTAssertEqual(conversation.unreadMessageCount, 0)
+                    readExp.fulfill()
+                }
+            }
+        }
+        for (_, conv) in clientA.convCollection {
+            conv.read()
+        }
+        wait(for: [readExp], timeout: timeout)
+    }
+    
+    func testLargeUnreadEvent() {
+        guard let clientA = newOpenedClient(options: [.receiveUnreadMessageCountAfterSessionDidOpen]) else {
+            XCTFail()
+            return
+        }
+        
+        let otherClientID: String = uuid
+        let count: Int = 20
+        
+        for i in 0..<count {
+            let exp = expectation(description: "create conversation and send message")
+            exp.expectedFulfillmentCount = 2
+            let message = LCMessage()
+            message.content = .string("")
+            if i == 0 {
+                try! clientA.createTemporaryConversation(clientIDs: [otherClientID], timeToLive: 3600, completion: { (result) in
+                    XCTAssertNotNil(result.value)
+                    try! result.value?.send(message: message, completion: { (result) in
+                        XCTAssertTrue(result.isSuccess)
+                        exp.fulfill()
+                    })
+                    exp.fulfill()
+                })
+                wait(for: [exp], timeout: timeout)
+            } else {
+                try! clientA.createConversation(clientIDs: [otherClientID]) { (result) in
+                    XCTAssertNotNil(result.value)
+                    try! result.value?.send(message: message, completion: { (result) in
+                        XCTAssertTrue(result.isSuccess)
+                        exp.fulfill()
+                    })
+                    exp.fulfill()
+                }
+                wait(for: [exp], timeout: timeout)
+            }
+        }
+        
+        let convIDSet = Set<String>(clientA.convCollection.keys)
+        let clientB = try! LCClient(ID: otherClientID, options: [.receiveUnreadMessageCountAfterSessionDidOpen])
+        let delegator = IMClientTestCase.Delegator()
+        clientB.delegate = delegator
+        
+        let largeUnreadExp = expectation(description: "opened and get large unread event")
+        largeUnreadExp.expectedFulfillmentCount = (count * 2) + 1
+        delegator.conversationEvent = { client, conversaton, event in
+            if client === clientB, convIDSet.contains(conversaton.ID) {
+                switch event {
+                case .lastMessageUpdated, .unreadMessageUpdated:
+                    largeUnreadExp.fulfill()
+                default:
+                    break
+                }
+            }
+        }
+        clientB.open { (result) in
+            XCTAssertTrue(result.isSuccess)
+            largeUnreadExp.fulfill()
+        }
+        wait(for: [largeUnreadExp], timeout: timeout)
+        
+        XCTAssertNotNil(clientB.lastUnreadNotifTime)
+        
+        let allReadExp = expectation(description: "all read")
+        allReadExp.expectedFulfillmentCount = count
+        delegator.conversationEvent = { client, conversation, event in
+            if client === clientB, convIDSet.contains(conversation.ID) {
+                if case .unreadMessageUpdated = event {
+                    allReadExp.fulfill()
+                }
+            }
+        }
+        for (_, conv) in clientB.convCollection {
+            conv.read()
+        }
+        wait(for: [allReadExp], timeout: timeout)
     }
     
 }
