@@ -55,17 +55,17 @@ open class LCMessage {
         return date(fromMillisecond: sentTimestamp)
     }
     
-    public final private(set) var deliveredTimestamp: Int64?
+    public final internal(set) var deliveredTimestamp: Int64?
     public final var deliveredDate: Date? {
         return date(fromMillisecond: deliveredTimestamp)
     }
     
-    public final private(set) var readTimestamp: Int64?
+    public final internal(set) var readTimestamp: Int64?
     public final var readDate: Date? {
         return date(fromMillisecond: readTimestamp)
     }
     
-    public final private(set) var patchedTimestamp: Int64?
+    public final internal(set) var patchedTimestamp: Int64?
     public final var patchedDate: Date? {
         return date(fromMillisecond: patchedTimestamp)
     }
@@ -178,7 +178,7 @@ open class LCMessage {
     
     internal func update(status newStatus: LCMessage.Status, ID: String? = nil, timestamp: Int64? = nil) {
         self.status = newStatus
-        if newStatus == .sent {
+        if newStatus == .sent || newStatus == .delivered || newStatus == .read {
             self.ID = ID
             self.sentTimestamp = timestamp
         }

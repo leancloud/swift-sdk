@@ -147,7 +147,8 @@ public final class LCClient {
         
         static let support: SessionConfigs = [
             .patchMessage,
-            .temporaryConversationMessage
+            .temporaryConversationMessage,
+            .transientMessageACK
         ]
     }
     
@@ -1138,6 +1139,74 @@ private extension LCClient {
         }
     }
     
+    func process(patchCommand: IMPatchCommand) {
+        assert(self.specificAssertion)
+        var conversationIDMap: [String: IMPatchItem] = [:]
+        var temporaryConversationIDMap: [String: IMPatchItem] = [:]
+        for item in patchCommand.patches {
+            guard let conversationID: String = (item.hasCid ? item.cid : nil) else {
+                continue
+            }
+            if let existingConversation = self.convCollection[conversationID] {
+                existingConversation.process(patchItem: item)
+            } else {
+                if conversationID.hasPrefix(LCTemporaryConversation.prefixOfID) {
+                    temporaryConversationIDMap[conversationID] = item
+                } else {
+                    conversationIDMap[conversationID] = item
+                }
+            }
+        }
+        let group = DispatchGroup()
+        var groupFlags: [Bool] = []
+        let handleResult: (LCGenericResult<[LCConversation]>, [String: IMPatchItem]) -> Void = { (result, map) in
+            switch result {
+            case .success(value: let conversations):
+                groupFlags.append(true)
+                for conversation in conversations {
+                    if let patchItem: IMPatchItem = map[conversation.ID] {
+                        conversation.process(patchItem: patchItem)
+                    }
+                }
+            case .failure(error: let error):
+                groupFlags.append(false)
+                Logger.shared.error(error)
+            }
+        }
+        if !conversationIDMap.isEmpty {
+            group.enter()
+            let IDs = Set<String>(conversationIDMap.keys)
+            self.getConversations(by: IDs) { (result) in
+                assert(self.specificAssertion)
+                handleResult(result, conversationIDMap)
+                group.leave()
+            }
+        }
+        if !temporaryConversationIDMap.isEmpty {
+            group.enter()
+            let IDs = Set<String>(temporaryConversationIDMap.keys)
+            self.getTemporaryConversations(by: IDs) { (result) in
+                assert(self.specificAssertion)
+                handleResult(result, temporaryConversationIDMap)
+                group.leave()
+            }
+        }
+        if !conversationIDMap.isEmpty || !temporaryConversationIDMap.isEmpty {
+            group.notify(queue: self.serialQueue) {
+                var bothTrue = true
+                for flag in groupFlags {
+                    guard flag else {
+                        bothTrue = false
+                        break
+                    }
+                }
+                if bothTrue, patchCommand.hasLastPatchTime {
+                    self.lastPatchTime = patchCommand.lastPatchTime
+                }
+            }
+        }
+    }
+    
 }
 
 // MARK: - Connection Delegate
@@ -1217,6 +1286,13 @@ extension LCClient: ConnectionDelegate {
             self.process(unreadCommand: inCommand.unreadMessage)
         case .conv:
             self.process(convCommand: inCommand.convMessage, op: inCommand.op)
+        case .patch:
+            switch inCommand.op {
+            case .modify:
+                self.process(patchCommand: inCommand.patchMessage)
+            default:
+                break
+            }
         default:
             break
         }

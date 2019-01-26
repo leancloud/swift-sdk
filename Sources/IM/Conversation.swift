@@ -378,7 +378,7 @@ extension LCConversation {
     
     private func preprocess(
         message: LCMessage,
-        pushData: [String: Any]?,
+        pushData: [String: Any]? = nil,
         progress: ((Double) -> Void)?,
         completion: @escaping (String?, LCError?) -> Void)
         throws
@@ -452,6 +452,216 @@ extension LCConversation {
             outCommand.readMessage = readMessage
             return outCommand
         })
+    }
+    
+    func process(unreadTuple: IMUnreadTuple) {
+        assert(self.specificAssertion)
+        guard
+            self.notTransientConversation,
+            unreadTuple.hasUnread
+            else
+        { return }
+        let newUnreadCount: Int = Int(unreadTuple.unread)
+        let newUnreadMentioned: Bool? = (unreadTuple.hasMentioned ? unreadTuple.mentioned : nil)
+        let newLastMessage: LCMessage? = {
+            guard
+                let timestamp: Int64 = (unreadTuple.hasTimestamp ? unreadTuple.timestamp : nil),
+                let messageID: String = (unreadTuple.hasMid ? unreadTuple.mid : nil)
+                else
+            { return nil }
+            var content: LCMessage.Content? = nil
+            if unreadTuple.hasData {
+                content = .string(unreadTuple.data)
+            } else if unreadTuple.hasBinaryMsg {
+                content = .data(unreadTuple.binaryMsg)
+            }
+            let message = LCMessage.instance(
+                isTransient: false,
+                conversationID: self.ID,
+                localClientID: self.clientID,
+                fromClientID: (unreadTuple.hasFrom ? unreadTuple.from : nil),
+                timestamp: timestamp,
+                patchedTimestamp: (unreadTuple.hasPatchTimestamp ? unreadTuple.patchTimestamp : nil),
+                messageID: messageID,
+                content: content,
+                isAllMembersMentioned: nil,
+                mentionedMembers: nil,
+                status: .sent
+            )
+            return message
+        }()
+        if let message: LCMessage = newLastMessage {
+            self.safeUpdatingLastMessage(newMessage: message)
+        }
+        if self.unreadMessageCount != newUnreadCount {
+            self.unreadMessageCount = newUnreadCount
+            if let isMentioned: Bool = newUnreadMentioned {
+                self.isUnreadMessageContainMention = isMentioned
+            }
+            if let client = self.client {
+                self.eventQueue.async {
+                    client.delegate?.client(client, conversation: self, event: .unreadMessageUpdated)
+                }
+            }
+        }
+    }
+    
+}
+
+// MARK: - Message Updating
+
+extension LCConversation {
+    
+    public func update(
+        oldMessage: LCMessage,
+        by newMessage: LCMessage,
+        progress: ((Double) -> Void)? = nil,
+        completion: @escaping (LCBooleanResult) -> Void)
+        throws
+    {
+        let sentStatusSet: Set<Int> = [
+            LCMessage.Status.sent.rawValue,
+            LCMessage.Status.delivered.rawValue,
+            LCMessage.Status.read.rawValue
+        ]
+        guard
+            let oldMessageID: String = oldMessage.ID,
+            let oldMessageTimestamp: Int64 = oldMessage.sentTimestamp,
+            sentStatusSet.contains(oldMessage.status.rawValue)
+            else
+        {
+            throw LCError(code: .updatingMessageNotSent)
+        }
+        guard
+            let oldMessageConvID: String = oldMessage.conversationID,
+            oldMessageConvID == self.ID,
+            oldMessage.fromClientID == self.clientID
+            else
+        {
+            throw LCError(code: .updatingMessageNotAllowed)
+        }
+        guard newMessage.status == .none else {
+            throw LCError(
+                code: .inconsistency,
+                reason: "new message's status should be \(LCMessage.Status.none)."
+            )
+        }
+        try self.preprocess(message: newMessage, progress: progress) { (_, error: LCError?) in
+            if let error: LCError = error {
+                self.eventQueue.async {
+                    completion(.failure(error: error))
+                }
+                return
+            }
+            self.client?.sendCommand(constructor: { () -> IMGenericCommand in
+                var outCommand = IMGenericCommand()
+                outCommand.cmd = .patch
+                outCommand.op = .modify
+                var patchMessage = IMPatchCommand()
+                var patchItem = IMPatchItem()
+                patchItem.cid = oldMessageConvID
+                patchItem.mid = oldMessageID
+                patchItem.timestamp = oldMessageTimestamp
+                if let content: LCMessage.Content = newMessage.content {
+                    switch content {
+                    case .data(let data):
+                        patchItem.binaryMsg = data
+                    case .string(let string):
+                        patchItem.data = string
+                    }
+                }
+                if let mentionAll: Bool = newMessage.isAllMembersMentioned {
+                    patchItem.mentionAll = mentionAll
+                }
+                if let mentionList: [String] = newMessage.mentionedMembers {
+                    patchItem.mentionPids = mentionList
+                }
+                patchMessage.patches = [patchItem]
+                outCommand.patchMessage = patchMessage
+                return outCommand
+            }, completion: { (result) in
+                switch result {
+                case .inCommand(let inCommand):
+                    assert(self.specificAssertion)
+                    if inCommand.hasPatchMessage, inCommand.patchMessage.hasLastPatchTime {
+                        newMessage.patchedTimestamp = inCommand.patchMessage.lastPatchTime
+                        newMessage.update(
+                            status: oldMessage.status,
+                            ID: oldMessageID,
+                            timestamp: oldMessageTimestamp
+                        )
+                        newMessage.setup(
+                            clientID: self.clientID,
+                            conversationID: self.ID
+                        )
+                        newMessage.deliveredTimestamp = oldMessage.deliveredTimestamp
+                        newMessage.readTimestamp = oldMessage.readTimestamp
+                        self.safeUpdatingLastMessage(newMessage: newMessage)
+                        self.eventQueue.async {
+                            completion(.success)
+                        }
+                    } else {
+                        self.eventQueue.async {
+                            let error = LCError(code: .commandInvalid)
+                            completion(.failure(error: error))
+                        }
+                    }
+                case .error(let error):
+                    self.eventQueue.async {
+                        completion(.failure(error: error))
+                    }
+                }
+            })
+        }
+    }
+    
+    public func recall(message: LCMessage, completion: @escaping (LCGenericResult<LCMessage>) -> Void) throws {
+        let recalledMessage = LCRecalledMessage()
+        try self.update(oldMessage: message, by: recalledMessage, completion: { (result) in
+            switch result {
+            case .success:
+                completion(.success(value: recalledMessage))
+            case .failure(error: let error):
+                completion(.failure(error: error))
+            }
+        })
+    }
+    
+    func process(patchItem: IMPatchItem) {
+        assert(self.specificAssertion)
+        guard
+            let timestamp: Int64 = (patchItem.hasTimestamp ? patchItem.timestamp : nil),
+            let messageID: String = (patchItem.hasMid ? patchItem.mid : nil)
+            else
+        {
+            return
+        }
+        var content: LCMessage.Content? = nil
+        if patchItem.hasData {
+            content = .string(patchItem.data)
+        } else if patchItem.hasBinaryMsg {
+            content = .data(patchItem.binaryMsg)
+        }
+        let patchedMessage = LCMessage.instance(
+            isTransient: false,
+            conversationID: self.ID,
+            localClientID: self.clientID,
+            fromClientID: (patchItem.hasFrom ? patchItem.from : nil),
+            timestamp: timestamp,
+            patchedTimestamp: (patchItem.hasPatchTimestamp ? patchItem.patchTimestamp : nil),
+            messageID: messageID,
+            content: content,
+            isAllMembersMentioned: (patchItem.hasMentionAll ? patchItem.mentionAll : nil),
+            mentionedMembers: (patchItem.mentionPids.count > 0 ? patchItem.mentionPids : nil),
+            status: .sent
+        )
+        self.safeUpdatingLastMessage(newMessage: patchedMessage)
+        if let client = self.client {
+            self.eventQueue.async {
+                let messageEvent = LCMessageEvent.updated(updatedMessage: patchedMessage)
+                client.delegate?.client(client, conversation: self, event: .message(event: messageEvent))
+            }
+        }
     }
     
 }
@@ -564,58 +774,6 @@ internal extension LCConversation {
             }
         }
         return isUnreadMessageIncreased
-    }
-    
-    func process(unreadTuple: IMUnreadTuple) {
-        assert(self.specificAssertion)
-        guard
-            self.notTransientConversation,
-            unreadTuple.hasUnread
-            else
-        { return }
-        let newUnreadCount: Int = Int(unreadTuple.unread)
-        let newUnreadMentioned: Bool? = (unreadTuple.hasMentioned ? unreadTuple.mentioned : nil)
-        let newLastMessage: LCMessage? = {
-            guard
-                let timestamp: Int64 = (unreadTuple.hasTimestamp ? unreadTuple.timestamp : nil),
-                let messageID: String = (unreadTuple.hasMid ? unreadTuple.mid : nil)
-                else
-            { return nil }
-            var content: LCMessage.Content? = nil
-            if unreadTuple.hasData {
-                content = .string(unreadTuple.data)
-            } else if unreadTuple.hasBinaryMsg {
-                content = .data(unreadTuple.binaryMsg)
-            }
-            let message = LCMessage.instance(
-                isTransient: false,
-                conversationID: self.ID,
-                localClientID: self.clientID,
-                fromClientID: (unreadTuple.hasFrom ? unreadTuple.from : nil),
-                timestamp: timestamp,
-                patchedTimestamp: (unreadTuple.hasPatchTimestamp ? unreadTuple.patchTimestamp : nil),
-                messageID: messageID,
-                content: content,
-                isAllMembersMentioned: nil,
-                mentionedMembers: nil,
-                status: .sent
-            )
-            return message
-        }()
-        if let message: LCMessage = newLastMessage {
-            self.safeUpdatingLastMessage(newMessage: message)
-        }
-        if self.unreadMessageCount != newUnreadCount {
-            self.unreadMessageCount = newUnreadCount
-            if let isMentioned: Bool = newUnreadMentioned {
-                self.isUnreadMessageContainMention = isMentioned
-            }
-            if let client = self.client {
-                self.eventQueue.async {
-                    client.delegate?.client(client, conversation: self, event: .unreadMessageUpdated)
-                }
-            }
-        }
     }
     
 }
