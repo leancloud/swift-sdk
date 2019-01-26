@@ -133,6 +133,24 @@ public final class LCClient {
         
     }
     
+    /// ref: https://github.com/leancloud/avoscloud-push/blob/develop/push-server/doc/protocol.md#sdk-登录功能标志位-session-config-bitmap
+    private struct SessionConfigs: OptionSet {
+        let rawValue: Int64
+        
+        static let patchMessage = SessionConfigs(rawValue: 1 << 0)
+        static let temporaryConversationMessage = SessionConfigs(rawValue: 1 << 1)
+        static let autoBindDeviceidAndInstallation = SessionConfigs(rawValue: 1 << 2)
+        static let transientMessageACK = SessionConfigs(rawValue: 1 << 3)
+        static let notification = SessionConfigs(rawValue: 1 << 4)
+        static let partialFailedMessage = SessionConfigs(rawValue: 1 << 5)
+        static let groupChatRCP = SessionConfigs(rawValue: 1 << 6)
+        
+        static let support: SessionConfigs = [
+            .patchMessage,
+            .temporaryConversationMessage
+        ]
+    }
+    
     /// Initialize client with identifier and tag.
     ///
     /// - Parameters:
@@ -182,6 +200,7 @@ public final class LCClient {
             commandTTL: timeoutInterval,
             customRTMServerURL: customServer
         )
+        self.connection.peerID = ID
         self.deviceTokenObservation = self.installation.observe(
             \.deviceToken,
             options: [.old, .new, .initial]
@@ -416,6 +435,7 @@ extension LCClient {
     }
     
     /// Create a temporary conversation.
+    /// Temporary conversation is unique in it's Life Cycle.
     ///
     /// - Parameters:
     ///   - clientIDs: An array of client ID. it's the members of the conversation which will be created. the initialized members always contains this client's ID.
@@ -682,6 +702,7 @@ private extension LCClient {
         outCommand.appID = self.application.id
         outCommand.peerID = self.ID
         var sessionCommand = IMSessionCommand()
+        sessionCommand.configBitmap = SessionConfigs.support.rawValue
         sessionCommand.deviceToken = self.currentDeviceToken ?? self.fallbackUDID
         sessionCommand.ua = HTTPClient.default.configuration.userAgent
         if let tag: String = self.tag {
@@ -1225,7 +1246,7 @@ public enum LCConversationEvent {
     
     case membersLeft(tuple: (members: Set<String>, byClientID: String?))
     
-    case userDefinedDataUpdated
+    case dataUpdated
     
     case lastMessageUpdated
     
