@@ -339,6 +339,7 @@ extension LCConversation {
                         let messageID: String = (ack.hasUid ? ack.uid : nil),
                         let timestamp: Int64 = (ack.hasT ? ack.t : nil) {
                         message.update(status: .sent, ID: messageID, timestamp: timestamp)
+                        self.safeUpdatingLastMessage(newMessage: message)
                         self.eventQueue.async {
                             completion(.success)
                         }
@@ -690,6 +691,7 @@ public class LCChatRoom: LCConversation {
 public class LCServiceConversation: LCConversation {}
 
 /// IM Temporary Conversation
+/// Temporary Conversation is unique in it's Life Cycle.
 public class LCTemporaryConversation: LCConversation {
     
     static let prefixOfID: String = "_tmp:"
