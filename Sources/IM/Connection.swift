@@ -236,6 +236,9 @@ class Connection {
     }
     #endif
     
+    // for debug
+    var peerID: String = ""
+    
     /// Initialization function.
     ///
     /// - Parameters:
@@ -381,7 +384,7 @@ class Connection {
                 timer.insert(commandCallback: commandCallback, index: index)
             }
             socket.write(data: serializedData) {
-                Logger.shared.debug("\n\n------ BEGIN LeanCloud Out Command\n\(socket)\n\(outCommand)------ END\n")
+                Logger.shared.debug("\n\n------ BEGIN LeanCloud Out Command\n\(socket)\nPeerID: \(self.peerID)\n\(outCommand)------ END\n")
             }
         }
     }
