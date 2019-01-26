@@ -70,9 +70,9 @@ open class LCMessage {
         return date(fromMillisecond: patchedTimestamp)
     }
     
-    public final private(set) var isAllMembersMentioned: Bool?
+    public final var isAllMembersMentioned: Bool?
     
-    public final private(set) var mentionedMembers: [String]?
+    public final var mentionedMembers: [String]?
     
     public final var isCurrentClientMentioned: Bool {
         if self.ioType == .out {
