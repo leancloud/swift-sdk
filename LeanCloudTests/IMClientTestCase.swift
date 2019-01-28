@@ -11,10 +11,6 @@ import XCTest
 
 class IMClientTestCase: RTMBaseTestCase {
     
-    private var uuid: String {
-        return UUID().uuidString.replacingOccurrences(of: "-", with: "")
-    }
-    
     func testClientInitAndDeinit() {
         
         do {
@@ -289,13 +285,19 @@ class IMClientTestCase: RTMBaseTestCase {
 extension IMClientTestCase {
     
     class Delegator: LCClientDelegate {
-        var clientEvent: ((_ client: LCClient, _ event: LCClientEvent) -> Void)?
+        var clientEvent: ((_ client: LCClient, _ event: LCClientEvent) -> Void)? = nil
         func client(_ client: LCClient, event: LCClientEvent) {
             clientEvent?(client, event)
         }
-        var conversationEvent: ((_ client: LCClient, _ conversation: LCConversation, _ event: LCConversationEvent) -> Void)?
+        var conversationEvent: ((_ client: LCClient, _ conversation: LCConversation, _ event: LCConversationEvent) -> Void)? = nil
+        var messageEvent: ((_ client: LCClient, _ conversation: LCConversation, _ event: LCMessageEvent) -> Void)? = nil
         func client(_ client: LCClient, conversation: LCConversation, event: LCConversationEvent) {
-            conversationEvent?(client, conversation, event)
+            if case let .message(event: mEvent) = event,
+                let messageEventClosure = messageEvent {
+                messageEventClosure(client, conversation, mEvent)
+            } else {
+                conversationEvent?(client, conversation, event)
+            }
         }
     }
     

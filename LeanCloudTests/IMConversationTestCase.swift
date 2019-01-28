@@ -12,10 +12,6 @@ import Alamofire
 
 class IMConversationTestCase: RTMBaseTestCase {
     
-    private var uuid: String {
-        return UUID().uuidString.replacingOccurrences(of: "-", with: "")
-    }
-    
     private lazy var v2Router = HTTPRouter(
         application: .default,
         configuration: HTTPRouter.Configuration(apiVersion: "1.2")
@@ -610,9 +606,12 @@ extension IMConversationTestCase {
         customRTMURL: URL? = nil)
         -> LCClient?
     {
-        let client = try! LCClient(ID: clientID ?? uuid, options:options, customServer: customRTMURL)
+        var client: LCClient? = try? LCClient(ID: clientID ?? uuid, options:options, customServer: customRTMURL)
         let exp = expectation(description: "open")
-        client.open { (_) in exp.fulfill() }
+        client?.open { (result) in
+            if result.isFailure { client = nil }
+            exp.fulfill()
+        }
         wait(for: [exp], timeout: timeout)
         return client
     }
