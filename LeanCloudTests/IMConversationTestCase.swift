@@ -16,136 +16,10 @@ class IMConversationTestCase: RTMBaseTestCase {
         return UUID().uuidString.replacingOccurrences(of: "-", with: "")
     }
     
-    private func newOpenedClient(
-        clientID: String? = nil,
-        options: LCClient.Options = .default,
-        customRTMURL: URL? = nil)
-        -> LCClient?
-    {
-        let client = try! LCClient(ID: clientID ?? uuid, options:options, customServer: customRTMURL)
-        let exp = expectation(description: "open")
-        client.open { (_) in exp.fulfill() }
-        wait(for: [exp], timeout: timeout)
-        return client
-    }
-    
     private lazy var v2Router = HTTPRouter(
         application: .default,
         configuration: HTTPRouter.Configuration(apiVersion: "1.2")
     )
-    
-    private func newServiceConversation() -> String? {
-        var objectID: String?
-        let exp = expectation(description: "create service conversation")
-        let parameters: Parameters = [
-            "name": uuid
-        ]
-        let headers: HTTPHeaders = [
-            "X-LC-Id": LCApplication.default.id,
-            "X-LC-Key": LCApplication.default.key,
-            "Content-Type": "application/json"
-        ]
-        let request: URLRequest = Alamofire.request(
-            v2Router.route(path: "/rtm/service-conversations", module: .api)!,
-            method: .post,
-            parameters: parameters,
-            encoding: JSONEncoding.default,
-            headers: headers
-            ).request!
-        print("------\n\(request.url!)\n\(parameters)\n------\n")
-        let task = URLSession.shared.dataTask(with: request) { (data, response, error) in
-            let statusCode = (response as? HTTPURLResponse)?.statusCode ?? 0
-            XCTAssertTrue((200..<300).contains(statusCode))
-            if let data = data,
-                let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-                let json: [String: Any] = object {
-                print("------\n\(json)\n------\n")
-                objectID = json["objectId"] as? String
-            }
-            exp.fulfill()
-        }
-        task.resume()
-        wait(for: [exp], timeout: timeout)
-        return objectID
-    }
-    
-    private func subscribing(serviceConversation conversationID: String, by clientID: String) -> Bool {
-        var success: Bool = false
-        let exp = expectation(description: "subscribe a service conversation")
-        let parameters: Parameters = [
-            "client_id": clientID
-        ]
-        let headers: HTTPHeaders = [
-            "X-LC-Id": LCApplication.default.id,
-            "X-LC-Key": masterKey,
-            "Content-Type": "application/json"
-        ]
-        let request: URLRequest = Alamofire.request(
-            v2Router.route(path: "/rtm/service-conversations/\(conversationID)/subscribers")!,
-            method: .post,
-            parameters: parameters,
-            encoding: JSONEncoding.default,
-            headers: headers
-            ).request!
-        print("------\n\(request.url!)\n\(parameters)\n------\n")
-        let task = URLSession.shared.dataTask(with: request) { (data, response, error) in
-            let statusCode = (response as? HTTPURLResponse)?.statusCode ?? 0
-            if (200..<300).contains(statusCode) {
-                success = true
-            } else {
-                XCTFail()
-            }
-            if let data = data,
-                let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-                let json: [String: Any] = object {
-                print("------\n\(json)\n------\n")
-            }
-            exp.fulfill()
-        }
-        task.resume()
-        wait(for: [exp], timeout: timeout)
-        return success
-    }
-    
-    private func broadcastingMessage(to conversationID: String) -> (String, Int64)? {
-        var tuple: (String, Int64)?
-        let exp = expectation(description: "service conversation broadcasting message")
-        let parameters: Parameters = [
-            "from_client": "master",
-            "message": "test"
-        ]
-        let headers: HTTPHeaders = [
-            "X-LC-Id": LCApplication.default.id,
-            "X-LC-Key": masterKey,
-            "Content-Type": "application/json"
-        ]
-        let request: URLRequest = Alamofire.request(
-            v2Router.route(path: "/rtm/service-conversations/\(conversationID)/broadcasts", module: .api)!,
-            method: .post,
-            parameters: parameters,
-            encoding: JSONEncoding.default,
-            headers: headers
-            ).request!
-        print("------\n\(request.url!)\n\(parameters)\n------\n")
-        let task = URLSession.shared.dataTask(with: request) { (data, response, error) in
-            let statusCode = (response as? HTTPURLResponse)?.statusCode ?? 0
-            XCTAssertTrue((200..<300).contains(statusCode))
-            if let data = data,
-                let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-                let json: [String: Any] = object {
-                print("------\n\(json)\n------\n")
-                if let result: [String: Any] = json["result"] as? [String: Any],
-                    let messageID = result["msg-id"] as? String,
-                    let timestamp: Int64 = result["timestamp"] as? Int64 {
-                    tuple = (messageID, timestamp)
-                }
-            }
-            exp.fulfill()
-        }
-        task.resume()
-        wait(for: [exp], timeout: timeout)
-        return tuple
-    }
 
     func testCreateConversationErrorThrows() {
         
@@ -724,6 +598,136 @@ class IMConversationTestCase: RTMBaseTestCase {
             conv.read()
         }
         wait(for: [allReadExp], timeout: timeout)
+    }
+    
+}
+
+extension IMConversationTestCase {
+    
+    func newOpenedClient(
+        clientID: String? = nil,
+        options: LCClient.Options = .default,
+        customRTMURL: URL? = nil)
+        -> LCClient?
+    {
+        let client = try! LCClient(ID: clientID ?? uuid, options:options, customServer: customRTMURL)
+        let exp = expectation(description: "open")
+        client.open { (_) in exp.fulfill() }
+        wait(for: [exp], timeout: timeout)
+        return client
+    }
+    
+    func newServiceConversation() -> String? {
+        var objectID: String?
+        let exp = expectation(description: "create service conversation")
+        let parameters: Parameters = [
+            "name": uuid
+        ]
+        let headers: HTTPHeaders = [
+            "X-LC-Id": LCApplication.default.id,
+            "X-LC-Key": LCApplication.default.key,
+            "Content-Type": "application/json"
+        ]
+        let request: URLRequest = Alamofire.request(
+            v2Router.route(path: "/rtm/service-conversations", module: .api)!,
+            method: .post,
+            parameters: parameters,
+            encoding: JSONEncoding.default,
+            headers: headers
+            ).request!
+        print("------\n\(request.url!)\n\(parameters)\n------\n")
+        let task = URLSession.shared.dataTask(with: request) { (data, response, error) in
+            let statusCode = (response as? HTTPURLResponse)?.statusCode ?? 0
+            XCTAssertTrue((200..<300).contains(statusCode))
+            if let data = data,
+                let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                let json: [String: Any] = object {
+                print("------\n\(json)\n------\n")
+                objectID = json["objectId"] as? String
+            }
+            exp.fulfill()
+        }
+        task.resume()
+        wait(for: [exp], timeout: timeout)
+        return objectID
+    }
+    
+    func subscribing(serviceConversation conversationID: String, by clientID: String) -> Bool {
+        var success: Bool = false
+        let exp = expectation(description: "subscribe a service conversation")
+        let parameters: Parameters = [
+            "client_id": clientID
+        ]
+        let headers: HTTPHeaders = [
+            "X-LC-Id": LCApplication.default.id,
+            "X-LC-Key": masterKey,
+            "Content-Type": "application/json"
+        ]
+        let request: URLRequest = Alamofire.request(
+            v2Router.route(path: "/rtm/service-conversations/\(conversationID)/subscribers")!,
+            method: .post,
+            parameters: parameters,
+            encoding: JSONEncoding.default,
+            headers: headers
+            ).request!
+        print("------\n\(request.url!)\n\(parameters)\n------\n")
+        let task = URLSession.shared.dataTask(with: request) { (data, response, error) in
+            let statusCode = (response as? HTTPURLResponse)?.statusCode ?? 0
+            if (200..<300).contains(statusCode) {
+                success = true
+            } else {
+                XCTFail()
+            }
+            if let data = data,
+                let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                let json: [String: Any] = object {
+                print("------\n\(json)\n------\n")
+            }
+            exp.fulfill()
+        }
+        task.resume()
+        wait(for: [exp], timeout: timeout)
+        return success
+    }
+    
+    func broadcastingMessage(to conversationID: String) -> (String, Int64)? {
+        var tuple: (String, Int64)?
+        let exp = expectation(description: "service conversation broadcasting message")
+        let parameters: Parameters = [
+            "from_client": "master",
+            "message": "test"
+        ]
+        let headers: HTTPHeaders = [
+            "X-LC-Id": LCApplication.default.id,
+            "X-LC-Key": masterKey,
+            "Content-Type": "application/json"
+        ]
+        let request: URLRequest = Alamofire.request(
+            v2Router.route(path: "/rtm/service-conversations/\(conversationID)/broadcasts", module: .api)!,
+            method: .post,
+            parameters: parameters,
+            encoding: JSONEncoding.default,
+            headers: headers
+            ).request!
+        print("------\n\(request.url!)\n\(parameters)\n------\n")
+        let task = URLSession.shared.dataTask(with: request) { (data, response, error) in
+            let statusCode = (response as? HTTPURLResponse)?.statusCode ?? 0
+            XCTAssertTrue((200..<300).contains(statusCode))
+            if let data = data,
+                let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                let json: [String: Any] = object {
+                print("------\n\(json)\n------\n")
+                if let result: [String: Any] = json["result"] as? [String: Any],
+                    let messageID = result["msg-id"] as? String,
+                    let timestamp: Int64 = result["timestamp"] as? Int64 {
+                    tuple = (messageID, timestamp)
+                }
+            }
+            exp.fulfill()
+        }
+        task.resume()
+        wait(for: [exp], timeout: timeout)
+        return tuple
     }
     
 }

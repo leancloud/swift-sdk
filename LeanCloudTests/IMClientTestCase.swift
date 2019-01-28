@@ -15,17 +15,6 @@ class IMClientTestCase: RTMBaseTestCase {
         return UUID().uuidString.replacingOccurrences(of: "-", with: "")
     }
     
-    class Delegator: LCClientDelegate {
-        var clientEvent: ((_ client: LCClient, _ event: LCClientEvent) -> Void)?
-        func client(_ client: LCClient, event: LCClientEvent) {
-            clientEvent?(client, event)
-        }
-        var conversationEvent: ((_ client: LCClient, _ conversation: LCConversation, _ event: LCConversationEvent) -> Void)?
-        func client(_ client: LCClient, conversation: LCConversation, event: LCConversationEvent) {
-            conversationEvent?(client, conversation, event)
-        }
-    }
-    
     func testClientInitAndDeinit() {
         
         do {
@@ -295,4 +284,19 @@ class IMClientTestCase: RTMBaseTestCase {
         waitForExpectations(timeout: timeout, handler: nil)
     }
 
+}
+
+extension IMClientTestCase {
+    
+    class Delegator: LCClientDelegate {
+        var clientEvent: ((_ client: LCClient, _ event: LCClientEvent) -> Void)?
+        func client(_ client: LCClient, event: LCClientEvent) {
+            clientEvent?(client, event)
+        }
+        var conversationEvent: ((_ client: LCClient, _ conversation: LCConversation, _ event: LCConversationEvent) -> Void)?
+        func client(_ client: LCClient, conversation: LCConversation, event: LCConversationEvent) {
+            conversationEvent?(client, conversation, event)
+        }
+    }
+    
 }
