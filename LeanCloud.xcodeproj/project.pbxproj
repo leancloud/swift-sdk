@@ -33,7 +33,7 @@
 		11D9C0FF216DF91A00A620B7 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11D9C0FE216DF91A00A620B7 /* Logger.swift */; };
 		11D9C101216DFB2D00A620B7 /* MD5.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11D9C100216DFB2D00A620B7 /* MD5.swift */; };
 		11FBD1E5215BDDCA00370C61 /* CoreTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11FBD1E4215BDDCA00370C61 /* CoreTestCase.swift */; };
-		11FBD1E8215BEEB400370C61 /* THE RIEMANN HYPOTHESIS.zip in Resources */ = {isa = PBXBuildFile; fileRef = 11FBD1E7215BEEB400370C61 /* THE RIEMANN HYPOTHESIS.zip */; };
+		11FBD1E8215BEEB400370C61 /* test.zip in Resources */ = {isa = PBXBuildFile; fileRef = 11FBD1E7215BEEB400370C61 /* test.zip */; };
 		11FD150E21742CCE008389D4 /* Polyfill.h in Headers */ = {isa = PBXBuildFile; fileRef = 11FD150D21742CCD008389D4 /* Polyfill.h */; };
 		11FD151021742CD3008389D4 /* Polyfill.m in Sources */ = {isa = PBXBuildFile; fileRef = 11FD150F21742CD3008389D4 /* Polyfill.m */; };
 		11FD151421743A09008389D4 /* Lazyload.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11FD151321743A09008389D4 /* Lazyload.swift */; };
@@ -89,6 +89,10 @@
 		D324CD9221774A9B003FA35F /* Connection.swift in Sources */ = {isa = PBXBuildFile; fileRef = D324CD9121774A9B003FA35F /* Connection.swift */; };
 		D3301279217727870007286A /* Command.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3301278217727870007286A /* Command.pb.swift */; };
 		D33A8DAA21F577F2005B84A9 /* RTMBaseTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = D33A8DA921F577F2005B84A9 /* RTMBaseTestCase.swift */; };
+		D33D36D822017DAC008C9BDA /* test.jpg in Resources */ = {isa = PBXBuildFile; fileRef = D33D36C922017DAC008C9BDA /* test.jpg */; };
+		D33D36D922017DAC008C9BDA /* test.png in Resources */ = {isa = PBXBuildFile; fileRef = D33D36D722017DAC008C9BDA /* test.png */; };
+		D33D36DC22019197008C9BDA /* test.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = D33D36DA22019197008C9BDA /* test.mp4 */; };
+		D3662F9222019B590046A390 /* test.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = D3662F9122019B590046A390 /* test.mp3 */; };
 		D3665C3721FEAAC1005B44B0 /* IMMessageTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3665C3621FEAAC1005B44B0 /* IMMessageTestCase.swift */; };
 		D3783A1221F453C3006F6635 /* IMConversationTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3783A1121F453C3006F6635 /* IMConversationTestCase.swift */; };
 		D393EDBE21D38206001CBB2B /* Message.swift in Sources */ = {isa = PBXBuildFile; fileRef = D393EDBD21D38206001CBB2B /* Message.swift */; };
@@ -274,7 +278,7 @@
 		11D9C0FE216DF91A00A620B7 /* Logger.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
 		11D9C100216DFB2D00A620B7 /* MD5.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MD5.swift; sourceTree = "<group>"; };
 		11FBD1E4215BDDCA00370C61 /* CoreTestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreTestCase.swift; sourceTree = "<group>"; };
-		11FBD1E7215BEEB400370C61 /* THE RIEMANN HYPOTHESIS.zip */ = {isa = PBXFileReference; lastKnownFileType = archive.zip; path = "THE RIEMANN HYPOTHESIS.zip"; sourceTree = "<group>"; };
+		11FBD1E7215BEEB400370C61 /* test.zip */ = {isa = PBXFileReference; lastKnownFileType = archive.zip; path = test.zip; sourceTree = "<group>"; };
 		11FD150D21742CCD008389D4 /* Polyfill.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Polyfill.h; sourceTree = "<group>"; };
 		11FD150F21742CD3008389D4 /* Polyfill.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Polyfill.m; sourceTree = "<group>"; };
 		11FD151321743A09008389D4 /* Lazyload.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Lazyload.swift; sourceTree = "<group>"; };
@@ -334,6 +338,10 @@
 		D324CD9121774A9B003FA35F /* Connection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Connection.swift; sourceTree = "<group>"; };
 		D3301278217727870007286A /* Command.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Command.pb.swift; sourceTree = "<group>"; };
 		D33A8DA921F577F2005B84A9 /* RTMBaseTestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RTMBaseTestCase.swift; sourceTree = "<group>"; };
+		D33D36C922017DAC008C9BDA /* test.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = test.jpg; sourceTree = "<group>"; };
+		D33D36D722017DAC008C9BDA /* test.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = test.png; sourceTree = "<group>"; };
+		D33D36DA22019197008C9BDA /* test.mp4 */ = {isa = PBXFileReference; lastKnownFileType = file; path = test.mp4; sourceTree = "<group>"; };
+		D3662F9122019B590046A390 /* test.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = test.mp3; sourceTree = "<group>"; };
 		D3665C3621FEAAC1005B44B0 /* IMMessageTestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IMMessageTestCase.swift; sourceTree = "<group>"; };
 		D3783A1121F453C3006F6635 /* IMConversationTestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IMConversationTestCase.swift; sourceTree = "<group>"; };
 		D387262A217726B500DD8FBF /* SwiftProtobuf.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = SwiftProtobuf.xcodeproj; path = SwiftProtobuf/SwiftProtobuf.xcodeproj; sourceTree = "<group>"; };
@@ -408,7 +416,11 @@
 		11FBD1E6215BEEB400370C61 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
-				11FBD1E7215BEEB400370C61 /* THE RIEMANN HYPOTHESIS.zip */,
+				D33D36C922017DAC008C9BDA /* test.jpg */,
+				D33D36D722017DAC008C9BDA /* test.png */,
+				D3662F9122019B590046A390 /* test.mp3 */,
+				D33D36DA22019197008C9BDA /* test.mp4 */,
+				11FBD1E7215BEEB400370C61 /* test.zip */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -858,7 +870,11 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				11FBD1E8215BEEB400370C61 /* THE RIEMANN HYPOTHESIS.zip in Resources */,
+				11FBD1E8215BEEB400370C61 /* test.zip in Resources */,
+				D3662F9222019B590046A390 /* test.mp3 in Resources */,
+				D33D36D822017DAC008C9BDA /* test.jpg in Resources */,
+				D33D36D922017DAC008C9BDA /* test.png in Resources */,
+				D33D36DC22019197008C9BDA /* test.mp4 in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
