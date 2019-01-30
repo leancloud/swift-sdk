@@ -111,7 +111,23 @@ open class LCMessage {
         
     }
     
-    public final var content: Content?
+    public final internal(set) var content: Content?
+    
+    public final func set(content: Content) throws {
+        if self is LCCategorizedMessage {
+            throw LCError(
+                code: .inconsistency,
+                reason:
+                """
+                \(type(of: self))'s content can't be set directly,
+                if want to set content directly,
+                should use \(LCMessage.self).
+                """
+            )
+        } else {
+            self.content = content
+        }
+    }
     
     public required init() {}
     
@@ -159,9 +175,13 @@ open class LCMessage {
     }
     
     internal var isTransient: Bool = false
-    
     internal var notTransientMessage: Bool {
         return !self.isTransient
+    }
+    
+    internal var isWill: Bool = false
+    internal var notWillMessage: Bool {
+        return !self.isWill
     }
     
     /// ref: https://github.com/leancloud/avoscloud-push/blob/develop/push-server/doc/protocol.md#客户端发起-3
@@ -253,7 +273,7 @@ open class LCCategorizedMessage: LCMessage, LCMessageCategorizing {
     }
     
     public static func register() throws {
-        let type = self.init().type
+        let type: Int = self.init().type
         guard type > 0 else {
             throw LCError(
                 code: .inconsistency,

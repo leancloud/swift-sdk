@@ -1032,10 +1032,15 @@ private extension LCClient {
                     else
                 { return }
                 var content: LCMessage.Content? = nil
-                if command.hasMsg {
-                    content = .string(command.msg)
-                } else if command.hasBinaryMsg {
+                /*
+                 For Compatibility,
+                 Should check `binaryMsg` at first.
+                 Then check `msg`.
+                 */
+                if command.hasBinaryMsg {
                     content = .data(command.binaryMsg)
+                } else if command.hasMsg {
+                    content = .string(command.msg)
                 }
                 let message = LCMessage.instance(
                     isTransient: (command.hasTransient ? command.transient : false),

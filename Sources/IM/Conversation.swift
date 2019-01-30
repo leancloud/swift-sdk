@@ -278,6 +278,7 @@ extension LCConversation {
         message.setup(clientID: self.clientID, conversationID: self.ID)
         message.update(status: .sending)
         message.isTransient = options.contains(.isTransient)
+        message.isWill = options.contains(.isAutoDeliveringWhenOffline)
         if message.notTransientMessage, self.notTransientConversation, message.dToken == nil {
             // if not transient message and not transient conversation
             // then using a token to prevent Message Duplicating.
@@ -314,14 +315,14 @@ extension LCConversation {
                 if let value: [String] = message.mentionedMembers {
                     directCommand.mentionPids = value
                 }
-                if options.contains(.isAutoDeliveringWhenOffline) {
-                    directCommand.will = true
-                }
                 if options.contains(.needReceipt) {
                     directCommand.r = true
                 }
                 if let pushData: String = pushDataString {
                     directCommand.pushData = pushData
+                }
+                if message.isWill {
+                    directCommand.will = true
                 }
                 if message.isTransient {
                     directCommand.transient = true
@@ -470,10 +471,15 @@ extension LCConversation {
                 else
             { return nil }
             var content: LCMessage.Content? = nil
-            if unreadTuple.hasData {
-                content = .string(unreadTuple.data)
-            } else if unreadTuple.hasBinaryMsg {
+            /*
+             For Compatibility,
+             Should check `binaryMsg` at first.
+             Then check `data`.
+             */
+            if unreadTuple.hasBinaryMsg {
                 content = .data(unreadTuple.binaryMsg)
+            } else if unreadTuple.hasData {
+                content = .string(unreadTuple.data)
             }
             let message = LCMessage.instance(
                 isTransient: false,
@@ -637,10 +643,15 @@ extension LCConversation {
             return
         }
         var content: LCMessage.Content? = nil
-        if patchItem.hasData {
-            content = .string(patchItem.data)
-        } else if patchItem.hasBinaryMsg {
+        /*
+         For Compatibility,
+         Should check `binaryMsg` at first.
+         Then check `data`.
+         */
+        if patchItem.hasBinaryMsg {
             content = .data(patchItem.binaryMsg)
+        } else if patchItem.hasData {
+            content = .string(patchItem.data)
         }
         let patchedMessage = LCMessage.instance(
             isTransient: false,
@@ -731,6 +742,7 @@ internal extension LCConversation {
         var isUnreadMessageIncreased: Bool = false
         guard
             newMessage.notTransientMessage,
+            newMessage.notWillMessage,
             self.notTransientConversation
             else
         { return isUnreadMessageIncreased }
@@ -810,10 +822,15 @@ private extension LCConversation {
             else
         { return }
         var content: LCMessage.Content? = nil
-        if let string: String = self.decodingRawData(with: .lastMessageString) {
-            content = .string(string)
-        } else if let data: Data = self.decodingRawData(with: .lastMessageBinary) {
+        /*
+         For Compatibility,
+         Should check `lastMessageBinary` at first.
+         Then check `lastMessageString`.
+         */
+        if let data: Data = self.decodingRawData(with: .lastMessageBinary) {
             content = .data(data)
+        } else if let string: String = self.decodingRawData(with: .lastMessageString) {
+            content = .string(string)
         }
         let message = LCMessage.instance(
             isTransient: false,
