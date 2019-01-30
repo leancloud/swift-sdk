@@ -621,7 +621,7 @@ extension LCConversation {
         }
     }
     
-    public func recall(message: LCMessage, completion: @escaping (LCGenericResult<LCMessage>) -> Void) throws {
+    public func recall(message: LCMessage, completion: @escaping (LCGenericResult<LCRecalledMessage>) -> Void) throws {
         let recalledMessage = LCRecalledMessage()
         try self.update(oldMessage: message, by: recalledMessage, completion: { (result) in
             switch result {

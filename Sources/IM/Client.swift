@@ -1057,7 +1057,8 @@ private extension LCClient {
                 )
                 var unreadEvent: LCConversationEvent?
                 let isUnreadMessageIncreased: Bool = conversation.safeUpdatingLastMessage(newMessage: message)
-                if isUnreadMessageIncreased {
+                if self.options.contains(.receiveUnreadMessageCountAfterSessionDidOpen),
+                    isUnreadMessageIncreased {
                     conversation.unreadMessageCount += 1
                     unreadEvent = .unreadMessageUpdated
                 }
