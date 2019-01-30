@@ -54,5 +54,10 @@ class BaseTestCase: XCTestCase {
             RunLoop.current.run(mode: .default, before: due)
         }
     }
+    
+    func resourceURL(name: String, ext: String) -> URL {
+        let bundle = Bundle(for: type(of: self))
+        return bundle.url(forResource: name, withExtension: ext)!
+    }
 
 }

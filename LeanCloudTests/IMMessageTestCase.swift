@@ -13,7 +13,7 @@ class IMMessageTestCase: RTMBaseTestCase {
     
     func testMessageSendingAndReceiving() {
         guard
-            let tuples = convenienceInit(),
+            let tuples = convenienceInit(clientOptions: [.receiveUnreadMessageCountAfterSessionDidOpen]),
             let tuple1 = tuples.first,
             let tuple2 = tuples.last
             else
@@ -38,13 +38,13 @@ class IMMessageTestCase: RTMBaseTestCase {
         }
         
         let exp1 = expectation(description: "A send message to B")
-        exp1.expectedFulfillmentCount = 5
-        let messageAB = LCMessage()
-        messageAB.content = .string("AB")
+        exp1.expectedFulfillmentCount = 6
+        let stringMessage = LCMessage()
+        try? stringMessage.set(content: .string("string"))
         delegatorA.conversationEvent = { client, converstion, event in
             switch event {
             case .lastMessageUpdated:
-                XCTAssertTrue(messageAB === converstion.lastMessage)
+                XCTAssertTrue(stringMessage === converstion.lastMessage)
                 exp1.fulfill()
             case .unreadMessageUpdated:
                 XCTFail()
@@ -59,30 +59,33 @@ class IMMessageTestCase: RTMBaseTestCase {
                     checkMessage(conversation, message)
                     XCTAssertEqual(message.ioType, .in)
                     XCTAssertEqual(message.fromClientID, conversationA.clientID)
+                    XCTAssertNotNil(message.content?.string)
                     exp1.fulfill()
+                    conversation.read(message: message)
                 }
             case .lastMessageUpdated:
                 exp1.fulfill()
             case .unreadMessageUpdated:
-                XCTAssertEqual(conversation.unreadMessageCount, 1)
+                XCTAssertTrue([0,1].contains(conversation.unreadMessageCount))
                 exp1.fulfill()
             default:
                 break
             }
         }
-        try? conversationA.send(message: messageAB) { (result) in
+        try? conversationA.send(message: stringMessage) { (result) in
+            XCTAssertTrue(Thread.isMainThread)
             XCTAssertTrue(result.isSuccess)
-            checkMessage(conversationA, messageAB)
-            XCTAssertEqual(messageAB.ioType, .out)
-            XCTAssertEqual(messageAB.fromClientID, conversationA.clientID)
+            checkMessage(conversationA, stringMessage)
+            XCTAssertEqual(stringMessage.ioType, .out)
+            XCTAssertEqual(stringMessage.fromClientID, conversationA.clientID)
             exp1.fulfill()
         }
         wait(for: [exp1], timeout: timeout)
         
         let exp2 = expectation(description: "B send message to A")
-        exp2.expectedFulfillmentCount = 5
-        let messageBA = LCMessage()
-        messageBA.content = .string("BA")
+        exp2.expectedFulfillmentCount = 6
+        let dataMessage = LCMessage()
+        try? dataMessage.set(content: .data("data".data(using: .utf8)!))
         delegatorA.conversationEvent = { client, conversation, event in
             switch event {
             case .message(event: let mEvent):
@@ -90,12 +93,14 @@ class IMMessageTestCase: RTMBaseTestCase {
                     checkMessage(conversation, message)
                     XCTAssertEqual(message.ioType, .in)
                     XCTAssertEqual(message.fromClientID, conversationB.clientID)
+                    XCTAssertNotNil(message.content?.data)
                     exp2.fulfill()
+                    conversation.read(message: message)
                 }
             case .lastMessageUpdated:
                 exp2.fulfill()
             case .unreadMessageUpdated:
-                XCTAssertEqual(conversation.unreadMessageCount, 1)
+                XCTAssertTrue([0,1].contains(conversation.unreadMessageCount))
                 exp2.fulfill()
             default:
                 break
@@ -104,7 +109,7 @@ class IMMessageTestCase: RTMBaseTestCase {
         delegatorB.conversationEvent = { client, conversation, event in
             switch event {
             case .lastMessageUpdated:
-                XCTAssertTrue(conversation.lastMessage === messageBA)
+                XCTAssertTrue(conversation.lastMessage === dataMessage)
                 exp2.fulfill()
             case .unreadMessageUpdated:
                 XCTFail()
@@ -112,24 +117,38 @@ class IMMessageTestCase: RTMBaseTestCase {
                 break
             }
         }
-        try? conversationB.send(message: messageBA, completion: { (result) in
+        try? conversationB.send(message: dataMessage, completion: { (result) in
+            XCTAssertTrue(Thread.isMainThread)
             XCTAssertTrue(result.isSuccess)
-            checkMessage(conversationB, messageBA)
-            XCTAssertEqual(messageBA.ioType, .out)
-            XCTAssertEqual(messageBA.fromClientID, conversationB.clientID)
+            checkMessage(conversationB, dataMessage)
+            XCTAssertEqual(dataMessage.ioType, .out)
+            XCTAssertEqual(dataMessage.fromClientID, conversationB.clientID)
             exp2.fulfill()
         })
         wait(for: [exp2], timeout: timeout)
         
-        XCTAssertTrue(read(
-            conversations: [conversationA, conversationB],
-            delegators: [delegatorA, delegatorB])
+        XCTAssertEqual(conversationA.unreadMessageCount, 0)
+        XCTAssertEqual(conversationB.unreadMessageCount, 0)
+        XCTAssertNotNil(conversationA.lastMessage?.ID)
+        XCTAssertNotNil(conversationA.lastMessage?.conversationID)
+        XCTAssertNotNil(conversationA.lastMessage?.sentTimestamp)
+        XCTAssertEqual(
+            conversationA.lastMessage?.ID,
+            conversationB.lastMessage?.ID
+        )
+        XCTAssertEqual(
+            conversationA.lastMessage?.conversationID,
+            conversationB.lastMessage?.conversationID
+        )
+        XCTAssertEqual(
+            conversationA.lastMessage?.sentTimestamp,
+            conversationB.lastMessage?.sentTimestamp
         )
     }
     
     func testMessageContinuousSendingAndReceiving() {
         guard
-            let tuples = convenienceInit(),
+            let tuples = convenienceInit(clientOptions: [.receiveUnreadMessageCountAfterSessionDidOpen]),
             let tuple1 = tuples.first,
             let tuple2 = tuples.last
             else
@@ -142,6 +161,7 @@ class IMMessageTestCase: RTMBaseTestCase {
         let conversationA = tuple1.conversation
         let delegatorB = tuple2.delegator
         let conversationB = tuple2.conversation
+        var lastMessageIDSet: Set<String> = []
         
         let exp = expectation(description: "message continuous sending and receiving")
         let count = 10
@@ -153,14 +173,18 @@ class IMMessageTestCase: RTMBaseTestCase {
                 switch mEvent {
                 case .received(message: let message):
                     receivedMessageCountA -= 1
+                    if receivedMessageCountA == 0,
+                        let msgID = message.ID {
+                        lastMessageIDSet.insert(msgID)
+                    }
                     conversation.read(message: message)
                     exp.fulfill()
                 default:
                     break
                 }
             case .unreadMessageUpdated:
-                if receivedMessageCountA == 0 {
-                    XCTAssertEqual(conversation.unreadMessageCount, 0)
+                if receivedMessageCountA == 0,
+                    conversation.unreadMessageCount == 0 {
                     exp.fulfill()
                 }
             default:
@@ -174,14 +198,18 @@ class IMMessageTestCase: RTMBaseTestCase {
                 switch mEvent {
                 case .received(message: let message):
                     receivedMessageCountB -= 1
+                    if receivedMessageCountB == 0,
+                        let msgID = message.ID {
+                        lastMessageIDSet.insert(msgID)
+                    }
                     conversation.read(message: message)
                     exp.fulfill()
                 default:
                     break
                 }
             case .unreadMessageUpdated:
-                if receivedMessageCountB == 0 {
-                    XCTAssertEqual(conversation.unreadMessageCount, 0)
+                if receivedMessageCountB == 0,
+                    conversation.unreadMessageCount == 0 {
                     exp.fulfill()
                 }
             default:
@@ -189,32 +217,292 @@ class IMMessageTestCase: RTMBaseTestCase {
             }
         }
         for _ in 0..<count {
-            let expA = expectation(description: "A send message")
+            let sendMessageExp = expectation(description: "send message")
+            sendMessageExp.expectedFulfillmentCount = 2
             let messageA = LCMessage()
             messageA.content = .string("")
-            try? conversationA.send(message: messageA, completion: { (result) in
-                XCTAssertTrue(result.isSuccess)
-                expA.fulfill()
-            })
-            wait(for: [expA], timeout: timeout)
-            let expB = expectation(description: "B send message")
             let messageB = LCMessage()
             messageB.content = .string("")
+            try? conversationA.send(message: messageA, completion: { (result) in
+                XCTAssertTrue(result.isSuccess)
+                sendMessageExp.fulfill()
+            })
             try? conversationB.send(message: messageB, completion: { (result) in
                 XCTAssertTrue(result.isSuccess)
-                expB.fulfill()
+                sendMessageExp.fulfill()
             })
-            wait(for: [expB], timeout: timeout)
+            wait(for: [sendMessageExp], timeout: timeout)
         }
         wait(for: [exp], timeout: timeout)
         
         XCTAssertEqual(conversationA.unreadMessageCount, 0)
         XCTAssertEqual(conversationB.unreadMessageCount, 0)
+        XCTAssertNotNil(conversationA.lastMessage?.ID)
+        XCTAssertNotNil(conversationA.lastMessage?.conversationID)
+        XCTAssertNotNil(conversationA.lastMessage?.sentTimestamp)
+        XCTAssertEqual(
+            conversationA.lastMessage?.ID,
+            conversationB.lastMessage?.ID
+        )
+        XCTAssertEqual(
+            conversationA.lastMessage?.conversationID,
+            conversationB.lastMessage?.conversationID
+        )
+        XCTAssertEqual(
+            conversationA.lastMessage?.sentTimestamp,
+            conversationB.lastMessage?.sentTimestamp
+        )
+        XCTAssertTrue([1,2].contains(lastMessageIDSet.count))
+        XCTAssertTrue(lastMessageIDSet.contains(conversationA.lastMessage?.ID ?? ""))
+    }
+    
+    func testMessageReceipt() {
+        
+    }
+    
+    func testTransientMessageSendingAndReceiving() {
+        guard
+            let tuples = convenienceInit(),
+            let tuple1 = tuples.first,
+            let tuple2 = tuples.last
+            else
+        {
+            XCTFail()
+            return
+        }
+        
+        let conversationA = tuple1.conversation
+        let delegatorB = tuple2.delegator
+        let checkMessage: (LCMessage) -> Void = { message in
+            XCTAssertTrue(message.isTransient)
+            XCTAssertNotNil(message.ID)
+            XCTAssertNotNil(message.sentTimestamp)
+            XCTAssertNotNil(message.conversationID)
+            XCTAssertEqual(message.status, .sent)
+        }
+        
+        let exp = expectation(description: "send transient message")
+        exp.expectedFulfillmentCount = 2
+        delegatorB.messageEvent = { client, conversation, event in
+            switch event {
+            case .received(message: let message):
+                XCTAssertEqual(message.ioType, .in)
+                checkMessage(message)
+                exp.fulfill()
+            default:
+                break
+            }
+        }
+        let message = LCMessage()
+        message.content = .string("")
+        try? conversationA.send(message: message, options: [.isTransient]) { (result) in
+            XCTAssertTrue(result.isSuccess)
+            XCTAssertEqual(message.ioType, .out)
+            checkMessage(message)
+            exp.fulfill()
+        }
+        wait(for: [exp], timeout: timeout)
+    }
+    
+    func testMessageAutoSendingWhenOfflineAndReceiving() {
+        guard
+            let tuples = convenienceInit(),
+            let tuple1 = tuples.first,
+            let tuple2 = tuples.last
+            else
+        {
+            XCTFail()
+            return
+        }
+        
+        let clientA = tuple1.client
+        let conversationA = tuple1.conversation
+        let delegatorB = tuple2.delegator
+        
+        let sendExp = expectation(description: "send message")
+        let willMessage = LCMessage()
+        willMessage.content = .string("")
+        try? conversationA.send(message: willMessage, options: [.isAutoDeliveringWhenOffline]) { (result) in
+            XCTAssertTrue(result.isSuccess)
+            XCTAssertNil(conversationA.lastMessage)
+            XCTAssertTrue(willMessage.isWill)
+            XCTAssertNotNil(willMessage.sentTimestamp)
+            sendExp.fulfill()
+        }
+        wait(for: [sendExp], timeout: timeout)
+        
+        let receiveExp = expectation(description: "receive message")
+        delegatorB.messageEvent = { client, conversation, event in
+            switch event {
+            case .received(message: let message):
+                XCTAssertNotNil(message.ID)
+                XCTAssertNotNil(message.conversationID)
+                XCTAssertNotNil(message.sentTimestamp)
+                XCTAssertEqual(message.ID, willMessage.ID)
+                XCTAssertEqual(message.conversationID, willMessage.conversationID)
+                XCTAssertNotNil(conversation.lastMessage)
+                receiveExp.fulfill()
+            default:
+                break
+            }
+        }
+        clientA.connection.disconnect()
+        wait(for: [receiveExp], timeout: timeout)
+    }
+    
+    func testSendMessageToChatRoomAndReceiving() {
+        
+    }
+    
+    func testCustomMessageSendingAndReceiving() {
+        do {
+            try InvalidCustomMessage.register()
+        } catch {
+            XCTAssertTrue(error is LCError)
+        }
+        do {
+            try CustomMessage.register()
+        } catch {
+            XCTFail("\(error)")
+        }
+        let message = CustomMessage()
+        do {
+            try message.set(content: .string(""))
+        } catch {
+            XCTAssertTrue(error is LCError)
+        }
+        XCTAssertTrue(sendingAndReceiving(sentMessage: message))
+    }
+    
+    func testTextMessageSendingAndReceiving() {
+        let message = LCTextMessage()
+        message.text = "test"
+        let success = sendingAndReceiving(sentMessage: message) { (rMessage) in
+            XCTAssertNotNil(rMessage?.text)
+            XCTAssertEqual(rMessage?.text, message.text)
+        }
+        XCTAssertTrue(success)
+    }
+    
+    func testImageMessageSendingAndReceiving() {
+        for i in 0..<2 {
+            let message = LCImageMessage()
+            let fileURL: URL
+            let format: String
+            if i == 0 {
+                format = "png"
+                fileURL = resourceURL(name: "test", ext: format)
+            } else {
+                format = "jpg"
+                fileURL = resourceURL(name: "test", ext: format)
+            }
+            message.file = LCFile(payload: .fileURL(fileURL: fileURL))
+            let success = sendingAndReceiving(sentMessage: message) { (rMessage) in
+                XCTAssertNotNil(rMessage?.file?.objectId?.value)
+                XCTAssertEqual(rMessage?.format, format)
+                XCTAssertNotNil(rMessage?.size)
+                XCTAssertNotNil(rMessage?.height)
+                XCTAssertNotNil(rMessage?.width)
+                XCTAssertNotNil(rMessage?.url)
+                XCTAssertEqual(rMessage?.file?.objectId?.value, message.file?.objectId?.value)
+                XCTAssertEqual(rMessage?.format, message.format)
+                XCTAssertEqual(rMessage?.size, message.size)
+                XCTAssertEqual(rMessage?.height, message.height)
+                XCTAssertEqual(rMessage?.width, message.width)
+                XCTAssertEqual(rMessage?.url, message.url)
+            }
+            XCTAssertTrue(success)
+        }
+    }
+    
+    func testAudioMessageSendingAndReceiving() {
+        let message = LCAudioMessage()
+        let format: String = "mp3"
+        message.file = LCFile(payload: .fileURL(fileURL: resourceURL(name: "test", ext: format)))
+        let success = sendingAndReceiving(sentMessage: message) { (rMessage) in
+            XCTAssertNotNil(rMessage?.file?.objectId?.value)
+            XCTAssertEqual(rMessage?.format, format)
+            XCTAssertNotNil(rMessage?.size)
+            XCTAssertNotNil(rMessage?.duration)
+            XCTAssertNotNil(rMessage?.url)
+            XCTAssertEqual(rMessage?.file?.objectId?.value, message.file?.objectId?.value)
+            XCTAssertEqual(rMessage?.format, message.format)
+            XCTAssertEqual(rMessage?.size, message.size)
+            XCTAssertEqual(rMessage?.duration, message.duration)
+            XCTAssertEqual(rMessage?.url, message.url)
+        }
+        XCTAssertTrue(success)
+    }
+    
+    func testVideoMessageSendingAndReceiving() {
+        let message = LCVideoMessage()
+        let format: String = "mp4"
+        message.file = LCFile(payload: .fileURL(fileURL: resourceURL(name: "test", ext: format)))
+        let success = sendingAndReceiving(sentMessage: message) { (rMessage) in
+            XCTAssertNotNil(rMessage?.file?.objectId?.value)
+            XCTAssertEqual(rMessage?.format, format)
+            XCTAssertNotNil(rMessage?.size)
+            XCTAssertNotNil(rMessage?.duration)
+            XCTAssertNotNil(rMessage?.url)
+            XCTAssertEqual(rMessage?.file?.objectId?.value, message.file?.objectId?.value)
+            XCTAssertEqual(rMessage?.format, message.format)
+            XCTAssertEqual(rMessage?.size, message.size)
+            XCTAssertEqual(rMessage?.duration, message.duration)
+            XCTAssertEqual(rMessage?.url, message.url)
+        }
+        XCTAssertTrue(success)
+    }
+    
+    func testFileMessageSendingAndReceiving() {
+        let message = LCFileMessage()
+        let format: String = "zip"
+        message.file = LCFile(payload: .fileURL(fileURL: resourceURL(name: "test", ext: format)))
+        let success = sendingAndReceiving(sentMessage: message) { (rMessage) in
+            XCTAssertNotNil(rMessage?.file?.objectId?.value)
+            XCTAssertEqual(rMessage?.format, format)
+            XCTAssertNotNil(rMessage?.size)
+            XCTAssertNotNil(rMessage?.url)
+            XCTAssertEqual(rMessage?.file?.objectId?.value, message.file?.objectId?.value)
+            XCTAssertEqual(rMessage?.format, message.format)
+            XCTAssertEqual(rMessage?.size, message.size)
+            XCTAssertEqual(rMessage?.url, message.url)
+        }
+        XCTAssertTrue(success)
+    }
+    
+    func testLocationMessageSendingAndReceiving() {
+        let message = LCLocationMessage()
+        message.location = LCGeoPoint(latitude: 180.0, longitude: 90.0)
+        let success = sendingAndReceiving(sentMessage: message) { (rMessage) in
+            XCTAssertEqual(rMessage?.latitude, 180.0)
+            XCTAssertEqual(rMessage?.longitude, 90.0)
+            XCTAssertEqual(rMessage?.latitude, message.latitude)
+            XCTAssertEqual(rMessage?.longitude, message.longitude)
+        }
+        XCTAssertTrue(success)
+    }
+    
+    func testMessageUpdating() {
+        
     }
 
 }
 
 extension IMMessageTestCase {
+    
+    typealias Tuple = (client: LCClient, conversation: LCConversation, delegator: IMClientTestCase.Delegator)
+    
+    class CustomMessage: LCCategorizedMessage {
+        override var type: Int {
+            return 1
+        }
+    }
+    
+    class InvalidCustomMessage: LCCategorizedMessage {
+        override var type: Int {
+            return -1
+        }
+    }
     
     func newOpenedClient(
         clientID: String? = nil,
@@ -245,10 +533,10 @@ extension IMMessageTestCase {
     
     func convenienceInit(
         clientCount: Int = 2,
-        clientOptions: LCClient.Options = [.receiveUnreadMessageCountAfterSessionDidOpen])
-        -> [(client: LCClient, conversation: LCConversation, delegator: IMClientTestCase.Delegator)]?
+        clientOptions: LCClient.Options = .default)
+        -> [Tuple]?
     {
-        var tuples: [(client: LCClient, conversation: LCConversation, delegator: IMClientTestCase.Delegator)] = []
+        var tuples: [Tuple] = []
         let exp = expectation(description: "get conversations")
         exp.expectedFulfillmentCount = clientCount
         var clientMap: [String: LCClient] = [:]
@@ -296,24 +584,74 @@ extension IMMessageTestCase {
         }
     }
     
-    func read(conversations: [LCConversation], delegators: [IMClientTestCase.Delegator]) -> Bool {
-        var count = conversations.count
-        let exp = expectation(description: "read")
-        exp.expectedFulfillmentCount = count
-        for item in delegators {
-            item.conversationEvent = { c, conv, e in
-                if case .unreadMessageUpdated = e {
-                    count -= 1
-                    XCTAssertEqual(conv.unreadMessageCount, 0)
-                    exp.fulfill()
+    func sendingAndReceiving<T: LCCategorizedMessage>(
+        sentMessage: T,
+        receivedMessageChecker: ((T?) -> Void)? = nil)
+        -> Bool
+    {
+        var sendingTuple: Tuple? = nil
+        var receivingTuple: Tuple? = nil
+        return sendingAndReceiving(
+            sentMessage: sentMessage,
+            sendingTuple: &sendingTuple,
+            receivingTuple: &receivingTuple,
+            receivedMessageChecker: receivedMessageChecker
+        )
+    }
+    
+    func sendingAndReceiving<T: LCCategorizedMessage>(
+        sentMessage: T,
+        sendingTuple: inout Tuple?,
+        receivingTuple: inout Tuple?,
+        receivedMessageChecker: ((T?) -> Void)? = nil)
+        -> Bool
+    {
+        guard
+            let tuples = convenienceInit(),
+            let tuple1 = tuples.first,
+            let tuple2 = tuples.last
+            else
+        {
+            XCTFail()
+            return false
+        }
+        sendingTuple = tuple1
+        receivingTuple = tuple2
+        var flag: Int = 0
+        var receivedMessage: T? = nil
+        let exp = expectation(description: "message send and receive")
+        exp.expectedFulfillmentCount = 2
+        tuple2.delegator.messageEvent = { _, _, event in
+            switch event {
+            case .received(message: let message):
+                if let msg: T = message as? T {
+                    receivedMessage = msg
+                    flag += 1
+                } else {
+                    XCTFail()
                 }
+                exp.fulfill()
+            default:
+                break
             }
         }
-        for item in conversations {
-            item.read()
-        }
+        try? tuple1.conversation.send(message: sentMessage, completion: { (result) in
+            if result.isSuccess {
+                flag += 1
+            } else {
+                XCTFail()
+            }
+            exp.fulfill()
+        })
         wait(for: [exp], timeout: timeout)
-        return (count == 0)
+        XCTAssertNotNil(sentMessage.ID)
+        XCTAssertNotNil(sentMessage.conversationID)
+        XCTAssertNotNil(sentMessage.sentTimestamp)
+        XCTAssertEqual(sentMessage.ID, receivedMessage?.ID)
+        XCTAssertEqual(sentMessage.conversationID, receivedMessage?.conversationID)
+        XCTAssertEqual(sentMessage.sentTimestamp, receivedMessage?.sentTimestamp)
+        receivedMessageChecker?(receivedMessage)
+        return (flag == 2)
     }
     
 }
