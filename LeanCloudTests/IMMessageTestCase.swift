@@ -357,6 +357,7 @@ class IMMessageTestCase: RTMBaseTestCase {
     func testCustomMessageSendingAndReceiving() {
         do {
             try InvalidCustomMessage.register()
+            XCTFail()
         } catch {
             XCTAssertTrue(error is LCError)
         }
@@ -368,6 +369,7 @@ class IMMessageTestCase: RTMBaseTestCase {
         let message = CustomMessage()
         do {
             try message.set(content: .string(""))
+            XCTFail()
         } catch {
             XCTAssertTrue(error is LCError)
         }
@@ -483,7 +485,117 @@ class IMMessageTestCase: RTMBaseTestCase {
     }
     
     func testMessageUpdating() {
+        let oldMessage = LCMessage()
+        let oldContent: String = "old"
+        try? oldMessage.set(content: .string(oldContent))
+        let newMessage = LCMessage()
+        let newContent: String = "new"
+        try? newMessage.set(content: .string(newContent))
         
+        var sendingTuple: Tuple? = nil
+        var receivingTuple: Tuple? = nil
+        XCTAssertTrue(sendingAndReceiving(sentMessage: oldMessage, sendingTuple: &sendingTuple, receivingTuple: &receivingTuple))
+        
+        let delayExp = expectation(description: "delay 3 seconds.")
+        delayExp.isInverted = true
+        wait(for: [delayExp], timeout: 3)
+        
+        let patchedMessageChecker: (LCMessage, LCMessage) -> Void = { patchedMessage, originMessage in
+            XCTAssertNotNil(patchedMessage.ID)
+            XCTAssertNotNil(patchedMessage.conversationID)
+            XCTAssertNotNil(patchedMessage.sentTimestamp)
+            XCTAssertNotNil(patchedMessage.patchedTimestamp)
+            XCTAssertNotNil(patchedMessage.patchedDate)
+            XCTAssertEqual(patchedMessage.ID, originMessage.ID)
+            XCTAssertEqual(patchedMessage.conversationID, originMessage.conversationID)
+            XCTAssertEqual(patchedMessage.sentTimestamp, originMessage.sentTimestamp)
+            XCTAssertEqual(originMessage.content?.string, oldContent)
+            XCTAssertEqual(patchedMessage.content?.string, newContent)
+        }
+        
+        let exp = expectation(description: "message patch")
+        exp.expectedFulfillmentCount = 2
+        do {
+            try receivingTuple?.conversation.update(oldMessage: oldMessage, by: newMessage, completion: { (_) in })
+            XCTFail()
+        } catch {
+            XCTAssertTrue(error is LCError)
+        }
+        receivingTuple?.delegator.messageEvent = { client, conv, event in
+            switch event {
+            case .updated(updatedMessage: let patchedMessage):
+                XCTAssertTrue(conv.lastMessage === patchedMessage)
+                patchedMessageChecker(patchedMessage, oldMessage)
+                exp.fulfill()
+            default:
+                break
+            }
+        }
+        try? sendingTuple?.conversation.update(oldMessage: oldMessage, by: newMessage, completion: { (result) in
+            XCTAssertTrue(Thread.isMainThread)
+            XCTAssertTrue(result.isSuccess)
+            XCTAssertTrue(newMessage === sendingTuple?.conversation.lastMessage)
+            patchedMessageChecker(newMessage, oldMessage)
+            exp.fulfill()
+        })
+        wait(for: [exp], timeout: timeout)
+    }
+    
+    func testMessageRecalling() {
+        let oldMessage = LCMessage()
+        let oldContent: String = "old"
+        try? oldMessage.set(content: .string(oldContent))
+        
+        var sendingTuple: Tuple? = nil
+        var receivingTuple: Tuple? = nil
+        XCTAssertTrue(sendingAndReceiving(sentMessage: oldMessage, sendingTuple: &sendingTuple, receivingTuple: &receivingTuple))
+        
+        let delayExp = expectation(description: "delay 3 seconds.")
+        delayExp.isInverted = true
+        wait(for: [delayExp], timeout: 3)
+        
+        let recalledMessageChecker: (LCMessage, LCMessage) -> Void = { patchedMessage, originMessage in
+            XCTAssertNotNil(patchedMessage.ID)
+            XCTAssertNotNil(patchedMessage.conversationID)
+            XCTAssertNotNil(patchedMessage.sentTimestamp)
+            XCTAssertNotNil(patchedMessage.patchedTimestamp)
+            XCTAssertNotNil(patchedMessage.patchedDate)
+            XCTAssertEqual(patchedMessage.ID, originMessage.ID)
+            XCTAssertEqual(patchedMessage.conversationID, originMessage.conversationID)
+            XCTAssertEqual(patchedMessage.sentTimestamp, originMessage.sentTimestamp)
+            XCTAssertEqual(originMessage.content?.string, oldContent)
+            XCTAssertTrue(patchedMessage is LCRecalledMessage)
+        }
+        
+        let exp = expectation(description: "message patch")
+        exp.expectedFulfillmentCount = 2
+        do {
+            try receivingTuple?.conversation.recall(message: oldMessage, completion: { (_) in })
+            XCTFail()
+        } catch {
+            XCTAssertTrue(error is LCError)
+        }
+        receivingTuple?.delegator.messageEvent = { client, conv, event in
+            switch event {
+            case .updated(updatedMessage: let recalledMessage):
+                XCTAssertTrue(conv.lastMessage === recalledMessage)
+                recalledMessageChecker(recalledMessage, oldMessage)
+                exp.fulfill()
+            default:
+                break
+            }
+        }
+        try? sendingTuple?.conversation.recall(message: oldMessage, completion: { (result) in
+            XCTAssertTrue(Thread.isMainThread)
+            if let recalledMessage = result.value {
+                XCTAssertTrue(sendingTuple?.conversation.lastMessage === recalledMessage)
+                recalledMessageChecker(recalledMessage, oldMessage)
+            } else {
+                XCTFail()
+            }
+            exp.fulfill()
+        })
+        wait(for: [exp], timeout: timeout)
     }
 
 }
@@ -599,7 +711,7 @@ extension IMMessageTestCase {
         )
     }
     
-    func sendingAndReceiving<T: LCCategorizedMessage>(
+    func sendingAndReceiving<T: LCMessage>(
         sentMessage: T,
         sendingTuple: inout Tuple?,
         receivingTuple: inout Tuple?,
