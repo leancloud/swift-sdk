@@ -1,5 +1,5 @@
 //
-//  ConversationQuery.swift
+//  IMConversationQuery.swift
 //  LeanCloud
 //
 //  Created by zapcannon87 on 2019/1/8.
@@ -9,7 +9,7 @@
 import Foundation
 
 /// IM Conversation Query
-public final class LCConversationQuery {
+public final class IMConversationQuery {
     
     #if DEBUG
     private let specificKey: DispatchSpecificKey<Int>?
@@ -85,7 +85,7 @@ public final class LCConversationQuery {
     
 }
 
-private extension LCConversationQuery {
+private extension IMConversationQuery {
     
     func queryConversations<T: IMConversation>(
         IDs: [String],

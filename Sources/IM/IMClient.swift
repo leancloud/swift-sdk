@@ -666,8 +666,8 @@ extension IMClient {
 extension IMClient {
     
     /// Create a new conversation query
-    public var conversationQuery: LCConversationQuery {
-        return LCConversationQuery(client: self, eventQueue: self.eventQueue)
+    public var conversationQuery: IMConversationQuery {
+        return IMConversationQuery(client: self, eventQueue: self.eventQueue)
     }
     
 }
@@ -864,7 +864,7 @@ private extension IMClient {
             }
         }
         /// for internal, no need to set event queue.
-        let query = LCConversationQuery(client: self)
+        let query = IMConversationQuery(client: self)
         do {
             if ID.hasPrefix(IMTemporaryConversation.prefixOfID) {
                 try query.getTemporaryConversations(by: [ID], completion: { (result) in
@@ -906,7 +906,7 @@ private extension IMClient {
             }
         } else {
             /// for internal, no need to set event queue.
-            let query = LCConversationQuery(client: self)
+            let query = IMConversationQuery(client: self)
             do {
                 try query.getConversations(by: IDs, completion: { (result) in
                     assert(self.specificAssertion)
@@ -933,7 +933,7 @@ private extension IMClient {
             }
         } else {
             /// for internal, no need to set event queue.
-            let query = LCConversationQuery(client: self)
+            let query = IMConversationQuery(client: self)
             do {
                 try query.getTemporaryConversations(by: IDs, completion: { (result) in
                     assert(self.specificAssertion)
