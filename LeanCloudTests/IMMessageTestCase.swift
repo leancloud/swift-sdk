@@ -75,6 +75,7 @@ class IMMessageTestCase: RTMBaseTestCase {
         try? conversationA.send(message: stringMessage) { (result) in
             XCTAssertTrue(Thread.isMainThread)
             XCTAssertTrue(result.isSuccess)
+            XCTAssertNil(result.error)
             checkMessage(conversationA, stringMessage)
             XCTAssertEqual(stringMessage.ioType, .out)
             XCTAssertEqual(stringMessage.fromClientID, conversationA.clientID)
@@ -120,6 +121,7 @@ class IMMessageTestCase: RTMBaseTestCase {
         try? conversationB.send(message: dataMessage, completion: { (result) in
             XCTAssertTrue(Thread.isMainThread)
             XCTAssertTrue(result.isSuccess)
+            XCTAssertNil(result.error)
             checkMessage(conversationB, dataMessage)
             XCTAssertEqual(dataMessage.ioType, .out)
             XCTAssertEqual(dataMessage.fromClientID, conversationB.clientID)
@@ -225,10 +227,12 @@ class IMMessageTestCase: RTMBaseTestCase {
             messageB.content = .string("")
             try? conversationA.send(message: messageA, completion: { (result) in
                 XCTAssertTrue(result.isSuccess)
+                XCTAssertNil(result.error)
                 sendMessageExp.fulfill()
             })
             try? conversationB.send(message: messageB, completion: { (result) in
                 XCTAssertTrue(result.isSuccess)
+                XCTAssertNil(result.error)
                 sendMessageExp.fulfill()
             })
             wait(for: [sendMessageExp], timeout: timeout)
@@ -297,6 +301,7 @@ class IMMessageTestCase: RTMBaseTestCase {
         message.content = .string("")
         try? conversationA.send(message: message, options: [.isTransient]) { (result) in
             XCTAssertTrue(result.isSuccess)
+            XCTAssertNil(result.error)
             XCTAssertEqual(message.ioType, .out)
             checkMessage(message)
             exp.fulfill()
@@ -324,6 +329,7 @@ class IMMessageTestCase: RTMBaseTestCase {
         willMessage.content = .string("")
         try? conversationA.send(message: willMessage, options: [.isAutoDeliveringWhenOffline]) { (result) in
             XCTAssertTrue(result.isSuccess)
+            XCTAssertNil(result.error)
             XCTAssertNil(conversationA.lastMessage)
             XCTAssertTrue(willMessage.isWill)
             XCTAssertNotNil(willMessage.sentTimestamp)
@@ -532,6 +538,7 @@ class IMMessageTestCase: RTMBaseTestCase {
         try? sendingTuple?.conversation.update(oldMessage: oldMessage, by: newMessage, completion: { (result) in
             XCTAssertTrue(Thread.isMainThread)
             XCTAssertTrue(result.isSuccess)
+            XCTAssertNil(result.error)
             XCTAssertTrue(newMessage === sendingTuple?.conversation.lastMessage)
             patchedMessageChecker(newMessage, oldMessage)
             exp.fulfill()
@@ -583,6 +590,8 @@ class IMMessageTestCase: RTMBaseTestCase {
         }
         try? sendingTuple?.conversation.recall(message: oldMessage, completion: { (result) in
             XCTAssertTrue(Thread.isMainThread)
+            XCTAssertTrue(result.isSuccess)
+            XCTAssertNil(result.error)
             if let recalledMessage = result.value {
                 XCTAssertTrue(sendingTuple?.conversation.lastMessage === recalledMessage)
                 recalledMessageChecker(recalledMessage, oldMessage)
@@ -592,6 +601,84 @@ class IMMessageTestCase: RTMBaseTestCase {
             exp.fulfill()
         })
         wait(for: [exp], timeout: timeout)
+    }
+    
+    func testPatchEvent() {
+        let clientBID: String = uuid
+        
+        guard let clientA = newOpenedClient(options: [.receiveUnreadMessageCountAfterSessionDidOpen]),
+            let conversationA = createConversation(
+                client: clientA,
+                clientIDs: [clientA.ID, clientBID]),
+            let tempConversationA = createConversation(
+                client: clientA,
+                clientIDs: [clientA.ID, clientBID],
+                isTemporary: true) as? IMTemporaryConversation
+            else
+        {
+            XCTFail()
+            return
+        }
+        
+        var convAndMsgTuples: [(IMConversation, IMMessage)] = []
+        var sentMessageIDSet: Set<String> = []
+        
+        for conv in [conversationA, tempConversationA] {
+            let exp = expectation(description: "send message")
+            let message = IMMessage()
+            try? message.set(content: .string("old"))
+            try? conv.send(message: message, completion: { (result) in
+                XCTAssertTrue(result.isSuccess)
+                XCTAssertNil(result.error)
+                if let msgID = message.ID {
+                    sentMessageIDSet.insert(msgID)
+                }
+                exp.fulfill()
+            })
+            wait(for: [exp], timeout: timeout)
+            convAndMsgTuples.append((conv, message))
+        }
+        
+        delay()
+        
+        for (conv, msg) in convAndMsgTuples {
+            let exp = expectation(description: "patch message")
+            try? conv.recall(message: msg, completion: { (result) in
+                XCTAssertTrue(result.isSuccess)
+                XCTAssertNil(result.error)
+                exp.fulfill()
+            })
+            wait(for: [exp], timeout: timeout)
+        }
+        
+        delay()
+        
+        let clientB = try? IMClient(ID: clientBID, options: [.receiveUnreadMessageCountAfterSessionDidOpen])
+        let delegatorB = IMClientTestCase.Delegator()
+        clientB?.delegate = delegatorB
+        
+        let exp = expectation(description: "get patch event")
+        exp.expectedFulfillmentCount = 3
+        delegatorB.messageEvent = { client, conversation, event in
+            switch event {
+            case .updated(updatedMessage: let recalledMessage):
+                XCTAssertTrue(recalledMessage is IMRecalledMessage)
+                if let msgID = recalledMessage.ID {
+                    XCTAssertTrue(sentMessageIDSet.contains(msgID))
+                }
+                exp.fulfill()
+            default:
+                break
+            }
+        }
+        clientB?.open(completion: { (result) in
+            XCTAssertTrue(result.isSuccess)
+            XCTAssertNil(result.error)
+            exp.fulfill()
+        })
+        wait(for: [exp], timeout: timeout)
+        
+        XCTAssertNotNil(clientB?.lastPatchTime)
     }
 
 }
@@ -621,6 +708,8 @@ extension IMMessageTestCase {
         var client: IMClient? = try? IMClient(ID: clientID ?? uuid, options:options, customServer: customRTMURL)
         let exp = expectation(description: "open")
         client?.open { (result) in
+            XCTAssertTrue(result.isSuccess)
+            XCTAssertNil(result.error)
             if result.isFailure { client = nil }
             exp.fulfill()
         }
@@ -628,13 +717,24 @@ extension IMMessageTestCase {
         return client
     }
     
-    func createConversation(client: IMClient, clientIDs: Set<String>) -> IMConversation? {
+    func createConversation(client: IMClient, clientIDs: Set<String>, isTemporary: Bool = false) -> IMConversation? {
         var conversation: IMConversation? = nil
         let exp = expectation(description: "create conversation")
-        try? client.createConversation(clientIDs: clientIDs, completion: { (result) in
-            conversation = result.value
-            exp.fulfill()
-        })
+        if isTemporary {
+            try? client.createTemporaryConversation(clientIDs: clientIDs, timeToLive: 3600, completion: { (result) in
+                XCTAssertTrue(result.isSuccess)
+                XCTAssertNil(result.error)
+                conversation = result.value
+                exp.fulfill()
+            })
+        } else {
+            try? client.createConversation(clientIDs: clientIDs, completion: { (result) in
+                XCTAssertTrue(result.isSuccess)
+                XCTAssertNil(result.error)
+                conversation = result.value
+                exp.fulfill()
+            })
+        }
         wait(for: [exp], timeout: timeout)
         return conversation
     }
@@ -744,6 +844,8 @@ extension IMMessageTestCase {
             }
         }
         try? tuple1.conversation.send(message: sentMessage, completion: { (result) in
+            XCTAssertTrue(result.isSuccess)
+            XCTAssertNil(result.error)
             if result.isSuccess {
                 flag += 1
             } else {
