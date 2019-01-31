@@ -49,7 +49,7 @@ class ConnectionTestViewController: UIViewController {
     
 }
 
-extension ConnectionTestViewController: LCClientDelegate {
+extension ConnectionTestViewController: IMClientDelegate {
     
     func client(didOpenSession client: IMClient) {
         self.showConnected()

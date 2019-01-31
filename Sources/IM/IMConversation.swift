@@ -56,20 +56,20 @@ public class IMConversation {
         case lastMessageMentionPids = "mention_pids"
     }
     
-    public enum LCType: Int {
+    enum ConvType: Int {
         case normal = 1
         case transient = 2
         case system = 3
         case temporary = 4
     }
     
+    internal let type: ConvType
+    
     public private(set) weak var client: IMClient?
 
     public let ID: String
     
     public let clientID: String
-    
-    public let type: LCType
     
     public let isUnique: Bool
     
@@ -185,9 +185,9 @@ public class IMConversation {
     }
     
     static func instance(ID: String, rawData: RawData, client: IMClient) -> IMConversation {
-        var type: LCType = .normal
+        var type: ConvType = .normal
         if let convType: Int = rawData[Key.convType.rawValue] as? Int,
-            let validType = LCType(rawValue: convType) {
+            let validType = ConvType(rawValue: convType) {
             type = validType
         } else {
             if let transient: Bool = rawData[Key.transient.rawValue] as? Bool,
@@ -215,7 +215,7 @@ public class IMConversation {
         }
     }
 
-    init(ID: String, rawData: RawData, type: LCType, client: IMClient) {
+    init(ID: String, rawData: RawData, type: ConvType, client: IMClient) {
         #if DEBUG
         self.specificKey = client.specificKey
         self.specificValue = client.specificValue
@@ -664,7 +664,7 @@ extension IMConversation {
         self.safeUpdatingLastMessage(newMessage: patchedMessage)
         if let client = self.client {
             self.eventQueue.async {
-                let messageEvent = LCMessageEvent.updated(updatedMessage: patchedMessage)
+                let messageEvent = IMMessageEvent.updated(updatedMessage: patchedMessage)
                 client.delegate?.client(client, conversation: self, event: .message(event: messageEvent))
             }
         }
@@ -741,7 +741,7 @@ internal extension IMConversation {
             self.notTransientConversation
             else
         { return isUnreadMessageIncreased }
-        var messageEvent: LCConversationEvent?
+        var messageEvent: IMConversationEvent?
         let updatingLastMessageClosure: (Bool) -> Void = { oldMessageReplacedByAnother in
             self.lastMessage = newMessage
             messageEvent = .lastMessageUpdated

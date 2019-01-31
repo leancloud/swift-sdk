@@ -55,7 +55,7 @@ public final class IMClient {
     internal let installation: LCInstallation
     
     /// The delegate object.
-    public weak var delegate: LCClientDelegate?
+    public weak var delegate: IMClientDelegate?
     
     /// The dispatch queue on which the event about IM are called. Default is main.
     public let eventQueue: DispatchQueue
@@ -158,7 +158,7 @@ public final class IMClient {
     ///   - ID: The client identifier. Length should in [1...64].
     ///   - tag: The client tag. "default" string should not be used.
     ///   - options: @see `IMClient.Options`.
-    ///   - delegate: @see `LCClientDelegate`.
+    ///   - delegate: @see `IMClientDelegate`.
     ///   - eventQueue: @see property `eventQueue`, default is main.
     ///   - timeoutInterval: timeout interval of command.
     ///   - customServer: The custom server URL for private deployment.
@@ -168,7 +168,7 @@ public final class IMClient {
         ID: String,
         tag: String? = nil,
         options: Options = .default,
-        delegate: LCClientDelegate? = nil,
+        delegate: IMClientDelegate? = nil,
         eventQueue: DispatchQueue = .main,
         timeoutInterval: TimeInterval = 30.0,
         customServer: URL? = nil,
@@ -495,7 +495,7 @@ extension IMClient {
         let attrJSON: [String: Any] = tuple.attrJSON
         let attrString: String? = tuple.attrString
         
-        var type: IMConversation.LCType = .normal
+        var type: IMConversation.ConvType = .normal
         
         self.sendCommand(constructor: { () -> IMGenericCommand in
             var outCommand = IMGenericCommand()
@@ -611,7 +611,7 @@ extension IMClient {
         attrJSON: [String: Any],
         attrString: String?,
         option: ConversationCreationOption,
-        convType: IMConversation.LCType)
+        convType: IMConversation.ConvType)
         throws -> T
     {
         assert(self.specificAssertion)
@@ -962,7 +962,7 @@ private extension IMClient {
             case .success(value: let conversation):
                 let byClientID: String? = (command.hasInitBy ? command.initBy : nil)
                 let members: Set<String> = Set<String>(command.m)
-                let event: LCConversationEvent
+                let event: IMConversationEvent
                 let rawDataOperation: IMConversation.RawDataChangeOperation
                 switch op {
                 case .joined:
@@ -1055,7 +1055,7 @@ private extension IMClient {
                     mentionedMembers: (command.mentionPids.isEmpty ? nil : command.mentionPids),
                     status: .sent
                 )
-                var unreadEvent: LCConversationEvent?
+                var unreadEvent: IMConversationEvent?
                 let isUnreadMessageIncreased: Bool = conversation.safeUpdatingLastMessage(newMessage: message)
                 if self.options.contains(.receiveUnreadMessageCountAfterSessionDidOpen),
                     isUnreadMessageIncreased {
@@ -1226,7 +1226,7 @@ extension IMClient: ConnectionDelegate {
         }
         self.sessionState = .resuming
         self.eventQueue.async {
-            self.delegate?.client(self, event: LCClientEvent.sessionDidResume)
+            self.delegate?.client(self, event: IMClientEvent.sessionDidResume)
         }
     }
     
@@ -1306,7 +1306,7 @@ extension IMClient: ConnectionDelegate {
     
 }
 
-public enum LCClientEvent {
+public enum IMClientEvent {
     
     case sessionDidOpen
     
@@ -1318,7 +1318,7 @@ public enum LCClientEvent {
     
 }
 
-public enum LCConversationEvent {
+public enum IMConversationEvent {
     
     case joined(byClientID: String?)
     
@@ -1334,11 +1334,11 @@ public enum LCConversationEvent {
     
     case unreadMessageUpdated
     
-    case message(event: LCMessageEvent)
+    case message(event: IMMessageEvent)
     
 }
 
-public enum LCMessageEvent {
+public enum IMMessageEvent {
     
     case received(message: IMMessage)
     
@@ -1346,22 +1346,22 @@ public enum LCMessageEvent {
     
 }
 
-public protocol LCClientDelegate: class {
+public protocol IMClientDelegate: class {
     
     /// Notification of the event about the client.
     ///
     /// - Parameters:
     ///   - client: Which the event belong to.
-    ///   - event: @see `LCClientEvent`
-    func client(_ client: IMClient, event: LCClientEvent)
+    ///   - event: @see `IMClientEvent`
+    func client(_ client: IMClient, event: IMClientEvent)
     
     /// Notification of the event about the conversation.
     ///
     /// - Parameters:
     ///   - client: Which the conversation belong to.
     ///   - conversation: Which the event belong to.
-    ///   - event: @see `LCConversationEvent`
-    func client(_ client: IMClient, conversation: IMConversation, event: LCConversationEvent)
+    ///   - event: @see `IMConversationEvent`
+    func client(_ client: IMClient, conversation: IMConversation, event: IMConversationEvent)
     
 }
 

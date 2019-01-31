@@ -284,14 +284,14 @@ class IMClientTestCase: RTMBaseTestCase {
 
 extension IMClientTestCase {
     
-    class Delegator: LCClientDelegate {
-        var clientEvent: ((_ client: IMClient, _ event: LCClientEvent) -> Void)? = nil
-        func client(_ client: IMClient, event: LCClientEvent) {
+    class Delegator: IMClientDelegate {
+        var clientEvent: ((_ client: IMClient, _ event: IMClientEvent) -> Void)? = nil
+        func client(_ client: IMClient, event: IMClientEvent) {
             clientEvent?(client, event)
         }
-        var conversationEvent: ((_ client: IMClient, _ conversation: IMConversation, _ event: LCConversationEvent) -> Void)? = nil
-        var messageEvent: ((_ client: IMClient, _ conversation: IMConversation, _ event: LCMessageEvent) -> Void)? = nil
-        func client(_ client: IMClient, conversation: IMConversation, event: LCConversationEvent) {
+        var conversationEvent: ((_ client: IMClient, _ conversation: IMConversation, _ event: IMConversationEvent) -> Void)? = nil
+        var messageEvent: ((_ client: IMClient, _ conversation: IMConversation, _ event: IMMessageEvent) -> Void)? = nil
+        func client(_ client: IMClient, conversation: IMConversation, event: IMConversationEvent) {
             if case let .message(event: mEvent) = event,
                 let messageEventClosure = messageEvent {
                 messageEventClosure(client, conversation, mEvent)
