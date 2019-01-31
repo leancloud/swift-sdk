@@ -199,7 +199,7 @@ public class IMConversation {
             } else if let temporary: Bool = rawData[Key.temporary.rawValue] as? Bool,
                 temporary == true {
                 type = .temporary
-            } else if ID.hasPrefix(LCTemporaryConversation.prefixOfID) {
+            } else if ID.hasPrefix(IMTemporaryConversation.prefixOfID) {
                 type = .temporary
             }
         }
@@ -207,11 +207,11 @@ public class IMConversation {
         case .normal:
             return IMConversation(ID: ID, rawData: rawData, type: type, client: client)
         case .transient:
-            return LCChatRoom(ID: ID, rawData: rawData, type: type, client: client)
+            return IMChatRoom(ID: ID, rawData: rawData, type: type, client: client)
         case .system:
-            return LCServiceConversation(ID: ID, rawData: rawData, type: type, client: client)
+            return IMServiceConversation(ID: ID, rawData: rawData, type: type, client: client)
         case .temporary:
-            return LCTemporaryConversation(ID: ID, rawData: rawData, type: type, client: client)
+            return IMTemporaryConversation(ID: ID, rawData: rawData, type: type, client: client)
         }
     }
 
@@ -263,7 +263,7 @@ extension IMConversation {
     public func send(
         message: LCMessage,
         options: MessageSendOptions = .default,
-        priority: LCChatRoom.MessagePriority? = nil,
+        priority: IMChatRoom.MessagePriority? = nil,
         pushData: [String: Any]? = nil,
         progress: ((Double) -> Void)? = nil,
         completion: @escaping (LCBooleanResult) -> Void)
@@ -847,7 +847,7 @@ private extension IMConversation {
 }
 
 /// IM Chat Room
-public class LCChatRoom: IMConversation {
+public class IMChatRoom: IMConversation {
     
     public enum MessagePriority: Int {
         case high = 1
@@ -858,11 +858,11 @@ public class LCChatRoom: IMConversation {
 }
 
 /// IM Service Conversation
-public class LCServiceConversation: IMConversation {}
+public class IMServiceConversation: IMConversation {}
 
 /// IM Temporary Conversation
 /// Temporary Conversation is unique in it's Life Cycle.
-public class LCTemporaryConversation: IMConversation {
+public class IMTemporaryConversation: IMConversation {
     
     static let prefixOfID: String = "_tmp:"
     

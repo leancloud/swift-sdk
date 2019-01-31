@@ -233,7 +233,7 @@ class IMConversationTestCase: RTMBaseTestCase {
         let exp = expectation(description: "create chat room")
         try? client.createChatRoom() { (result) in
             XCTAssertTrue(Thread.isMainThread)
-            let chatRoom: LCChatRoom? = result.value
+            let chatRoom: IMChatRoom? = result.value
             XCTAssertEqual(chatRoom?.type, .transient)
             if let members = chatRoom?.members {
                 XCTAssertTrue(members.isEmpty)
@@ -267,7 +267,7 @@ class IMConversationTestCase: RTMBaseTestCase {
             XCTAssertTrue(Thread.isMainThread)
             if client === clientA {
                 XCTAssertEqual(conv.type, .temporary)
-                XCTAssertEqual((conv as? LCTemporaryConversation)?.timeToLive, Int(ttl))
+                XCTAssertEqual((conv as? IMTemporaryConversation)?.timeToLive, Int(ttl))
                 switch event {
                 case .joined(byClientID: let cID):
                     XCTAssertEqual(cID, clientA.ID)
@@ -289,7 +289,7 @@ class IMConversationTestCase: RTMBaseTestCase {
             XCTAssertTrue(Thread.isMainThread)
             if client === clientB {
                 XCTAssertEqual(conv.type, .temporary)
-                XCTAssertEqual((conv as? LCTemporaryConversation)?.timeToLive, Int(ttl))
+                XCTAssertEqual((conv as? IMTemporaryConversation)?.timeToLive, Int(ttl))
                 switch event {
                 case .joined(byClientID: let cID):
                     XCTAssertEqual(cID, clientA.ID)
@@ -309,7 +309,7 @@ class IMConversationTestCase: RTMBaseTestCase {
         }
         try? clientA.createTemporaryConversation(clientIDs: [clientA.ID, clientB.ID], timeToLive: ttl, completion: { (result) in
             XCTAssertTrue(Thread.isMainThread)
-            if let conv: LCTemporaryConversation = result.value {
+            if let conv: IMTemporaryConversation = result.value {
                 XCTAssertEqual(conv.type, .temporary)
                 XCTAssertEqual(conv.timeToLive, Int(ttl))
             } else {
@@ -324,7 +324,7 @@ class IMConversationTestCase: RTMBaseTestCase {
             clientB.convCollection.first?.value.ID
         )
         XCTAssertEqual(
-            clientA.convCollection.first?.value.ID.hasPrefix(LCTemporaryConversation.prefixOfID),
+            clientA.convCollection.first?.value.ID.hasPrefix(IMTemporaryConversation.prefixOfID),
             true
         )
     }

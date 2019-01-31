@@ -79,7 +79,7 @@ public final class LCConversationQuery {
     ///   - IDs: The ID set of the temporary conversations, should not empty.
     ///   - completion: callback.
     /// - Throws: if `IDs` invalid, then throw error.
-    public func getTemporaryConversations(by IDs: Set<String>, completion: @escaping (LCGenericResult<[LCTemporaryConversation]>) -> Void) throws {
+    public func getTemporaryConversations(by IDs: Set<String>, completion: @escaping (LCGenericResult<[IMTemporaryConversation]>) -> Void) throws {
         try self.queryConversations(IDs: Array<String>(IDs), isTemporary: true, completion: completion)
     }
     

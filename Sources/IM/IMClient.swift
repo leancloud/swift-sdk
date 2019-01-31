@@ -423,7 +423,7 @@ extension IMClient {
     public func createChatRoom(
         name: String? = nil,
         attributes: [String: Any]? = nil,
-        completion: @escaping (LCGenericResult<LCChatRoom>) -> Void)
+        completion: @escaping (LCGenericResult<IMChatRoom>) -> Void)
         throws
     {
         try self.createConversation(
@@ -446,7 +446,7 @@ extension IMClient {
     public func createTemporaryConversation(
         clientIDs: Set<String>,
         timeToLive: Int32,
-        completion: @escaping (LCGenericResult<LCTemporaryConversation>) -> Void)
+        completion: @escaping (LCGenericResult<IMTemporaryConversation>) -> Void)
         throws
     {
         try self.createConversation(
@@ -866,7 +866,7 @@ private extension IMClient {
         /// for internal, no need to set event queue.
         let query = LCConversationQuery(client: self)
         do {
-            if ID.hasPrefix(LCTemporaryConversation.prefixOfID) {
+            if ID.hasPrefix(IMTemporaryConversation.prefixOfID) {
                 try query.getTemporaryConversations(by: [ID], completion: { (result) in
                     assert(self.specificAssertion)
                     switch result {
@@ -1088,7 +1088,7 @@ private extension IMClient {
             if let existingConversation = self.convCollection[conversationID] {
                 existingConversation.process(unreadTuple: unreadTuple)
             } else {
-                if conversationID.hasPrefix(LCTemporaryConversation.prefixOfID) {
+                if conversationID.hasPrefix(IMTemporaryConversation.prefixOfID) {
                     temporaryConversationIDMap[conversationID] = unreadTuple
                 } else {
                     conversationIDMap[conversationID] = unreadTuple
@@ -1156,7 +1156,7 @@ private extension IMClient {
             if let existingConversation = self.convCollection[conversationID] {
                 existingConversation.process(patchItem: item)
             } else {
-                if conversationID.hasPrefix(LCTemporaryConversation.prefixOfID) {
+                if conversationID.hasPrefix(IMTemporaryConversation.prefixOfID) {
                     temporaryConversationIDMap[conversationID] = item
                 } else {
                     conversationIDMap[conversationID] = item
