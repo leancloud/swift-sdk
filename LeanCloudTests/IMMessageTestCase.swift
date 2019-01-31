@@ -496,9 +496,7 @@ class IMMessageTestCase: RTMBaseTestCase {
         var receivingTuple: Tuple? = nil
         XCTAssertTrue(sendingAndReceiving(sentMessage: oldMessage, sendingTuple: &sendingTuple, receivingTuple: &receivingTuple))
         
-        let delayExp = expectation(description: "delay 3 seconds.")
-        delayExp.isInverted = true
-        wait(for: [delayExp], timeout: 3)
+        delay()
         
         let patchedMessageChecker: (LCMessage, LCMessage) -> Void = { patchedMessage, originMessage in
             XCTAssertNotNil(patchedMessage.ID)
@@ -550,9 +548,7 @@ class IMMessageTestCase: RTMBaseTestCase {
         var receivingTuple: Tuple? = nil
         XCTAssertTrue(sendingAndReceiving(sentMessage: oldMessage, sendingTuple: &sendingTuple, receivingTuple: &receivingTuple))
         
-        let delayExp = expectation(description: "delay 3 seconds.")
-        delayExp.isInverted = true
-        wait(for: [delayExp], timeout: 3)
+        delay()
         
         let recalledMessageChecker: (LCMessage, LCMessage) -> Void = { patchedMessage, originMessage in
             XCTAssertNotNil(patchedMessage.ID)

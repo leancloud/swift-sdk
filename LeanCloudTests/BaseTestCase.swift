@@ -55,6 +55,12 @@ class BaseTestCase: XCTestCase {
         }
     }
     
+    func delay(seconds: TimeInterval = 3.0) {
+        let exp = expectation(description: "delay \(seconds) seconds.")
+        exp.isInverted = true
+        wait(for: [exp], timeout: seconds)
+    }
+    
     func resourceURL(name: String, ext: String) -> URL {
         let bundle = Bundle(for: type(of: self))
         return bundle.url(forResource: name, withExtension: ext)!

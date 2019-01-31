@@ -476,9 +476,7 @@ class IMConversationTestCase: RTMBaseTestCase {
             return
         }
         
-        let waitExp = expectation(description: "wait 5s after sent message to service conversation")
-        waitExp.isInverted = true
-        wait(for: [waitExp], timeout: 5)
+        delay()
         
         let clientA = try! LCClient(ID: clientID, options: [.receiveUnreadMessageCountAfterSessionDidOpen])
         let delegator = IMClientTestCase.Delegator()
