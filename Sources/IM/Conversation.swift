@@ -63,7 +63,7 @@ public class LCConversation {
         case temporary = 4
     }
     
-    public private(set) weak var client: LCClient?
+    public private(set) weak var client: IMClient?
 
     public let ID: String
     
@@ -184,7 +184,7 @@ public class LCConversation {
         get { return safeDecodingRawData(with: key) }
     }
     
-    static func instance(ID: String, rawData: RawData, client: LCClient) -> LCConversation {
+    static func instance(ID: String, rawData: RawData, client: IMClient) -> LCConversation {
         var type: LCType = .normal
         if let convType: Int = rawData[Key.convType.rawValue] as? Int,
             let validType = LCType(rawValue: convType) {
@@ -215,7 +215,7 @@ public class LCConversation {
         }
     }
 
-    init(ID: String, rawData: RawData, type: LCType, client: LCClient) {
+    init(ID: String, rawData: RawData, type: LCType, client: IMClient) {
         #if DEBUG
         self.specificKey = client.specificKey
         self.specificValue = client.specificValue
@@ -525,15 +525,10 @@ extension LCConversation {
         completion: @escaping (LCBooleanResult) -> Void)
         throws
     {
-        let sentStatusSet: Set<Int> = [
-            LCMessage.Status.sent.rawValue,
-            LCMessage.Status.delivered.rawValue,
-            LCMessage.Status.read.rawValue
-        ]
         guard
             let oldMessageID: String = oldMessage.ID,
             let oldMessageTimestamp: Int64 = oldMessage.sentTimestamp,
-            sentStatusSet.contains(oldMessage.status.rawValue)
+            oldMessage.isSent
             else
         {
             throw LCError(code: .updatingMessageNotSent)

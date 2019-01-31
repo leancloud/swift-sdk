@@ -35,13 +35,11 @@ open class LCMessage {
     public final private(set) var fromClientID: String?
     internal private(set) var localClientID: String?
     
-    public enum Status: Int {
-        case none = 0
-        case sending = 1
-        case sent = 2
-        case delivered = 3
-        case failed = 4
-        case read = 5
+    public enum Status {
+        case none
+        case sending
+        case sent
+        case failed
     }
     
     public final private(set) var status: Status = .none
@@ -198,9 +196,16 @@ open class LCMessage {
     
     internal func update(status newStatus: LCMessage.Status, ID: String? = nil, timestamp: Int64? = nil) {
         self.status = newStatus
-        if newStatus == .sent || newStatus == .delivered || newStatus == .read {
+        if newStatus == .sent {
             self.ID = ID
             self.sentTimestamp = timestamp
+        }
+    }
+    
+    internal var isSent: Bool {
+        switch self.status {
+        case .sent: return true
+        default: return false
         }
     }
     

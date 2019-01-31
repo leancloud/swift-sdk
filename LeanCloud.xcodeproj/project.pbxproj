@@ -23,7 +23,7 @@
 		118763AB2176DF110078645B /* StorageContext.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 118763A92176DF110078645B /* StorageContext.xcdatamodeld */; };
 		118763AD2176DF440078645B /* StorageContextCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 118763AC2176DF440078645B /* StorageContextCache.swift */; };
 		118763AF2176EA3A0078645B /* InstallationTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 118763AE2176EA3A0078645B /* InstallationTestCase.swift */; };
-		119D16AF219A7FCE0023BFEF /* Client.swift in Sources */ = {isa = PBXBuildFile; fileRef = 119D16AE219A7FCE0023BFEF /* Client.swift */; };
+		119D16AF219A7FCE0023BFEF /* IMClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 119D16AE219A7FCE0023BFEF /* IMClient.swift */; };
 		11A166CD214F57360094AF13 /* LocalStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A166CC214F57360094AF13 /* LocalStorage.swift */; };
 		11A166DE214F5E440094AF13 /* PersistentController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A166DD214F5E440094AF13 /* PersistentController.swift */; };
 		11A166E221509F020094AF13 /* AppRouterCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A166E121509F020094AF13 /* AppRouterCache.swift */; };
@@ -268,7 +268,7 @@
 		118763AA2176DF110078645B /* StorageContext.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = StorageContext.xcdatamodel; sourceTree = "<group>"; };
 		118763AC2176DF440078645B /* StorageContextCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StorageContextCache.swift; sourceTree = "<group>"; };
 		118763AE2176EA3A0078645B /* InstallationTestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InstallationTestCase.swift; sourceTree = "<group>"; };
-		119D16AE219A7FCE0023BFEF /* Client.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Client.swift; sourceTree = "<group>"; };
+		119D16AE219A7FCE0023BFEF /* IMClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IMClient.swift; sourceTree = "<group>"; };
 		11A166CC214F57360094AF13 /* LocalStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalStorage.swift; sourceTree = "<group>"; };
 		11A166DD214F5E440094AF13 /* PersistentController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistentController.swift; sourceTree = "<group>"; };
 		11A166E121509F020094AF13 /* AppRouterCache.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppRouterCache.swift; sourceTree = "<group>"; };
@@ -612,7 +612,7 @@
 				113D23D021901A71006B53EC /* RTMRouter.swift */,
 				112392142190AB6E00ECCBCC /* RTMRouterCache.swift */,
 				11239228219165BE00ECCBCC /* RTMRouterCache.xcdatamodeld */,
-				119D16AE219A7FCE0023BFEF /* Client.swift */,
+				119D16AE219A7FCE0023BFEF /* IMClient.swift */,
 				1113D80321AB963B000677BD /* Conversation.swift */,
 				D393EDBD21D38206001CBB2B /* Message.swift */,
 				D3C3782E21E48D3C00EA9AC9 /* ConversationQuery.swift */,
@@ -942,7 +942,7 @@
 				113D23D121901A71006B53EC /* RTMRouter.swift in Sources */,
 				835F5D831D7E6808004D1A0E /* HTTPClient.swift in Sources */,
 				D3AA135B216E0D3A008FECA6 /* WebSocket.swift in Sources */,
-				119D16AF219A7FCE0023BFEF /* Client.swift in Sources */,
+				119D16AF219A7FCE0023BFEF /* IMClient.swift in Sources */,
 				835F5D801D7E6808004D1A0E /* Query.swift in Sources */,
 				D324CD9221774A9B003FA35F /* Connection.swift in Sources */,
 				11D9C0FB216DF63B00A620B7 /* Application.swift in Sources */,

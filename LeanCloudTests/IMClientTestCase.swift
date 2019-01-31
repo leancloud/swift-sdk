@@ -15,7 +15,7 @@ class IMClientTestCase: RTMBaseTestCase {
         
         do {
             let invalidID: String = Array<String>.init(repeating: "a", count: 65).joined()
-            let _ = try LCClient(ID: invalidID)
+            let _ = try IMClient(ID: invalidID)
             XCTFail()
         } catch {
             XCTAssertTrue(error is LCError)
@@ -23,14 +23,14 @@ class IMClientTestCase: RTMBaseTestCase {
         
         do {
             let invalidTag: String = "default"
-            let _ = try LCClient(ID: "aaaaaa", tag: invalidTag)
+            let _ = try IMClient(ID: "aaaaaa", tag: invalidTag)
             XCTFail()
         } catch {
             XCTAssertTrue(error is LCError)
         }
         
         do {
-            var client: LCClient? = try LCClient(ID: "qweasd", tag: "mobile")
+            var client: IMClient? = try IMClient(ID: "qweasd", tag: "mobile")
             XCTAssertNotNil(client?.deviceTokenObservation)
             XCTAssertNotNil(client?.fallbackUDID)
             client = nil
@@ -42,7 +42,7 @@ class IMClientTestCase: RTMBaseTestCase {
 
     func testClientOpenAndClose() {
         
-        let client: LCClient = try! LCClient(ID: uuid)
+        let client: IMClient = try! IMClient(ID: uuid)
         
         for _ in 0..<3 {
             let exp = expectation(description: "open and close")
@@ -79,7 +79,7 @@ class IMClientTestCase: RTMBaseTestCase {
     
     func testClientDelegateEvent() {
         
-        let client: LCClient = try! LCClient(ID: uuid)
+        let client: IMClient = try! IMClient(ID: uuid)
         let delegator: Delegator = Delegator()
         client.delegate = delegator
         
@@ -138,7 +138,7 @@ class IMClientTestCase: RTMBaseTestCase {
             apnsTeamId: ""
         )
         let delegator1: Delegator = Delegator()
-        let client1: LCClient = try! LCClient(
+        let client1: IMClient = try! IMClient(
             ID: clientID,
             tag: tag,
             delegate: delegator1,
@@ -161,7 +161,7 @@ class IMClientTestCase: RTMBaseTestCase {
             apnsTeamId: ""
         )
         let delegator2: Delegator = Delegator()
-        let client2: LCClient = try! LCClient(
+        let client2: IMClient = try! IMClient(
             ID: clientID,
             tag: tag,
             delegate: delegator2,
@@ -208,7 +208,7 @@ class IMClientTestCase: RTMBaseTestCase {
     
     func testClientSessionTokenExpired() {
         
-        let client: LCClient = try! LCClient(ID: uuid)
+        let client: IMClient = try! IMClient(ID: uuid)
         let delegator: Delegator = Delegator()
         client.delegate = delegator
         
@@ -239,7 +239,7 @@ class IMClientTestCase: RTMBaseTestCase {
             }
         }
         let _ = NotificationCenter.default.addObserver(
-            forName: LCClient.TestSessionTokenExpiredNotification,
+            forName: IMClient.TestSessionTokenExpiredNotification,
             object: client,
             queue: OperationQueue.main
         ) { (notification) in
@@ -259,7 +259,7 @@ class IMClientTestCase: RTMBaseTestCase {
         
         let application = LCApplication.default
         let currentDeviceToken = application.currentInstallation.deviceToken?.value
-        let client: LCClient = try! LCClient(ID: uuid, application: application)
+        let client: IMClient = try! IMClient(ID: uuid, application: application)
         XCTAssertEqual(currentDeviceToken, client.currentDeviceToken)
         
         let exp = expectation(description: "client report device token success")
@@ -271,7 +271,7 @@ class IMClientTestCase: RTMBaseTestCase {
             XCTAssertEqual(uuid, client.currentDeviceToken)
             exp.fulfill()
         }
-        let _ = NotificationCenter.default.addObserver(forName: LCClient.TestReportDeviceTokenNotification, object: client, queue: OperationQueue.main) { (notification) in
+        let _ = NotificationCenter.default.addObserver(forName: IMClient.TestReportDeviceTokenNotification, object: client, queue: OperationQueue.main) { (notification) in
             let result = notification.userInfo?["result"] as? Connection.CommandCallback.Result
             XCTAssertEqual(result?.command?.cmd, .report)
             XCTAssertEqual(result?.command?.op, .uploaded)
@@ -285,13 +285,13 @@ class IMClientTestCase: RTMBaseTestCase {
 extension IMClientTestCase {
     
     class Delegator: LCClientDelegate {
-        var clientEvent: ((_ client: LCClient, _ event: LCClientEvent) -> Void)? = nil
-        func client(_ client: LCClient, event: LCClientEvent) {
+        var clientEvent: ((_ client: IMClient, _ event: LCClientEvent) -> Void)? = nil
+        func client(_ client: IMClient, event: LCClientEvent) {
             clientEvent?(client, event)
         }
-        var conversationEvent: ((_ client: LCClient, _ conversation: LCConversation, _ event: LCConversationEvent) -> Void)? = nil
-        var messageEvent: ((_ client: LCClient, _ conversation: LCConversation, _ event: LCMessageEvent) -> Void)? = nil
-        func client(_ client: LCClient, conversation: LCConversation, event: LCConversationEvent) {
+        var conversationEvent: ((_ client: IMClient, _ conversation: LCConversation, _ event: LCConversationEvent) -> Void)? = nil
+        var messageEvent: ((_ client: IMClient, _ conversation: LCConversation, _ event: LCMessageEvent) -> Void)? = nil
+        func client(_ client: IMClient, conversation: LCConversation, event: LCConversationEvent) {
             if case let .message(event: mEvent) = event,
                 let messageEventClosure = messageEvent {
                 messageEventClosure(client, conversation, mEvent)

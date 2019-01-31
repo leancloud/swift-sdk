@@ -19,7 +19,7 @@ class IMConversationTestCase: RTMBaseTestCase {
 
     func testCreateConversationErrorThrows() {
         
-        let client: LCClient = try! LCClient(ID: uuid)
+        let client: IMClient = try! IMClient(ID: uuid)
         
         let errExp = expectation(description: "not open")
         try? client.createConversation(clientIDs: []) { (r) in
@@ -64,14 +64,14 @@ class IMConversationTestCase: RTMBaseTestCase {
             "Dictionary": Dictionary<String, Any>()
         ]
         
-        let convAssertion: (LCConversation, LCClient) -> Void = { conv, client in
+        let convAssertion: (LCConversation, IMClient) -> Void = { conv, client in
             XCTAssertTrue(type(of: conv) == LCConversation.self)
             XCTAssertEqual(conv.type, .normal)
             XCTAssertEqual(conv.members?.count, 2)
             XCTAssertEqual(conv.members?.contains(clientA.ID), true)
             XCTAssertEqual(conv.members?.contains(clientB.ID), true)
             XCTAssertNotNil(conv.client)
-            if let c: LCClient = conv.client {
+            if let c: IMClient = conv.client {
                 XCTAssertTrue(c === client)
             }
             XCTAssertEqual(conv.clientID, client.ID)
@@ -352,7 +352,7 @@ class IMConversationTestCase: RTMBaseTestCase {
         })
         wait(for: [sendExp], timeout: timeout)
         
-        let clientB = try! LCClient(ID: otherClientID, options: [.receiveUnreadMessageCountAfterSessionDidOpen])
+        let clientB = try! IMClient(ID: otherClientID, options: [.receiveUnreadMessageCountAfterSessionDidOpen])
         let delegator = IMClientTestCase.Delegator()
         clientB.delegate = delegator
         
@@ -419,7 +419,7 @@ class IMConversationTestCase: RTMBaseTestCase {
         })
         wait(for: [sendExp], timeout: timeout)
         
-        let clientB = try! LCClient(ID: otherClientID, options: [.receiveUnreadMessageCountAfterSessionDidOpen])
+        let clientB = try! IMClient(ID: otherClientID, options: [.receiveUnreadMessageCountAfterSessionDidOpen])
         let delegator = IMClientTestCase.Delegator()
         clientB.delegate = delegator
         
@@ -478,7 +478,7 @@ class IMConversationTestCase: RTMBaseTestCase {
         
         delay()
         
-        let clientA = try! LCClient(ID: clientID, options: [.receiveUnreadMessageCountAfterSessionDidOpen])
+        let clientA = try! IMClient(ID: clientID, options: [.receiveUnreadMessageCountAfterSessionDidOpen])
         let delegator = IMClientTestCase.Delegator()
         clientA.delegate = delegator
         
@@ -555,7 +555,7 @@ class IMConversationTestCase: RTMBaseTestCase {
         }
         
         let convIDSet = Set<String>(clientA.convCollection.keys)
-        let clientB = try! LCClient(ID: otherClientID, options: [.receiveUnreadMessageCountAfterSessionDidOpen])
+        let clientB = try! IMClient(ID: otherClientID, options: [.receiveUnreadMessageCountAfterSessionDidOpen])
         let delegator = IMClientTestCase.Delegator()
         clientB.delegate = delegator
         
@@ -600,11 +600,11 @@ extension IMConversationTestCase {
     
     func newOpenedClient(
         clientID: String? = nil,
-        options: LCClient.Options = .default,
+        options: IMClient.Options = .default,
         customRTMURL: URL? = nil)
-        -> LCClient?
+        -> IMClient?
     {
-        var client: LCClient? = try? LCClient(ID: clientID ?? uuid, options:options, customServer: customRTMURL)
+        var client: IMClient? = try? IMClient(ID: clientID ?? uuid, options:options, customServer: customRTMURL)
         let exp = expectation(description: "open")
         client?.open { (result) in
             if result.isFailure { client = nil }

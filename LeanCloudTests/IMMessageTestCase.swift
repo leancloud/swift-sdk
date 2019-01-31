@@ -598,7 +598,7 @@ class IMMessageTestCase: RTMBaseTestCase {
 
 extension IMMessageTestCase {
     
-    typealias Tuple = (client: LCClient, conversation: LCConversation, delegator: IMClientTestCase.Delegator)
+    typealias Tuple = (client: IMClient, conversation: LCConversation, delegator: IMClientTestCase.Delegator)
     
     class CustomMessage: LCCategorizedMessage {
         override var type: Int {
@@ -614,11 +614,11 @@ extension IMMessageTestCase {
     
     func newOpenedClient(
         clientID: String? = nil,
-        options: LCClient.Options = .default,
+        options: IMClient.Options = .default,
         customRTMURL: URL? = nil)
-        -> LCClient?
+        -> IMClient?
     {
-        var client: LCClient? = try? LCClient(ID: clientID ?? uuid, options:options, customServer: customRTMURL)
+        var client: IMClient? = try? IMClient(ID: clientID ?? uuid, options:options, customServer: customRTMURL)
         let exp = expectation(description: "open")
         client?.open { (result) in
             if result.isFailure { client = nil }
@@ -628,7 +628,7 @@ extension IMMessageTestCase {
         return client
     }
     
-    func createConversation(client: LCClient, clientIDs: Set<String>) -> LCConversation? {
+    func createConversation(client: IMClient, clientIDs: Set<String>) -> LCConversation? {
         var conversation: LCConversation? = nil
         let exp = expectation(description: "create conversation")
         try? client.createConversation(clientIDs: clientIDs, completion: { (result) in
@@ -641,13 +641,13 @@ extension IMMessageTestCase {
     
     func convenienceInit(
         clientCount: Int = 2,
-        clientOptions: LCClient.Options = .default)
+        clientOptions: IMClient.Options = .default)
         -> [Tuple]?
     {
         var tuples: [Tuple] = []
         let exp = expectation(description: "get conversations")
         exp.expectedFulfillmentCount = clientCount
-        var clientMap: [String: LCClient] = [:]
+        var clientMap: [String: IMClient] = [:]
         var delegatorMap: [String: IMClientTestCase.Delegator] = [:]
         var conversationMap: [String: LCConversation] = [:]
         var clientIDs: [String] = []
@@ -668,7 +668,7 @@ extension IMMessageTestCase {
             clientIDs.append(client.ID)
         }
         if let clientID: String = clientIDs.first,
-            let client: LCClient = clientMap[clientID] {
+            let client: IMClient = clientMap[clientID] {
             let _ = createConversation(client: client, clientIDs: Set(clientIDs))
         }
         wait(for: [exp], timeout: timeout)

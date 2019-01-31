@@ -28,11 +28,11 @@ public final class LCConversationQuery {
     }
     #endif
     
-    private let client: LCClient
+    private let client: IMClient
     
     private let eventQueue: DispatchQueue?
     
-    init(client: LCClient, eventQueue: DispatchQueue? = nil) {
+    init(client: IMClient, eventQueue: DispatchQueue? = nil) {
         #if DEBUG
         self.specificKey = client.specificKey
         self.specificValue = client.specificValue
@@ -157,7 +157,7 @@ private extension LCConversationQuery {
         return string
     }
     
-    func conversations<T: LCConversation>(command: IMGenericCommand, client: LCClient) throws -> [T] {
+    func conversations<T: LCConversation>(command: IMGenericCommand, client: IMClient) throws -> [T] {
         assert(self.specificAssertion)
         let convMessage: IMConvCommand? = (command.hasConvMessage ? command.convMessage : nil)
         let jsonMessage: IMJsonObjectMessage? = ((convMessage?.hasResults ?? false) ? convMessage?.results : nil)

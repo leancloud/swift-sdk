@@ -1,5 +1,5 @@
 //
-//  Client.swift
+//  IMClient.swift
 //  LeanCloud
 //
 //  Created by Tianyong Tang on 2018/11/13.
@@ -14,7 +14,7 @@ import IOKit
 #endif
 
 /// IM Client
-public final class LCClient {
+public final class IMClient {
     
     #if DEBUG
     /// Notification for unit test case
@@ -157,7 +157,7 @@ public final class LCClient {
     /// - Parameters:
     ///   - ID: The client identifier. Length should in [1...64].
     ///   - tag: The client tag. "default" string should not be used.
-    ///   - options: @see `LCClient.Options`.
+    ///   - options: @see `IMClient.Options`.
     ///   - delegate: @see `LCClientDelegate`.
     ///   - eventQueue: @see property `eventQueue`, default is main.
     ///   - timeoutInterval: timeout interval of command.
@@ -175,10 +175,10 @@ public final class LCClient {
         application: LCApplication = .default)
         throws
     {
-        guard LCClient.lengthRangeOfClientID.contains(ID.count) else {
+        guard IMClient.lengthRangeOfClientID.contains(ID.count) else {
             throw LCError.clientIDInvalid
         }
-        guard tag != LCClient.reservedValueOfTag else {
+        guard tag != IMClient.reservedValueOfTag else {
             throw LCError.clientTagInvalid
         }
         #if DEBUG
@@ -222,7 +222,7 @@ public final class LCClient {
     }
     
     /// The client serial dispatch queue.
-    private let serialQueue = DispatchQueue(label: "LeanCloud.LCClient.serialQueue", qos: .userInitiated)
+    private let serialQueue = DispatchQueue(label: "LeanCloud.IMClient.serialQueue", qos: .userInitiated)
     
     /// The session connection.
     internal let connection: Connection
@@ -272,7 +272,7 @@ public final class LCClient {
 
 // MARK: - Open & Close
 
-extension LCClient {
+extension IMClient {
     
     /**
      Options that can modify behaviors of session open operation.
@@ -299,7 +299,7 @@ extension LCClient {
     /**
      Open a session to IM system.
      
-     - parameter options: @see `LCClient.SessionOpenOptions`.
+     - parameter options: @see `IMClient.SessionOpenOptions`.
      - parameter completion: The completion handler.
      */
     public func open(options: SessionOpenOptions = .default, completion: @escaping (LCBooleanResult) -> Void) {
@@ -380,7 +380,7 @@ extension LCClient {
 
 // MARK: - Create Conversation
 
-extension LCClient {
+extension IMClient {
     
     /// Create a normal conversation.
     ///
@@ -580,7 +580,7 @@ extension LCClient {
         } else {
             members = Array<String>(clientIDs)
             for item in clientIDs {
-                guard LCClient.lengthRangeOfClientID.contains(item.count) else {
+                guard IMClient.lengthRangeOfClientID.contains(item.count) else {
                     throw LCError.clientIDInvalid
                 }
             }
@@ -663,7 +663,7 @@ extension LCClient {
 
 // MARK: - Create Conversation Query
 
-extension LCClient {
+extension IMClient {
     
     /// Create a new conversation query
     public var conversationQuery: LCConversationQuery {
@@ -674,7 +674,7 @@ extension LCClient {
 
 // MARK: - Internal
 
-extension LCClient {
+extension IMClient {
     
     func sendCommand(
         constructor: () -> IMGenericCommand,
@@ -693,7 +693,7 @@ extension LCClient {
 
 // MARK: - Private
 
-private extension LCClient {
+private extension IMClient {
     
     func newOpenCommand() -> IMGenericCommand {
         assert(self.specificAssertion)
@@ -733,7 +733,7 @@ private extension LCClient {
                 } else if error.code == LCError.ServerErrorCode.sessionTokenExpired.rawValue {
                     #if DEBUG
                     NotificationCenter.default.post(
-                        name: LCClient.TestSessionTokenExpiredNotification,
+                        name: IMClient.TestSessionTokenExpiredNotification,
                         object: self,
                         userInfo: ["error": error]
                     )
@@ -771,7 +771,7 @@ private extension LCClient {
             #if DEBUG
             /// for unit test
             NotificationCenter.default.post(
-                name: LCClient.TestReportDeviceTokenNotification,
+                name: IMClient.TestReportDeviceTokenNotification,
                 object: self,
                 userInfo: ["result": result]
             )
@@ -1217,7 +1217,7 @@ private extension LCClient {
 
 // MARK: - Connection Delegate
 
-extension LCClient: ConnectionDelegate {
+extension IMClient: ConnectionDelegate {
     
     func connection(inConnecting connection: Connection) {
         assert(self.specificAssertion)
@@ -1353,7 +1353,7 @@ public protocol LCClientDelegate: class {
     /// - Parameters:
     ///   - client: Which the event belong to.
     ///   - event: @see `LCClientEvent`
-    func client(_ client: LCClient, event: LCClientEvent)
+    func client(_ client: IMClient, event: LCClientEvent)
     
     /// Notification of the event about the conversation.
     ///
@@ -1361,7 +1361,7 @@ public protocol LCClientDelegate: class {
     ///   - client: Which the conversation belong to.
     ///   - conversation: Which the event belong to.
     ///   - event: @see `LCConversationEvent`
-    func client(_ client: LCClient, conversation: LCConversation, event: LCConversationEvent)
+    func client(_ client: IMClient, conversation: LCConversation, event: LCConversationEvent)
     
 }
 
@@ -1370,14 +1370,14 @@ extension LCError {
     static var clientIDInvalid: LCError {
         return LCError(
             code: .inconsistency,
-            reason: "Length of client ID should in \(LCClient.lengthRangeOfClientID)"
+            reason: "Length of client ID should in \(IMClient.lengthRangeOfClientID)"
         )
     }
     
     static var clientTagInvalid: LCError {
         return LCError(
             code: .inconsistency,
-            reason: "\"\(LCClient.reservedValueOfTag)\" string should not be used on tag"
+            reason: "\"\(IMClient.reservedValueOfTag)\" string should not be used on tag"
         )
     }
     
