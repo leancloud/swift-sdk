@@ -27,7 +27,7 @@ class IMMessageTestCase: RTMBaseTestCase {
         let delegatorB = tuple2.delegator
         let conversationB = tuple2.conversation
         
-        let checkMessage: (LCConversation, LCMessage) -> Void = { conv, message in
+        let checkMessage: (IMConversation, LCMessage) -> Void = { conv, message in
             XCTAssertEqual(message.status, .sent)
             XCTAssertNotNil(message.ID)
             XCTAssertEqual(conv.ID, message.conversationID)
@@ -598,7 +598,7 @@ class IMMessageTestCase: RTMBaseTestCase {
 
 extension IMMessageTestCase {
     
-    typealias Tuple = (client: IMClient, conversation: LCConversation, delegator: IMClientTestCase.Delegator)
+    typealias Tuple = (client: IMClient, conversation: IMConversation, delegator: IMClientTestCase.Delegator)
     
     class CustomMessage: LCCategorizedMessage {
         override var type: Int {
@@ -628,8 +628,8 @@ extension IMMessageTestCase {
         return client
     }
     
-    func createConversation(client: IMClient, clientIDs: Set<String>) -> LCConversation? {
-        var conversation: LCConversation? = nil
+    func createConversation(client: IMClient, clientIDs: Set<String>) -> IMConversation? {
+        var conversation: IMConversation? = nil
         let exp = expectation(description: "create conversation")
         try? client.createConversation(clientIDs: clientIDs, completion: { (result) in
             conversation = result.value
@@ -649,7 +649,7 @@ extension IMMessageTestCase {
         exp.expectedFulfillmentCount = clientCount
         var clientMap: [String: IMClient] = [:]
         var delegatorMap: [String: IMClientTestCase.Delegator] = [:]
-        var conversationMap: [String: LCConversation] = [:]
+        var conversationMap: [String: IMConversation] = [:]
         var clientIDs: [String] = []
         for _ in 0..<clientCount {
             guard let client = newOpenedClient(options: clientOptions) else {

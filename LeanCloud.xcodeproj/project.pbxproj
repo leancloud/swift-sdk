@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		1113D80421AB963B000677BD /* Conversation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1113D80321AB963B000677BD /* Conversation.swift */; };
+		1113D80421AB963B000677BD /* IMConversation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1113D80321AB963B000677BD /* IMConversation.swift */; };
 		112392152190AB6E00ECCBCC /* RTMRouterCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 112392142190AB6E00ECCBCC /* RTMRouterCache.swift */; };
 		1123922A219165BE00ECCBCC /* RTMRouterCache.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 11239228219165BE00ECCBCC /* RTMRouterCache.xcdatamodeld */; };
 		1123922C2191669100ECCBCC /* RTMRouterTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1123922B2191669100ECCBCC /* RTMRouterTestCase.swift */; };
@@ -253,7 +253,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		1113D80321AB963B000677BD /* Conversation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Conversation.swift; sourceTree = "<group>"; };
+		1113D80321AB963B000677BD /* IMConversation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IMConversation.swift; sourceTree = "<group>"; };
 		112392142190AB6E00ECCBCC /* RTMRouterCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RTMRouterCache.swift; sourceTree = "<group>"; };
 		11239229219165BE00ECCBCC /* RTMRouterCache.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = RTMRouterCache.xcdatamodel; sourceTree = "<group>"; };
 		1123922B2191669100ECCBCC /* RTMRouterTestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RTMRouterTestCase.swift; sourceTree = "<group>"; };
@@ -613,7 +613,7 @@
 				112392142190AB6E00ECCBCC /* RTMRouterCache.swift */,
 				11239228219165BE00ECCBCC /* RTMRouterCache.xcdatamodeld */,
 				119D16AE219A7FCE0023BFEF /* IMClient.swift */,
-				1113D80321AB963B000677BD /* Conversation.swift */,
+				1113D80321AB963B000677BD /* IMConversation.swift */,
 				D393EDBD21D38206001CBB2B /* Message.swift */,
 				D3C3782E21E48D3C00EA9AC9 /* ConversationQuery.swift */,
 			);
@@ -935,7 +935,7 @@
 				835F5D791D7E6808004D1A0E /* Extension.swift in Sources */,
 				835F5D7D1D7E6808004D1A0E /* ObjectProfiler.swift in Sources */,
 				11FD151021742CD3008389D4 /* Polyfill.m in Sources */,
-				1113D80421AB963B000677BD /* Conversation.swift in Sources */,
+				1113D80421AB963B000677BD /* IMConversation.swift in Sources */,
 				835F5D821D7E6808004D1A0E /* Response.swift in Sources */,
 				835F5D861D7E6808004D1A0E /* SMSClient.swift in Sources */,
 				835F5D7E1D7E6808004D1A0E /* ObjectUpdater.swift in Sources */,

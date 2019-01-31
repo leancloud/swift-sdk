@@ -64,8 +64,8 @@ class IMConversationTestCase: RTMBaseTestCase {
             "Dictionary": Dictionary<String, Any>()
         ]
         
-        let convAssertion: (LCConversation, IMClient) -> Void = { conv, client in
-            XCTAssertTrue(type(of: conv) == LCConversation.self)
+        let convAssertion: (IMConversation, IMClient) -> Void = { conv, client in
+            XCTAssertTrue(type(of: conv) == IMConversation.self)
             XCTAssertEqual(conv.type, .normal)
             XCTAssertEqual(conv.members?.count, 2)
             XCTAssertEqual(conv.members?.contains(clientA.ID), true)
@@ -156,7 +156,7 @@ class IMConversationTestCase: RTMBaseTestCase {
         }
         try? clientA.createConversation(clientIDs: [clientA.ID, clientB.ID], name: name, attributes: attribution) { (result) in
             XCTAssertTrue(Thread.isMainThread)
-            if let conv: LCConversation = result.value {
+            if let conv: IMConversation = result.value {
                 convAssertion(conv, clientA)
                 XCTAssertNil(conv.updatedAt)
             } else {
@@ -188,8 +188,8 @@ class IMConversationTestCase: RTMBaseTestCase {
         
         let exp1 = expectation(description: "create unique conversation")
         try? clientA.createConversation(clientIDs: [clientA.ID, clientB.ID], isUnique: true, completion: { (result) in
-            if let conv: LCConversation = result.value {
-                XCTAssertTrue(type(of: conv) == LCConversation.self)
+            if let conv: IMConversation = result.value {
+                XCTAssertTrue(type(of: conv) == IMConversation.self)
                 XCTAssertEqual(conv.type, .normal)
                 XCTAssertTrue(conv.isUnique)
                 XCTAssertNotNil(conv.uniqueID)
@@ -202,8 +202,8 @@ class IMConversationTestCase: RTMBaseTestCase {
         
         let exp2 = expectation(description: "create unique conversation")
         try? clientB.createConversation(clientIDs: [clientA.ID, clientB.ID], isUnique: true, completion: { (result) in
-            if let conv: LCConversation = result.value {
-                XCTAssertTrue(type(of: conv) == LCConversation.self)
+            if let conv: IMConversation = result.value {
+                XCTAssertTrue(type(of: conv) == IMConversation.self)
                 XCTAssertEqual(conv.type, .normal)
                 XCTAssertTrue(conv.isUnique)
                 XCTAssertNotNil(conv.uniqueID)

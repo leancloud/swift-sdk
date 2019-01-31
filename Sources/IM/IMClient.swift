@@ -256,12 +256,12 @@ public final class IMClient {
     }()
     
     /// Conversation Container
-    /// use it to manage all instance of LCConversation belong to this client
-    internal var convCollection: [String: LCConversation] = [:]
+    /// use it to manage all instance of IMConversation belong to this client
+    internal var convCollection: [String: IMConversation] = [:]
     
     /// Single-Conversation Query Callback Container
     /// use it to merge concurrent Single-Conversation Query
-    internal var convQueryCallbackCollection: [String: Array<(LCGenericResult<LCConversation>) -> Void>] = [:]
+    internal var convQueryCallbackCollection: [String: Array<(LCGenericResult<IMConversation>) -> Void>] = [:]
     
     /// ref: https://github.com/leancloud/avoscloud-push/blob/develop/push-server/doc/protocol.md#sessionopen
     /// parameter: `lastUnreadNotifTime`, `lastPatchTime`
@@ -401,7 +401,7 @@ extension IMClient {
         name: String? = nil,
         attributes: [String: Any]? = nil,
         isUnique: Bool = false,
-        completion: @escaping (LCGenericResult<LCConversation>) -> Void)
+        completion: @escaping (LCGenericResult<IMConversation>) -> Void)
         throws
     {
         try self.createConversation(
@@ -477,7 +477,7 @@ extension IMClient {
         }
     }
     
-    private func createConversation<T: LCConversation>(
+    private func createConversation<T: IMConversation>(
         clientIDs: Set<String>,
         name: String? = nil,
         attributes: [String: Any]? = nil,
@@ -495,7 +495,7 @@ extension IMClient {
         let attrJSON: [String: Any] = tuple.attrJSON
         let attrString: String? = tuple.attrString
         
-        var type: LCConversation.LCType = .normal
+        var type: IMConversation.LCType = .normal
         
         self.sendCommand(constructor: { () -> IMGenericCommand in
             var outCommand = IMGenericCommand()
@@ -591,10 +591,10 @@ extension IMClient {
         
         var attrJSON: [String: Any] = [:]
         if let name: String = name {
-            attrJSON[LCConversation.Key.name.rawValue] = name
+            attrJSON[IMConversation.Key.name.rawValue] = name
         }
         if let attributes: [String: Any] = attributes {
-            attrJSON[LCConversation.Key.attributes.rawValue] = attributes
+            attrJSON[IMConversation.Key.attributes.rawValue] = attributes
         }
         var attrString: String? = nil
         if !attrJSON.isEmpty {
@@ -605,45 +605,45 @@ extension IMClient {
         return (members, attrJSON, attrString)
     }
     
-    private func conversationInstance<T: LCConversation>(
+    private func conversationInstance<T: IMConversation>(
         convMessage: IMConvCommand,
         members: [String],
         attrJSON: [String: Any],
         attrString: String?,
         option: ConversationCreationOption,
-        convType: LCConversation.LCType)
+        convType: IMConversation.LCType)
         throws -> T
     {
         assert(self.specificAssertion)
 
         let id: String = convMessage.cid
-        let conversation: LCConversation
-        if let conv: LCConversation = self.convCollection[id] {
+        let conversation: IMConversation
+        if let conv: IMConversation = self.convCollection[id] {
             if let json: [String: Any] = try attrString?.jsonObject() {
                 conv.safeChangingRawData(operation: .rawDataMerging(data: json))
             }
             conversation = conv
         } else {
             var json: [String: Any] = attrJSON
-            json[LCConversation.Key.convType.rawValue] = convType.rawValue
-            json[LCConversation.Key.creator.rawValue] = self.ID
+            json[IMConversation.Key.convType.rawValue] = convType.rawValue
+            json[IMConversation.Key.creator.rawValue] = self.ID
             if !option.isTransient {
-                json[LCConversation.Key.members.rawValue] = members
+                json[IMConversation.Key.members.rawValue] = members
             }
             if option.isUnique {
-                json[LCConversation.Key.unique.rawValue] = true
+                json[IMConversation.Key.unique.rawValue] = true
             }
             if convMessage.hasCdate {
-                json[LCConversation.Key.createdAt.rawValue] = convMessage.cdate
+                json[IMConversation.Key.createdAt.rawValue] = convMessage.cdate
             }
             if convMessage.hasUniqueID {
-                json[LCConversation.Key.uniqueId.rawValue] = convMessage.uniqueID
+                json[IMConversation.Key.uniqueId.rawValue] = convMessage.uniqueID
             }
             if convMessage.hasTempConvTtl {
-                json[LCConversation.Key.temporaryTTL.rawValue] = convMessage.tempConvTtl
+                json[IMConversation.Key.temporaryTTL.rawValue] = convMessage.tempConvTtl
             }
-            if let rawData: LCConversation.RawData = try json.jsonObject() {
-                conversation = LCConversation.instance(ID: id, rawData: rawData, client: self)
+            if let rawData: IMConversation.RawData = try json.jsonObject() {
+                conversation = IMConversation.instance(ID: id, rawData: rawData, client: self)
                 self.convCollection[id] = conversation
             } else {
                 throw LCError(code: .malformedData)
@@ -842,20 +842,20 @@ private extension IMClient {
         self.sessionClosed(with: .failure(error: error), completion: completion)
     }
     
-    func getConversation(by ID: String, completion: @escaping (LCGenericResult<LCConversation>) -> Void) {
+    func getConversation(by ID: String, completion: @escaping (LCGenericResult<IMConversation>) -> Void) {
         assert(self.specificAssertion)
-        if let existConversation: LCConversation = self.convCollection[ID] {
+        if let existConversation: IMConversation = self.convCollection[ID] {
             completion(.success(value: existConversation))
             return
         }
-        if var callbacks: Array<(LCGenericResult<LCConversation>) -> Void> = self.convQueryCallbackCollection[ID] {
+        if var callbacks: Array<(LCGenericResult<IMConversation>) -> Void> = self.convQueryCallbackCollection[ID] {
             callbacks.append(completion)
             self.convQueryCallbackCollection[ID] = callbacks
             return
         } else {
             self.convQueryCallbackCollection[ID] = [completion]
         }
-        let callback: (LCGenericResult<LCConversation>) -> Void = { result in
+        let callback: (LCGenericResult<IMConversation>) -> Void = { result in
             guard let callbacks = self.convQueryCallbackCollection.removeValue(forKey: ID) else {
                 return
             }
@@ -871,7 +871,7 @@ private extension IMClient {
                     assert(self.specificAssertion)
                     switch result {
                     case .success(value: let conversations):
-                        if let first: LCConversation = conversations.first {
+                        if let first: IMConversation = conversations.first {
                             callback(.success(value: first))
                         } else {
                             callback(.failure(error: LCError(code: .conversationNotFound)))
@@ -892,7 +892,7 @@ private extension IMClient {
         }
     }
     
-    func getConversations(by IDs: Set<String>, completion: @escaping (LCGenericResult<[LCConversation]>) -> Void) {
+    func getConversations(by IDs: Set<String>, completion: @escaping (LCGenericResult<[IMConversation]>) -> Void) {
         assert(self.specificAssertion)
         if IDs.count == 1, let ID: String = IDs.first {
             self.getConversation(by: ID) { (result) in
@@ -919,7 +919,7 @@ private extension IMClient {
         }
     }
     
-    func getTemporaryConversations(by IDs: Set<String>, completion: @escaping (LCGenericResult<[LCConversation]>) -> Void) {
+    func getTemporaryConversations(by IDs: Set<String>, completion: @escaping (LCGenericResult<[IMConversation]>) -> Void) {
         assert(self.specificAssertion)
         if IDs.count == 1, let ID: String = IDs.first {
             self.getConversation(by: ID) { (result) in
@@ -963,7 +963,7 @@ private extension IMClient {
                 let byClientID: String? = (command.hasInitBy ? command.initBy : nil)
                 let members: Set<String> = Set<String>(command.m)
                 let event: LCConversationEvent
-                let rawDataOperation: LCConversation.RawDataChangeOperation
+                let rawDataOperation: IMConversation.RawDataChangeOperation
                 switch op {
                 case .joined:
                     event = .joined(byClientID: byClientID)
@@ -990,7 +990,7 @@ private extension IMClient {
         }
     }
     
-    func acknowledging(message: LCMessage, conversation: LCConversation) {
+    func acknowledging(message: LCMessage, conversation: IMConversation) {
         assert(self.specificAssertion)
         guard
             message.notTransientMessage,
@@ -1097,7 +1097,7 @@ private extension IMClient {
         }
         let group = DispatchGroup()
         var groupFlags: [Bool] = []
-        let handleResult: (LCGenericResult<[LCConversation]>, [String: IMUnreadTuple]) -> Void = { (result, map) in
+        let handleResult: (LCGenericResult<[IMConversation]>, [String: IMUnreadTuple]) -> Void = { (result, map) in
             switch result {
             case .success(value: let conversations):
                 groupFlags.append(true)
@@ -1165,7 +1165,7 @@ private extension IMClient {
         }
         let group = DispatchGroup()
         var groupFlags: [Bool] = []
-        let handleResult: (LCGenericResult<[LCConversation]>, [String: IMPatchItem]) -> Void = { (result, map) in
+        let handleResult: (LCGenericResult<[IMConversation]>, [String: IMPatchItem]) -> Void = { (result, map) in
             switch result {
             case .success(value: let conversations):
                 groupFlags.append(true)
@@ -1361,7 +1361,7 @@ public protocol LCClientDelegate: class {
     ///   - client: Which the conversation belong to.
     ///   - conversation: Which the event belong to.
     ///   - event: @see `LCConversationEvent`
-    func client(_ client: IMClient, conversation: LCConversation, event: LCConversationEvent)
+    func client(_ client: IMClient, conversation: IMConversation, event: LCConversationEvent)
     
 }
 

@@ -47,7 +47,7 @@ public final class LCConversationQuery {
     ///   - ID: The ID of the conversation.
     ///   - completion: callback.
     /// - Throws: if `ID` invalid, then throw error.
-    public func getConversation<T: LCConversation>(by ID: String, completion: @escaping (LCGenericResult<T>) -> Void) throws {
+    public func getConversation<T: IMConversation>(by ID: String, completion: @escaping (LCGenericResult<T>) -> Void) throws {
         try self.queryConversations(IDs: [ID]) { result in
             switch result {
             case .success(value: let conversations):
@@ -69,7 +69,7 @@ public final class LCConversationQuery {
     ///   - IDs: The ID set of the conversations, should not empty.
     ///   - completion: callback.
     /// - Throws: if `IDs` invalid, then throw error.
-    public func getConversations<T: LCConversation>(by IDs: Set<String>, completion: @escaping (LCGenericResult<[T]>) -> Void) throws {
+    public func getConversations<T: IMConversation>(by IDs: Set<String>, completion: @escaping (LCGenericResult<[T]>) -> Void) throws {
         try self.queryConversations(IDs: Array<String>(IDs), completion: completion)
     }
     
@@ -87,7 +87,7 @@ public final class LCConversationQuery {
 
 private extension LCConversationQuery {
     
-    func queryConversations<T: LCConversation>(
+    func queryConversations<T: IMConversation>(
         IDs: [String],
         isTemporary: Bool = false,
         completion: @escaping (LCGenericResult<[T]>) -> Void)
@@ -149,7 +149,7 @@ private extension LCConversationQuery {
         } else {
             value = ["$in": IDs]
         }
-        let json: [String: Any] = [LCConversation.Key.objectId.rawValue: value]
+        let json: [String: Any] = [IMConversation.Key.objectId.rawValue: value]
         let data: Data = try JSONSerialization.data(withJSONObject: json)
         guard let string = String(data: data, encoding: .utf8) else {
             throw LCError.conversationQueryWhereNotFound
@@ -157,27 +157,27 @@ private extension LCConversationQuery {
         return string
     }
     
-    func conversations<T: LCConversation>(command: IMGenericCommand, client: IMClient) throws -> [T] {
+    func conversations<T: IMConversation>(command: IMGenericCommand, client: IMClient) throws -> [T] {
         assert(self.specificAssertion)
         let convMessage: IMConvCommand? = (command.hasConvMessage ? command.convMessage : nil)
         let jsonMessage: IMJsonObjectMessage? = ((convMessage?.hasResults ?? false) ? convMessage?.results : nil)
         guard let jsonString: String = ((jsonMessage?.hasData ?? false) ? jsonMessage?.data : nil) else {
             throw LCError(code: .commandInvalid)
         }
-        guard let rawDatas: [LCConversation.RawData] = try jsonString.jsonObject(), !rawDatas.isEmpty else {
+        guard let rawDatas: [IMConversation.RawData] = try jsonString.jsonObject(), !rawDatas.isEmpty else {
             throw LCError(code: .conversationNotFound)
         }
         var conversations: [T] = []
         for rawData in rawDatas {
-            guard let objectId: String = rawData[LCConversation.Key.objectId.rawValue] as? String else {
+            guard let objectId: String = rawData[IMConversation.Key.objectId.rawValue] as? String else {
                 throw LCError.conversationIDNotFound
             }
-            let instance: LCConversation
-            if let existConversation: LCConversation = client.convCollection[objectId] {
+            let instance: IMConversation
+            if let existConversation: IMConversation = client.convCollection[objectId] {
                 existConversation.safeChangingRawData(operation: .rawDataReplaced(by: rawData))
                 instance = existConversation
             } else {
-                instance = LCConversation.instance(ID: objectId, rawData: rawData, client: client)
+                instance = IMConversation.instance(ID: objectId, rawData: rawData, client: client)
                 client.convCollection[objectId] = instance
             }
             guard let conversation: T = instance as? T else {

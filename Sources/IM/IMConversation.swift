@@ -1,5 +1,5 @@
 //
-//  Conversation.swift
+//  IMConversation.swift
 //  LeanCloud
 //
 //  Created by Tianyong Tang on 2018/11/26.
@@ -9,7 +9,7 @@
 import Foundation
 
 /// IM Conversation
-public class LCConversation {
+public class IMConversation {
     
     typealias RawData = [String: Any]
     
@@ -184,7 +184,7 @@ public class LCConversation {
         get { return safeDecodingRawData(with: key) }
     }
     
-    static func instance(ID: String, rawData: RawData, client: IMClient) -> LCConversation {
+    static func instance(ID: String, rawData: RawData, client: IMClient) -> IMConversation {
         var type: LCType = .normal
         if let convType: Int = rawData[Key.convType.rawValue] as? Int,
             let validType = LCType(rawValue: convType) {
@@ -205,7 +205,7 @@ public class LCConversation {
         }
         switch type {
         case .normal:
-            return LCConversation(ID: ID, rawData: rawData, type: type, client: client)
+            return IMConversation(ID: ID, rawData: rawData, type: type, client: client)
         case .transient:
             return LCChatRoom(ID: ID, rawData: rawData, type: type, client: client)
         case .system:
@@ -245,7 +245,7 @@ public class LCConversation {
 
 // MARK: - Message Sending
 
-extension LCConversation {
+extension IMConversation {
     
     public struct MessageSendOptions: OptionSet {
         public let rawValue: Int
@@ -430,7 +430,7 @@ extension LCConversation {
 
 // MARK: - Message Reading
 
-extension LCConversation {
+extension IMConversation {
     
     public func read(message: LCMessage? = nil) {
         guard
@@ -516,7 +516,7 @@ extension LCConversation {
 
 // MARK: - Message Updating
 
-extension LCConversation {
+extension IMConversation {
     
     public func update(
         oldMessage: LCMessage,
@@ -674,7 +674,7 @@ extension LCConversation {
 
 // MARK: - Internal
 
-internal extension LCConversation {
+internal extension IMConversation {
     
     enum RawDataChangeOperation {
         
@@ -787,7 +787,7 @@ internal extension LCConversation {
 
 // MARK: - Private
 
-private extension LCConversation {
+private extension IMConversation {
     
     func safeDecodingRawData<T>(with key: Key) -> T? {
         return self.safeDecodingRawData(with: key.rawValue)
@@ -847,7 +847,7 @@ private extension LCConversation {
 }
 
 /// IM Chat Room
-public class LCChatRoom: LCConversation {
+public class LCChatRoom: IMConversation {
     
     public enum MessagePriority: Int {
         case high = 1
@@ -858,11 +858,11 @@ public class LCChatRoom: LCConversation {
 }
 
 /// IM Service Conversation
-public class LCServiceConversation: LCConversation {}
+public class LCServiceConversation: IMConversation {}
 
 /// IM Temporary Conversation
 /// Temporary Conversation is unique in it's Life Cycle.
-public class LCTemporaryConversation: LCConversation {
+public class LCTemporaryConversation: IMConversation {
     
     static let prefixOfID: String = "_tmp:"
     

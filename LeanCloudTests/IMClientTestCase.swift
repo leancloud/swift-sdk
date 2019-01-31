@@ -289,9 +289,9 @@ extension IMClientTestCase {
         func client(_ client: IMClient, event: LCClientEvent) {
             clientEvent?(client, event)
         }
-        var conversationEvent: ((_ client: IMClient, _ conversation: LCConversation, _ event: LCConversationEvent) -> Void)? = nil
-        var messageEvent: ((_ client: IMClient, _ conversation: LCConversation, _ event: LCMessageEvent) -> Void)? = nil
-        func client(_ client: IMClient, conversation: LCConversation, event: LCConversationEvent) {
+        var conversationEvent: ((_ client: IMClient, _ conversation: IMConversation, _ event: LCConversationEvent) -> Void)? = nil
+        var messageEvent: ((_ client: IMClient, _ conversation: IMConversation, _ event: LCMessageEvent) -> Void)? = nil
+        func client(_ client: IMClient, conversation: IMConversation, event: LCConversationEvent) {
             if case let .message(event: mEvent) = event,
                 let messageEventClosure = messageEvent {
                 messageEventClosure(client, conversation, mEvent)
