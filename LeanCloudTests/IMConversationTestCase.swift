@@ -336,7 +336,7 @@ class IMConversationTestCase: RTMBaseTestCase {
         }
         
         let otherClientID: String = uuid
-        let message = LCMessage()
+        let message = IMMessage()
         message.content = .string("test")
         message.isAllMembersMentioned = true
         
@@ -403,7 +403,7 @@ class IMConversationTestCase: RTMBaseTestCase {
         }
         
         let otherClientID: String = uuid
-        let message = LCMessage()
+        let message = IMMessage()
         message.content = .string("test")
         message.isAllMembersMentioned = true
         
@@ -529,7 +529,7 @@ class IMConversationTestCase: RTMBaseTestCase {
         for i in 0..<count {
             let exp = expectation(description: "create conversation and send message")
             exp.expectedFulfillmentCount = 2
-            let message = LCMessage()
+            let message = IMMessage()
             message.content = .string("")
             if i == 0 {
                 try! clientA.createTemporaryConversation(clientIDs: [otherClientID], timeToLive: 3600, completion: { (result) in

@@ -27,7 +27,7 @@ class IMMessageTestCase: RTMBaseTestCase {
         let delegatorB = tuple2.delegator
         let conversationB = tuple2.conversation
         
-        let checkMessage: (IMConversation, LCMessage) -> Void = { conv, message in
+        let checkMessage: (IMConversation, IMMessage) -> Void = { conv, message in
             XCTAssertEqual(message.status, .sent)
             XCTAssertNotNil(message.ID)
             XCTAssertEqual(conv.ID, message.conversationID)
@@ -39,7 +39,7 @@ class IMMessageTestCase: RTMBaseTestCase {
         
         let exp1 = expectation(description: "A send message to B")
         exp1.expectedFulfillmentCount = 6
-        let stringMessage = LCMessage()
+        let stringMessage = IMMessage()
         try? stringMessage.set(content: .string("string"))
         delegatorA.conversationEvent = { client, converstion, event in
             switch event {
@@ -84,7 +84,7 @@ class IMMessageTestCase: RTMBaseTestCase {
         
         let exp2 = expectation(description: "B send message to A")
         exp2.expectedFulfillmentCount = 6
-        let dataMessage = LCMessage()
+        let dataMessage = IMMessage()
         try? dataMessage.set(content: .data("data".data(using: .utf8)!))
         delegatorA.conversationEvent = { client, conversation, event in
             switch event {
@@ -219,9 +219,9 @@ class IMMessageTestCase: RTMBaseTestCase {
         for _ in 0..<count {
             let sendMessageExp = expectation(description: "send message")
             sendMessageExp.expectedFulfillmentCount = 2
-            let messageA = LCMessage()
+            let messageA = IMMessage()
             messageA.content = .string("")
-            let messageB = LCMessage()
+            let messageB = IMMessage()
             messageB.content = .string("")
             try? conversationA.send(message: messageA, completion: { (result) in
                 XCTAssertTrue(result.isSuccess)
@@ -273,7 +273,7 @@ class IMMessageTestCase: RTMBaseTestCase {
         
         let conversationA = tuple1.conversation
         let delegatorB = tuple2.delegator
-        let checkMessage: (LCMessage) -> Void = { message in
+        let checkMessage: (IMMessage) -> Void = { message in
             XCTAssertTrue(message.isTransient)
             XCTAssertNotNil(message.ID)
             XCTAssertNotNil(message.sentTimestamp)
@@ -293,7 +293,7 @@ class IMMessageTestCase: RTMBaseTestCase {
                 break
             }
         }
-        let message = LCMessage()
+        let message = IMMessage()
         message.content = .string("")
         try? conversationA.send(message: message, options: [.isTransient]) { (result) in
             XCTAssertTrue(result.isSuccess)
@@ -320,7 +320,7 @@ class IMMessageTestCase: RTMBaseTestCase {
         let delegatorB = tuple2.delegator
         
         let sendExp = expectation(description: "send message")
-        let willMessage = LCMessage()
+        let willMessage = IMMessage()
         willMessage.content = .string("")
         try? conversationA.send(message: willMessage, options: [.isAutoDeliveringWhenOffline]) { (result) in
             XCTAssertTrue(result.isSuccess)
@@ -377,7 +377,7 @@ class IMMessageTestCase: RTMBaseTestCase {
     }
     
     func testTextMessageSendingAndReceiving() {
-        let message = LCTextMessage()
+        let message = IMTextMessage()
         message.text = "test"
         let success = sendingAndReceiving(sentMessage: message) { (rMessage) in
             XCTAssertNotNil(rMessage?.text)
@@ -388,7 +388,7 @@ class IMMessageTestCase: RTMBaseTestCase {
     
     func testImageMessageSendingAndReceiving() {
         for i in 0..<2 {
-            let message = LCImageMessage()
+            let message = IMImageMessage()
             let fileURL: URL
             let format: String
             if i == 0 {
@@ -418,7 +418,7 @@ class IMMessageTestCase: RTMBaseTestCase {
     }
     
     func testAudioMessageSendingAndReceiving() {
-        let message = LCAudioMessage()
+        let message = IMAudioMessage()
         let format: String = "mp3"
         message.file = LCFile(payload: .fileURL(fileURL: resourceURL(name: "test", ext: format)))
         let success = sendingAndReceiving(sentMessage: message) { (rMessage) in
@@ -437,7 +437,7 @@ class IMMessageTestCase: RTMBaseTestCase {
     }
     
     func testVideoMessageSendingAndReceiving() {
-        let message = LCVideoMessage()
+        let message = IMVideoMessage()
         let format: String = "mp4"
         message.file = LCFile(payload: .fileURL(fileURL: resourceURL(name: "test", ext: format)))
         let success = sendingAndReceiving(sentMessage: message) { (rMessage) in
@@ -456,7 +456,7 @@ class IMMessageTestCase: RTMBaseTestCase {
     }
     
     func testFileMessageSendingAndReceiving() {
-        let message = LCFileMessage()
+        let message = IMFileMessage()
         let format: String = "zip"
         message.file = LCFile(payload: .fileURL(fileURL: resourceURL(name: "test", ext: format)))
         let success = sendingAndReceiving(sentMessage: message) { (rMessage) in
@@ -473,7 +473,7 @@ class IMMessageTestCase: RTMBaseTestCase {
     }
     
     func testLocationMessageSendingAndReceiving() {
-        let message = LCLocationMessage()
+        let message = IMLocationMessage()
         message.location = LCGeoPoint(latitude: 180.0, longitude: 90.0)
         let success = sendingAndReceiving(sentMessage: message) { (rMessage) in
             XCTAssertEqual(rMessage?.latitude, 180.0)
@@ -485,10 +485,10 @@ class IMMessageTestCase: RTMBaseTestCase {
     }
     
     func testMessageUpdating() {
-        let oldMessage = LCMessage()
+        let oldMessage = IMMessage()
         let oldContent: String = "old"
         try? oldMessage.set(content: .string(oldContent))
-        let newMessage = LCMessage()
+        let newMessage = IMMessage()
         let newContent: String = "new"
         try? newMessage.set(content: .string(newContent))
         
@@ -498,7 +498,7 @@ class IMMessageTestCase: RTMBaseTestCase {
         
         delay()
         
-        let patchedMessageChecker: (LCMessage, LCMessage) -> Void = { patchedMessage, originMessage in
+        let patchedMessageChecker: (IMMessage, IMMessage) -> Void = { patchedMessage, originMessage in
             XCTAssertNotNil(patchedMessage.ID)
             XCTAssertNotNil(patchedMessage.conversationID)
             XCTAssertNotNil(patchedMessage.sentTimestamp)
@@ -540,7 +540,7 @@ class IMMessageTestCase: RTMBaseTestCase {
     }
     
     func testMessageRecalling() {
-        let oldMessage = LCMessage()
+        let oldMessage = IMMessage()
         let oldContent: String = "old"
         try? oldMessage.set(content: .string(oldContent))
         
@@ -550,7 +550,7 @@ class IMMessageTestCase: RTMBaseTestCase {
         
         delay()
         
-        let recalledMessageChecker: (LCMessage, LCMessage) -> Void = { patchedMessage, originMessage in
+        let recalledMessageChecker: (IMMessage, IMMessage) -> Void = { patchedMessage, originMessage in
             XCTAssertNotNil(patchedMessage.ID)
             XCTAssertNotNil(patchedMessage.conversationID)
             XCTAssertNotNil(patchedMessage.sentTimestamp)
@@ -560,7 +560,7 @@ class IMMessageTestCase: RTMBaseTestCase {
             XCTAssertEqual(patchedMessage.conversationID, originMessage.conversationID)
             XCTAssertEqual(patchedMessage.sentTimestamp, originMessage.sentTimestamp)
             XCTAssertEqual(originMessage.content?.string, oldContent)
-            XCTAssertTrue(patchedMessage is LCRecalledMessage)
+            XCTAssertTrue(patchedMessage is IMRecalledMessage)
         }
         
         let exp = expectation(description: "message patch")
@@ -600,13 +600,13 @@ extension IMMessageTestCase {
     
     typealias Tuple = (client: IMClient, conversation: IMConversation, delegator: IMClientTestCase.Delegator)
     
-    class CustomMessage: LCCategorizedMessage {
+    class CustomMessage: IMCategorizedMessage {
         override var type: Int {
             return 1
         }
     }
     
-    class InvalidCustomMessage: LCCategorizedMessage {
+    class InvalidCustomMessage: IMCategorizedMessage {
         override var type: Int {
             return -1
         }
@@ -692,7 +692,7 @@ extension IMMessageTestCase {
         }
     }
     
-    func sendingAndReceiving<T: LCCategorizedMessage>(
+    func sendingAndReceiving<T: IMCategorizedMessage>(
         sentMessage: T,
         receivedMessageChecker: ((T?) -> Void)? = nil)
         -> Bool
@@ -707,7 +707,7 @@ extension IMMessageTestCase {
         )
     }
     
-    func sendingAndReceiving<T: LCMessage>(
+    func sendingAndReceiving<T: IMMessage>(
         sentMessage: T,
         sendingTuple: inout Tuple?,
         receivingTuple: inout Tuple?,

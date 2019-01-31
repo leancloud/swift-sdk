@@ -132,21 +132,21 @@ public class IMConversation {
     }
     private var underlyingOutdated: Bool = false
     
-    public private(set) var lastMessage: LCMessage? {
+    public private(set) var lastMessage: IMMessage? {
         set {
             self.mutex.lock()
             self.underlyingLastMessage = newValue
             self.mutex.unlock()
         }
         get {
-            var message: LCMessage? = nil
+            var message: IMMessage? = nil
             self.mutex.lock()
             message = self.underlyingLastMessage
             self.mutex.unlock()
             return message
         }
     }
-    private var underlyingLastMessage: LCMessage? = nil
+    private var underlyingLastMessage: IMMessage? = nil
     
     public internal(set) var unreadMessageCount: Int {
         set {
@@ -261,7 +261,7 @@ extension IMConversation {
     }
     
     public func send(
-        message: LCMessage,
+        message: IMMessage,
         options: MessageSendOptions = .default,
         priority: IMChatRoom.MessagePriority? = nil,
         pushData: [String: Any]? = nil,
@@ -272,7 +272,7 @@ extension IMConversation {
         guard message.status == .none || message.status == .failed else {
             throw LCError(
                 code: .inconsistency,
-                reason: "Only the message that status is \(LCMessage.Status.none) or \(LCMessage.Status.failed) can be sent"
+                reason: "Only the message that status is \(IMMessage.Status.none) or \(IMMessage.Status.failed) can be sent"
             )
         }
         message.setup(clientID: self.clientID, conversationID: self.ID)
@@ -378,7 +378,7 @@ extension IMConversation {
     }
     
     private func preprocess(
-        message: LCMessage,
+        message: IMMessage,
         pushData: [String: Any]? = nil,
         progress: ((Double) -> Void)?,
         completion: @escaping (String?, LCError?) -> Void)
@@ -389,7 +389,7 @@ extension IMConversation {
             let data: Data = try JSONSerialization.data(withJSONObject: pushData, options: [])
             pushDataString = String(data: data, encoding: .utf8)
         }
-        guard let categorizedMessage: LCCategorizedMessage = message as? LCCategorizedMessage else {
+        guard let categorizedMessage: IMCategorizedMessage = message as? IMCategorizedMessage else {
             completion(pushDataString, nil)
             return
         }
@@ -432,11 +432,11 @@ extension IMConversation {
 
 extension IMConversation {
     
-    public func read(message: LCMessage? = nil) {
+    public func read(message: IMMessage? = nil) {
         guard
             self.notTransientConversation,
             self.unreadMessageCount > 0,
-            let readMessage: LCMessage = message ?? self.lastMessage,
+            let readMessage: IMMessage = message ?? self.lastMessage,
             let messageID: String = readMessage.ID,
             let timestamp: Int64 = readMessage.sentTimestamp
             else
@@ -464,13 +464,13 @@ extension IMConversation {
         { return }
         let newUnreadCount: Int = Int(unreadTuple.unread)
         let newUnreadMentioned: Bool? = (unreadTuple.hasMentioned ? unreadTuple.mentioned : nil)
-        let newLastMessage: LCMessage? = {
+        let newLastMessage: IMMessage? = {
             guard
                 let timestamp: Int64 = (unreadTuple.hasTimestamp ? unreadTuple.timestamp : nil),
                 let messageID: String = (unreadTuple.hasMid ? unreadTuple.mid : nil)
                 else
             { return nil }
-            var content: LCMessage.Content? = nil
+            var content: IMMessage.Content? = nil
             /*
              For Compatibility,
              Should check `binaryMsg` at first.
@@ -481,7 +481,7 @@ extension IMConversation {
             } else if unreadTuple.hasData {
                 content = .string(unreadTuple.data)
             }
-            let message = LCMessage.instance(
+            let message = IMMessage.instance(
                 isTransient: false,
                 conversationID: self.ID,
                 localClientID: self.clientID,
@@ -496,7 +496,7 @@ extension IMConversation {
             )
             return message
         }()
-        if let message: LCMessage = newLastMessage {
+        if let message: IMMessage = newLastMessage {
             self.safeUpdatingLastMessage(newMessage: message)
         }
         if self.unreadMessageCount != newUnreadCount {
@@ -519,8 +519,8 @@ extension IMConversation {
 extension IMConversation {
     
     public func update(
-        oldMessage: LCMessage,
-        by newMessage: LCMessage,
+        oldMessage: IMMessage,
+        by newMessage: IMMessage,
         progress: ((Double) -> Void)? = nil,
         completion: @escaping (LCBooleanResult) -> Void)
         throws
@@ -544,7 +544,7 @@ extension IMConversation {
         guard newMessage.status == .none else {
             throw LCError(
                 code: .inconsistency,
-                reason: "new message's status should be \(LCMessage.Status.none)."
+                reason: "new message's status should be \(IMMessage.Status.none)."
             )
         }
         try self.preprocess(message: newMessage, progress: progress) { (_, error: LCError?) in
@@ -563,7 +563,7 @@ extension IMConversation {
                 patchItem.cid = oldMessageConvID
                 patchItem.mid = oldMessageID
                 patchItem.timestamp = oldMessageTimestamp
-                if let content: LCMessage.Content = newMessage.content {
+                if let content: IMMessage.Content = newMessage.content {
                     switch content {
                     case .data(let data):
                         patchItem.binaryMsg = data
@@ -616,8 +616,8 @@ extension IMConversation {
         }
     }
     
-    public func recall(message: LCMessage, completion: @escaping (LCGenericResult<LCRecalledMessage>) -> Void) throws {
-        let recalledMessage = LCRecalledMessage()
+    public func recall(message: IMMessage, completion: @escaping (LCGenericResult<IMRecalledMessage>) -> Void) throws {
+        let recalledMessage = IMRecalledMessage()
         try self.update(oldMessage: message, by: recalledMessage, completion: { (result) in
             switch result {
             case .success:
@@ -637,7 +637,7 @@ extension IMConversation {
         {
             return
         }
-        var content: LCMessage.Content? = nil
+        var content: IMMessage.Content? = nil
         /*
          For Compatibility,
          Should check `binaryMsg` at first.
@@ -648,7 +648,7 @@ extension IMConversation {
         } else if patchItem.hasData {
             content = .string(patchItem.data)
         }
-        let patchedMessage = LCMessage.instance(
+        let patchedMessage = IMMessage.instance(
             isTransient: false,
             conversationID: self.ID,
             localClientID: self.clientID,
@@ -732,7 +732,7 @@ internal extension IMConversation {
     }
     
     @discardableResult
-    func safeUpdatingLastMessage(newMessage: LCMessage) -> Bool {
+    func safeUpdatingLastMessage(newMessage: IMMessage) -> Bool {
         assert(self.specificAssertion)
         var isUnreadMessageIncreased: Bool = false
         guard
@@ -816,7 +816,7 @@ private extension IMConversation {
             let messageID: String = self.decodingRawData(with: .lastMessageId)
             else
         { return }
-        var content: LCMessage.Content? = nil
+        var content: IMMessage.Content? = nil
         /*
          For Compatibility,
          Should check `lastMessageBinary` at first.
@@ -827,7 +827,7 @@ private extension IMConversation {
         } else if let string: String = self.decodingRawData(with: .lastMessageString) {
             content = .string(string)
         }
-        let message = LCMessage.instance(
+        let message = IMMessage.instance(
             isTransient: false,
             conversationID: self.ID,
             localClientID: self.clientID,

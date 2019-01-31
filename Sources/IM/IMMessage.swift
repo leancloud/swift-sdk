@@ -1,5 +1,5 @@
 //
-//  Message.swift
+//  IMMessage.swift
 //  LeanCloud
 //
 //  Created by zapcannon87 on 2018/12/26.
@@ -15,7 +15,7 @@ import AppKit
 #endif
 
 /// IM Message
-open class LCMessage {
+open class IMMessage {
     
     public enum IOType {
         case `in`
@@ -112,14 +112,14 @@ open class LCMessage {
     public final internal(set) var content: Content?
     
     public final func set(content: Content) throws {
-        if self is LCCategorizedMessage {
+        if self is IMCategorizedMessage {
             throw LCError(
                 code: .inconsistency,
                 reason:
                 """
                 \(type(of: self))'s content can't be set directly,
                 if want to set content directly,
-                should use \(LCMessage.self).
+                should use \(IMMessage.self).
                 """
             )
         } else {
@@ -140,16 +140,16 @@ open class LCMessage {
         content: Content?,
         isAllMembersMentioned: Bool?,
         mentionedMembers: [String]?,
-        status: Status) -> LCMessage
+        status: Status) -> IMMessage
     {
-        var message = LCMessage()
+        var message = IMMessage()
         do {
-            let lcTypeKey: String = LCCategorizedMessage.ReservedKey.type.rawValue
+            let lcTypeKey: String = IMCategorizedMessage.ReservedKey.type.rawValue
             if let string: String = content?.string,
                 string.contains(lcTypeKey),
                 let rawData: [String: Any] = try string.jsonObject(),
                 let typeNumber: Int = rawData[lcTypeKey] as? Int,
-                let messageClass: LCCategorizedMessage.Type = LCCategorizedMessageMap[typeNumber]
+                let messageClass: IMCategorizedMessage.Type = LCCategorizedMessageMap[typeNumber]
             {
                 let categorizedMessage = messageClass.init()
                 categorizedMessage.decoding(with: rawData)
@@ -194,7 +194,7 @@ open class LCMessage {
         self.conversationID = conversationID
     }
     
-    internal func update(status newStatus: LCMessage.Status, ID: String? = nil, timestamp: Int64? = nil) {
+    internal func update(status newStatus: IMMessage.Status, ID: String? = nil, timestamp: Int64? = nil) {
         self.status = newStatus
         if newStatus == .sent {
             self.ID = ID
@@ -211,7 +211,7 @@ open class LCMessage {
     
 }
 
-private extension LCMessage {
+private extension IMMessage {
     
     func date(fromMillisecond timestamp: Int64?) -> Date? {
         guard let timestamp = timestamp else {
@@ -223,24 +223,24 @@ private extension LCMessage {
     
 }
 
-private var LCCategorizedMessageMap: [Int: LCCategorizedMessage.Type] = [
-    LCCategorizedMessage.ReservedType.none.rawValue: LCCategorizedMessage.self,
-    LCCategorizedMessage.ReservedType.text.rawValue: LCTextMessage.self,
-    LCCategorizedMessage.ReservedType.image.rawValue: LCImageMessage.self,
-    LCCategorizedMessage.ReservedType.audio.rawValue: LCAudioMessage.self,
-    LCCategorizedMessage.ReservedType.video.rawValue: LCVideoMessage.self,
-    LCCategorizedMessage.ReservedType.location.rawValue: LCLocationMessage.self,
-    LCCategorizedMessage.ReservedType.file.rawValue: LCFileMessage.self,
-    LCCategorizedMessage.ReservedType.recalled.rawValue: LCRecalledMessage.self
+private var LCCategorizedMessageMap: [Int: IMCategorizedMessage.Type] = [
+    IMCategorizedMessage.ReservedType.none.rawValue: IMCategorizedMessage.self,
+    IMCategorizedMessage.ReservedType.text.rawValue: IMTextMessage.self,
+    IMCategorizedMessage.ReservedType.image.rawValue: IMImageMessage.self,
+    IMCategorizedMessage.ReservedType.audio.rawValue: IMAudioMessage.self,
+    IMCategorizedMessage.ReservedType.video.rawValue: IMVideoMessage.self,
+    IMCategorizedMessage.ReservedType.location.rawValue: IMLocationMessage.self,
+    IMCategorizedMessage.ReservedType.file.rawValue: IMFileMessage.self,
+    IMCategorizedMessage.ReservedType.recalled.rawValue: IMRecalledMessage.self
 ]
 
-public protocol LCMessageCategorizing {
+public protocol IMMessageCategorizing {
     
     var type: Int { get }
     
 }
 
-open class LCCategorizedMessage: LCMessage, LCMessageCategorizing {
+open class IMCategorizedMessage: IMMessage, IMMessageCategorizing {
     
     enum ReservedType: Int {
         case none = 0
@@ -371,7 +371,7 @@ open class LCCategorizedMessage: LCMessage, LCMessageCategorizing {
             tempFilePathExtension = format
             metaData[FileKey.format.rawValue] = format
         }
-        if (self is LCImageMessage) {
+        if (self is IMImageMessage) {
             // set width & height
             if let fileOriginMetaData: LCDictionary = file.metaData,
                 let width: Double = fileOriginMetaData[FileKey.width.rawValue]?.doubleValue,
@@ -410,7 +410,7 @@ open class LCCategorizedMessage: LCMessage, LCMessageCategorizing {
                     }
                 }
             }
-        } else if (self is LCAudioMessage) || (self is LCVideoMessage) {
+        } else if (self is IMAudioMessage) || (self is IMVideoMessage) {
             // set duration
             if let duration: Double = file.metaData?[FileKey.duration.rawValue]?.doubleValue {
                 metaData[FileKey.duration.rawValue] = duration
@@ -502,7 +502,7 @@ open class LCCategorizedMessage: LCMessage, LCMessageCategorizing {
     
 }
 
-public final class LCTextMessage: LCCategorizedMessage {
+public final class IMTextMessage: IMCategorizedMessage {
     
     public override var type: Int {
         return ReservedType.text.rawValue
@@ -510,7 +510,7 @@ public final class LCTextMessage: LCCategorizedMessage {
     
 }
 
-public final class LCImageMessage: LCCategorizedMessage {
+public final class IMImageMessage: IMCategorizedMessage {
     
     public override var type: Int {
         return ReservedType.image.rawValue
@@ -543,7 +543,7 @@ public final class LCImageMessage: LCCategorizedMessage {
     
 }
 
-public final class LCAudioMessage: LCCategorizedMessage {
+public final class IMAudioMessage: IMCategorizedMessage {
     
     public override var type: Int {
         return ReservedType.audio.rawValue
@@ -572,7 +572,7 @@ public final class LCAudioMessage: LCCategorizedMessage {
     
 }
 
-public final class LCVideoMessage: LCCategorizedMessage {
+public final class IMVideoMessage: IMCategorizedMessage {
     
     public override var type: Int {
         return ReservedType.video.rawValue
@@ -601,7 +601,7 @@ public final class LCVideoMessage: LCCategorizedMessage {
     
 }
 
-public final class LCFileMessage: LCCategorizedMessage {
+public final class IMFileMessage: IMCategorizedMessage {
     
     public override var type: Int {
         return ReservedType.file.rawValue
@@ -626,7 +626,7 @@ public final class LCFileMessage: LCCategorizedMessage {
     
 }
 
-public final class LCLocationMessage: LCCategorizedMessage {
+public final class IMLocationMessage: IMCategorizedMessage {
     
     public override var type: Int {
         return ReservedType.location.rawValue
@@ -642,7 +642,7 @@ public final class LCLocationMessage: LCCategorizedMessage {
     
 }
 
-public final class LCRecalledMessage: LCCategorizedMessage {
+public final class IMRecalledMessage: IMCategorizedMessage {
     
     public override var type: Int {
         return ReservedType.recalled.rawValue

@@ -990,7 +990,7 @@ private extension IMClient {
         }
     }
     
-    func acknowledging(message: LCMessage, conversation: IMConversation) {
+    func acknowledging(message: IMMessage, conversation: IMConversation) {
         assert(self.specificAssertion)
         guard
             message.notTransientMessage,
@@ -1031,7 +1031,7 @@ private extension IMClient {
                     let messageID: String = (command.hasID ? command.id : nil)
                     else
                 { return }
-                var content: LCMessage.Content? = nil
+                var content: IMMessage.Content? = nil
                 /*
                  For Compatibility,
                  Should check `binaryMsg` at first.
@@ -1042,7 +1042,7 @@ private extension IMClient {
                 } else if command.hasMsg {
                     content = .string(command.msg)
                 }
-                let message = LCMessage.instance(
+                let message = IMMessage.instance(
                     isTransient: (command.hasTransient ? command.transient : false),
                     conversationID: conversationID,
                     localClientID: self.ID,
@@ -1340,9 +1340,9 @@ public enum LCConversationEvent {
 
 public enum LCMessageEvent {
     
-    case received(message: LCMessage)
+    case received(message: IMMessage)
     
-    case updated(updatedMessage: LCMessage)
+    case updated(updatedMessage: IMMessage)
     
 }
 

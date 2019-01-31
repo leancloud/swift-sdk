@@ -95,7 +95,7 @@
 		D3662F9222019B590046A390 /* test.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = D3662F9122019B590046A390 /* test.mp3 */; };
 		D3665C3721FEAAC1005B44B0 /* IMMessageTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3665C3621FEAAC1005B44B0 /* IMMessageTestCase.swift */; };
 		D3783A1221F453C3006F6635 /* IMConversationTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3783A1121F453C3006F6635 /* IMConversationTestCase.swift */; };
-		D393EDBE21D38206001CBB2B /* Message.swift in Sources */ = {isa = PBXBuildFile; fileRef = D393EDBD21D38206001CBB2B /* Message.swift */; };
+		D393EDBE21D38206001CBB2B /* IMMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D393EDBD21D38206001CBB2B /* IMMessage.swift */; };
 		D3AA135B216E0D3A008FECA6 /* WebSocket.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3AA1352216E0D3A008FECA6 /* WebSocket.swift */; };
 		D3AC7BA821AE9C1A00C6C557 /* IMClientTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3AC7BA721AE9C1A00C6C557 /* IMClientTestCase.swift */; };
 		D3C3782F21E48D3C00EA9AC9 /* ConversationQuery.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3C3782E21E48D3C00EA9AC9 /* ConversationQuery.swift */; };
@@ -345,7 +345,7 @@
 		D3665C3621FEAAC1005B44B0 /* IMMessageTestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IMMessageTestCase.swift; sourceTree = "<group>"; };
 		D3783A1121F453C3006F6635 /* IMConversationTestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IMConversationTestCase.swift; sourceTree = "<group>"; };
 		D387262A217726B500DD8FBF /* SwiftProtobuf.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = SwiftProtobuf.xcodeproj; path = SwiftProtobuf/SwiftProtobuf.xcodeproj; sourceTree = "<group>"; };
-		D393EDBD21D38206001CBB2B /* Message.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Message.swift; sourceTree = "<group>"; };
+		D393EDBD21D38206001CBB2B /* IMMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IMMessage.swift; sourceTree = "<group>"; };
 		D3AA1352216E0D3A008FECA6 /* WebSocket.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebSocket.swift; sourceTree = "<group>"; };
 		D3AC7BA721AE9C1A00C6C557 /* IMClientTestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IMClientTestCase.swift; sourceTree = "<group>"; };
 		D3C3782E21E48D3C00EA9AC9 /* ConversationQuery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationQuery.swift; sourceTree = "<group>"; };
@@ -614,7 +614,7 @@
 				11239228219165BE00ECCBCC /* RTMRouterCache.xcdatamodeld */,
 				119D16AE219A7FCE0023BFEF /* IMClient.swift */,
 				1113D80321AB963B000677BD /* IMConversation.swift */,
-				D393EDBD21D38206001CBB2B /* Message.swift */,
+				D393EDBD21D38206001CBB2B /* IMMessage.swift */,
 				D3C3782E21E48D3C00EA9AC9 /* ConversationQuery.swift */,
 			);
 			path = IM;
@@ -908,7 +908,7 @@
 				835F5D841D7E6808004D1A0E /* Result.swift in Sources */,
 				835F5D771D7E6808004D1A0E /* Engine.swift in Sources */,
 				835F5D761D7E6808004D1A0E /* User.swift in Sources */,
-				D393EDBE21D38206001CBB2B /* Message.swift in Sources */,
+				D393EDBE21D38206001CBB2B /* IMMessage.swift in Sources */,
 				114E1E772151FFB600DA7DB0 /* File.swift in Sources */,
 				11D9C0FA216DF63B00A620B7 /* Error.swift in Sources */,
 				835F5D701D7E6808004D1A0E /* Null.swift in Sources */,
