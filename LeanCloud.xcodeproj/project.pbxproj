@@ -86,7 +86,7 @@
 		D31798402193DC860037DE57 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = D317983E2193DC860037DE57 /* Main.storyboard */; };
 		D31798422193DC880037DE57 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D31798412193DC880037DE57 /* Assets.xcassets */; };
 		D31798452193DC880037DE57 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = D31798432193DC880037DE57 /* LaunchScreen.storyboard */; };
-		D324CD9221774A9B003FA35F /* Connection.swift in Sources */ = {isa = PBXBuildFile; fileRef = D324CD9121774A9B003FA35F /* Connection.swift */; };
+		D324CD9221774A9B003FA35F /* RTMConnection.swift in Sources */ = {isa = PBXBuildFile; fileRef = D324CD9121774A9B003FA35F /* RTMConnection.swift */; };
 		D3301279217727870007286A /* Command.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3301278217727870007286A /* Command.pb.swift */; };
 		D33A8DAA21F577F2005B84A9 /* RTMBaseTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = D33A8DA921F577F2005B84A9 /* RTMBaseTestCase.swift */; };
 		D33D36D822017DAC008C9BDA /* test.jpg in Resources */ = {isa = PBXBuildFile; fileRef = D33D36C922017DAC008C9BDA /* test.jpg */; };
@@ -335,7 +335,7 @@
 		D31798412193DC880037DE57 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		D31798442193DC880037DE57 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		D31798462193DC880037DE57 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		D324CD9121774A9B003FA35F /* Connection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Connection.swift; sourceTree = "<group>"; };
+		D324CD9121774A9B003FA35F /* RTMConnection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RTMConnection.swift; sourceTree = "<group>"; };
 		D3301278217727870007286A /* Command.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Command.pb.swift; sourceTree = "<group>"; };
 		D33A8DA921F577F2005B84A9 /* RTMBaseTestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RTMBaseTestCase.swift; sourceTree = "<group>"; };
 		D33D36C922017DAC008C9BDA /* test.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = test.jpg; sourceTree = "<group>"; };
@@ -608,7 +608,7 @@
 			children = (
 				D3301278217727870007286A /* Command.pb.swift */,
 				D3AA1352216E0D3A008FECA6 /* WebSocket.swift */,
-				D324CD9121774A9B003FA35F /* Connection.swift */,
+				D324CD9121774A9B003FA35F /* RTMConnection.swift */,
 				113D23D021901A71006B53EC /* RTMRouter.swift */,
 				112392142190AB6E00ECCBCC /* RTMRouterCache.swift */,
 				11239228219165BE00ECCBCC /* RTMRouterCache.xcdatamodeld */,
@@ -944,7 +944,7 @@
 				D3AA135B216E0D3A008FECA6 /* WebSocket.swift in Sources */,
 				119D16AF219A7FCE0023BFEF /* IMClient.swift in Sources */,
 				835F5D801D7E6808004D1A0E /* Query.swift in Sources */,
-				D324CD9221774A9B003FA35F /* Connection.swift in Sources */,
+				D324CD9221774A9B003FA35F /* RTMConnection.swift in Sources */,
 				11D9C0FB216DF63B00A620B7 /* Application.swift in Sources */,
 				835F5D6B1D7E6808004D1A0E /* Bool.swift in Sources */,
 				835F5D751D7E6808004D1A0E /* String.swift in Sources */,

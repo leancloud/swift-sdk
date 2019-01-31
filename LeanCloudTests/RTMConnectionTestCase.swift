@@ -11,25 +11,25 @@ import XCTest
 
 class RTMConnectionTestCase: RTMBaseTestCase {
     
-    class Delegator: ConnectionDelegate {
+    class Delegator: RTMConnectionDelegate {
         
-        var inConnecting: ((Connection) -> Void)?
-        func connection(inConnecting connection: Connection) {
+        var inConnecting: ((RTMConnection) -> Void)?
+        func connection(inConnecting connection: RTMConnection) {
             inConnecting?(connection)
         }
         
-        var didConnect: ((Connection) -> Void)?
-        func connection(didConnect connection: Connection) {
+        var didConnect: ((RTMConnection) -> Void)?
+        func connection(didConnect connection: RTMConnection) {
             didConnect?(connection)
         }
         
-        var didDisconnect: ((Connection, LCError) -> Void)?
-        func connection(_ connection: Connection, didDisconnect error: LCError) {
+        var didDisconnect: ((RTMConnection, LCError) -> Void)?
+        func connection(_ connection: RTMConnection, didDisconnect error: LCError) {
             didDisconnect?(connection, error)
         }
         
-        var didReceiveCommand: ((Connection, IMGenericCommand) -> Void)?
-        func connection(_ connection: Connection, didReceiveCommand inCommand: IMGenericCommand) {
+        var didReceiveCommand: ((RTMConnection, IMGenericCommand) -> Void)?
+        func connection(_ connection: RTMConnection, didReceiveCommand inCommand: IMGenericCommand) {
             didReceiveCommand?(connection, inCommand)
         }
         
@@ -66,7 +66,7 @@ class RTMConnectionTestCase: RTMBaseTestCase {
         let interval: TimeInterval = 5
         let expectation = self.expectation(description: "Get ping sent callback")
         
-        let timer = Connection.Timer(timerQueue: timerQueue, commandCallbackQueue: commandCallbackQueue, pingTimeout: interval) { timer in
+        let timer = RTMConnection.Timer(timerQueue: timerQueue, commandCallbackQueue: commandCallbackQueue, pingTimeout: interval) { timer in
             XCTAssertEqual(DispatchQueue.getSpecific(key: self.timerQueueSpecificKey), self.timerQueueSpecificValue)
             if timer.lastPingSentTimestamp != 0 {
                 let timeout: TimeInterval = Date().timeIntervalSince1970 - timer.lastPingSentTimestamp
@@ -86,7 +86,7 @@ class RTMConnectionTestCase: RTMBaseTestCase {
         let interval: TimeInterval = 5
         let expectation = self.expectation(description: "Get ping sent callback")
         
-        let timer = Connection.Timer(timerQueue: timerQueue, commandCallbackQueue: commandCallbackQueue, pingpongInterval: interval) { timer in
+        let timer = RTMConnection.Timer(timerQueue: timerQueue, commandCallbackQueue: commandCallbackQueue, pingpongInterval: interval) { timer in
             XCTAssertEqual(DispatchQueue.getSpecific(key: self.timerQueueSpecificKey), self.timerQueueSpecificValue)
             self.timerQueue.async {
                 timer.lastPongReceivedTimestamp = Date().timeIntervalSince1970
@@ -110,13 +110,13 @@ class RTMConnectionTestCase: RTMBaseTestCase {
         let expectation = self.expectation(description: "Get command callback")
         expectation.expectedFulfillmentCount = 3
         
-        let timer = Connection.Timer(timerQueue: timerQueue, commandCallbackQueue: commandCallbackQueue) { _ in }
+        let timer = RTMConnection.Timer(timerQueue: timerQueue, commandCallbackQueue: commandCallbackQueue) { _ in }
         timerQueue.async {
             let commandCallbackInsertTimestamp: TimeInterval = Date().timeIntervalSince1970
             // test callback timeout 1
             let index1: UInt16 = 1
             let commandTTL1: TimeInterval = interval
-            timer.insert(commandCallback: Connection.CommandCallback(closure: { (result) in
+            timer.insert(commandCallback: RTMConnection.CommandCallback(closure: { (result) in
                 XCTAssertEqual(DispatchQueue.getSpecific(key: self.commandCallbackQueueSpecificKey), self.commandCallbackQueueSpecificValue)
                 switch result {
                 case .error(let error):
@@ -136,7 +136,7 @@ class RTMConnectionTestCase: RTMBaseTestCase {
             // test callback timeout 2
             let index2: UInt16 = 2
             let commandTTL2: TimeInterval = interval * 2
-            timer.insert(commandCallback: Connection.CommandCallback(closure: { (result) in
+            timer.insert(commandCallback: RTMConnection.CommandCallback(closure: { (result) in
                 XCTAssertEqual(DispatchQueue.getSpecific(key: self.commandCallbackQueueSpecificKey), self.commandCallbackQueueSpecificValue)
                 switch result {
                 case .error(let error):
@@ -155,7 +155,7 @@ class RTMConnectionTestCase: RTMBaseTestCase {
             }, timeToLive: commandTTL2), index: index2)
             // test callback succeeded
             let index3: UInt16 = 3
-            timer.insert(commandCallback: Connection.CommandCallback(closure: { (result) in
+            timer.insert(commandCallback: RTMConnection.CommandCallback(closure: { (result) in
                 XCTAssertEqual(DispatchQueue.getSpecific(key: self.commandCallbackQueueSpecificKey), self.commandCallbackQueueSpecificValue)
                 switch result {
                 case .error(_):
@@ -186,9 +186,9 @@ class RTMConnectionTestCase: RTMBaseTestCase {
         let timeout: TimeInterval = 30
         let expectation = self.expectation(description: "Get command callback")
         
-        let timer = Connection.Timer(timerQueue: timerQueue, commandCallbackQueue: commandCallbackQueue) { _ in }
+        let timer = RTMConnection.Timer(timerQueue: timerQueue, commandCallbackQueue: commandCallbackQueue) { _ in }
         timerQueue.async {
-            timer.insert(commandCallback: Connection.CommandCallback(closure: { (result) in
+            timer.insert(commandCallback: RTMConnection.CommandCallback(closure: { (result) in
                 XCTAssertEqual(DispatchQueue.getSpecific(key: self.commandCallbackQueueSpecificKey), self.commandCallbackQueueSpecificValue)
                 switch result {
                 case .error(let error):
@@ -205,7 +205,7 @@ class RTMConnectionTestCase: RTMBaseTestCase {
     }
     
     func testConnectionInitAndDeinit() {
-        var connection: Connection? = Connection(
+        var connection: RTMConnection? = RTMConnection(
             application: .default,
             lcimProtocol: .protobuf1
         )
@@ -216,7 +216,7 @@ class RTMConnectionTestCase: RTMBaseTestCase {
     func testConnectAndDisconnect() {
         
         let delegator = Delegator()
-        let connection = Connection(
+        let connection = RTMConnection(
             application: .default,
             lcimProtocol: .protobuf1,
             delegate: delegator,

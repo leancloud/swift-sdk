@@ -272,7 +272,7 @@ class IMClientTestCase: RTMBaseTestCase {
             exp.fulfill()
         }
         let _ = NotificationCenter.default.addObserver(forName: IMClient.TestReportDeviceTokenNotification, object: client, queue: OperationQueue.main) { (notification) in
-            let result = notification.userInfo?["result"] as? Connection.CommandCallback.Result
+            let result = notification.userInfo?["result"] as? RTMConnection.CommandCallback.Result
             XCTAssertEqual(result?.command?.cmd, .report)
             XCTAssertEqual(result?.command?.op, .uploaded)
             exp.fulfill()

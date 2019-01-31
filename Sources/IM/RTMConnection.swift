@@ -1,5 +1,5 @@
 //
-//  Connection.swift
+//  RTMConnection.swift
 //  LeanCloud
 //
 //  Created by zapcannon87 on 2018/10/17.
@@ -12,29 +12,29 @@ import UIKit
 #endif
 import Alamofire
 
-protocol ConnectionDelegate: class {
+protocol RTMConnectionDelegate: class {
     
     /// Invoked when websocket is connecting server or when geting RTM server.
     /// @note This function maybe be called multiple times in single-try-connecting.
-    func connection(inConnecting connection: Connection)
+    func connection(inConnecting connection: RTMConnection)
     
     /// Invoked when websocket connected server.
-    func connection(didConnect connection: Connection)
+    func connection(didConnect connection: RTMConnection)
     
     /// Invoked when the connected websocket encounter some should-disconnect event or other network error.
     ///
     /// - Parameters:
     ///   - event: @see Connection.Event
-    func connection(_ connection: Connection, didDisconnect error: LCError)
+    func connection(_ connection: RTMConnection, didDisconnect error: LCError)
     
     /// Invoked when the connected websocket receive direct-in-protobuf-command.
     ///
     /// - Parameters:
     ///   - inCommand: protobuf-command without serial ID.
-    func connection(_ connection: Connection, didReceiveCommand inCommand: IMGenericCommand)
+    func connection(_ connection: RTMConnection, didReceiveCommand inCommand: IMGenericCommand)
 }
 
-class Connection {
+class RTMConnection {
     
     /// ref: https://github.com/leancloud/avoscloud-push/blob/develop/push-server/doc/protocol.md#传输协议
     enum LCIMProtocol: String {
@@ -185,7 +185,7 @@ class Connection {
     }
     
     let application: LCApplication
-    weak var delegate: ConnectionDelegate?
+    weak var delegate: RTMConnectionDelegate?
     let lcimProtocol: LCIMProtocol
     let customRTMServerURL: URL?
     let delegateQueue: DispatchQueue
@@ -244,13 +244,13 @@ class Connection {
     /// - Parameters:
     ///   - application: LeanCloud Application, @see LCApplication.
     ///   - lcimProtocol: @see LCIMProtocol.
-    ///   - delegate: @see ConnectionDelegate.
+    ///   - delegate: @see RTMConnectionDelegate.
     ///   - delegateQueue: The queue where ConnectionDelegate's fuctions and command's callback be invoked.
     ///   - commandTTL: Time-To-Live of command's callback.
     ///   - customRTMServerURL: The custom RTM server, if set, Connection will ignore RTM Router, if not set, Connection will use the server return by RTM Router.
     init(application: LCApplication,
          lcimProtocol: LCIMProtocol,
-         delegate: ConnectionDelegate? = nil,
+         delegate: RTMConnectionDelegate? = nil,
          delegateQueue: DispatchQueue = .main,
          commandTTL: TimeInterval = 30.0,
          customRTMServerURL: URL? = nil)
@@ -393,10 +393,10 @@ class Connection {
 
 // MARK: - Private
 
-extension Connection {
+extension RTMConnection {
     
     #if os(iOS) || os(tvOS)
-    private func applicationStateChanged(with newState: Connection.AppState) {
+    private func applicationStateChanged(with newState: RTMConnection.AppState) {
         assert(self.specificAssertion)
         let oldState: AppState = self.previousAppState
         self.previousAppState = newState
@@ -597,7 +597,7 @@ extension Connection {
 
 // MARK: - WebSocketDelegate
 
-extension Connection: WebSocketDelegate, WebSocketPongDelegate {
+extension RTMConnection: WebSocketDelegate, WebSocketPongDelegate {
     
     func websocketDidConnect(socket: WebSocketClient) {
         assert(self.specificAssertion)

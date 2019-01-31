@@ -123,7 +123,7 @@ public final class IMClient {
         public static let receiveUnreadMessageCountAfterSessionDidOpen = Options(rawValue: 1 << 0)
         
         /// Get IM protocol for current options.
-        var lcimProtocol: Connection.LCIMProtocol {
+        var lcimProtocol: RTMConnection.LCIMProtocol {
             if contains(.receiveUnreadMessageCountAfterSessionDidOpen) {
                 return .protobuf3
             } else {
@@ -194,7 +194,7 @@ public final class IMClient {
         self.installation = application.currentInstallation
         // directly init `connection` is better, lazy init is not a good choice.
         // because connection should get App State in main thread.
-        self.connection = Connection(
+        self.connection = RTMConnection(
             application: application,
             lcimProtocol: options.lcimProtocol,
             delegateQueue: self.serialQueue,
@@ -225,7 +225,7 @@ public final class IMClient {
     private let serialQueue = DispatchQueue(label: "LeanCloud.IMClient.serialQueue", qos: .userInitiated)
     
     /// The session connection.
-    internal let connection: Connection
+    internal let connection: RTMConnection
     
     /// Internal mutex
     private let mutex = NSLock()
@@ -678,7 +678,7 @@ extension IMClient {
     
     func sendCommand(
         constructor: () -> IMGenericCommand,
-        completion: ((Connection.CommandCallback.Result) -> Void)? = nil)
+        completion: ((RTMConnection.CommandCallback.Result) -> Void)? = nil)
     {
         let outCommand: IMGenericCommand = constructor()
         guard self.isSessionOpened else {
@@ -1217,9 +1217,9 @@ private extension IMClient {
 
 // MARK: - Connection Delegate
 
-extension IMClient: ConnectionDelegate {
+extension IMClient: RTMConnectionDelegate {
     
-    func connection(inConnecting connection: Connection) {
+    func connection(inConnecting connection: RTMConnection) {
         assert(self.specificAssertion)
         guard let _ = self.sessionToken, self.sessionState != .resuming else {
             return
@@ -1230,7 +1230,7 @@ extension IMClient: ConnectionDelegate {
         }
     }
     
-    func connection(didConnect connection: Connection) {
+    func connection(didConnect connection: RTMConnection) {
         assert(self.specificAssertion)
         var openCommand = self.newOpenCommand()
         if let openingCompletion = self.openingCompletion,
@@ -1261,7 +1261,7 @@ extension IMClient: ConnectionDelegate {
         }
     }
     
-    func connection(_ connection: Connection, didDisconnect error: LCError) {
+    func connection(_ connection: RTMConnection, didDisconnect error: LCError) {
         assert(self.specificAssertion)
         let routerError = LCError.malformedRTMRouterResponse
         if error.code == routerError.code, error.reason == routerError.reason {
@@ -1276,7 +1276,7 @@ extension IMClient: ConnectionDelegate {
         }
     }
     
-    func connection(_ connection: Connection, didReceiveCommand inCommand: IMGenericCommand) {
+    func connection(_ connection: RTMConnection, didReceiveCommand inCommand: IMGenericCommand) {
         assert(self.specificAssertion)
         switch inCommand.cmd {
         case .session:
