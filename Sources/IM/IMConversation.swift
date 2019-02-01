@@ -595,8 +595,6 @@ extension IMConversation {
                             clientID: self.clientID,
                             conversationID: self.ID
                         )
-                        newMessage.deliveredTimestamp = oldMessage.deliveredTimestamp
-                        newMessage.readTimestamp = oldMessage.readTimestamp
                         self.safeUpdatingLastMessage(newMessage: newMessage)
                         self.eventQueue.async {
                             completion(.success)

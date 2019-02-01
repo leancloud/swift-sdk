@@ -1234,6 +1234,44 @@ private extension IMClient {
         }
     }
     
+    func process(rcpCommand: IMRcpCommand) {
+        assert(self.specificAssertion)
+        guard let conversationID: String = (rcpCommand.hasCid ? rcpCommand.cid : nil) else {
+            return
+        }
+        self.getConversation(by: conversationID) { (result) in
+            assert(self.specificAssertion)
+            switch result {
+            case .success(value: let conversation):
+                guard
+                    let messageID: String = (rcpCommand.hasID ? rcpCommand.id : nil),
+                    let timestamp: Int64 = (rcpCommand.hasT ? rcpCommand.t : nil)
+                    else
+                { return }
+                let fromID = (rcpCommand.hasFrom ? rcpCommand.from : nil)
+                let event: IMMessageEvent
+                if rcpCommand.hasRead, rcpCommand.read {
+                    event = .read(
+                        byClientID: fromID,
+                        messageID: messageID,
+                        readTimestamp: timestamp
+                    )
+                } else {
+                    event = .delivered(
+                        toClientID: fromID,
+                        messageID: messageID,
+                        deliveredTimestamp: timestamp
+                    )
+                }
+                self.eventQueue.async {
+                    self.delegate?.client(self, conversation: conversation, event: .message(event: event))
+                }
+            case .failure(error: let error):
+                Logger.shared.error(error)
+            }
+        }
+    }
+    
 }
 
 // MARK: - Connection Delegate
@@ -1320,6 +1358,8 @@ extension IMClient: RTMConnectionDelegate {
             default:
                 break
             }
+        case .rcp:
+            self.process(rcpCommand: inCommand.rcpMessage)
         default:
             break
         }
@@ -1364,6 +1404,10 @@ public enum IMMessageEvent {
     case received(message: IMMessage)
     
     case updated(updatedMessage: IMMessage)
+    
+    case delivered(toClientID: String?, messageID: String, deliveredTimestamp: Int64)
+    
+    case read(byClientID: String?, messageID: String, readTimestamp: Int64)
     
 }
 

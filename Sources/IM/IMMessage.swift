@@ -53,16 +53,6 @@ open class IMMessage {
         return date(fromMillisecond: sentTimestamp)
     }
     
-    public final internal(set) var deliveredTimestamp: Int64?
-    public final var deliveredDate: Date? {
-        return date(fromMillisecond: deliveredTimestamp)
-    }
-    
-    public final internal(set) var readTimestamp: Int64?
-    public final var readDate: Date? {
-        return date(fromMillisecond: readTimestamp)
-    }
-    
     public final internal(set) var patchedTimestamp: Int64?
     public final var patchedDate: Date? {
         return date(fromMillisecond: patchedTimestamp)
