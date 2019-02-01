@@ -544,6 +544,8 @@ class IMMessageTestCase: RTMBaseTestCase {
             exp.fulfill()
         })
         wait(for: [exp], timeout: timeout)
+        
+        XCTAssertNotNil(receivingTuple?.client.lastPatchTime)
     }
     
     func testMessageRecalling() {
@@ -601,84 +603,8 @@ class IMMessageTestCase: RTMBaseTestCase {
             exp.fulfill()
         })
         wait(for: [exp], timeout: timeout)
-    }
-    
-    func testPatchEvent() {
-        let clientBID: String = uuid
         
-        guard let clientA = newOpenedClient(options: [.receiveUnreadMessageCountAfterSessionDidOpen]),
-            let conversationA = createConversation(
-                client: clientA,
-                clientIDs: [clientA.ID, clientBID]),
-            let tempConversationA = createConversation(
-                client: clientA,
-                clientIDs: [clientA.ID, clientBID],
-                isTemporary: true) as? IMTemporaryConversation
-            else
-        {
-            XCTFail()
-            return
-        }
-        
-        var convAndMsgTuples: [(IMConversation, IMMessage)] = []
-        var sentMessageIDSet: Set<String> = []
-        
-        for conv in [conversationA, tempConversationA] {
-            let exp = expectation(description: "send message")
-            let message = IMMessage()
-            try? message.set(content: .string("old"))
-            try? conv.send(message: message, completion: { (result) in
-                XCTAssertTrue(result.isSuccess)
-                XCTAssertNil(result.error)
-                if let msgID = message.ID {
-                    sentMessageIDSet.insert(msgID)
-                }
-                exp.fulfill()
-            })
-            wait(for: [exp], timeout: timeout)
-            convAndMsgTuples.append((conv, message))
-        }
-        
-        delay()
-        
-        for (conv, msg) in convAndMsgTuples {
-            let exp = expectation(description: "patch message")
-            try? conv.recall(message: msg, completion: { (result) in
-                XCTAssertTrue(result.isSuccess)
-                XCTAssertNil(result.error)
-                exp.fulfill()
-            })
-            wait(for: [exp], timeout: timeout)
-        }
-        
-        delay()
-        
-        let clientB = try? IMClient(ID: clientBID, options: [.receiveUnreadMessageCountAfterSessionDidOpen])
-        let delegatorB = IMClientTestCase.Delegator()
-        clientB?.delegate = delegatorB
-        
-        let exp = expectation(description: "get patch event")
-        exp.expectedFulfillmentCount = 3
-        delegatorB.messageEvent = { client, conversation, event in
-            switch event {
-            case .updated(updatedMessage: let recalledMessage):
-                XCTAssertTrue(recalledMessage is IMRecalledMessage)
-                if let msgID = recalledMessage.ID {
-                    XCTAssertTrue(sentMessageIDSet.contains(msgID))
-                }
-                exp.fulfill()
-            default:
-                break
-            }
-        }
-        clientB?.open(completion: { (result) in
-            XCTAssertTrue(result.isSuccess)
-            XCTAssertNil(result.error)
-            exp.fulfill()
-        })
-        wait(for: [exp], timeout: timeout)
-        
-        XCTAssertNotNil(clientB?.lastPatchTime)
+        XCTAssertNotNil(receivingTuple?.client.lastPatchTime)
     }
 
 }
