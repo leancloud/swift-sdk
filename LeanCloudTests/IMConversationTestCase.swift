@@ -343,7 +343,8 @@ class IMConversationTestCase: RTMBaseTestCase {
         let sendExp = expectation(description: "create conversation and send message")
         sendExp.expectedFulfillmentCount = 2
         try? clientA.createConversation(clientIDs: [otherClientID], completion: { (result) in
-            XCTAssertNotNil(result.value)
+            XCTAssertTrue(result.isSuccess)
+            XCTAssertNil(result.error)
             try? result.value?.send(message: message, completion: { (result) in
                 XCTAssertTrue(result.isSuccess)
                 sendExp.fulfill()
@@ -353,12 +354,12 @@ class IMConversationTestCase: RTMBaseTestCase {
         wait(for: [sendExp], timeout: timeout)
         
         let clientB = try! IMClient(ID: otherClientID, options: [.receiveUnreadMessageCountAfterSessionDidOpen])
-        let delegator = IMClientTestCase.Delegator()
-        clientB.delegate = delegator
+        let delegatorB = IMClientTestCase.Delegator()
+        clientB.delegate = delegatorB
         
         let unreadExp = expectation(description: "opened and get unread event")
         unreadExp.expectedFulfillmentCount = 3
-        delegator.conversationEvent = { client, conversation, event in
+        delegatorB.conversationEvent = { client, conversation, event in
             if client === clientB, conversation.ID == message.conversationID {
                 switch event {
                 case .lastMessageUpdated:
@@ -377,13 +378,39 @@ class IMConversationTestCase: RTMBaseTestCase {
         }
         clientB.open { (result) in
             XCTAssertTrue(result.isSuccess)
+            XCTAssertNil(result.error)
             unreadExp.fulfill()
         }
         wait(for: [unreadExp], timeout: timeout)
         
+        delay()
+        XCTAssertNotNil(clientB.lastUnreadNotifTime)
+        
+        let reconnectExp = expectation(description: "reconnect")
+        let notGetUnreadExp = expectation(description: "not get unread event")
+        notGetUnreadExp.isInverted = true
+        delegatorB.clientEvent = { client, event in
+            switch event {
+            case .sessionDidOpen:
+                reconnectExp.fulfill()
+            default:
+                break
+            }
+        }
+        delegatorB.conversationEvent = { client, conversation, event in
+            if conversation.ID == message.conversationID {
+                if case .unreadMessageUpdated = event {
+                    notGetUnreadExp.fulfill()
+                }
+            }
+        }
+        clientB.connection.disconnect()
+        clientB.connection.connect()
+        wait(for: [reconnectExp, notGetUnreadExp], timeout: 5)
+        
         let readExp = expectation(description: "read")
-        delegator.conversationEvent = { client, conversation, event in
-            if client === clientB, conversation.ID == message.conversationID {
+        delegatorB.conversationEvent = { client, conversation, event in
+            if conversation.ID == message.conversationID {
                 if case .unreadMessageUpdated = event {
                     XCTAssertEqual(conversation.unreadMessageCount, 0)
                     readExp.fulfill()

@@ -166,7 +166,7 @@ class IMMessageTestCase: RTMBaseTestCase {
         var lastMessageIDSet: Set<String> = []
         
         let exp = expectation(description: "message continuous sending and receiving")
-        let count = 10
+        let count = 5
         exp.expectedFulfillmentCount = (count * 2) + 2
         var receivedMessageCountA = count
         delegatorA.conversationEvent = { client, conversation, event in
@@ -219,23 +219,24 @@ class IMMessageTestCase: RTMBaseTestCase {
             }
         }
         for _ in 0..<count {
-            let sendMessageExp = expectation(description: "send message")
-            sendMessageExp.expectedFulfillmentCount = 2
+            let sendAExp = expectation(description: "send message")
             let messageA = IMMessage()
             messageA.content = .string("")
-            let messageB = IMMessage()
-            messageB.content = .string("")
             try? conversationA.send(message: messageA, completion: { (result) in
                 XCTAssertTrue(result.isSuccess)
                 XCTAssertNil(result.error)
-                sendMessageExp.fulfill()
+                sendAExp.fulfill()
             })
+            wait(for: [sendAExp], timeout: timeout)
+            let sendBExp = expectation(description: "send message")
+            let messageB = IMMessage()
+            messageB.content = .string("")
             try? conversationB.send(message: messageB, completion: { (result) in
                 XCTAssertTrue(result.isSuccess)
                 XCTAssertNil(result.error)
-                sendMessageExp.fulfill()
+                sendBExp.fulfill()
             })
-            wait(for: [sendMessageExp], timeout: timeout)
+            wait(for: [sendBExp], timeout: timeout)
         }
         wait(for: [exp], timeout: timeout)
         
@@ -545,7 +546,7 @@ class IMMessageTestCase: RTMBaseTestCase {
         })
         wait(for: [exp], timeout: timeout)
         
-        XCTAssertNotNil(receivingTuple?.client.lastPatchTime)
+        XCTAssertNil(receivingTuple?.client.lastPatchTime)
     }
     
     func testMessageRecalling() {
@@ -604,7 +605,123 @@ class IMMessageTestCase: RTMBaseTestCase {
         })
         wait(for: [exp], timeout: timeout)
         
-        XCTAssertNotNil(receivingTuple?.client.lastPatchTime)
+        XCTAssertNil(receivingTuple?.client.lastPatchTime)
+    }
+    
+    func _testMessagePatchNotification() {
+        guard
+            let tuples = convenienceInit(clientOptions: [.receiveUnreadMessageCountAfterSessionDidOpen]),
+            let sendingTuple = tuples.first,
+            let receivingTuple = tuples.last
+            else
+        {
+            XCTFail()
+            return
+        }
+        
+        let sendMessageExp = expectation(description: "send message")
+        let oldMessage = IMMessage()
+        try? oldMessage.set(content: .string("old"))
+        try? sendingTuple.conversation.send(message: oldMessage) { (result) in
+            XCTAssertTrue(result.isSuccess)
+            XCTAssertNil(result.error)
+            sendMessageExp.fulfill()
+        }
+        wait(for: [sendMessageExp], timeout: timeout)
+        
+        delay()
+        
+        let patchMessageExp = expectation(description: "patch message")
+        patchMessageExp.expectedFulfillmentCount = 2
+        receivingTuple.delegator.messageEvent = { client, conv, event in
+            if conv.ID == receivingTuple.conversation.ID {
+                switch event {
+                case .updated(updatedMessage: let message):
+                    XCTAssertTrue(message is IMFileMessage)
+                    patchMessageExp.fulfill()
+                default:
+                    break
+                }
+            }
+        }
+        let newMessage = IMFileMessage()
+        newMessage.file = LCFile(payload: .fileURL(fileURL: resourceURL(name: "test", ext: "zip")))
+        try? sendingTuple.conversation.update(oldMessage: oldMessage, by: newMessage, completion: { (result) in
+            XCTAssertTrue(result.isSuccess)
+            XCTAssertNil(result.error)
+            XCTAssertNotNil(oldMessage.ID)
+            XCTAssertNotNil(oldMessage.sentTimestamp)
+            XCTAssertEqual(oldMessage.ID, newMessage.ID)
+            XCTAssertEqual(oldMessage.sentTimestamp, newMessage.sentTimestamp)
+            patchMessageExp.fulfill()
+        })
+        wait(for: [patchMessageExp], timeout: timeout)
+        
+        delay()
+        let firstLastPatchTime = receivingTuple.client.lastPatchTime
+        XCTAssertNotNil(firstLastPatchTime)
+        
+        let reconnectExp = expectation(description: "reconnect")
+        let notGetPatchExp = expectation(description: "not get patch")
+        notGetPatchExp.isInverted = true
+        receivingTuple.delegator.clientEvent = { client, event in
+            switch event {
+            case .sessionDidOpen:
+                reconnectExp.fulfill()
+            default:
+                break
+            }
+        }
+        receivingTuple.delegator.messageEvent = { client, conv, event in
+            if conv.ID == receivingTuple.conversation.ID {
+                switch event {
+                case .updated(updatedMessage: _):
+                    notGetPatchExp.fulfill()
+                default:
+                    break
+                }
+            }
+        }
+        receivingTuple.client.connection.disconnect()
+        receivingTuple.client.connection.connect()
+        wait(for: [reconnectExp, notGetPatchExp], timeout: 5)
+        receivingTuple.delegator.clientEvent = nil
+        
+        receivingTuple.client.connection.disconnect()
+        delay()
+        
+        let patchMessageWhenOfflineExp = expectation(description: "patch message when offline")
+        let newerMessage = IMTextMessage()
+        newerMessage.text = "newer"
+        try? sendingTuple.conversation.update(oldMessage: newMessage, by: newerMessage) { (result) in
+            XCTAssertTrue(result.isSuccess)
+            XCTAssertNil(result.error)
+            patchMessageWhenOfflineExp.fulfill()
+        }
+        wait(for: [patchMessageWhenOfflineExp], timeout: timeout)
+        
+        let getPatchExp = expectation(description: "get patch when online")
+        receivingTuple.delegator.messageEvent = { client, conv, event in
+            if conv.ID == receivingTuple.conversation.ID {
+                switch event {
+                case .updated(updatedMessage: let message):
+                    XCTAssertTrue(message is IMTextMessage)
+                    getPatchExp.fulfill()
+                default:
+                    break
+                }
+            }
+        }
+        receivingTuple.client.connection.connect()
+        wait(for: [getPatchExp], timeout: timeout)
+        
+        delay()
+        if let first = firstLastPatchTime,
+            let second = receivingTuple.client.lastPatchTime {
+            XCTAssertGreaterThan(second, first)
+        } else {
+            XCTFail()
+        }
     }
 
 }
