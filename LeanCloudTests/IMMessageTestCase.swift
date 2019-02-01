@@ -262,7 +262,68 @@ class IMMessageTestCase: RTMBaseTestCase {
     }
     
     func testMessageReceipt() {
+        guard
+            let tuples = convenienceInit(clientOptions: [.receiveUnreadMessageCountAfterSessionDidOpen]),
+            let tuple1 = tuples.first,
+            let tuple2 = tuples.last
+            else
+        {
+            XCTFail()
+            return
+        }
         
+        let message = IMMessage()
+        try? message.set(content: .string("test"))
+        var messageID: String? = nil
+        
+        let sendExp = expectation(description: "send message")
+        sendExp.expectedFulfillmentCount = 3
+        tuple1.delegator.messageEvent = { client, conv, event in
+            if conv.ID == tuple1.conversation.ID {
+                switch event {
+                case .delivered(toClientID: let clientID, messageID: let msgID, deliveredTimestamp: _):
+                    XCTAssertEqual(clientID, tuple2.client.ID)
+                    messageID = msgID
+                    sendExp.fulfill()
+                default:
+                    break
+                }
+            }
+        }
+        tuple2.delegator.messageEvent = { client, conv, event in
+            if conv.ID == tuple2.conversation.ID {
+                switch event {
+                case .received(message: _):
+                    sendExp.fulfill()
+                default:
+                    break
+                }
+            }
+        }
+        try? tuple1.conversation.send(message: message, options: [.needReceipt]) { (result) in
+            XCTAssertTrue(result.isSuccess)
+            XCTAssertNil(result.error)
+            sendExp.fulfill()
+        }
+        wait(for: [sendExp], timeout: timeout)
+        
+        let readRcpExp = expectation(description: "get read rcp")
+        tuple1.delegator.messageEvent = { client, conv, event in
+            if conv.ID == tuple1.conversation.ID {
+                switch event {
+                case .read(byClientID: let clientID, messageID: let msgID, readTimestamp: _):
+                    XCTAssertEqual(clientID, tuple2.client.ID)
+                    XCTAssertEqual(msgID, messageID)
+                    readRcpExp.fulfill()
+                default:
+                    break
+                }
+            }
+        }
+        tuple2.conversation.read()
+        wait(for: [readRcpExp], timeout: timeout)
+        
+        XCTAssertEqual(messageID, message.ID)
     }
     
     func testTransientMessageSendingAndReceiving() {
