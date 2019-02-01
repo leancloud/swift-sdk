@@ -1095,63 +1095,75 @@ private extension IMClient {
                 }
             }
         }
-        let group = DispatchGroup()
-        var groupFlags: [Bool] = []
-        let handleResult: (LCGenericResult<[IMConversation]>, [String: IMUnreadTuple]) -> Void = { (result, map) in
-            switch result {
-            case .success(value: let conversations):
-                groupFlags.append(true)
-                for conversation in conversations {
-                    if let unreadTuple: IMUnreadTuple = map[conversation.ID] {
-                        conversation.process(unreadTuple: unreadTuple)
+        let updateLastUnreadNotifTime: () -> Void = {
+            if unreadCommand.hasNotifTime {
+                if let oldTime: Int64 = self.lastUnreadNotifTime {
+                    if unreadCommand.notifTime > oldTime {
+                        self.lastUnreadNotifTime = unreadCommand.notifTime
                     }
-                }
-            case .failure(error: let error):
-                groupFlags.append(false)
-                Logger.shared.error(error)
-            }
-        }
-        if !conversationIDMap.isEmpty {
-            group.enter()
-            let IDs = Set<String>(conversationIDMap.keys)
-            self.getConversations(by: IDs) { (result) in
-                assert(self.specificAssertion)
-                handleResult(result, conversationIDMap)
-                group.leave()
-            }
-        }
-        if !temporaryConversationIDMap.isEmpty {
-            group.enter()
-            let IDs = Set<String>(temporaryConversationIDMap.keys)
-            self.getTemporaryConversations(by: IDs) { (result) in
-                assert(self.specificAssertion)
-                handleResult(result, temporaryConversationIDMap)
-                group.leave()
-            }
-        }
-        if !conversationIDMap.isEmpty || !temporaryConversationIDMap.isEmpty {        
-            group.notify(queue: self.serialQueue) {
-                var bothTrue = true
-                for flag in groupFlags {
-                    guard flag else {
-                        bothTrue = false
-                        break
-                    }
-                }
-                if bothTrue, unreadCommand.hasNotifTime {
+                } else {
                     self.lastUnreadNotifTime = unreadCommand.notifTime
                 }
+            }
+        }
+        if conversationIDMap.isEmpty, temporaryConversationIDMap.isEmpty {
+            updateLastUnreadNotifTime()
+        } else {
+            let group = DispatchGroup()
+            var groupFlags: [Bool] = []
+            let handleResult: (LCGenericResult<[IMConversation]>, [String: IMUnreadTuple]) -> Void = { (result, map) in
+                switch result {
+                case .success(value: let conversations):
+                    groupFlags.append(true)
+                    for conversation in conversations {
+                        if let unreadTuple: IMUnreadTuple = map[conversation.ID] {
+                            conversation.process(unreadTuple: unreadTuple)
+                        }
+                    }
+                case .failure(error: let error):
+                    groupFlags.append(false)
+                    Logger.shared.error(error)
+                }
+            }
+            if !conversationIDMap.isEmpty {
+                group.enter()
+                let IDs = Set<String>(conversationIDMap.keys)
+                self.getConversations(by: IDs) { (result) in
+                    assert(self.specificAssertion)
+                    handleResult(result, conversationIDMap)
+                    group.leave()
+                }
+            }
+            if !temporaryConversationIDMap.isEmpty {
+                group.enter()
+                let IDs = Set<String>(temporaryConversationIDMap.keys)
+                self.getTemporaryConversations(by: IDs) { (result) in
+                    assert(self.specificAssertion)
+                    handleResult(result, temporaryConversationIDMap)
+                    group.leave()
+                }
+            }
+            group.notify(queue: self.serialQueue) {
+                guard !groupFlags.contains(false) else {
+                    return
+                }
+                updateLastUnreadNotifTime()
             }
         }
     }
     
     func process(patchCommand: IMPatchCommand) {
         assert(self.specificAssertion)
+        var lastPatchTimestamp: Int64 = -1
         var conversationIDMap: [String: IMPatchItem] = [:]
         var temporaryConversationIDMap: [String: IMPatchItem] = [:]
         for item in patchCommand.patches {
             guard let conversationID: String = (item.hasCid ? item.cid : nil) else {
                 continue
+            }
+            if item.hasPatchTimestamp,
+                item.patchTimestamp > lastPatchTimestamp {
+                lastPatchTimestamp = item.patchTimestamp
             }
             if let existingConversation = self.convCollection[conversationID] {
                 existingConversation.process(patchItem: item)
@@ -1163,52 +1175,59 @@ private extension IMClient {
                 }
             }
         }
-        let group = DispatchGroup()
-        var groupFlags: [Bool] = []
-        let handleResult: (LCGenericResult<[IMConversation]>, [String: IMPatchItem]) -> Void = { (result, map) in
-            switch result {
-            case .success(value: let conversations):
-                groupFlags.append(true)
-                for conversation in conversations {
-                    if let patchItem: IMPatchItem = map[conversation.ID] {
-                        conversation.process(patchItem: patchItem)
+        let updateLastPatchTime: () -> Void = {
+            if lastPatchTimestamp > 0 {
+                if let oldTime = self.lastPatchTime {
+                    if lastPatchTimestamp > oldTime {
+                        self.lastPatchTime = lastPatchTimestamp
                     }
+                } else {
+                    self.lastPatchTime = lastPatchTimestamp
                 }
-            case .failure(error: let error):
-                groupFlags.append(false)
-                Logger.shared.error(error)
             }
         }
-        if !conversationIDMap.isEmpty {
-            group.enter()
-            let IDs = Set<String>(conversationIDMap.keys)
-            self.getConversations(by: IDs) { (result) in
-                assert(self.specificAssertion)
-                handleResult(result, conversationIDMap)
-                group.leave()
+        if conversationIDMap.isEmpty, temporaryConversationIDMap.isEmpty {
+            updateLastPatchTime()
+        } else {
+            let group = DispatchGroup()
+            var groupFlags: [Bool] = []
+            let handleResult: (LCGenericResult<[IMConversation]>, [String: IMPatchItem]) -> Void = { (result, map) in
+                switch result {
+                case .success(value: let conversations):
+                    groupFlags.append(true)
+                    for conversation in conversations {
+                        if let patchItem: IMPatchItem = map[conversation.ID] {
+                            conversation.process(patchItem: patchItem)
+                        }
+                    }
+                case .failure(error: let error):
+                    groupFlags.append(false)
+                    Logger.shared.error(error)
+                }
             }
-        }
-        if !temporaryConversationIDMap.isEmpty {
-            group.enter()
-            let IDs = Set<String>(temporaryConversationIDMap.keys)
-            self.getTemporaryConversations(by: IDs) { (result) in
-                assert(self.specificAssertion)
-                handleResult(result, temporaryConversationIDMap)
-                group.leave()
+            if !conversationIDMap.isEmpty {
+                group.enter()
+                let IDs = Set<String>(conversationIDMap.keys)
+                self.getConversations(by: IDs) { (result) in
+                    assert(self.specificAssertion)
+                    handleResult(result, conversationIDMap)
+                    group.leave()
+                }
             }
-        }
-        if !conversationIDMap.isEmpty || !temporaryConversationIDMap.isEmpty {
+            if !temporaryConversationIDMap.isEmpty {
+                group.enter()
+                let IDs = Set<String>(temporaryConversationIDMap.keys)
+                self.getTemporaryConversations(by: IDs) { (result) in
+                    assert(self.specificAssertion)
+                    handleResult(result, temporaryConversationIDMap)
+                    group.leave()
+                }
+            }
             group.notify(queue: self.serialQueue) {
-                var bothTrue = true
-                for flag in groupFlags {
-                    guard flag else {
-                        bothTrue = false
-                        break
-                    }
+                guard !groupFlags.contains(false) else {
+                    return
                 }
-                if bothTrue, patchCommand.hasLastPatchTime {
-                    self.lastPatchTime = patchCommand.lastPatchTime
-                }
+                updateLastPatchTime()
             }
         }
     }
