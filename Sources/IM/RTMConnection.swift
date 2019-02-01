@@ -127,10 +127,12 @@ class RTMConnection {
         func handle(callbackCommand command: IMGenericCommand) {
             let i: Int32 = (command.hasI ? command.i : 0)
             guard i > 0 && i <= UInt16.max else {
+                Logger.shared.error("unexpected index<\(command.i)> of command has been found.")
                 return
             }
             let indexKey: UInt16 = UInt16(i)
             guard let commandCallback: CommandCallback = self.commandCallbackCollection.removeValue(forKey: indexKey) else {
+                Logger.shared.error("not found callback for in command with index<\(indexKey)>.")
                 return
             }
             if let index: Int = self.commandIndexSequence.firstIndex(of: indexKey) {
