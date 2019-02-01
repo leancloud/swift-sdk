@@ -1096,7 +1096,8 @@ private extension IMClient {
             }
         }
         let updateLastUnreadNotifTime: () -> Void = {
-            if unreadCommand.hasNotifTime {
+            if self.options.contains(.receiveUnreadMessageCountAfterSessionDidOpen),
+                unreadCommand.hasNotifTime {
                 if let oldTime: Int64 = self.lastUnreadNotifTime {
                     if unreadCommand.notifTime > oldTime {
                         self.lastUnreadNotifTime = unreadCommand.notifTime
@@ -1176,7 +1177,8 @@ private extension IMClient {
             }
         }
         let updateLastPatchTime: () -> Void = {
-            if lastPatchTimestamp > 0 {
+            if self.options.contains(.receiveUnreadMessageCountAfterSessionDidOpen),
+                lastPatchTimestamp > 0 {
                 if let oldTime = self.lastPatchTime {
                     if lastPatchTimestamp > oldTime {
                         self.lastPatchTime = lastPatchTimestamp
