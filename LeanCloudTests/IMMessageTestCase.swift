@@ -489,7 +489,10 @@ class IMMessageTestCase: RTMBaseTestCase {
         let message = IMAudioMessage()
         let format: String = "mp3"
         message.file = LCFile(payload: .fileURL(fileURL: resourceURL(name: "test", ext: format)))
-        let success = sendingAndReceiving(sentMessage: message) { (rMessage) in
+        var progress = 0.0
+        let success = sendingAndReceiving(sentMessage: message, progress: { p in
+            progress = p
+        }) { (rMessage) in
             XCTAssertNotNil(rMessage?.file?.objectId?.value)
             XCTAssertEqual(rMessage?.format, format)
             XCTAssertNotNil(rMessage?.size)
@@ -502,13 +505,17 @@ class IMMessageTestCase: RTMBaseTestCase {
             XCTAssertEqual(rMessage?.url, message.url)
         }
         XCTAssertTrue(success)
+        XCTAssertEqual(progress, 1.0)
     }
     
     func testVideoMessageSendingAndReceiving() {
         let message = IMVideoMessage()
         let format: String = "mp4"
         message.file = LCFile(payload: .fileURL(fileURL: resourceURL(name: "test", ext: format)))
-        let success = sendingAndReceiving(sentMessage: message) { (rMessage) in
+        var progress = 0.0
+        let success = sendingAndReceiving(sentMessage: message, progress: { p in
+            progress = p
+        }) { (rMessage) in
             XCTAssertNotNil(rMessage?.file?.objectId?.value)
             XCTAssertEqual(rMessage?.format, format)
             XCTAssertNotNil(rMessage?.size)
@@ -521,6 +528,7 @@ class IMMessageTestCase: RTMBaseTestCase {
             XCTAssertEqual(rMessage?.url, message.url)
         }
         XCTAssertTrue(success)
+        XCTAssertEqual(progress, 1.0)
     }
     
     func testFileMessageSendingAndReceiving() {
@@ -669,9 +677,12 @@ class IMMessageTestCase: RTMBaseTestCase {
         XCTAssertNil(receivingTuple?.client.lastPatchTime)
     }
     
-    func _testMessagePatchNotification() {
+    func testMessagePatchNotification() {
         guard
-            let tuples = convenienceInit(clientOptions: [.receiveUnreadMessageCountAfterSessionDidOpen]),
+            let tuples = convenienceInit(
+                clientOptions: [.receiveUnreadMessageCountAfterSessionDidOpen],
+                RTMServerURL: testableRTMURL
+            ),
             let sendingTuple = tuples.first,
             let receivingTuple = tuples.last
             else
@@ -845,7 +856,8 @@ extension IMMessageTestCase {
     
     func convenienceInit(
         clientCount: Int = 2,
-        clientOptions: IMClient.Options = .default)
+        clientOptions: IMClient.Options = .default,
+        RTMServerURL: URL? = nil)
         -> [Tuple]?
     {
         var tuples: [Tuple] = []
@@ -856,7 +868,7 @@ extension IMMessageTestCase {
         var conversationMap: [String: IMConversation] = [:]
         var clientIDs: [String] = []
         for _ in 0..<clientCount {
-            guard let client = newOpenedClient(options: clientOptions) else {
+            guard let client = newOpenedClient(options: clientOptions, customRTMURL: RTMServerURL) else {
                 continue
             }
             let delegator = IMClientTestCase.Delegator()
@@ -898,6 +910,7 @@ extension IMMessageTestCase {
     
     func sendingAndReceiving<T: IMCategorizedMessage>(
         sentMessage: T,
+        progress: ((Double) -> Void)? = nil,
         receivedMessageChecker: ((T?) -> Void)? = nil)
         -> Bool
     {
@@ -907,6 +920,7 @@ extension IMMessageTestCase {
             sentMessage: sentMessage,
             sendingTuple: &sendingTuple,
             receivingTuple: &receivingTuple,
+            progress: progress,
             receivedMessageChecker: receivedMessageChecker
         )
     }
@@ -915,6 +929,7 @@ extension IMMessageTestCase {
         sentMessage: T,
         sendingTuple: inout Tuple?,
         receivingTuple: inout Tuple?,
+        progress: ((Double) -> Void)? = nil,
         receivedMessageChecker: ((T?) -> Void)? = nil)
         -> Bool
     {
@@ -947,7 +962,7 @@ extension IMMessageTestCase {
                 break
             }
         }
-        try? tuple1.conversation.send(message: sentMessage, completion: { (result) in
+        try? tuple1.conversation.send(message: sentMessage, progress: progress, completion: { (result) in
             XCTAssertTrue(result.isSuccess)
             XCTAssertNil(result.error)
             if result.isSuccess {
