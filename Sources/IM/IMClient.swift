@@ -148,7 +148,8 @@ public final class IMClient {
         static let support: SessionConfigs = [
             .patchMessage,
             .temporaryConversationMessage,
-            .transientMessageACK
+            .transientMessageACK,
+            .partialFailedMessage
         ]
     }
     
@@ -321,7 +322,6 @@ extension IMClient {
             self.openingCompletion = completion
             self.openingOptions = options
             
-            /* Enable auto-reconnection for opening WebSocket connection to send session command. */
             self.connection.delegate = self
             self.connection.connect()
         }
@@ -801,7 +801,7 @@ private extension IMClient {
             }
         case (.session, .closed):
             let sessionMessage = command.sessionMessage
-            self.process(sessionClosedCommand: sessionMessage, completion: completion)
+            self.sessionClosed(with: .failure(error: sessionMessage.lcError), completion: completion)
         default:
             let error = LCError(code: .commandInvalid)
             self.sessionClosed(with: .failure(error: error), completion: completion)
@@ -825,21 +825,6 @@ private extension IMClient {
                 self.delegate?.client(self, event: .sessionDidClose(error: error))
             }
         }
-    }
-    
-    func process(sessionClosedCommand sessionCommand: IMSessionCommand, completion: ((LCBooleanResult) -> Void)? = nil) {
-        assert(self.specificAssertion)
-        let code: Int = Int(sessionCommand.code)
-        let reason: String? = (sessionCommand.hasReason ? sessionCommand.reason : nil)
-        var userInfo: LCError.UserInfo? = [:]
-        if sessionCommand.hasDetail { userInfo?["detail"] = sessionCommand.detail }
-        do {
-            userInfo = try userInfo?.jsonObject()
-        } catch {
-            Logger.shared.error(error)
-        }
-        let error = LCError(code: code, reason: reason, userInfo: userInfo)
-        self.sessionClosed(with: .failure(error: error), completion: completion)
     }
     
     func getConversation(by ID: String, completion: @escaping (LCGenericResult<IMConversation>) -> Void) {
@@ -961,7 +946,7 @@ private extension IMClient {
             switch result {
             case .success(value: let conversation):
                 let byClientID: String? = (command.hasInitBy ? command.initBy : nil)
-                let members: Set<String> = Set<String>(command.m)
+                let members: [String] = command.m
                 let event: IMConversationEvent
                 let rawDataOperation: IMConversation.RawDataChangeOperation
                 switch op {
@@ -972,11 +957,11 @@ private extension IMClient {
                     event = .left(byClientID: byClientID)
                     rawDataOperation = .remove(members: [self.ID])
                 case .membersJoined:
-                    event = .membersJoined(tuple: (members, byClientID))
-                    rawDataOperation = .append(members: members)
+                    event = .membersJoined(members: members, byClientID: byClientID)
+                    rawDataOperation = .append(members: Set(members))
                 case .membersLeft:
-                    event = .membersLeft(tuple: (members, byClientID))
-                    rawDataOperation = .remove(members: members)
+                    event = .membersLeft(members: members, byClientID: byClientID)
+                    rawDataOperation = .remove(members: Set(members))
                 default:
                     return
                 }
@@ -1341,7 +1326,7 @@ extension IMClient: RTMConnectionDelegate {
         case .session:
             switch inCommand.op {
             case .closed:
-                self.process(sessionClosedCommand: inCommand.sessionMessage)
+                self.sessionClosed(with: .failure(error: inCommand.sessionMessage.lcError))
             default:
                 break
             }
@@ -1385,9 +1370,9 @@ public enum IMConversationEvent {
     
     case left(byClientID: String?)
     
-    case membersJoined(tuple: (members: Set<String>, byClientID: String?))
+    case membersJoined(members: [String], byClientID: String?)
     
-    case membersLeft(tuple: (members: Set<String>, byClientID: String?))
+    case membersLeft(members: [String], byClientID: String?)
     
     case dataUpdated
     

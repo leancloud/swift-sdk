@@ -336,31 +336,28 @@ extension IMConversation {
                 switch result {
                 case .inCommand(let inCommand):
                     assert(self.specificAssertion)
-                    if let ack: IMAckCommand = (inCommand.hasAckMessage ? inCommand.ackMessage : nil),
+                    let ackCommand = (inCommand.hasAckMessage ? inCommand.ackMessage : nil)
+                    if
+                        let ack: IMAckCommand = ackCommand,
                         let messageID: String = (ack.hasUid ? ack.uid : nil),
-                        let timestamp: Int64 = (ack.hasT ? ack.t : nil) {
+                        let timestamp: Int64 = (ack.hasT ? ack.t : nil)
+                    {
                         message.update(status: .sent, ID: messageID, timestamp: timestamp)
                         self.safeUpdatingLastMessage(newMessage: message)
                         self.eventQueue.async {
                             completion(.success)
                         }
-                    } else if let ack: IMAckCommand = (inCommand.hasAckMessage ? inCommand.ackMessage : nil),
-                        ack.hasCode || ack.hasAppCode {
-                        var userInfo: LCError.UserInfo? = [:]
-                        let code: Int = Int(ack.code)
-                        let reason: String? = (ack.hasReason ? ack.reason : nil)
-                        if ack.hasAppCode { userInfo?["appCode"] = ack.appCode }
-                        do {
-                            userInfo = try userInfo?.jsonObject()
-                        } catch {
-                            Logger.shared.error(error)
-                        }
-                        message.update(status: .failed)
+                    }
+                    else if
+                        let ack: IMAckCommand = ackCommand,
+                        let error: LCError = ack.lcError
+                    {
                         self.eventQueue.async {
-                            let error = LCError(code: code, reason: reason, userInfo: userInfo)
                             completion(.failure(error: error))
                         }
-                    } else {
+                    }
+                    else
+                    {
                         message.update(status: .failed)
                         self.eventQueue.async {
                             let error = LCError(code: .commandInvalid)
@@ -670,6 +667,136 @@ extension IMConversation {
     
 }
 
+// MARK: - Members
+
+extension IMConversation {
+    
+    public enum MemberResult: LCResultType {
+        case allSucceeded
+        case failure(error: LCError)
+        case segment(success: [String]?, failure: [(IDs: [String], error: LCError)])
+        
+        public var isSuccess: Bool {
+            switch self {
+            case .allSucceeded:
+                return true
+            default:
+                return false
+            }
+        }
+        
+        public var error: LCError? {
+            switch self {
+            case .failure(error: let error):
+                return error
+            default:
+                return nil
+            }
+        }
+        
+        public init(error: LCError) {
+            self = .failure(error: error)
+        }
+    }
+    
+    public func join(completion: @escaping (LCBooleanResult) -> Void) throws {
+        try self.add(members: [self.clientID]) { result in
+            switch result {
+            case .allSucceeded:
+                completion(.success)
+            case .failure(error: let error):
+                completion(.failure(error: error))
+            case .segment(success: _, failure: let errors):
+                let error = (errors.first?.error ?? LCError(code: .malformedData))
+                completion(.failure(error: error))
+            }
+        }
+    }
+    
+    public func leave(completion: @escaping (LCBooleanResult) -> Void) throws {
+        try self.remove(members: [self.clientID]) { result in
+            switch result {
+            case .allSucceeded:
+                completion(.success)
+            case .failure(error: let error):
+                completion(.failure(error: error))
+            case .segment(success: _, failure: let errors):
+                let error = (errors.first?.error ?? LCError(code: .malformedData))
+                completion(.failure(error: error))
+            }
+        }
+    }
+    
+    public func add(members: Set<String>, completion: @escaping (MemberResult) -> Void) throws {
+        try self.update(members: members, op: .add, completion: completion)
+    }
+    
+    public func remove(members: Set<String>, completion: @escaping (MemberResult) -> Void) throws {
+        try self.update(members: members, op: .remove, completion: completion)
+    }
+    
+    private func update(members: Set<String>, op: IMOpType, completion: @escaping (MemberResult) -> Void) throws {
+        guard !members.isEmpty else {
+            throw LCError(code: .inconsistency, reason: "parameter `members` should not be empty.")
+        }
+        for memberID in members {
+            guard IMClient.lengthRangeOfClientID.contains(memberID.count) else {
+                throw LCError.clientIDInvalid
+            }
+        }
+        self.client?.sendCommand(constructor: { () -> IMGenericCommand in
+            var outCommand = IMGenericCommand()
+            outCommand.cmd = .conv
+            outCommand.op = op
+            var convCommand = IMConvCommand()
+            convCommand.cid = self.ID
+            convCommand.m = Array<String>(members)
+            outCommand.convMessage = convCommand
+            return outCommand
+        }, completion: { (result) in
+            switch result {
+            case .inCommand(let inCommand):
+                assert(self.specificAssertion)
+                if let convCommand = (inCommand.hasConvMessage ? inCommand.convMessage : nil) {
+                    let allowedPids: [String] = convCommand.allowedPids
+                    let failedPids: [IMErrorCommand] = convCommand.failedPids
+                    let memberResult: MemberResult
+                    if failedPids.isEmpty {
+                        memberResult = .allSucceeded
+                    } else {
+                        let successIDs = (allowedPids.isEmpty ? nil : allowedPids)
+                        var failures: [([String], LCError)] = []
+                        for errCommand in failedPids {
+                            failures.append((errCommand.pids, errCommand.lcError))
+                        }
+                        memberResult = .segment(success: successIDs, failure: failures)
+                    }
+                    switch inCommand.op {
+                    case .added:
+                        self.safeChangingRawData(operation: .append(members: Set(allowedPids)))
+                    case .removed:
+                        self.safeChangingRawData(operation: .remove(members: Set(allowedPids)))
+                    default:
+                        break
+                    }
+                    self.eventQueue.async {
+                        completion(memberResult)
+                    }
+                } else {
+                    self.eventQueue.async {
+                        completion(.failure(error: LCError(code: .commandInvalid)))
+                    }
+                }
+            case .error(let error):
+                self.eventQueue.async {
+                    completion(.failure(error: error))
+                }
+            }
+        })
+    }
+    
+}
+
 // MARK: - Internal
 
 internal extension IMConversation {
@@ -695,36 +822,29 @@ internal extension IMConversation {
             self.rawData = data
         case .append(members: let joinedMembers):
             guard !joinedMembers.isEmpty else { break }
-            if var originMembers: [String] = self.decodingRawData(with: .members) {
-                let originMembersSet: Set<String> = Set<String>(originMembers)
-                for member in joinedMembers {
-                    if !originMembersSet.contains(member) {
-                        originMembers.append(member)
-                    }
-                }
-                self.rawData[Key.members.rawValue] = originMembers
+            let newMembers: [String]
+            if let originMembers: [String] = self.decodingRawData(with: .members) {
+                let newMemberSet: Set<String> = Set(originMembers).union(joinedMembers)
+                newMembers = Array(newMemberSet)
             } else {
-                self.rawData[Key.members.rawValue] = joinedMembers
+                newMembers = Array(joinedMembers)
             }
+            self.rawData[Key.members.rawValue] = newMembers
         case .remove(members: let leftMembers):
             guard
                 !leftMembers.isEmpty,
-                var originMembers: [String] = self.decodingRawData(with: .members)
+                let originMembers: [String] = self.decodingRawData(with: .members)
                 else
             { break }
-            for member in leftMembers {
-                if let index = originMembers.firstIndex(of: member) {
-                    originMembers.remove(at: index)
-                }
-                if member == self.clientID {
-                    /*
-                     if this client has left this conversation,
-                     then can consider thsi conversation's data is outdated
-                     */
-                    self.underlyingOutdated = true
-                }
+            if leftMembers.contains(self.clientID) {
+                /*
+                 if this client has left this conversation,
+                 then can consider thsi conversation's data is outdated
+                 */
+                self.underlyingOutdated = true
             }
-            self.rawData[Key.members.rawValue] = originMembers
+            let newMembers: [String] = Array(Set(originMembers).subtracting(leftMembers))
+            self.rawData[Key.members.rawValue] = newMembers
         }
         self.mutex.unlock()
     }
