@@ -692,20 +692,94 @@ extension LCError {
 extension IMGenericCommand {
     
     fileprivate var encounteredError: LCError? {
-        if self.cmd == .error, self.hasErrorMessage {
-            let errorCommand = self.errorMessage
-            let code: Int = Int(errorCommand.code)
-            let reason: String? = (errorCommand.hasReason ? errorCommand.reason : nil)
-            var userInfo: LCError.UserInfo? = [:]
-            if errorCommand.hasAppCode { userInfo?["appCode"] = errorCommand.appCode }
-            if errorCommand.hasDetail { userInfo?["detail"] = errorCommand.detail }
+        if self.cmd == .error {
+            if self.hasErrorMessage {
+                return self.errorMessage.lcError
+            } else {
+                return LCError(code: .commandInvalid)
+            }
+        } else {
+            return nil
+        }
+    }
+    
+}
+
+extension IMErrorCommand {
+    
+    var lcError: LCError {
+        let code: Int = Int(self.code)
+        let reason: String? = (self.hasReason ? self.reason : nil)
+        var userInfo: LCError.UserInfo? = [:]
+        if self.hasAppCode {
+            userInfo?["appCode"] = self.appCode
+        }
+        if self.hasDetail {
+            userInfo?["detail"] = self.detail
+        }
+        if let ui = userInfo, ui.isEmpty {
+            userInfo = nil
+        } else {
             do {
                 userInfo = try userInfo?.jsonObject()
             } catch {
                 Logger.shared.error(error)
                 userInfo = nil
             }
-            return LCError(code: code, reason: reason, userInfo: userInfo)
+        }
+        let error = LCError(code: code, reason: reason, userInfo: userInfo)
+        return error
+    }
+    
+}
+
+extension IMSessionCommand {
+    
+    var lcError: LCError {
+        let code: Int = Int(self.code)
+        let reason: String? = (self.hasReason ? self.reason : nil)
+        var userInfo: LCError.UserInfo? = [:]
+        if self.hasDetail {
+            userInfo?["detail"] = self.detail
+        }
+        if let ui = userInfo, ui.isEmpty {
+            userInfo = nil
+        } else {
+            do {
+                userInfo = try userInfo?.jsonObject()
+            } catch {
+                Logger.shared.error(error)
+                userInfo = nil
+            }
+        }
+        let error = LCError(code: code, reason: reason, userInfo: userInfo)
+        return error
+    }
+    
+}
+
+extension IMAckCommand {
+    
+    var lcError: LCError? {
+        if self.hasCode || self.hasAppCode {
+            let code: Int = Int(self.code)
+            let reason: String? = (self.hasReason ? self.reason : nil)
+            var userInfo: LCError.UserInfo? = [:]
+            if self.hasAppCode {
+                userInfo?["appCode"] = self.appCode
+            }
+            if let ui = userInfo, ui.isEmpty {
+                userInfo = nil
+            } else {
+                do {
+                    userInfo = try userInfo?.jsonObject()
+                } catch {
+                    Logger.shared.error(error)
+                    userInfo = nil
+                }
+            }
+            let error = LCError(code: code, reason: reason, userInfo: userInfo)
+            return error
         } else {
             return nil
         }
