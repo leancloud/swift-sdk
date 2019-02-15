@@ -16,5 +16,9 @@ class RTMBaseTestCase: BaseTestCase {
     var uuid: String {
         return UUID().uuidString.replacingOccurrences(of: "-", with: "")
     }
+    
+    static var uuid: String {
+        return UUID().uuidString.replacingOccurrences(of: "-", with: "")
+    }
 
 }

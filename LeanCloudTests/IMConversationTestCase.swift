@@ -12,7 +12,7 @@ import Alamofire
 
 class IMConversationTestCase: RTMBaseTestCase {
     
-    private lazy var v2Router = HTTPRouter(
+    static let v2Router = HTTPRouter(
         application: .default,
         configuration: HTTPRouter.Configuration(apiVersion: "1.2")
     )
@@ -164,7 +164,7 @@ class IMConversationTestCase: RTMBaseTestCase {
             }
             exp.fulfill()
         }
-        waitForExpectations(timeout: timeout, handler: nil)
+        wait(for: [exp], timeout: timeout)
         
         XCTAssertEqual(clientA.convCollection.count, 1)
         XCTAssertEqual(clientB.convCollection.count, 1)
@@ -486,16 +486,16 @@ class IMConversationTestCase: RTMBaseTestCase {
         
         let clientID = uuid
         
-        guard let serviceConvID: String = newServiceConversation(),
-            subscribing(serviceConversation: serviceConvID, by: clientID),
-            let _ = broadcastingMessage(to: serviceConvID)
+        guard let serviceConvID: String = IMConversationTestCase.newServiceConversation(),
+            IMConversationTestCase.subscribing(serviceConversation: serviceConvID, by: clientID),
+            let _ = IMConversationTestCase.broadcastingMessage(to: serviceConvID)
             else
         {
             XCTFail()
             return
         }
         
-        delay()
+        delay(seconds: 15)
         
         let clientA = try! IMClient(ID: clientID, options: [.receiveUnreadMessageCountAfterSessionDidOpen])
         let delegator = IMClientTestCase.Delegator()
@@ -790,6 +790,73 @@ class IMConversationTestCase: RTMBaseTestCase {
         wait(for: [removeAndAddExp], timeout: timeout)
     }
     
+    func testGetChatRoomOnlineCount() {
+        guard
+            let clientA = newOpenedClient(),
+            let clientB = newOpenedClient()
+            else
+        {
+            XCTFail()
+            return
+        }
+        
+        var chatRoomA: IMChatRoom? = nil
+        
+        let createExp = expectation(description: "create chat room")
+        try? clientA.createChatRoom(completion: { (result) in
+            XCTAssertTrue(result.isSuccess)
+            XCTAssertNil(result.error)
+            chatRoomA = result.value
+            createExp.fulfill()
+        })
+        wait(for: [createExp], timeout: timeout)
+        
+        var chatRoomB: IMChatRoom? = nil
+        
+        let queryExp = expectation(description: "query chat room")
+        if let ID = chatRoomA?.ID {
+            try? clientB.conversationQuery.getConversation(by: ID, completion: { (result) in
+                XCTAssertTrue(result.isSuccess)
+                XCTAssertNil(result.error)
+                chatRoomB = result.value as? IMChatRoom
+                queryExp.fulfill()
+            })
+        }
+        wait(for: [queryExp], timeout: timeout)
+        
+        let countExp = expectation(description: "get online count")
+        countExp.expectedFulfillmentCount = 5
+        chatRoomA?.getOnlineMemberCount(completion: { (result) in
+            XCTAssertTrue(result.isSuccess)
+            XCTAssertNil(result.error)
+            XCTAssertEqual(result.intValue, 1)
+            countExp.fulfill()
+            try? chatRoomB?.join(completion: { (result) in
+                XCTAssertTrue(result.isSuccess)
+                XCTAssertNil(result.error)
+                countExp.fulfill()
+                chatRoomA?.getOnlineMemberCount(completion: { (result) in
+                    XCTAssertTrue(result.isSuccess)
+                    XCTAssertNil(result.error)
+                    XCTAssertEqual(result.intValue, 2)
+                    countExp.fulfill()
+                    try? chatRoomB?.leave(completion: { (result) in
+                        XCTAssertTrue(result.isSuccess)
+                        XCTAssertNil(result.error)
+                        countExp.fulfill()
+                        chatRoomA?.getOnlineMemberCount(completion: { (result) in
+                            XCTAssertTrue(result.isSuccess)
+                            XCTAssertNil(result.error)
+                            XCTAssertEqual(result.intValue, 1)
+                            countExp.fulfill()
+                        })
+                    })
+                })
+            })
+        })
+        wait(for: [countExp], timeout: timeout)
+    }
+    
 }
 
 extension IMConversationTestCase {
@@ -810,9 +877,8 @@ extension IMConversationTestCase {
         return client
     }
     
-    func newServiceConversation() -> String? {
+    static func newServiceConversation() -> String? {
         var objectID: String?
-        let exp = expectation(description: "create service conversation")
         let parameters: Parameters = [
             "name": uuid
         ]
@@ -829,6 +895,7 @@ extension IMConversationTestCase {
             headers: headers
             ).request!
         print("------\n\(request.url!)\n\(parameters)\n------\n")
+        var loop = true
         let task = URLSession.shared.dataTask(with: request) { (data, response, error) in
             let statusCode = (response as? HTTPURLResponse)?.statusCode ?? 0
             XCTAssertTrue((200..<300).contains(statusCode))
@@ -838,16 +905,17 @@ extension IMConversationTestCase {
                 print("------\n\(json)\n------\n")
                 objectID = json["objectId"] as? String
             }
-            exp.fulfill()
+            loop = false
         }
         task.resume()
-        wait(for: [exp], timeout: timeout)
+        while loop {
+            RunLoop.current.run(mode: .default, before: Date(timeIntervalSinceNow: 0.1))
+        }
         return objectID
     }
     
-    func subscribing(serviceConversation conversationID: String, by clientID: String) -> Bool {
+    static func subscribing(serviceConversation conversationID: String, by clientID: String) -> Bool {
         var success: Bool = false
-        let exp = expectation(description: "subscribe a service conversation")
         let parameters: Parameters = [
             "client_id": clientID
         ]
@@ -864,6 +932,7 @@ extension IMConversationTestCase {
             headers: headers
             ).request!
         print("------\n\(request.url!)\n\(parameters)\n------\n")
+        var loop = true
         let task = URLSession.shared.dataTask(with: request) { (data, response, error) in
             let statusCode = (response as? HTTPURLResponse)?.statusCode ?? 0
             if (200..<300).contains(statusCode) {
@@ -876,19 +945,20 @@ extension IMConversationTestCase {
                 let json: [String: Any] = object {
                 print("------\n\(json)\n------\n")
             }
-            exp.fulfill()
+            loop = false
         }
         task.resume()
-        wait(for: [exp], timeout: timeout)
+        while loop {
+            RunLoop.current.run(mode: .default, before: Date(timeIntervalSinceNow: 0.1))
+        }
         return success
     }
     
-    func broadcastingMessage(to conversationID: String) -> (String, Int64)? {
+    static func broadcastingMessage(to conversationID: String, content: String = "test") -> (String, Int64)? {
         var tuple: (String, Int64)?
-        let exp = expectation(description: "service conversation broadcasting message")
         let parameters: Parameters = [
             "from_client": "master",
-            "message": "test"
+            "message": content
         ]
         let headers: HTTPHeaders = [
             "X-LC-Id": LCApplication.default.id,
@@ -903,6 +973,7 @@ extension IMConversationTestCase {
             headers: headers
             ).request!
         print("------\n\(request.url!)\n\(parameters)\n------\n")
+        var loop = true
         let task = URLSession.shared.dataTask(with: request) { (data, response, error) in
             let statusCode = (response as? HTTPURLResponse)?.statusCode ?? 0
             XCTAssertTrue((200..<300).contains(statusCode))
@@ -916,10 +987,12 @@ extension IMConversationTestCase {
                     tuple = (messageID, timestamp)
                 }
             }
-            exp.fulfill()
+            loop = false
         }
         task.resume()
-        wait(for: [exp], timeout: timeout)
+        while loop {
+            RunLoop.current.run(mode: .default, before: Date(timeIntervalSinceNow: 0.1))
+        }
         return tuple
     }
     

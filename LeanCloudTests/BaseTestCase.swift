@@ -28,10 +28,11 @@ class BaseTestCase: XCTestCase {
     
     let timeout: TimeInterval = 60.0
     
-    var masterKey: String {
+    static var masterKey: String {
         if LCApplication.default.id == "S5vDI3IeCk1NLLiM1aFg3262-gzGzoHsz" {
             return "Q26gTodbyi1Ki7lM9vtncF6U,master"
         } else {
+            XCTFail("default Application ID changed")
             return ""
         }
     }

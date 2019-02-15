@@ -418,8 +418,169 @@ class IMMessageTestCase: RTMBaseTestCase {
         wait(for: [receiveExp], timeout: timeout)
     }
     
-    func testSendMessageToChatRoomAndReceiving() {
+    func testSendMessageToChatRoom() {
+        guard
+            let clientA = newOpenedClient(),
+            let clientB = newOpenedClient()
+            else
+        {
+            XCTFail()
+            return
+        }
         
+        let delegatorA = IMClientTestCase.Delegator()
+        clientA.delegate = delegatorA
+        let delegatorB = IMClientTestCase.Delegator()
+        clientB.delegate = delegatorB
+        
+        var chatRoomA: IMChatRoom? = nil
+        var chatRoomB: IMChatRoom? = nil
+        
+        let prepareExp = expectation(description: "create chat room")
+        prepareExp.expectedFulfillmentCount = 3
+        try? clientA.createChatRoom(completion: { (result) in
+            XCTAssertTrue(result.isSuccess)
+            XCTAssertNil(result.error)
+            chatRoomA = result.value
+            prepareExp.fulfill()
+            if let ID = chatRoomA?.ID {
+                try? clientB.conversationQuery.getConversation(by: ID, completion: { (result) in
+                    XCTAssertTrue(result.isSuccess)
+                    XCTAssertNil(result.error)
+                    chatRoomB = result.value as? IMChatRoom
+                    prepareExp.fulfill()
+                    try? chatRoomB?.join(completion: { (result) in
+                        XCTAssertTrue(result.isSuccess)
+                        XCTAssertNil(result.error)
+                        prepareExp.fulfill()
+                    })
+                })
+            }
+        })
+        wait(for: [prepareExp], timeout: timeout)
+        
+        let sendExp = expectation(description: "send message")
+        sendExp.expectedFulfillmentCount = 12
+        delegatorA.messageEvent = { client, conv, event in
+            if conv === chatRoomA {
+                switch event {
+                case .received(message: let message):
+                    XCTAssertEqual(message.content?.string, "test")
+                    sendExp.fulfill()
+                default:
+                    break
+                }
+            }
+        }
+        delegatorB.messageEvent = { client, conv, event in
+            if conv === chatRoomB {
+                switch event {
+                case .received(message: let message):
+                    XCTAssertEqual(message.content?.string, "test")
+                    sendExp.fulfill()
+                default:
+                    break
+                }
+            }
+        }
+        for messagePriority in
+            [IMChatRoom.MessagePriority.high,
+             IMChatRoom.MessagePriority.normal,
+             IMChatRoom.MessagePriority.low]
+        {
+            let messageA = IMMessage()
+            try? messageA.set(content: .string("test"))
+            try? chatRoomA?.send(message: messageA, priority: messagePriority, completion: { (result) in
+                XCTAssertTrue(result.isSuccess)
+                XCTAssertNil(result.error)
+                sendExp.fulfill()
+            })
+            let messageB = IMMessage()
+            try? messageB.set(content: .string("test"))
+            try? chatRoomB?.send(message: messageB, priority: messagePriority, completion: { (result) in
+                XCTAssertTrue(result.isSuccess)
+                XCTAssertNil(result.error)
+                sendExp.fulfill()
+            })
+        }
+        wait(for: [sendExp], timeout: timeout)
+        
+        XCTAssertNil(chatRoomA?.lastMessage)
+        XCTAssertNil(chatRoomB?.lastMessage)
+        XCTAssertTrue((chatRoomA?.members ?? []).isEmpty)
+        XCTAssertTrue((chatRoomB?.members ?? []).isEmpty)
+    }
+    
+    func testReceiveMessageFromServiceConversation() {
+        guard
+            let convID = IMConversationTestCase.newServiceConversation(),
+            let client = newOpenedClient() else {
+            XCTFail()
+            return
+        }
+        
+        delay(seconds: 5)
+        
+        let delegator = IMClientTestCase.Delegator()
+        client.delegate = delegator
+        var serviceConv: IMServiceConversation? = nil
+        
+        let subscribeExp = expectation(description: "subscribe service converastion")
+        subscribeExp.expectedFulfillmentCount = 2
+        try? client.conversationQuery.getConversation(by: convID) { (result) in
+            XCTAssertTrue(result.isSuccess)
+            XCTAssertNil(result.error)
+            serviceConv = result.value as? IMServiceConversation
+            subscribeExp.fulfill()
+            try? serviceConv?.subscribe(completion: { (result) in
+                XCTAssertTrue(result.isSuccess)
+                XCTAssertNil(result.error)
+                subscribeExp.fulfill()
+            })
+        }
+        wait(for: [subscribeExp], timeout: timeout)
+        
+        let receiveExp = expectation(description: "receive message")
+        delegator.messageEvent = { client, conv, event in
+            if conv === serviceConv {
+                switch event {
+                case .received(message: let message):
+                    XCTAssertEqual(message.content?.string, "test")
+                    receiveExp.fulfill()
+                    delegator.messageEvent = nil
+                default:
+                    break
+                }
+            }
+        }
+        XCTAssertNotNil(IMConversationTestCase.broadcastingMessage(to: convID, content: "test"))
+        wait(for: [receiveExp], timeout: timeout)
+        
+        delay(seconds: 5)
+        
+        let unsubscribeExp = expectation(description: "unsubscribe service conversation")
+        try? serviceConv?.unsubscribe(completion: { (result) in
+            XCTAssertTrue(result.isSuccess)
+            XCTAssertNil(result.error)
+            unsubscribeExp.fulfill()
+        })
+        wait(for: [unsubscribeExp], timeout: timeout)
+        
+        let shouldNotReceiveExp = expectation(description: "should not receive message")
+        shouldNotReceiveExp.isInverted = true
+        delegator.messageEvent = { client, conv, event in
+            if conv === serviceConv {
+                switch event {
+                case .received(message: let message):
+                    XCTAssertEqual(message.content?.string, "test")
+                    shouldNotReceiveExp.fulfill()
+                default:
+                    break
+                }
+            }
+        }
+        XCTAssertNotNil(IMConversationTestCase.broadcastingMessage(to: convID, content: "test"))
+        wait(for: [shouldNotReceiveExp], timeout: 5)
     }
     
     func testCustomMessageSendingAndReceiving() {
@@ -505,7 +666,7 @@ class IMMessageTestCase: RTMBaseTestCase {
             XCTAssertEqual(rMessage?.url, message.url)
         }
         XCTAssertTrue(success)
-        XCTAssertEqual(progress, 1.0)
+        XCTAssertTrue(progress > 0.0)
     }
     
     func testVideoMessageSendingAndReceiving() {
@@ -528,7 +689,7 @@ class IMMessageTestCase: RTMBaseTestCase {
             XCTAssertEqual(rMessage?.url, message.url)
         }
         XCTAssertTrue(success)
-        XCTAssertEqual(progress, 1.0)
+        XCTAssertTrue(progress > 0.0)
     }
     
     func testFileMessageSendingAndReceiving() {
