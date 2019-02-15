@@ -61,7 +61,7 @@ class FileTestCase: BaseTestCase {
     func testUploadFile() {
         let bundle = Bundle(for: type(of: self))
 
-        if let fileURL = bundle.url(forResource: "THE RIEMANN HYPOTHESIS", withExtension: "zip") {
+        if let fileURL = bundle.url(forResource: "test", withExtension: "zip") {
             upload(payload: .fileURL(fileURL: fileURL))
         } else {
             XCTFail("File not found")

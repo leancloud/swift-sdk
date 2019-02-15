@@ -14,12 +14,12 @@ class ConnectionTestViewController: UIViewController {
     
     @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
     @IBOutlet weak var label: UILabel!
-    var client: LCClient!
+    var client: IMClient!
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        self.client = try! LCClient(id: "ConnectionTestViewController", delegate: self)
+        self.client = try! IMClient(id: "ConnectionTestViewController", delegate: self)
         self.client.open { (result) in
             self.label.isHidden.toggle()
             self.activityIndicator.stopAnimating()
@@ -49,21 +49,21 @@ class ConnectionTestViewController: UIViewController {
     
 }
 
-extension ConnectionTestViewController: LCClientDelegate {
+extension ConnectionTestViewController: IMClientDelegate {
     
-    func client(didOpenSession client: LCClient) {
+    func client(didOpenSession client: IMClient) {
         self.showConnected()
     }
     
-    func client(didBecomeResumeSession client: LCClient) {
+    func client(didBecomeResumeSession client: IMClient) {
         self.showConnecting()
     }
     
-    func client(_ client: LCClient, didCloseSession error: LCError) {
+    func client(_ client: IMClient, didCloseSession error: LCError) {
         self.showError(error)
     }
     
-    func client(_ client: LCClient, didPauseSession error: LCError) {
+    func client(_ client: IMClient, didPauseSession error: LCError) {
         self.showError(error)
     }
     
