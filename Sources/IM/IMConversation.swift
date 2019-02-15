@@ -17,7 +17,7 @@ public class IMConversation {
     private let specificKey: DispatchSpecificKey<Int>?
     // whatever random Int is OK.
     private let specificValue: Int?
-    private var specificAssertion: Bool {
+    fileprivate var specificAssertion: Bool {
         if let key = specificKey, let value = specificValue {
             return value == DispatchQueue.getSpecific(key: key)
         } else {
@@ -25,7 +25,7 @@ public class IMConversation {
         }
     }
     #else
-    private var specificAssertion: Bool {
+    fileprivate var specificAssertion: Bool {
         return true
     }
     #endif
@@ -231,7 +231,7 @@ public class IMConversation {
         self.decodingLastMessage()
     }
     
-    private let eventQueue: DispatchQueue
+    fileprivate let eventQueue: DispatchQueue
     
     private var rawData: RawData
     
@@ -239,6 +239,10 @@ public class IMConversation {
     
     var notTransientConversation: Bool {
         return self.type != .transient
+    }
+    
+    var notServiceConversation: Bool {
+        return self.type != .system
     }
 
 }
@@ -802,26 +806,30 @@ extension IMConversation {
 internal extension IMConversation {
     
     enum RawDataChangeOperation {
-        
         case rawDataMerging(data: RawData)
-        
         case rawDataReplaced(by: RawData)
-        
         case append(members: Set<String>)
-        
         case remove(members: Set<String>)
-        
     }
     
     func safeChangingRawData(operation: RawDataChangeOperation) {
-        self.mutex.lock()
         switch operation {
         case .rawDataMerging(data: let data):
+            self.mutex.lock()
             self.rawData = self.rawData.merging(data) { (_, new) in new }
+            self.mutex.unlock()
         case .rawDataReplaced(by: let data):
+            self.mutex.lock()
             self.rawData = data
+            self.mutex.unlock()
         case .append(members: let joinedMembers):
-            guard !joinedMembers.isEmpty else { break }
+            guard
+                self.notTransientConversation,
+                self.notServiceConversation,
+                !joinedMembers.isEmpty
+                else
+            { break }
+            self.mutex.lock()
             let newMembers: [String]
             if let originMembers: [String] = self.decodingRawData(with: .members) {
                 let newMemberSet: Set<String> = Set(originMembers).union(joinedMembers)
@@ -830,12 +838,15 @@ internal extension IMConversation {
                 newMembers = Array(joinedMembers)
             }
             self.rawData[Key.members.rawValue] = newMembers
+            self.mutex.unlock()
         case .remove(members: let leftMembers):
             guard
-                !leftMembers.isEmpty,
-                let originMembers: [String] = self.decodingRawData(with: .members)
+                self.notTransientConversation,
+                self.notServiceConversation,
+                !leftMembers.isEmpty
                 else
             { break }
+            self.mutex.lock()
             if leftMembers.contains(self.clientID) {
                 /*
                  if this client has left this conversation,
@@ -843,10 +854,12 @@ internal extension IMConversation {
                  */
                 self.underlyingOutdated = true
             }
-            let newMembers: [String] = Array(Set(originMembers).subtracting(leftMembers))
-            self.rawData[Key.members.rawValue] = newMembers
+            if let originMembers: [String] = self.decodingRawData(with: .members) {
+                let newMembers: [String] = Array(Set(originMembers).subtracting(leftMembers))
+                self.rawData[Key.members.rawValue] = newMembers
+            }
+            self.mutex.unlock()
         }
-        self.mutex.unlock()
     }
     
     @discardableResult
@@ -973,10 +986,51 @@ public class IMChatRoom: IMConversation {
         case low = 3
     }
     
+    public func getOnlineMemberCount(completion: @escaping (LCCountResult) -> Void) {
+        self.client?.sendCommand(constructor: { () -> IMGenericCommand in
+            var outCommand = IMGenericCommand()
+            outCommand.cmd = .conv
+            outCommand.op = .count
+            var convCommand = IMConvCommand()
+            convCommand.cid = self.ID
+            outCommand.convMessage = convCommand
+            return outCommand
+        }, completion: { (result) in
+            switch result {
+            case .inCommand(let inCommand):
+                assert(self.specificAssertion)
+                if inCommand.hasConvMessage, inCommand.convMessage.hasCount {
+                    self.eventQueue.async {
+                        let count = Int(inCommand.convMessage.count)
+                        completion(.success(count: count))
+                    }
+                } else {
+                    self.eventQueue.async {
+                        completion(.failure(error: LCError(code: .commandInvalid)))
+                    }
+                }
+            case .error(let error):
+                self.eventQueue.async {
+                    completion(.failure(error: error))
+                }
+            }
+        })
+    }
+    
 }
 
 /// IM Service Conversation
-public class IMServiceConversation: IMConversation {}
+public class IMServiceConversation: IMConversation {
+    
+    public func subscribe(completion: @escaping (LCBooleanResult) -> Void) throws {
+        try self.join(completion: completion)
+    }
+    
+    public func unsubscribe(completion: @escaping (LCBooleanResult) -> Void) throws {
+        try self.leave(completion: completion)
+    }
+    
+}
 
 /// IM Temporary Conversation
 /// Temporary Conversation is unique in it's Life Cycle.
