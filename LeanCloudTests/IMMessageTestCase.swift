@@ -373,7 +373,7 @@ class IMMessageTestCase: RTMBaseTestCase {
     
     func testMessageAutoSendingWhenOfflineAndReceiving() {
         guard
-            let tuples = convenienceInit(),
+            let tuples = convenienceInit(shouldConnectionShared: false),
             let tuple1 = tuples.first,
             let tuple2 = tuples.last
             else
@@ -842,7 +842,8 @@ class IMMessageTestCase: RTMBaseTestCase {
         guard
             let tuples = convenienceInit(
                 clientOptions: [.receiveUnreadMessageCountAfterSessionDidOpen],
-                RTMServerURL: testableRTMURL
+                RTMServerURL: testableRTMURL,
+                shouldConnectionShared: false
             ),
             let sendingTuple = tuples.first,
             let receivingTuple = tuples.last
@@ -981,7 +982,7 @@ extension IMMessageTestCase {
         customRTMURL: URL? = nil)
         -> IMClient?
     {
-        var client: IMClient? = try? IMClient(ID: clientID ?? uuid, options:options, customServer: customRTMURL)
+        var client: IMClient? = try? IMClient(ID: clientID ?? uuid, options:options, customServerURL: customRTMURL)
         let exp = expectation(description: "open")
         client?.open { (result) in
             XCTAssertTrue(result.isSuccess)
@@ -1018,7 +1019,8 @@ extension IMMessageTestCase {
     func convenienceInit(
         clientCount: Int = 2,
         clientOptions: IMClient.Options = .default,
-        RTMServerURL: URL? = nil)
+        RTMServerURL: URL? = nil,
+        shouldConnectionShared: Bool = true)
         -> [Tuple]?
     {
         var tuples: [Tuple] = []
@@ -1043,6 +1045,10 @@ extension IMMessageTestCase {
             clientMap[client.ID] = client
             delegatorMap[client.ID] = delegator
             clientIDs.append(client.ID)
+            if !shouldConnectionShared {
+                RTMConnectionRefMap_protobuf1.removeAll()
+                RTMConnectionRefMap_protobuf3.removeAll()
+            }
         }
         if let clientID: String = clientIDs.first,
             let client: IMClient = clientMap[clientID] {

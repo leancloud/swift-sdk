@@ -152,6 +152,9 @@ class IMClientTestCase: RTMBaseTestCase {
         }
         wait(for: [exp1], timeout: timeout)
         
+        RTMConnectionRefMap_protobuf1.removeAll()
+        RTMConnectionRefMap_protobuf3.removeAll()
+        
         let application2: LCApplication = LCApplication(
             id: LCApplication.default.id,
             key: LCApplication.default.key
