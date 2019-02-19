@@ -118,15 +118,11 @@ public class IMConversation {
     
     public private(set) var isOutdated: Bool {
         set {
-            self.mutex.lock()
-            self.underlyingOutdated = newValue
-            self.mutex.unlock()
+            sync(self.underlyingOutdated = newValue)
         }
         get {
-            let value: Bool
-            self.mutex.lock()
-            value = self.underlyingOutdated
-            self.mutex.unlock()
+            var value: Bool = false
+            sync(value = self.underlyingOutdated)
             return value
         }
     }
@@ -134,15 +130,11 @@ public class IMConversation {
     
     public private(set) var lastMessage: IMMessage? {
         set {
-            self.mutex.lock()
-            self.underlyingLastMessage = newValue
-            self.mutex.unlock()
+            sync(self.underlyingLastMessage = newValue)
         }
         get {
             var message: IMMessage? = nil
-            self.mutex.lock()
-            message = self.underlyingLastMessage
-            self.mutex.unlock()
+            sync(message = self.underlyingLastMessage)
             return message
         }
     }
@@ -150,32 +142,24 @@ public class IMConversation {
     
     public internal(set) var unreadMessageCount: Int {
         set {
-            self.mutex.lock()
-            self.underlyingUnreadMessageCount = newValue
-            self.mutex.unlock()
+            sync(self.underlyingUnreadMessageCount = newValue)
         }
         get {
             var count: Int = 0
-            self.mutex.lock()
-            count = self.underlyingUnreadMessageCount
-            self.mutex.unlock()
+            sync(count = self.underlyingUnreadMessageCount)
             return count
         }
     }
     private var underlyingUnreadMessageCount: Int = 0
     
     public var isUnreadMessageContainMention: Bool {
-        get {
-            var value: Bool
-            self.mutex.lock()
-            value = self.underlyingIsUnreadMessageContainMention
-            self.mutex.unlock()
-            return value
-        }
         set {
-            self.mutex.lock()
-            self.underlyingIsUnreadMessageContainMention = newValue
-            self.mutex.unlock()
+            sync(self.underlyingIsUnreadMessageContainMention = newValue)
+        }
+        get {
+            var value: Bool = false
+            sync(value = self.underlyingIsUnreadMessageContainMention)
+            return value
         }
     }
     private var underlyingIsUnreadMessageContainMention: Bool = false
@@ -223,6 +207,7 @@ public class IMConversation {
         self.ID = ID
         self.client = client
         self.rawData = rawData
+        self.lock = client.lock
         self.clientID = client.ID
         self.eventQueue = client.eventQueue
         self.type = type
@@ -235,7 +220,7 @@ public class IMConversation {
     
     private var rawData: RawData
     
-    private let mutex = NSLock()
+    private let lock: NSLock
     
     var notTransientConversation: Bool {
         return self.type != .transient
@@ -245,6 +230,14 @@ public class IMConversation {
         return self.type != .system
     }
 
+}
+
+extension IMConversation: InternalSynchronizing {
+    
+    var mutex: NSLock {
+        return self.lock
+    }
+    
 }
 
 // MARK: - Message Sending
@@ -336,7 +329,7 @@ extension IMConversation {
                 }
                 outCommand.directMessage = directCommand
                 return outCommand
-            }, completion: { (result) in
+            }, completion: { (_, result) in
                 switch result {
                 case .inCommand(let inCommand):
                     assert(self.specificAssertion)
@@ -581,7 +574,7 @@ extension IMConversation {
                 patchMessage.patches = [patchItem]
                 outCommand.patchMessage = patchMessage
                 return outCommand
-            }, completion: { (result) in
+            }, completion: { (_, result) in
                 switch result {
                 case .inCommand(let inCommand):
                     assert(self.specificAssertion)
@@ -757,7 +750,7 @@ extension IMConversation {
             convCommand.m = Array<String>(members)
             outCommand.convMessage = convCommand
             return outCommand
-        }, completion: { (result) in
+        }, completion: { (_, result) in
             switch result {
             case .inCommand(let inCommand):
                 assert(self.specificAssertion)
@@ -815,13 +808,13 @@ internal extension IMConversation {
     func safeChangingRawData(operation: RawDataChangeOperation) {
         switch operation {
         case .rawDataMerging(data: let data):
-            self.mutex.lock()
-            self.rawData = self.rawData.merging(data) { (_, new) in new }
-            self.mutex.unlock()
+            sync {
+                self.rawData = self.rawData.merging(data) { (_, new) in new }
+            }
         case .rawDataReplaced(by: let data):
-            self.mutex.lock()
-            self.rawData = data
-            self.mutex.unlock()
+            sync {
+                self.rawData = data
+            }
         case .append(members: let joinedMembers):
             guard
                 self.notTransientConversation,
@@ -829,16 +822,16 @@ internal extension IMConversation {
                 !joinedMembers.isEmpty
                 else
             { break }
-            self.mutex.lock()
-            let newMembers: [String]
-            if let originMembers: [String] = self.decodingRawData(with: .members) {
-                let newMemberSet: Set<String> = Set(originMembers).union(joinedMembers)
-                newMembers = Array(newMemberSet)
-            } else {
-                newMembers = Array(joinedMembers)
+            sync {
+                let newMembers: [String]
+                if let originMembers: [String] = self.decodingRawData(with: .members) {
+                    let newMemberSet: Set<String> = Set(originMembers).union(joinedMembers)
+                    newMembers = Array(newMemberSet)
+                } else {
+                    newMembers = Array(joinedMembers)
+                }
+                self.rawData[Key.members.rawValue] = newMembers
             }
-            self.rawData[Key.members.rawValue] = newMembers
-            self.mutex.unlock()
         case .remove(members: let leftMembers):
             guard
                 self.notTransientConversation,
@@ -846,19 +839,19 @@ internal extension IMConversation {
                 !leftMembers.isEmpty
                 else
             { break }
-            self.mutex.lock()
-            if leftMembers.contains(self.clientID) {
-                /*
-                 if this client has left this conversation,
-                 then can consider thsi conversation's data is outdated
-                 */
-                self.underlyingOutdated = true
+            sync {
+                if leftMembers.contains(self.clientID) {
+                    /*
+                     if this client has left this conversation,
+                     then can consider thsi conversation's data is outdated
+                     */
+                    self.underlyingOutdated = true
+                }
+                if let originMembers: [String] = self.decodingRawData(with: .members) {
+                    let newMembers: [String] = Array(Set(originMembers).subtracting(leftMembers))
+                    self.rawData[Key.members.rawValue] = newMembers
+                }
             }
-            if let originMembers: [String] = self.decodingRawData(with: .members) {
-                let newMembers: [String] = Array(Set(originMembers).subtracting(leftMembers))
-                self.rawData[Key.members.rawValue] = newMembers
-            }
-            self.mutex.unlock()
         }
     }
     
@@ -926,9 +919,7 @@ private extension IMConversation {
     
     func safeDecodingRawData<T>(with string: String) -> T? {
         var value: T? = nil
-        self.mutex.lock()
-        value = self.decodingRawData(with: string)
-        self.mutex.unlock()
+        sync(value = self.decodingRawData(with: string))
         return value
     }
     
@@ -995,7 +986,7 @@ public class IMChatRoom: IMConversation {
             convCommand.cid = self.ID
             outCommand.convMessage = convCommand
             return outCommand
-        }, completion: { (result) in
+        }, completion: { (_, result) in
             switch result {
             case .inCommand(let inCommand):
                 assert(self.specificAssertion)
