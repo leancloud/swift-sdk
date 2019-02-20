@@ -693,6 +693,50 @@ extension IMClient {
     
 }
 
+// MARK: - Session Query
+
+extension IMClient {
+    
+    /// Query online state of clients, the ID in result set means online.
+    ///
+    /// - Parameters:
+    ///   - clientIDs: The client to be queried, count of IDs should in range 1...20
+    ///   - completion: callback
+    /// - Throws: if parameter invalid, then throw error.
+    public func queryOnlineClients(clientIDs: Set<String>, completion: @escaping (LCGenericResult<Set<String>>) -> Void) throws {
+        guard !clientIDs.isEmpty, clientIDs.count <= 20 else {
+            throw LCError(code: .inconsistency, reason: "parameter `clientIDs`'s count should in range 1...20")
+        }
+        self.sendCommand(constructor: { () -> IMGenericCommand in
+            var outCommand = IMGenericCommand()
+            outCommand.cmd = .session
+            outCommand.op = .query
+            var sessionCommand = IMSessionCommand()
+            sessionCommand.sessionPeerIds = Array(clientIDs)
+            outCommand.sessionMessage = sessionCommand
+            return outCommand
+        }) { (client, result) in
+            switch result {
+            case .inCommand(let inCommand):
+                assert(client.specificAssertion)
+                client.eventQueue.async {
+                    if inCommand.hasSessionMessage {
+                        let value = Set(inCommand.sessionMessage.onlineSessionPeerIds)
+                        completion(.success(value: value))
+                    } else {
+                        completion(.failure(error: LCError(code: .commandInvalid)))
+                    }
+                }
+            case .error(let error):
+                client.eventQueue.async {
+                    completion(.failure(error: error))
+                }
+            }
+        }
+    }
+    
+}
+
 // MARK: - Internal
 
 extension IMClient {
