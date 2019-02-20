@@ -165,8 +165,8 @@ class RTMConnection {
     
     class Timer {
         
-        let pingpongInterval: TimeInterval
-        let pingTimeout: TimeInterval
+        let pingpongInterval: TimeInterval = 180.0
+        let pingTimeout: TimeInterval = 20.0
         let source: DispatchSourceTimer
         let socket: WebSocketClient
         private(set) var commandIndexSequence: [UInt16] = []
@@ -190,17 +190,11 @@ class RTMConnection {
         }
         #endif
         
-        init(connection: RTMConnection,
-             socket: WebSocketClient,
-             pingpongInterval: TimeInterval = 180.0,
-             pingTimeout: TimeInterval = 20.0)
-        {
+        init(connection: RTMConnection, socket: WebSocketClient) {
             #if DEBUG
             self.specificKey = connection.specificKey
             self.specificValue = connection.specificValue
             #endif
-            self.pingpongInterval = pingpongInterval
-            self.pingTimeout = pingTimeout
             self.source = DispatchSource.makeTimerSource(queue: connection.serialQueue)
             self.socket = socket
             self.source.schedule(deadline: .now(), repeating: .seconds(1))
