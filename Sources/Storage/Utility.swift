@@ -55,8 +55,10 @@ extension InternalSynchronizing {
     
     func sync(_ closure: () -> Void) {
         self.mutex.lock()
+        defer {
+            self.mutex.unlock()
+        }
         closure()
-        self.mutex.unlock()
     }
     
 }
