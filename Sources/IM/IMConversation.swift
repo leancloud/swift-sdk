@@ -13,23 +13,6 @@ public class IMConversation {
     
     typealias RawData = [String: Any]
     
-    #if DEBUG
-    private let specificKey: DispatchSpecificKey<Int>?
-    // whatever random Int is OK.
-    private let specificValue: Int?
-    fileprivate var specificAssertion: Bool {
-        if let key = specificKey, let value = specificValue {
-            return value == DispatchQueue.getSpecific(key: key)
-        } else {
-            return true
-        }
-    }
-    #else
-    fileprivate var specificAssertion: Bool {
-        return true
-    }
-    #endif
-    
     enum Key: String {
         case objectId = "objectId"
         case uniqueId = "uniqueId"
@@ -63,7 +46,7 @@ public class IMConversation {
         case temporary = 4
     }
     
-    internal let type: ConvType
+    let type: ConvType
     
     public private(set) weak var client: IMClient?
 
@@ -200,27 +183,20 @@ public class IMConversation {
     }
 
     init(ID: String, rawData: RawData, type: ConvType, client: IMClient) {
-        #if DEBUG
-        self.specificKey = client.specificKey
-        self.specificValue = client.specificValue
-        #endif
         self.ID = ID
         self.client = client
         self.rawData = rawData
         self.lock = client.lock
         self.clientID = client.ID
-        self.eventQueue = client.eventQueue
         self.type = type
         self.isUnique = (rawData[Key.unique.rawValue] as? Bool) ?? false
         self.uniqueID = (rawData[Key.uniqueId.rawValue] as? String)
         self.decodingLastMessage()
     }
     
-    fileprivate let eventQueue: DispatchQueue
+    private(set) var rawData: RawData
     
-    private var rawData: RawData
-    
-    private let lock: NSLock
+    let lock: NSLock
     
     var notTransientConversation: Bool {
         return self.type != .transient
@@ -285,7 +261,7 @@ extension IMConversation {
         try self.preprocess(message: message, pushData: pushData, progress: progress) { (pushDataString: String?, error: LCError?) in
             if let error: LCError = error {
                 message.update(status: .failed)
-                self.eventQueue.async {
+                self.client?.eventQueue.async {
                     completion(.failure(error: error))
                 }
                 return
@@ -329,10 +305,10 @@ extension IMConversation {
                 }
                 outCommand.directMessage = directCommand
                 return outCommand
-            }, completion: { (_, result) in
+            }, completion: { (client, result) in
                 switch result {
                 case .inCommand(let inCommand):
-                    assert(self.specificAssertion)
+                    assert(client.specificAssertion)
                     let ackCommand = (inCommand.hasAckMessage ? inCommand.ackMessage : nil)
                     if
                         let ack: IMAckCommand = ackCommand,
@@ -340,8 +316,8 @@ extension IMConversation {
                         let timestamp: Int64 = (ack.hasT ? ack.t : nil)
                     {
                         message.update(status: .sent, ID: messageID, timestamp: timestamp)
-                        self.safeUpdatingLastMessage(newMessage: message)
-                        self.eventQueue.async {
+                        self.safeUpdatingLastMessage(newMessage: message, client: client)
+                        client.eventQueue.async {
                             completion(.success)
                         }
                     }
@@ -349,21 +325,21 @@ extension IMConversation {
                         let ack: IMAckCommand = ackCommand,
                         let error: LCError = ack.lcError
                     {
-                        self.eventQueue.async {
+                        client.eventQueue.async {
                             completion(.failure(error: error))
                         }
                     }
                     else
                     {
                         message.update(status: .failed)
-                        self.eventQueue.async {
+                        client.eventQueue.async {
                             let error = LCError(code: .commandInvalid)
                             completion(.failure(error: error))
                         }
                     }
                 case .error(let error):
                     message.update(status: .failed)
-                    self.eventQueue.async {
+                    client.eventQueue.async {
                         completion(.failure(error: error))
                     }
                 }
@@ -449,8 +425,8 @@ extension IMConversation {
         })
     }
     
-    func process(unreadTuple: IMUnreadTuple) {
-        assert(self.specificAssertion)
+    func process(unreadTuple: IMUnreadTuple, client: IMClient) {
+        assert(client.specificAssertion)
         guard
             self.notTransientConversation,
             unreadTuple.hasUnread
@@ -491,17 +467,15 @@ extension IMConversation {
             return message
         }()
         if let message: IMMessage = newLastMessage {
-            self.safeUpdatingLastMessage(newMessage: message)
+            self.safeUpdatingLastMessage(newMessage: message, client: client)
         }
         if self.unreadMessageCount != newUnreadCount {
             self.unreadMessageCount = newUnreadCount
             if let isMentioned: Bool = newUnreadMentioned {
                 self.isUnreadMessageContainMention = isMentioned
             }
-            if let client = self.client {
-                self.eventQueue.async {
-                    client.delegate?.client(client, conversation: self, event: .unreadMessageUpdated)
-                }
+            client.eventQueue.async {
+                client.delegate?.client(client, conversation: self, event: .unreadMessageUpdated)
             }
         }
     }
@@ -543,7 +517,7 @@ extension IMConversation {
         }
         try self.preprocess(message: newMessage, progress: progress) { (_, error: LCError?) in
             if let error: LCError = error {
-                self.eventQueue.async {
+                self.client?.eventQueue.async {
                     completion(.failure(error: error))
                 }
                 return
@@ -574,10 +548,10 @@ extension IMConversation {
                 patchMessage.patches = [patchItem]
                 outCommand.patchMessage = patchMessage
                 return outCommand
-            }, completion: { (_, result) in
+            }, completion: { (client, result) in
                 switch result {
                 case .inCommand(let inCommand):
-                    assert(self.specificAssertion)
+                    assert(client.specificAssertion)
                     if inCommand.hasPatchMessage, inCommand.patchMessage.hasLastPatchTime {
                         newMessage.patchedTimestamp = inCommand.patchMessage.lastPatchTime
                         newMessage.update(
@@ -589,18 +563,18 @@ extension IMConversation {
                             clientID: self.clientID,
                             conversationID: self.ID
                         )
-                        self.safeUpdatingLastMessage(newMessage: newMessage)
-                        self.eventQueue.async {
+                        self.safeUpdatingLastMessage(newMessage: newMessage, client: client)
+                        client.eventQueue.async {
                             completion(.success)
                         }
                     } else {
-                        self.eventQueue.async {
+                        client.eventQueue.async {
                             let error = LCError(code: .commandInvalid)
                             completion(.failure(error: error))
                         }
                     }
                 case .error(let error):
-                    self.eventQueue.async {
+                    client.eventQueue.async {
                         completion(.failure(error: error))
                     }
                 }
@@ -620,8 +594,8 @@ extension IMConversation {
         })
     }
     
-    func process(patchItem: IMPatchItem) {
-        assert(self.specificAssertion)
+    func process(patchItem: IMPatchItem, client: IMClient) {
+        assert(client.specificAssertion)
         guard
             let timestamp: Int64 = (patchItem.hasTimestamp ? patchItem.timestamp : nil),
             let messageID: String = (patchItem.hasMid ? patchItem.mid : nil)
@@ -653,13 +627,72 @@ extension IMConversation {
             mentionedMembers: (patchItem.mentionPids.count > 0 ? patchItem.mentionPids : nil),
             status: .sent
         )
-        self.safeUpdatingLastMessage(newMessage: patchedMessage)
-        if let client = self.client {
-            self.eventQueue.async {
-                let messageEvent = IMMessageEvent.updated(updatedMessage: patchedMessage)
-                client.delegate?.client(client, conversation: self, event: .message(event: messageEvent))
+        self.safeUpdatingLastMessage(newMessage: patchedMessage, client: client)
+        client.eventQueue.async {
+            let messageEvent = IMMessageEvent.updated(updatedMessage: patchedMessage)
+            client.delegate?.client(client, conversation: self, event: .message(event: messageEvent))
+        }
+    }
+    
+}
+
+// MARK: - Message Receipt Timestamp
+
+extension IMConversation {
+    
+    public struct MessageReceiptFlag {
+        let readFlagTimestamp: Int64?
+        var readFlagDate: Date? {
+            return IMClient.date(fromMillisecond: self.readFlagTimestamp)
+        }
+        let deliveredFlagTimestamp: Int64?
+        var deliveredFlagDate: Date? {
+            return IMClient.date(fromMillisecond: self.deliveredFlagTimestamp)
+        }
+    }
+    
+    public func getMessageReceiptFlag(completion: @escaping (LCGenericResult<MessageReceiptFlag>) -> Void) throws {
+        if let options = self.client?.options {
+            guard options.contains(.receiveUnreadMessageCountAfterSessionDidOpen) else {
+                throw LCError(
+                    code: .inconsistency,
+                    reason: "only client init with \(IMClient.Options.receiveUnreadMessageCountAfterSessionDidOpen) support this function."
+                )
             }
         }
+        self.client?.sendCommand(constructor: { () -> IMGenericCommand in
+            var outCommand = IMGenericCommand()
+            outCommand.cmd = .conv
+            outCommand.op = .maxRead
+            var convCommand = IMConvCommand()
+            convCommand.cid = self.ID
+            outCommand.convMessage = convCommand
+            return outCommand
+        }, completion: { (client, result) in
+            switch result {
+            case .inCommand(let inCommand):
+                assert(client.specificAssertion)
+                client.eventQueue.async {
+                    if inCommand.hasConvMessage {
+                        let convMessage = inCommand.convMessage
+                        let readFlagTimestamp: Int64? = (convMessage.hasMaxReadTimestamp ? convMessage.maxReadTimestamp : nil)
+                        let deliveredFlagTimestamp = (convMessage.hasMaxAckTimestamp ? convMessage.maxAckTimestamp : nil)
+                        let flag = MessageReceiptFlag(
+                            readFlagTimestamp: readFlagTimestamp,
+                            deliveredFlagTimestamp: deliveredFlagTimestamp
+                        )
+                        completion(.success(value: flag))
+                    } else {
+                        let error = LCError(code: .commandInvalid)
+                        completion(.failure(error: error))
+                    }
+                }
+            case .error(let error):
+                client.eventQueue.async {
+                    completion(.failure(error: error))
+                }
+            }
+        })
     }
     
 }
@@ -750,10 +783,10 @@ extension IMConversation {
             convCommand.m = Array<String>(members)
             outCommand.convMessage = convCommand
             return outCommand
-        }, completion: { (_, result) in
+        }, completion: { (client, result) in
             switch result {
             case .inCommand(let inCommand):
-                assert(self.specificAssertion)
+                assert(client.specificAssertion)
                 if let convCommand = (inCommand.hasConvMessage ? inCommand.convMessage : nil) {
                     let allowedPids: [String] = convCommand.allowedPids
                     let failedPids: [IMErrorCommand] = convCommand.failedPids
@@ -776,16 +809,16 @@ extension IMConversation {
                     default:
                         break
                     }
-                    self.eventQueue.async {
+                    client.eventQueue.async {
                         completion(memberResult)
                     }
                 } else {
-                    self.eventQueue.async {
+                    client.eventQueue.async {
                         completion(.failure(error: LCError(code: .commandInvalid)))
                     }
                 }
             case .error(let error):
-                self.eventQueue.async {
+                client.eventQueue.async {
                     completion(.failure(error: error))
                 }
             }
@@ -856,8 +889,8 @@ internal extension IMConversation {
     }
     
     @discardableResult
-    func safeUpdatingLastMessage(newMessage: IMMessage) -> Bool {
-        assert(self.specificAssertion)
+    func safeUpdatingLastMessage(newMessage: IMMessage, client: IMClient) -> Bool {
+        assert(client.specificAssertion)
         var isUnreadMessageIncreased: Bool = false
         guard
             newMessage.notTransientMessage,
@@ -899,8 +932,8 @@ internal extension IMConversation {
         } else {
             updatingLastMessageClosure(true)
         }
-        if let client = self.client, let event = messageEvent {
-            self.eventQueue.async {
+        if let event = messageEvent {
+            client.eventQueue.async {
                 client.delegate?.client(client, conversation: self, event: event)
             }
         }
@@ -986,22 +1019,22 @@ public class IMChatRoom: IMConversation {
             convCommand.cid = self.ID
             outCommand.convMessage = convCommand
             return outCommand
-        }, completion: { (_, result) in
+        }, completion: { (client, result) in
             switch result {
             case .inCommand(let inCommand):
-                assert(self.specificAssertion)
+                assert(client.specificAssertion)
                 if inCommand.hasConvMessage, inCommand.convMessage.hasCount {
-                    self.eventQueue.async {
+                    client.eventQueue.async {
                         let count = Int(inCommand.convMessage.count)
                         completion(.success(count: count))
                     }
                 } else {
-                    self.eventQueue.async {
+                    client.eventQueue.async {
                         completion(.failure(error: LCError(code: .commandInvalid)))
                     }
                 }
             case .error(let error):
-                self.eventQueue.async {
+                client.eventQueue.async {
                     completion(.failure(error: error))
                 }
             }

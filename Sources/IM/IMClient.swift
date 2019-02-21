@@ -18,16 +18,15 @@ public final class IMClient {
     
     #if DEBUG
     /// Notification for unit test case
-    internal static let TestReportDeviceTokenNotification = Notification.Name.init("TestReportDeviceTokenNotification")
-    internal static let TestSessionTokenExpiredNotification = Notification.Name.init("TestSessionTokenExpiredNotification")
-    internal let specificKey = DispatchSpecificKey<Int>()
-    // whatever random Int is OK.
-    internal let specificValue: Int = Int.random(in: 1...999)
-    private var specificAssertion: Bool {
+    static let TestReportDeviceTokenNotification = Notification.Name.init("TestReportDeviceTokenNotification")
+    static let TestSessionTokenExpiredNotification = Notification.Name.init("TestSessionTokenExpiredNotification")
+    let specificKey = DispatchSpecificKey<Int>()
+    let specificValue: Int = Int.random(in: 1...999)
+    var specificAssertion: Bool {
         return self.specificValue == DispatchQueue.getSpecific(key: self.specificKey)
     }
     #else
-    private var specificAssertion: Bool {
+    var specificAssertion: Bool {
         return true
     }
     #endif
@@ -274,7 +273,7 @@ public final class IMClient {
     
     /// Single-Conversation Query Callback Container
     /// use it to merge concurrent Single-Conversation Query
-    var convQueryCallbackCollection: [String: Array<(LCGenericResult<IMConversation>) -> Void>] = [:]
+    var convQueryCallbackCollection: [String: Array<(IMClient, LCGenericResult<IMConversation>) -> Void>] = [:]
     
     /// ref: https://github.com/leancloud/avoscloud-push/blob/develop/push-server/doc/protocol.md#sessionopen
     /// parameter: `lastUnreadNotifTime`, `lastPatchTime`
@@ -636,7 +635,6 @@ extension IMClient {
         throws -> T
     {
         assert(self.specificAssertion)
-
         let id: String = convMessage.cid
         let conversation: IMConversation
         if let conv: IMConversation = self.convCollection[id] {
@@ -901,27 +899,25 @@ private extension IMClient {
         }
     }
     
-    func getConversation(by ID: String, completion: @escaping (LCGenericResult<IMConversation>) -> Void) {
+    func getConversation(by ID: String, completion: @escaping (IMClient, LCGenericResult<IMConversation>) -> Void) {
         assert(self.specificAssertion)
         if let existConversation: IMConversation = self.convCollection[ID] {
-            completion(.success(value: existConversation))
+            completion(self, .success(value: existConversation))
             return
         }
-        if var callbacks: Array<(LCGenericResult<IMConversation>) -> Void> = self.convQueryCallbackCollection[ID] {
+        if var callbacks: Array<(IMClient, LCGenericResult<IMConversation>) -> Void> = self.convQueryCallbackCollection[ID] {
             callbacks.append(completion)
             self.convQueryCallbackCollection[ID] = callbacks
             return
         } else {
             self.convQueryCallbackCollection[ID] = [completion]
         }
-        let callback: (LCGenericResult<IMConversation>) -> Void = { [weak self] result in
-            guard
-                let client: IMClient = self,
-                let callbacks = client.convQueryCallbackCollection.removeValue(forKey: ID)
-                else
-            { return }
+        let callback: (IMClient, LCGenericResult<IMConversation>) -> Void = { client, result in
+            guard let callbacks = client.convQueryCallbackCollection.removeValue(forKey: ID) else {
+                return
+            }
             for closure in callbacks {
-                closure(result)
+                closure(client, result)
             }
         }
         /// for internal, no need to set event queue.
@@ -934,38 +930,37 @@ private extension IMClient {
                     switch result {
                     case .success(value: let conversations):
                         if let first: IMConversation = conversations.first {
-                            callback(.success(value: first))
+                            callback(client, .success(value: first))
                         } else {
-                            callback(.failure(error: LCError(code: .conversationNotFound)))
+                            callback(client, .failure(error: LCError(code: .conversationNotFound)))
                         }
                     case .failure(error: let error):
-                        callback(.failure(error: error))
+                        callback(client, .failure(error: error))
                     }
                 })
             } else {
                 try query.getConversation(by: ID, completion: { [weak self] (result) in
                     guard let client: IMClient = self else { return }
                     assert(client.specificAssertion)
-                    callback(result)
+                    callback(client, result)
                 })
             }
         } catch {
             assert(self.specificAssertion)
-            callback(.failure(error: LCError(error: error)))
+            callback(self, .failure(error: LCError(error: error)))
         }
     }
     
-    func getConversations(by IDs: Set<String>, completion: @escaping (LCGenericResult<[IMConversation]>) -> Void) {
+    func getConversations(by IDs: Set<String>, completion: @escaping (IMClient, LCGenericResult<[IMConversation]>) -> Void) {
         assert(self.specificAssertion)
         if IDs.count == 1, let ID: String = IDs.first {
-            self.getConversation(by: ID) { [weak self] (result) in
-                guard let client: IMClient = self else { return }
+            self.getConversation(by: ID) { (client, result) in
                 assert(client.specificAssertion)
                 switch result {
                 case .success(value: let conversation):
-                    completion(.success(value: [conversation]))
+                    completion(client, .success(value: [conversation]))
                 case .failure(error: let error):
-                    completion(.failure(error: error))
+                    completion(client, .failure(error: error))
                 }
             }
         } else {
@@ -975,26 +970,25 @@ private extension IMClient {
                 try query.getConversations(by: IDs, completion: { [weak self] (result) in
                     guard let client: IMClient = self else { return }
                     assert(client.specificAssertion)
-                    completion(result)
+                    completion(client, result)
                 })
             } catch {
                 assert(self.specificAssertion)
-                completion(.failure(error: LCError(error: error)))
+                completion(self, .failure(error: LCError(error: error)))
             }
         }
     }
     
-    func getTemporaryConversations(by IDs: Set<String>, completion: @escaping (LCGenericResult<[IMConversation]>) -> Void) {
+    func getTemporaryConversations(by IDs: Set<String>, completion: @escaping (IMClient, LCGenericResult<[IMConversation]>) -> Void) {
         assert(self.specificAssertion)
         if IDs.count == 1, let ID: String = IDs.first {
-            self.getConversation(by: ID) { [weak self] (result) in
-                guard let client: IMClient = self else { return }
+            self.getConversation(by: ID) { (client, result) in
                 assert(client.specificAssertion)
                 switch result {
                 case .success(value: let conversation):
-                    completion(.success(value: [conversation]))
+                    completion(client, .success(value: [conversation]))
                 case .failure(error: let error):
-                    completion(.failure(error: error))
+                    completion(client, .failure(error: error))
                 }
             }
         } else {
@@ -1006,14 +1000,14 @@ private extension IMClient {
                     assert(client.specificAssertion)
                     switch result {
                     case .success(value: let conversations):
-                        completion(.success(value: conversations))
+                        completion(client, .success(value: conversations))
                     case .failure(error: let error):
-                        completion(.failure(error: error))
+                        completion(client, .failure(error: error))
                     }
                 })
             } catch {
                 assert(self.specificAssertion)
-                completion(.failure(error: LCError(error: error)))
+                completion(self, .failure(error: LCError(error: error)))
             }
         }
     }
@@ -1023,8 +1017,7 @@ private extension IMClient {
         guard let conversationID: String = (command.hasCid ? command.cid : nil) else {
             return
         }
-        self.getConversation(by: conversationID) { [weak self] (result) in
-            guard let client: IMClient = self else { return }
+        self.getConversation(by: conversationID) { (client, result) in
             assert(client.specificAssertion)
             switch result {
             case .success(value: let conversation):
@@ -1090,8 +1083,7 @@ private extension IMClient {
         guard let conversationID: String = (command.hasCid ? command.cid : nil) else {
             return
         }
-        self.getConversation(by: conversationID) { [weak self] (result) in
-            guard let client: IMClient = self else { return }
+        self.getConversation(by: conversationID) { (client, result) in
             assert(client.specificAssertion)
             switch result {
             case .success(value: let conversation):
@@ -1125,7 +1117,7 @@ private extension IMClient {
                     status: .sent
                 )
                 var unreadEvent: IMConversationEvent?
-                let isUnreadMessageIncreased: Bool = conversation.safeUpdatingLastMessage(newMessage: message)
+                let isUnreadMessageIncreased: Bool = conversation.safeUpdatingLastMessage(newMessage: message, client: client)
                 if client.options.contains(.receiveUnreadMessageCountAfterSessionDidOpen),
                     isUnreadMessageIncreased {
                     conversation.unreadMessageCount += 1
@@ -1155,7 +1147,7 @@ private extension IMClient {
                 continue
             }
             if let existingConversation = self.convCollection[conversationID] {
-                existingConversation.process(unreadTuple: unreadTuple)
+                existingConversation.process(unreadTuple: unreadTuple, client: self)
             } else {
                 if conversationID.hasPrefix(IMTemporaryConversation.prefixOfID) {
                     temporaryConversationIDMap[conversationID] = unreadTuple
@@ -1182,13 +1174,13 @@ private extension IMClient {
         } else {
             let group = DispatchGroup()
             var groupFlags: [Bool] = []
-            let handleResult: (LCGenericResult<[IMConversation]>, [String: IMUnreadTuple]) -> Void = { (result, map) in
+            let handleResult: (IMClient, LCGenericResult<[IMConversation]>, [String: IMUnreadTuple]) -> Void = { (client, result, map) in
                 switch result {
                 case .success(value: let conversations):
                     groupFlags.append(true)
                     for conversation in conversations {
                         if let unreadTuple: IMUnreadTuple = map[conversation.ID] {
-                            conversation.process(unreadTuple: unreadTuple)
+                            conversation.process(unreadTuple: unreadTuple, client: client)
                         }
                     }
                 case .failure(error: let error):
@@ -1199,20 +1191,18 @@ private extension IMClient {
             if !conversationIDMap.isEmpty {
                 group.enter()
                 let IDs = Set<String>(conversationIDMap.keys)
-                self.getConversations(by: IDs) { [weak self] (result) in
-                    guard let client: IMClient = self else { return }
+                self.getConversations(by: IDs) { (client, result) in
                     assert(client.specificAssertion)
-                    handleResult(result, conversationIDMap)
+                    handleResult(client, result, conversationIDMap)
                     group.leave()
                 }
             }
             if !temporaryConversationIDMap.isEmpty {
                 group.enter()
                 let IDs = Set<String>(temporaryConversationIDMap.keys)
-                self.getTemporaryConversations(by: IDs) { [weak self] (result) in
-                    guard let client: IMClient = self else { return }
+                self.getTemporaryConversations(by: IDs) { (client, result) in
                     assert(client.specificAssertion)
-                    handleResult(result, temporaryConversationIDMap)
+                    handleResult(client, result, temporaryConversationIDMap)
                     group.leave()
                 }
             }
@@ -1239,7 +1229,7 @@ private extension IMClient {
                 lastPatchTimestamp = item.patchTimestamp
             }
             if let existingConversation = self.convCollection[conversationID] {
-                existingConversation.process(patchItem: item)
+                existingConversation.process(patchItem: item, client: self)
             } else {
                 if conversationID.hasPrefix(IMTemporaryConversation.prefixOfID) {
                     temporaryConversationIDMap[conversationID] = item
@@ -1266,13 +1256,13 @@ private extension IMClient {
         } else {
             let group = DispatchGroup()
             var groupFlags: [Bool] = []
-            let handleResult: (LCGenericResult<[IMConversation]>, [String: IMPatchItem]) -> Void = { (result, map) in
+            let handleResult: (IMClient, LCGenericResult<[IMConversation]>, [String: IMPatchItem]) -> Void = { (client, result, map) in
                 switch result {
                 case .success(value: let conversations):
                     groupFlags.append(true)
                     for conversation in conversations {
                         if let patchItem: IMPatchItem = map[conversation.ID] {
-                            conversation.process(patchItem: patchItem)
+                            conversation.process(patchItem: patchItem, client: client)
                         }
                     }
                 case .failure(error: let error):
@@ -1283,20 +1273,18 @@ private extension IMClient {
             if !conversationIDMap.isEmpty {
                 group.enter()
                 let IDs = Set<String>(conversationIDMap.keys)
-                self.getConversations(by: IDs) { [weak self] (result) in
-                    guard let client: IMClient = self else { return }
+                self.getConversations(by: IDs) { (client, result) in
                     assert(client.specificAssertion)
-                    handleResult(result, conversationIDMap)
+                    handleResult(client, result, conversationIDMap)
                     group.leave()
                 }
             }
             if !temporaryConversationIDMap.isEmpty {
                 group.enter()
                 let IDs = Set<String>(temporaryConversationIDMap.keys)
-                self.getTemporaryConversations(by: IDs) { [weak self] (result) in
-                    guard let client: IMClient = self else { return }
+                self.getTemporaryConversations(by: IDs) { (client, result) in
                     assert(client.specificAssertion)
-                    handleResult(result, temporaryConversationIDMap)
+                    handleResult(client, result, temporaryConversationIDMap)
                     group.leave()
                 }
             }
@@ -1314,8 +1302,7 @@ private extension IMClient {
         guard let conversationID: String = (rcpCommand.hasCid ? rcpCommand.cid : nil) else {
             return
         }
-        self.getConversation(by: conversationID) { [weak self] (result) in
-            guard let client: IMClient = self else { return }
+        self.getConversation(by: conversationID) { (client, result) in
             assert(client.specificAssertion)
             switch result {
             case .success(value: let conversation):
@@ -1519,6 +1506,18 @@ extension LCError {
             code: .inconsistency,
             reason: "\"\(IMClient.reservedValueOfTag)\" string should not be used on tag"
         )
+    }
+    
+}
+
+extension IMClient {
+    
+    static func date(fromMillisecond timestamp: Int64?) -> Date? {
+        guard let timestamp = timestamp else {
+            return nil
+        }
+        let second = TimeInterval(timestamp) / 1000.0
+        return Date(timeIntervalSince1970: second)
     }
     
 }

@@ -50,12 +50,12 @@ open class IMMessage {
     
     public final private(set) var sentTimestamp: Int64?
     public final var sentDate: Date? {
-        return date(fromMillisecond: sentTimestamp)
+        return IMClient.date(fromMillisecond: sentTimestamp)
     }
     
     public final internal(set) var patchedTimestamp: Int64?
     public final var patchedDate: Date? {
-        return date(fromMillisecond: patchedTimestamp)
+        return IMClient.date(fromMillisecond: patchedTimestamp)
     }
     
     public final var isAllMembersMentioned: Bool?
@@ -197,18 +197,6 @@ open class IMMessage {
         case .sent: return true
         default: return false
         }
-    }
-    
-}
-
-private extension IMMessage {
-    
-    func date(fromMillisecond timestamp: Int64?) -> Date? {
-        guard let timestamp = timestamp else {
-            return nil
-        }
-        let second = TimeInterval(timestamp) / 1000.0
-        return Date(timeIntervalSince1970: second)
     }
     
 }
