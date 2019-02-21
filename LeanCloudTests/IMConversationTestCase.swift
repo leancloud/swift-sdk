@@ -857,6 +857,49 @@ class IMConversationTestCase: RTMBaseTestCase {
         wait(for: [countExp], timeout: timeout)
     }
     
+    func testMuteAndUnmute() {
+        guard let client = newOpenedClient() else {
+            XCTFail()
+            return
+        }
+        
+        var conversation: IMConversation? = nil
+        
+        let createExp = expectation(description: "create conversation")
+        try? client.createConversation(clientIDs: [uuid, uuid]) { (result) in
+            XCTAssertTrue(result.isSuccess)
+            XCTAssertNil(result.error)
+            conversation = result.value
+            createExp.fulfill()
+        }
+        wait(for: [createExp], timeout: timeout)
+        
+        let muteExp = expectation(description: "mute")
+        conversation?.mute(completion: { (result) in
+            XCTAssertTrue(Thread.isMainThread)
+            XCTAssertTrue(result.isSuccess)
+            XCTAssertNil(result.error)
+            XCTAssertEqual(conversation?.isMuted, true)
+            let mutedMembers = conversation?[IMConversation.Key.mutedMembers.rawValue] as? [String]
+            XCTAssertEqual(mutedMembers?.count, 1)
+            XCTAssertEqual(mutedMembers?.contains(client.ID), true)
+            muteExp.fulfill()
+        })
+        wait(for: [muteExp], timeout: timeout)
+        
+        let unmuteExp = expectation(description: "unmute")
+        conversation?.unmute(completion: { (result) in
+            XCTAssertTrue(Thread.isMainThread)
+            XCTAssertTrue(result.isSuccess)
+            XCTAssertNil(result.error)
+            XCTAssertEqual(conversation?.isMuted, false)
+            let mutedMembers = conversation?[IMConversation.Key.mutedMembers.rawValue] as? [String]
+            XCTAssertEqual(mutedMembers?.count, 0)
+            unmuteExp.fulfill()
+        })
+        wait(for: [unmuteExp], timeout: timeout)
+    }
+    
 }
 
 extension IMConversationTestCase {

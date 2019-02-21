@@ -92,7 +92,7 @@ public class IMConversation {
     
     public var isMuted: Bool {
         if let mutedMembers: [String] = safeDecodingRawData(with: .mutedMembers),
-            mutedMembers.contains(clientID) {
+            mutedMembers.contains(self.clientID) {
             return true
         } else {
             return false
@@ -827,6 +827,53 @@ extension IMConversation {
     
 }
 
+// MARK: - Mute
+
+extension IMConversation {
+    
+    public func mute(completion: @escaping (LCBooleanResult) -> Void) {
+        self.sendMuteOrUnmute(op: .mute, completion: completion)
+    }
+    
+    public func unmute(completion: @escaping (LCBooleanResult) -> Void) {
+        self.sendMuteOrUnmute(op: .unmute, completion: completion)
+    }
+    
+    private func sendMuteOrUnmute(op: IMOpType, completion: @escaping (LCBooleanResult) -> Void) {
+        self.client?.sendCommand(constructor: { () -> IMGenericCommand in
+            var outCommand = IMGenericCommand()
+            outCommand.cmd = .conv
+            outCommand.op = op
+            var convMessage = IMConvCommand()
+            convMessage.cid = self.ID
+            outCommand.convMessage = convMessage
+            return outCommand
+        }, completion: { (client, result) in
+            switch result {
+            case .inCommand(let inCommand):
+                assert(client.specificAssertion)
+                if inCommand.cmd == .conv, inCommand.op == .updated {
+                    let operation: RawDataChangeOperation = ((op == .mute) ? .muted : .unmuted)
+                    self.safeChangingRawData(operation: operation)
+                    client.eventQueue.async {
+                        completion(.success)
+                    }
+                } else {
+                    let error = LCError(code: .commandInvalid)
+                    client.eventQueue.async {
+                        completion(.failure(error: error))
+                    }
+                }
+            case .error(let error):
+                client.eventQueue.async {
+                    completion(.failure(error: error))
+                }
+            }
+        })
+    }
+    
+}
+
 // MARK: - Internal
 
 internal extension IMConversation {
@@ -836,6 +883,8 @@ internal extension IMConversation {
         case rawDataReplaced(by: RawData)
         case append(members: Set<String>)
         case remove(members: Set<String>)
+        case muted
+        case unmuted
     }
     
     func safeChangingRawData(operation: RawDataChangeOperation) {
@@ -855,15 +904,16 @@ internal extension IMConversation {
                 !joinedMembers.isEmpty
                 else
             { break }
+            let key = Key.members
             sync {
                 let newMembers: [String]
-                if let originMembers: [String] = self.decodingRawData(with: .members) {
+                if let originMembers: [String] = self.decodingRawData(with: key) {
                     let newMemberSet: Set<String> = Set(originMembers).union(joinedMembers)
                     newMembers = Array(newMemberSet)
                 } else {
                     newMembers = Array(joinedMembers)
                 }
-                self.rawData[Key.members.rawValue] = newMembers
+                self.updatingRawData(key: key, value: newMembers)
             }
         case .remove(members: let leftMembers):
             guard
@@ -872,6 +922,7 @@ internal extension IMConversation {
                 !leftMembers.isEmpty
                 else
             { break }
+            let key = Key.members
             sync {
                 if leftMembers.contains(self.clientID) {
                     /*
@@ -880,10 +931,34 @@ internal extension IMConversation {
                      */
                     self.underlyingOutdated = true
                 }
-                if let originMembers: [String] = self.decodingRawData(with: .members) {
+                if let originMembers: [String] = self.decodingRawData(with: key) {
                     let newMembers: [String] = Array(Set(originMembers).subtracting(leftMembers))
-                    self.rawData[Key.members.rawValue] = newMembers
+                    self.updatingRawData(key: key, value: newMembers)
                 }
+            }
+        case .muted, .unmuted:
+            guard self.notTransientConversation else {
+                return
+            }
+            let key = Key.mutedMembers
+            sync {
+                var newMutedMembers: [String]
+                if let originMutedMembers: [String] = self.decodingRawData(with: key) {
+                    var set = Set(originMutedMembers)
+                    if case .muted = operation {
+                        set.insert(self.clientID)
+                    } else {
+                        set.remove(self.clientID)
+                    }
+                    newMutedMembers = Array(set)
+                } else {
+                    if case .muted = operation {
+                        newMutedMembers = [self.clientID]
+                    } else {
+                        newMutedMembers = []
+                    }
+                }
+                self.updatingRawData(key: key, value: newMutedMembers)
             }
         }
     }
@@ -962,6 +1037,14 @@ private extension IMConversation {
     
     func decodingRawData<T>(with string: String) -> T? {
         return self.rawData[string] as? T
+    }
+    
+    func updatingRawData(key: Key, value: Any) {
+        self.updatingRawData(string: key.rawValue, value: value)
+    }
+    
+    func updatingRawData(string: String, value: Any) {
+        self.rawData[string] = value
     }
     
     func decodingLastMessage() {
