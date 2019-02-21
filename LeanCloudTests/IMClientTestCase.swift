@@ -11,8 +11,7 @@ import XCTest
 
 class IMClientTestCase: RTMBaseTestCase {
     
-    func testClientInitAndDeinit() {
-        
+    func testDeinit() {
         do {
             let invalidID: String = Array<String>.init(repeating: "a", count: 65).joined()
             let _ = try IMClient(ID: invalidID)
@@ -40,8 +39,7 @@ class IMClientTestCase: RTMBaseTestCase {
         }
     }
 
-    func testClientOpenAndClose() {
-        
+    func testOpenAndClose() {
         let client: IMClient = try! IMClient(ID: uuid)
         
         for _ in 0..<3 {
@@ -77,8 +75,7 @@ class IMClientTestCase: RTMBaseTestCase {
         }
     }
     
-    func testClientDelegateEvent() {
-        
+    func testDelegateEvent() {
         let client: IMClient = try! IMClient(ID: uuid)
         let delegator: Delegator = Delegator()
         client.delegate = delegator
@@ -124,8 +121,7 @@ class IMClientTestCase: RTMBaseTestCase {
         wait(for: [reopenExp], timeout: timeout)
     }
     
-    func testClientSessionConflict() {
-        
+    func testSessionConflict() {
         let clientID: String = uuid
         let tag: String = "tag"
         
@@ -151,6 +147,9 @@ class IMClientTestCase: RTMBaseTestCase {
             exp1.fulfill()
         }
         wait(for: [exp1], timeout: timeout)
+        
+        RTMConnectionRefMap_protobuf1.removeAll()
+        RTMConnectionRefMap_protobuf3.removeAll()
         
         let application2: LCApplication = LCApplication(
             id: LCApplication.default.id,
@@ -206,8 +205,7 @@ class IMClientTestCase: RTMBaseTestCase {
         wait(for: [exp3], timeout: timeout)
     }
     
-    func testClientSessionTokenExpired() {
-        
+    func testSessionTokenExpired() {
         let client: IMClient = try! IMClient(ID: uuid)
         let delegator: Delegator = Delegator()
         client.delegate = delegator
@@ -255,8 +253,7 @@ class IMClientTestCase: RTMBaseTestCase {
         wait(for: [exp], timeout: timeout)
     }
     
-    func testClientReportDeviceToken() {
-        
+    func testReportDeviceToken() {
         let application = LCApplication.default
         let currentDeviceToken = application.currentInstallation.deviceToken?.value
         let client: IMClient = try! IMClient(ID: uuid, application: application)
@@ -278,6 +275,64 @@ class IMClientTestCase: RTMBaseTestCase {
             exp.fulfill()
         }
         waitForExpectations(timeout: timeout, handler: nil)
+    }
+    
+    func testSessionQuery() {
+        let client1: IMClient = try! IMClient(ID: uuid)
+        let client2: IMClient = try! IMClient(ID: uuid)
+        
+        let openExp1 = expectation(description: "open")
+        client1.open { (result) in
+            XCTAssertTrue(result.isSuccess)
+            XCTAssertNil(result.error)
+            openExp1.fulfill()
+        }
+        wait(for: [openExp1], timeout: timeout)
+        
+        do {
+            try client1.queryOnlineClients(clientIDs: []) { (_) in }
+            XCTFail()
+        } catch {
+            XCTAssertTrue(error is LCError)
+        }
+        do {
+            var set: Set<String> = []
+            for _ in 0...20 {
+                set.insert(uuid)
+            }
+            try client1.queryOnlineClients(clientIDs: set) { (_) in }
+            XCTFail()
+        } catch {
+            XCTAssertTrue(error is LCError)
+        }
+        
+        let queryExp1 = expectation(description: "query")
+        try! client1.queryOnlineClients(clientIDs: [client2.ID], completion: { (result) in
+            XCTAssertTrue(Thread.isMainThread)
+            XCTAssertTrue(result.isSuccess)
+            XCTAssertNil(result.error)
+            XCTAssertEqual(result.value?.count, 0)
+            queryExp1.fulfill()
+        })
+        wait(for: [queryExp1], timeout: timeout)
+        
+        let openExp2 = expectation(description: "open")
+        client2.open { (result) in
+            XCTAssertTrue(result.isSuccess)
+            XCTAssertNil(result.error)
+            openExp2.fulfill()
+        }
+        wait(for: [openExp2], timeout: timeout)
+        
+        let queryExp2 = expectation(description: "query")
+        try! client1.queryOnlineClients(clientIDs: [client2.ID], completion: { (result) in
+            XCTAssertTrue(result.isSuccess)
+            XCTAssertNil(result.error)
+            XCTAssertEqual(result.value?.count, 1)
+            XCTAssertEqual(result.value?.first, client2.ID)
+            queryExp2.fulfill()
+        })
+        wait(for: [queryExp2], timeout: timeout)
     }
 
 }

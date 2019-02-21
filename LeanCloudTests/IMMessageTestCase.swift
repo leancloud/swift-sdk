@@ -373,7 +373,7 @@ class IMMessageTestCase: RTMBaseTestCase {
     
     func testMessageAutoSendingWhenOfflineAndReceiving() {
         guard
-            let tuples = convenienceInit(),
+            let tuples = convenienceInit(shouldConnectionShared: false),
             let tuple1 = tuples.first,
             let tuple2 = tuples.last
             else
@@ -842,7 +842,8 @@ class IMMessageTestCase: RTMBaseTestCase {
         guard
             let tuples = convenienceInit(
                 clientOptions: [.receiveUnreadMessageCountAfterSessionDidOpen],
-                RTMServerURL: testableRTMURL
+                RTMServerURL: testableRTMURL,
+                shouldConnectionShared: false
             ),
             let sendingTuple = tuples.first,
             let receivingTuple = tuples.last
@@ -956,6 +957,105 @@ class IMMessageTestCase: RTMBaseTestCase {
             XCTFail()
         }
     }
+    
+    func testGetMessageReceiptFlag() {
+        let message = IMMessage()
+        try? message.set(content: .string("text"))
+        var sendingTuple: Tuple? = nil
+        var receivingTuple: Tuple? = nil
+        let success = sendingAndReceiving(
+            clientOptions: .receiveUnreadMessageCountAfterSessionDidOpen,
+            sentMessage: message,
+            sendingTuple: &sendingTuple,
+            receivingTuple: &receivingTuple
+        )
+        XCTAssertTrue(success)
+        
+        delay()
+        
+        let readExp = expectation(description: "read message")
+        receivingTuple?.delegator.conversationEvent = { client, conv, event in
+            if conv === receivingTuple?.conversation,
+                case .unreadMessageUpdated = event {
+                XCTAssertEqual(conv.unreadMessageCount, 0)
+                readExp.fulfill()
+            }
+        }
+        receivingTuple?.conversation.read()
+        wait(for: [readExp], timeout: timeout)
+        
+        delay()
+        
+        let getReadFlagExp = expectation(description: "get read flag timestamp")
+        try? sendingTuple?.conversation.getMessageReceiptFlag(completion: { (result) in
+            XCTAssertTrue(Thread.isMainThread)
+            XCTAssertTrue(result.isSuccess)
+            XCTAssertNil(result.error)
+            XCTAssertNotNil(result.value?.readFlagTimestamp)
+            XCTAssertNotNil(result.value?.readFlagTimestamp)
+            XCTAssertEqual(result.value?.readFlagTimestamp, result.value?.deliveredFlagTimestamp)
+            XCTAssertEqual(result.value?.readFlagDate, result.value?.deliveredFlagDate)
+            XCTAssertGreaterThan(result.value?.readFlagTimestamp ?? 0, message.sentTimestamp ?? 0)
+            getReadFlagExp.fulfill()
+        })
+        wait(for: [getReadFlagExp], timeout: timeout)
+        
+        let sendNeedRCPMessageExp = expectation(description: "send need RCP message")
+        sendNeedRCPMessageExp.expectedFulfillmentCount = 3
+        sendingTuple?.delegator.messageEvent = { client, conv, event in
+            if conv === sendingTuple?.conversation {
+                switch event {
+                case .delivered(toClientID: _, messageID: _, deliveredTimestamp: _):
+                    sendNeedRCPMessageExp.fulfill()
+                default:
+                    break
+                }
+            }
+        }
+        receivingTuple?.delegator.conversationEvent = { client, conv, event in
+            if conv === receivingTuple?.conversation {
+                switch event {
+                case .lastMessageUpdated:
+                    sendNeedRCPMessageExp.fulfill()
+                default:
+                    break
+                }
+            }
+        }
+        let needRCPMessage = IMMessage()
+        try? needRCPMessage.set(content: .string("test"))
+        try? sendingTuple?.conversation.send(message: needRCPMessage, options: [.needReceipt], completion: { (result) in
+            XCTAssertTrue(result.isSuccess)
+            XCTAssertNil(result.error)
+            sendNeedRCPMessageExp.fulfill()
+        })
+        wait(for: [sendNeedRCPMessageExp], timeout: timeout)
+        
+        delay()
+        
+        let getDeliveredFlagExp = expectation(description: "get delivered flag timestamp")
+        try? sendingTuple?.conversation.getMessageReceiptFlag(completion: { (result) in
+            XCTAssertTrue(Thread.isMainThread)
+            XCTAssertTrue(result.isSuccess)
+            XCTAssertNil(result.error)
+            XCTAssertNotNil(result.value?.deliveredFlagTimestamp)
+            XCTAssertNotNil(result.value?.deliveredFlagDate)
+            XCTAssertNotEqual(result.value?.deliveredFlagTimestamp, result.value?.readFlagTimestamp)
+            XCTAssertNotEqual(result.value?.deliveredFlagDate, result.value?.readFlagDate)
+            XCTAssertGreaterThanOrEqual(result.value?.deliveredFlagTimestamp ?? 0, needRCPMessage.sentTimestamp ?? 0)
+            getDeliveredFlagExp.fulfill()
+        })
+        wait(for: [getDeliveredFlagExp], timeout: timeout)
+        
+        let client = try! IMClient(ID: uuid, options: [])
+        let conversation = IMConversation(ID: uuid, rawData: [:], type: .normal, client: client)
+        do {
+            try conversation.getMessageReceiptFlag(completion: { (_) in })
+            XCTFail()
+        } catch {
+            XCTAssertTrue(error is LCError)
+        }
+    }
 
 }
 
@@ -981,7 +1081,7 @@ extension IMMessageTestCase {
         customRTMURL: URL? = nil)
         -> IMClient?
     {
-        var client: IMClient? = try? IMClient(ID: clientID ?? uuid, options:options, customServer: customRTMURL)
+        var client: IMClient? = try? IMClient(ID: clientID ?? uuid, options:options, customServerURL: customRTMURL)
         let exp = expectation(description: "open")
         client?.open { (result) in
             XCTAssertTrue(result.isSuccess)
@@ -1018,7 +1118,8 @@ extension IMMessageTestCase {
     func convenienceInit(
         clientCount: Int = 2,
         clientOptions: IMClient.Options = .default,
-        RTMServerURL: URL? = nil)
+        RTMServerURL: URL? = nil,
+        shouldConnectionShared: Bool = true)
         -> [Tuple]?
     {
         var tuples: [Tuple] = []
@@ -1043,6 +1144,10 @@ extension IMMessageTestCase {
             clientMap[client.ID] = client
             delegatorMap[client.ID] = delegator
             clientIDs.append(client.ID)
+            if !shouldConnectionShared {
+                RTMConnectionRefMap_protobuf1.removeAll()
+                RTMConnectionRefMap_protobuf3.removeAll()
+            }
         }
         if let clientID: String = clientIDs.first,
             let client: IMClient = clientMap[clientID] {
@@ -1087,6 +1192,7 @@ extension IMMessageTestCase {
     }
     
     func sendingAndReceiving<T: IMMessage>(
+        clientOptions: IMClient.Options = .default,
         sentMessage: T,
         sendingTuple: inout Tuple?,
         receivingTuple: inout Tuple?,
@@ -1095,7 +1201,7 @@ extension IMMessageTestCase {
         -> Bool
     {
         guard
-            let tuples = convenienceInit(),
+            let tuples = convenienceInit(clientOptions: clientOptions),
             let tuple1 = tuples.first,
             let tuple2 = tuples.last
             else
@@ -1134,6 +1240,7 @@ extension IMMessageTestCase {
             exp.fulfill()
         })
         wait(for: [exp], timeout: timeout)
+        tuple2.delegator.messageEvent = nil
         XCTAssertNotNil(sentMessage.ID)
         XCTAssertNotNil(sentMessage.conversationID)
         XCTAssertNotNil(sentMessage.sentTimestamp)

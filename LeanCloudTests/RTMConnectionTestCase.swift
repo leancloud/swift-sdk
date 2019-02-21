@@ -11,6 +11,256 @@ import XCTest
 
 class RTMConnectionTestCase: RTMBaseTestCase {
     
+    override func tearDown() {
+        RTMConnectionRefMap_protobuf1.removeAll()
+        RTMConnectionRefMap_protobuf3.removeAll()
+    }
+    
+    func testConnectionReference() {
+        let application = LCApplication(id: "1", key: "")
+        for imProtocol in
+            [RTMConnection.LCIMProtocol.protobuf1,
+             RTMConnection.LCIMProtocol.protobuf3]
+        {
+            let connectionMap: () -> [String : [String : RTMConnection]] = {
+                switch imProtocol {
+                case .protobuf1:
+                    return RTMConnectionRefMap_protobuf1
+                case .protobuf3:
+                    return RTMConnectionRefMap_protobuf3
+                }
+            }
+            let peerID1 = "peerID1"
+            let peerID2 = "peerID2"
+            do {
+                _ = try RTMConnectionRefering(application: application, peerID: peerID1, lcimProtocol: imProtocol)
+                XCTAssertNotNil(connectionMap()[application.id]?[peerID1])
+                XCTAssertEqual(connectionMap()[application.id]?.count, 1)
+            } catch {
+                XCTFail("\(error)")
+            }
+            do {
+                _ = try RTMConnectionRefering(application: application, peerID: peerID1, lcimProtocol: imProtocol)
+                XCTFail()
+            } catch {
+                XCTAssertTrue(error is LCError)
+            }
+            
+            _ = try! RTMConnectionRefering(application: application, peerID: peerID2, lcimProtocol: imProtocol)
+            XCTAssertTrue(connectionMap()[application.id]?[peerID1] === connectionMap()[application.id]?[peerID2])
+            XCTAssertEqual(connectionMap()[application.id]?.count, 2)
+            
+            RTMConnectionReleasing(application: application, peerID: peerID1, lcimProtocol: imProtocol)
+            RTMConnectionReleasing(application: application, peerID: peerID2, lcimProtocol: imProtocol)
+            XCTAssertEqual(connectionMap()[application.id]?.count, 0)
+            
+            _ = try! RTMConnectionRefering(application: application, peerID: peerID1, lcimProtocol: imProtocol)
+            XCTAssertNotNil(connectionMap()[application.id]?[peerID1])
+            XCTAssertEqual(connectionMap()[application.id]?.count, 1)
+        }
+        XCTAssertEqual(RTMConnectionRefMap_protobuf1[application.id]?.count, 1)
+        XCTAssertEqual(RTMConnectionRefMap_protobuf3[application.id]?.count, 1)
+    }
+    
+    func testDeinit() {
+        let peerID = uuid
+        var tuple: (RTMConnection, Delegator)? = connectedConnection(peerID: peerID)
+        var connection: RTMConnection? = tuple?.0
+        
+        let deinitExp = expectation(description: "deinit")
+        let commandCallback = RTMConnection.CommandCallback(callingQueue: .main, closure: { (result) in
+            XCTAssertTrue(Thread.isMainThread)
+            XCTAssertEqual(result.error?.code, LCError.InternalErrorCode.connectionLost.rawValue)
+            deinitExp.fulfill()
+        })
+        connection?.serialQueue.async {
+            connection?.timer?.insert(commandCallback: commandCallback, index: 0)
+            RTMConnectionReleasing(application: .default, peerID: peerID, lcimProtocol: .protobuf1)
+            connection = nil
+            tuple = nil
+        }
+        wait(for: [deinitExp], timeout: timeout)
+    }
+    
+    func testTimerCommandTimeout() {
+        let peerID = uuid
+        let tuple = connectedConnection(peerID: peerID)
+        let connection = tuple.0
+        
+        let originRTMTimeoutInterval = RTMTimeoutInterval
+        
+        let timeoutExp = expectation(description: "command callback timeout")
+        RTMTimeoutInterval = 5
+        let start = Date().timeIntervalSince1970
+        let commandCallback = RTMConnection.CommandCallback(callingQueue: .main) { (result) in
+            XCTAssertTrue(Thread.isMainThread)
+            XCTAssertEqual(result.error?.code, LCError.InternalErrorCode.commandTimeout.rawValue)
+            let interval = Date().timeIntervalSince1970 - start
+            XCTAssertTrue(((RTMTimeoutInterval - 3)...(RTMTimeoutInterval + 3)) ~= interval)
+            XCTAssertEqual(connection.timer?.commandCallbackCollection.count, 0)
+            XCTAssertEqual(connection.timer?.commandIndexSequence.count, 0)
+            timeoutExp.fulfill()
+        }
+        connection.serialQueue.async {
+            connection.timer?.insert(commandCallback: commandCallback, index: connection.underlyingSerialIndex)
+        }
+        wait(for: [timeoutExp], timeout: RTMTimeoutInterval + 5)
+        
+        RTMTimeoutInterval = originRTMTimeoutInterval
+    }
+    
+    func testDelegateEvent() {
+        let peerID = uuid
+        let tuple = connectedConnection(peerID: peerID)
+        let connection = tuple.0
+        let delegator = tuple.1
+        
+        let disconnectExp = expectation(description: "disconnect")
+        delegator.didDisconnect = { con, err in
+            XCTAssertTrue(Thread.isMainThread)
+            XCTAssertTrue(connection === con)
+            XCTAssertEqual(err.code, LCError.InternalErrorCode.connectionLost.rawValue)
+            disconnectExp.fulfill()
+        }
+        connection.disconnect()
+        wait(for: [disconnectExp], timeout: timeout)
+        
+        let reconnectExp = expectation(description: "reconnect")
+        reconnectExp.expectedFulfillmentCount = 2
+        delegator.inConnecting = { con in
+            XCTAssertTrue(Thread.isMainThread)
+            XCTAssertTrue(connection === con)
+            reconnectExp.fulfill()
+        }
+        delegator.didConnect = { con in
+            XCTAssertTrue(Thread.isMainThread)
+            XCTAssertTrue(connection === con)
+            reconnectExp.fulfill()
+        }
+        connection.connect()
+        wait(for: [reconnectExp], timeout: timeout)
+    }
+    
+    func testConnectionShared() {
+        let tuple = connectedConnection()
+        let connection = tuple.0
+        
+        let peerID = uuid
+        let delegator = Delegator()
+        let connectionDelegator = RTMConnection.Delegator(queue: .main)
+        connectionDelegator.delegate = delegator
+        
+        let exp = expectation(description: "connected")
+        let unexp1 = expectation(description: "unexpect")
+        unexp1.isInverted = true
+        delegator.inConnecting = { con in
+            unexp1.fulfill()
+        }
+        delegator.didConnect = { con in
+            exp.fulfill()
+        }
+        connection.connect(peerID: peerID, delegator: connectionDelegator)
+        wait(for: [exp, unexp1], timeout: 5)
+        
+        XCTAssertEqual(connection.delegatorMap.count, 2)
+        connection.removeDelegator(peerID: peerID)
+        
+        let unexp2 = expectation(description: "unexpect")
+        unexp2.isInverted = true
+        delegator.didDisconnect = { _, _ in
+            unexp2.fulfill()
+        }
+        wait(for: [unexp2], timeout: 5)
+        
+        XCTAssertEqual(connection.delegatorMap.count, 1)
+    }
+    
+    func testCommandSending() {
+        let peerID = uuid
+        let tuple = connectedConnection(peerID: peerID)
+        let connection = tuple.0
+        let delegator = tuple.1
+        
+        XCTAssertEqual(connection.underlyingSerialIndex, 1)
+        
+        let sendExp1 = expectation(description: "send command")
+        connection.send(command: testableCommand(peerID: peerID), callingQueue: .main) { (result) in
+            XCTAssertTrue(Thread.isMainThread)
+            XCTAssertNotNil(result.command)
+            XCTAssertNil(result.error)
+            sendExp1.fulfill()
+        }
+        wait(for: [sendExp1], timeout: timeout)
+        
+        XCTAssertEqual(connection.underlyingSerialIndex, 2)
+        
+        let sendExp2 = expectation(description: "send command with big size")
+        var largeCommand = testableCommand(peerID: peerID)
+        largeCommand.peerID = String(repeating: "a", count: 5000)
+        connection.send(command: largeCommand, callingQueue: .main) { (result) in
+            XCTAssertTrue(Thread.isMainThread)
+            XCTAssertEqual(result.error?.code, LCError.InternalErrorCode.commandDataLengthTooLong.rawValue)
+            sendExp2.fulfill()
+        }
+        wait(for: [sendExp2], timeout: timeout)
+        
+        XCTAssertEqual(connection.underlyingSerialIndex, 3)
+        
+        let disconnectExp = expectation(description: "disconnect")
+        delegator.didDisconnect = { _, _ in
+            disconnectExp.fulfill()
+        }
+        connection.disconnect()
+        wait(for: [disconnectExp], timeout: timeout)
+        
+        let sendExp3 = expectation(description: "send command when connection lost")
+        connection.send(command: testableCommand(peerID: peerID), callingQueue: .main) { (result) in
+            XCTAssertTrue(Thread.isMainThread)
+            XCTAssertNil(result.command)
+            XCTAssertEqual(result.error?.code, LCError.InternalErrorCode.connectionLost.rawValue)
+            sendExp3.fulfill()
+        }
+        wait(for: [sendExp3], timeout: timeout)
+        
+        XCTAssertEqual(connection.underlyingSerialIndex, 3)
+    }
+
+}
+
+extension RTMConnectionTestCase {
+    
+    func connectedConnection(
+        application: LCApplication = .default,
+        peerID: String = uuid)
+        -> (RTMConnection, Delegator)
+    {
+        let connection = try! RTMConnectionRefering(application: application, peerID: peerID, lcimProtocol: .protobuf1)
+        let delegator = Delegator()
+        let connectionDelegator = RTMConnection.Delegator(queue: .main)
+        connectionDelegator.delegate = delegator
+        let connectExp = expectation(description: "connect")
+        delegator.didConnect = { con in
+            XCTAssertTrue(Thread.isMainThread)
+            XCTAssertTrue(connection === con)
+            connectExp.fulfill()
+        }
+        connection.connect(peerID: peerID, delegator: connectionDelegator)
+        wait(for: [connectExp], timeout: timeout)
+        return (connection, delegator)
+    }
+    
+    func testableCommand(application: LCApplication = .default, peerID: String = uuid) -> IMGenericCommand {
+        var outCommand = IMGenericCommand()
+        outCommand.cmd = .session
+        outCommand.op = .open
+        outCommand.appID = application.id
+        outCommand.peerID = peerID
+        var sessionCommand = IMSessionCommand()
+        sessionCommand.ua = HTTPClient.default.configuration.userAgent
+        outCommand.sessionMessage = sessionCommand
+        return outCommand
+    }
+    
     class Delegator: RTMConnectionDelegate {
         
         var inConnecting: ((RTMConnection) -> Void)?
@@ -35,215 +285,4 @@ class RTMConnectionTestCase: RTMBaseTestCase {
         
     }
     
-    lazy var delegateQueueSpecificKey = DispatchSpecificKey<Int>()
-    lazy var delegateQueueSpecificValue = Int.random(in: 1...999)
-    lazy var delegateQueue = { () -> DispatchQueue in
-        let queue = DispatchQueue(label: "delegate.queue")
-        queue.setSpecific(key: delegateQueueSpecificKey, value: delegateQueueSpecificValue)
-        return queue
-    }()
-    
-    lazy var timerQueueSpecificKey = DispatchSpecificKey<Int>()
-    lazy var timerQueueSpecificValue = Int.random(in: 1...999)
-    lazy var timerQueue = { () -> DispatchQueue in
-        let queue = DispatchQueue(label: "timer.queue")
-        queue.setSpecific(key: timerQueueSpecificKey, value: timerQueueSpecificValue)
-        return queue
-    }()
-    
-    lazy var commandCallbackQueueSpecificKey = DispatchSpecificKey<Int>()
-    lazy var commandCallbackQueueSpecificValue = Int.random(in: 1...999)
-    lazy var commandCallbackQueue = { () -> DispatchQueue in
-        let queue = DispatchQueue(label: "command.callback.queue")
-        queue.setSpecific(key: commandCallbackQueueSpecificKey, value: commandCallbackQueueSpecificValue)
-        return queue
-    }()
-    
-    let timerTimeIntervalError: TimeInterval = 3
-    
-    func testTimerPingTimeout() {
-        
-        let interval: TimeInterval = 5
-        let expectation = self.expectation(description: "Get ping sent callback")
-        
-        let timer = RTMConnection.Timer(timerQueue: timerQueue, commandCallbackQueue: commandCallbackQueue, pingTimeout: interval) { timer in
-            XCTAssertEqual(DispatchQueue.getSpecific(key: self.timerQueueSpecificKey), self.timerQueueSpecificValue)
-            if timer.lastPingSentTimestamp != 0 {
-                let timeout: TimeInterval = Date().timeIntervalSince1970 - timer.lastPingSentTimestamp
-                XCTAssertTrue(timeout < timer.pingTimeout + self.timerTimeIntervalError)
-                XCTAssertTrue(timeout > timer.pingTimeout - self.timerTimeIntervalError)
-                expectation.fulfill()
-            }
-        }
-        
-        self.waitForExpectations(timeout: interval * 2, handler: nil)
-        
-        timer.cancel()
-    }
-    
-    func testTimerPingpongInterval() {
-        
-        let interval: TimeInterval = 5
-        let expectation = self.expectation(description: "Get ping sent callback")
-        
-        let timer = RTMConnection.Timer(timerQueue: timerQueue, commandCallbackQueue: commandCallbackQueue, pingpongInterval: interval) { timer in
-            XCTAssertEqual(DispatchQueue.getSpecific(key: self.timerQueueSpecificKey), self.timerQueueSpecificValue)
-            self.timerQueue.async {
-                timer.lastPongReceivedTimestamp = Date().timeIntervalSince1970
-            }
-            if timer.lastPongReceivedTimestamp != 0 {
-                let pingpongInterval: TimeInterval = Date().timeIntervalSince1970 - timer.lastPongReceivedTimestamp
-                XCTAssertTrue(pingpongInterval < timer.pingpongInterval + self.timerTimeIntervalError)
-                XCTAssertTrue(pingpongInterval > timer.pingpongInterval - self.timerTimeIntervalError)
-                expectation.fulfill()
-            }
-        }
-
-        self.waitForExpectations(timeout: interval * 2, handler: nil)
-        
-        timer.cancel()
-    }
-    
-    func testTimerCheckCommandCallback() {
-        
-        let interval: TimeInterval = 5
-        let expectation = self.expectation(description: "Get command callback")
-        expectation.expectedFulfillmentCount = 3
-        
-        let timer = RTMConnection.Timer(timerQueue: timerQueue, commandCallbackQueue: commandCallbackQueue) { _ in }
-        timerQueue.async {
-            let commandCallbackInsertTimestamp: TimeInterval = Date().timeIntervalSince1970
-            // test callback timeout 1
-            let index1: UInt16 = 1
-            let commandTTL1: TimeInterval = interval
-            timer.insert(commandCallback: RTMConnection.CommandCallback(closure: { (result) in
-                XCTAssertEqual(DispatchQueue.getSpecific(key: self.commandCallbackQueueSpecificKey), self.commandCallbackQueueSpecificValue)
-                switch result {
-                case .error(let error):
-                    let interval: TimeInterval = Date().timeIntervalSince1970 - commandCallbackInsertTimestamp
-                    XCTAssertTrue(interval < commandTTL1 + self.timerTimeIntervalError)
-                    XCTAssertTrue(interval > commandTTL1 - self.timerTimeIntervalError)
-                    XCTAssertEqual(error.code, LCError.InternalErrorCode.commandTimeout.rawValue)
-                case .inCommand(_):
-                    XCTFail()
-                }
-                self.timerQueue.async {
-                    XCTAssertEqual(timer.commandIndexSequence.contains(index1), false)
-                    XCTAssertNil(timer.commandCallbackCollection[index1])
-                    expectation.fulfill()
-                }
-            }, timeToLive: commandTTL1), index: index1)
-            // test callback timeout 2
-            let index2: UInt16 = 2
-            let commandTTL2: TimeInterval = interval * 2
-            timer.insert(commandCallback: RTMConnection.CommandCallback(closure: { (result) in
-                XCTAssertEqual(DispatchQueue.getSpecific(key: self.commandCallbackQueueSpecificKey), self.commandCallbackQueueSpecificValue)
-                switch result {
-                case .error(let error):
-                    let interval: TimeInterval = Date().timeIntervalSince1970 - commandCallbackInsertTimestamp
-                    XCTAssertTrue(interval < commandTTL2 + self.timerTimeIntervalError)
-                    XCTAssertTrue(interval > commandTTL2 - self.timerTimeIntervalError)
-                    XCTAssertEqual(error.code, LCError.InternalErrorCode.commandTimeout.rawValue)
-                case .inCommand(_):
-                    XCTFail()
-                }
-                self.timerQueue.async {
-                    XCTAssertEqual(timer.commandIndexSequence.contains(index2), false)
-                    XCTAssertNil(timer.commandCallbackCollection[index2])
-                    expectation.fulfill()
-                }
-            }, timeToLive: commandTTL2), index: index2)
-            // test callback succeeded
-            let index3: UInt16 = 3
-            timer.insert(commandCallback: RTMConnection.CommandCallback(closure: { (result) in
-                XCTAssertEqual(DispatchQueue.getSpecific(key: self.commandCallbackQueueSpecificKey), self.commandCallbackQueueSpecificValue)
-                switch result {
-                case .error(_):
-                    XCTFail()
-                case .inCommand(let command):
-                    XCTAssertTrue(command.i == index3)
-                }
-                self.timerQueue.async {
-                    XCTAssertEqual(timer.commandIndexSequence.contains(index3), false)
-                    XCTAssertNil(timer.commandCallbackCollection[index3])
-                    expectation.fulfill()
-                }
-            }, timeToLive: interval * 6), index: index3)
-            timer.handle(callbackCommand: {
-                var command = IMGenericCommand()
-                command.i = Int32(index3)
-                return command
-            }())
-        }
-        
-        self.waitForExpectations(timeout: interval * 6, handler: nil)
-        
-        timer.cancel()
-    }
-    
-    func testTimerCancel() {
-        
-        let timeout: TimeInterval = 30
-        let expectation = self.expectation(description: "Get command callback")
-        
-        let timer = RTMConnection.Timer(timerQueue: timerQueue, commandCallbackQueue: commandCallbackQueue) { _ in }
-        timerQueue.async {
-            timer.insert(commandCallback: RTMConnection.CommandCallback(closure: { (result) in
-                XCTAssertEqual(DispatchQueue.getSpecific(key: self.commandCallbackQueueSpecificKey), self.commandCallbackQueueSpecificValue)
-                switch result {
-                case .error(let error):
-                    XCTAssertEqual(error.code, LCError.InternalErrorCode.connectionLost.rawValue)
-                case .inCommand(_):
-                    XCTFail()
-                }
-                expectation.fulfill()
-            }, timeToLive: timeout), index: 1)
-            timer.cancel()
-        }
-
-        self.waitForExpectations(timeout: timeout, handler: nil)
-    }
-    
-    func testConnectionInitAndDeinit() {
-        var connection: RTMConnection? = RTMConnection(
-            application: .default,
-            lcimProtocol: .protobuf1
-        )
-        connection = nil
-        XCTAssertNil(connection)
-    }
-    
-    func testConnectAndDisconnect() {
-        
-        let delegator = Delegator()
-        let connection = RTMConnection(
-            application: .default,
-            lcimProtocol: .protobuf1,
-            delegate: delegator,
-            delegateQueue: .main,
-            customRTMServerURL: testableRTMURL
-        )
-        
-        let exp1 = expectation(description: "connect")
-        exp1.expectedFulfillmentCount = 2
-        delegator.inConnecting = { conn in
-            XCTAssertTrue(Thread.isMainThread)
-            exp1.fulfill()
-        }
-        delegator.didConnect = { conn in
-            XCTAssertTrue(Thread.isMainThread)
-            exp1.fulfill()
-        }
-        connection.connect()
-        wait(for: [exp1], timeout: timeout)
-        
-        let exp2 = expectation(description: "disconnect")
-        delegator.didDisconnect = { conn, error in
-            XCTAssertTrue(Thread.isMainThread)
-            exp2.fulfill()
-        }
-        connection.disconnect()
-        wait(for: [exp2], timeout: timeout)
-    }
-
 }

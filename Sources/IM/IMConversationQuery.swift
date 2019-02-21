@@ -28,7 +28,7 @@ public final class IMConversationQuery {
     }
     #endif
     
-    private let client: IMClient
+    private weak var client: IMClient?
     
     private let eventQueue: DispatchQueue?
     
@@ -100,7 +100,7 @@ private extension IMConversationQuery {
         if !isTemporary {
             whereString = try self.whereString(IDs: IDs)
         }
-        self.client.sendCommand(constructor: { () -> IMGenericCommand in
+        self.client?.sendCommand(constructor: { () -> IMGenericCommand in
             var outCommand = IMGenericCommand()
             outCommand.cmd = .conv
             outCommand.op = .query
@@ -115,7 +115,7 @@ private extension IMConversationQuery {
             }
             outCommand.convMessage = convCommand
             return outCommand
-        }, completion: { (commandCallbackResult) in
+        }, completion: { (client, commandCallbackResult) in
             let callback: (LCGenericResult<[T]>) -> Void = { result in
                 if let queue = self.eventQueue {
                     queue.async { completion(result) }
@@ -127,7 +127,7 @@ private extension IMConversationQuery {
             case .inCommand(let inCommand):
                 assert(self.specificAssertion)
                 do {
-                    let conversations: [T] = try self.conversations(command: inCommand, client: self.client)
+                    let conversations: [T] = try self.conversations(command: inCommand, client: client)
                     let result = LCGenericResult<[T]>.success(value: conversations)
                     callback(result)
                 } catch {

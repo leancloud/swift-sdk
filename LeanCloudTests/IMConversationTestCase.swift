@@ -867,7 +867,7 @@ extension IMConversationTestCase {
         customRTMURL: URL? = nil)
         -> IMClient?
     {
-        var client: IMClient? = try? IMClient(ID: clientID ?? uuid, options:options, customServer: customRTMURL)
+        var client: IMClient? = try? IMClient(ID: clientID ?? uuid, options:options, customServerURL: customRTMURL)
         let exp = expectation(description: "open")
         client?.open { (result) in
             if result.isFailure { client = nil }
