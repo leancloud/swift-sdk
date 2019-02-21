@@ -11,9 +11,16 @@ import XCTest
 
 class RTMConnectionTestCase: RTMBaseTestCase {
     
+    override func setUp() {
+        super.setUp()
+        RTMConnectionRefMap_protobuf1.removeAll()
+        RTMConnectionRefMap_protobuf3.removeAll()
+    }
+    
     override func tearDown() {
         RTMConnectionRefMap_protobuf1.removeAll()
         RTMConnectionRefMap_protobuf3.removeAll()
+        super.tearDown()
     }
     
     func testConnectionReference() {
