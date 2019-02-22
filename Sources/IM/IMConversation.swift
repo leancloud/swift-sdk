@@ -628,8 +628,15 @@ extension IMConversation {
             status: .sent
         )
         self.safeUpdatingLastMessage(newMessage: patchedMessage, client: client)
+        var reason: IMMessage.PatchedReason? = nil
+        if patchItem.hasPatchCode || patchItem.hasPatchReason {
+            reason = IMMessage.PatchedReason(
+                code: (patchItem.hasPatchCode ? Int(patchItem.patchCode) : nil),
+                reason: (patchItem.hasPatchReason ? patchItem.patchReason : nil)
+            )
+        }
         client.eventQueue.async {
-            let messageEvent = IMMessageEvent.updated(updatedMessage: patchedMessage)
+            let messageEvent = IMMessageEvent.updated(updatedMessage: patchedMessage, reason: reason)
             client.delegate?.client(client, conversation: self, event: .message(event: messageEvent))
         }
     }

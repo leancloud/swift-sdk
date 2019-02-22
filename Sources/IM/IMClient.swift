@@ -258,8 +258,16 @@ public final class IMClient {
             udid = identifierForVendor
         }
         #elseif os(macOS)
-        let platformExpert: io_service_t = IOServiceGetMatchingService(kIOMasterPortDefault, IOServiceMatching("IOPlatformExpertDevice") )
-        if let serialNumber: String = IORegistryEntryCreateCFProperty(platformExpert, kIOPlatformSerialNumberKey as CFString, kCFAllocatorDefault, 0).takeUnretainedValue() as? String {
+        let platformExpert: io_service_t = IOServiceGetMatchingService(
+            kIOMasterPortDefault,
+            IOServiceMatching("IOPlatformExpertDevice")
+        )
+        if let serialNumber: String = IORegistryEntryCreateCFProperty(
+            platformExpert,
+            kIOPlatformSerialNumberKey as CFString,
+            kCFAllocatorDefault,
+            0).takeUnretainedValue() as? String
+        {
             udid = serialNumber
         }
         IOObjectRelease(platformExpert)
@@ -1429,6 +1437,8 @@ extension IMClient: RTMConnectionDelegate {
     
 }
 
+// MARK: - Event
+
 public enum IMClientEvent {
     
     case sessionDidOpen
@@ -1465,7 +1475,7 @@ public enum IMMessageEvent {
     
     case received(message: IMMessage)
     
-    case updated(updatedMessage: IMMessage)
+    case updated(updatedMessage: IMMessage, reason: IMMessage.PatchedReason?)
     
     case delivered(toClientID: String?, messageID: String, deliveredTimestamp: Int64)
     

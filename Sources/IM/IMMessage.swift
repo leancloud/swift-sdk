@@ -53,6 +53,11 @@ open class IMMessage {
         return IMClient.date(fromMillisecond: sentTimestamp)
     }
     
+    public struct PatchedReason {
+        let code: Int?
+        let reason: String?
+    }
+    
     public final internal(set) var patchedTimestamp: Int64?
     public final var patchedDate: Date? {
         return IMClient.date(fromMillisecond: patchedTimestamp)
@@ -421,10 +426,12 @@ open class IMCategorizedMessage: IMMessage, IMMessageCategorizing {
                     avURL = URL(string: fileURLString)
                 }
                 if let fileURL: URL = avURL {
+                    #if !os(watchOS)
                     let options = [AVURLAssetPreferPreciseDurationAndTimingKey: true]
                     let URLAsset = AVURLAsset(url: fileURL, options: options)
                     let duration: Double = URLAsset.duration.seconds
                     metaData[FileKey.duration.rawValue] = duration
+                    #endif
                 }
             }
         }
