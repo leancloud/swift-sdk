@@ -42,6 +42,7 @@ enum IMCommandType: SwiftProtobuf.Enum {
   case patch // = 18
   case pubsub // = 19
   case blacklist // = 20
+  case goaway // = 21
 
   init() {
     self = .session
@@ -70,6 +71,7 @@ enum IMCommandType: SwiftProtobuf.Enum {
     case 18: self = .patch
     case 19: self = .pubsub
     case 20: self = .blacklist
+    case 21: self = .goaway
     default: return nil
     }
   }
@@ -97,6 +99,7 @@ enum IMCommandType: SwiftProtobuf.Enum {
     case .patch: return 18
     case .pubsub: return 19
     case .blacklist: return 20
+    case .goaway: return 21
     }
   }
 
@@ -191,6 +194,8 @@ enum IMOpType: SwiftProtobuf.Enum {
   case unblocked // = 173
   case membersBlocked // = 174
   case membersUnblocked // = 175
+  case checkBlock // = 176
+  case checkResult // = 177
   case addShutup // = 180
   case removeShutup // = 181
   case queryShutup // = 182
@@ -201,6 +206,9 @@ enum IMOpType: SwiftProtobuf.Enum {
   case unshutuped // = 187
   case membersShutuped // = 188
   case membersUnshutuped // = 189
+
+  /// check_result define in 177
+  case checkShutup // = 190
 
   init() {
     self = .open
@@ -263,6 +271,8 @@ enum IMOpType: SwiftProtobuf.Enum {
     case 173: self = .unblocked
     case 174: self = .membersBlocked
     case 175: self = .membersUnblocked
+    case 176: self = .checkBlock
+    case 177: self = .checkResult
     case 180: self = .addShutup
     case 181: self = .removeShutup
     case 182: self = .queryShutup
@@ -273,6 +283,7 @@ enum IMOpType: SwiftProtobuf.Enum {
     case 187: self = .unshutuped
     case 188: self = .membersShutuped
     case 189: self = .membersUnshutuped
+    case 190: self = .checkShutup
     default: return nil
     }
   }
@@ -334,6 +345,8 @@ enum IMOpType: SwiftProtobuf.Enum {
     case .unblocked: return 173
     case .membersBlocked: return 174
     case .membersUnblocked: return 175
+    case .checkBlock: return 176
+    case .checkResult: return 177
     case .addShutup: return 180
     case .removeShutup: return 181
     case .queryShutup: return 182
@@ -344,6 +357,7 @@ enum IMOpType: SwiftProtobuf.Enum {
     case .unshutuped: return 187
     case .membersShutuped: return 188
     case .membersUnshutuped: return 189
+    case .checkShutup: return 190
     }
   }
 
@@ -920,6 +934,15 @@ struct IMErrorCommand {
 
   var pids: [String] = []
 
+  var appMsg: String {
+    get {return _appMsg ?? String()}
+    set {_appMsg = newValue}
+  }
+  /// Returns true if `appMsg` has been explicitly set.
+  var hasAppMsg: Bool {return self._appMsg != nil}
+  /// Clears the value of `appMsg`. Subsequent reads from it will return its default value.
+  mutating func clearAppMsg() {self._appMsg = nil}
+
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
   init() {}
@@ -928,6 +951,7 @@ struct IMErrorCommand {
   fileprivate var _reason: String? = nil
   fileprivate var _appCode: Int32? = nil
   fileprivate var _detail: String? = nil
+  fileprivate var _appMsg: String? = nil
 }
 
 struct IMDirectCommand {
@@ -1211,6 +1235,15 @@ struct IMAckCommand {
   /// Clears the value of `appCode`. Subsequent reads from it will return its default value.
   mutating func clearAppCode() {self._appCode = nil}
 
+  var appMsg: String {
+    get {return _appMsg ?? String()}
+    set {_appMsg = newValue}
+  }
+  /// Returns true if `appMsg` has been explicitly set.
+  var hasAppMsg: Bool {return self._appMsg != nil}
+  /// Clears the value of `appMsg`. Subsequent reads from it will return its default value.
+  mutating func clearAppMsg() {self._appMsg = nil}
+
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
   init() {}
@@ -1225,6 +1258,7 @@ struct IMAckCommand {
   fileprivate var _tots: Int64? = nil
   fileprivate var _type: String? = nil
   fileprivate var _appCode: Int32? = nil
+  fileprivate var _appMsg: String? = nil
 }
 
 struct IMUnreadCommand {
@@ -2143,6 +2177,24 @@ struct IMPatchItem {
 
   var mentionPids: [String] = []
 
+  var patchCode: Int64 {
+    get {return _patchCode ?? 0}
+    set {_patchCode = newValue}
+  }
+  /// Returns true if `patchCode` has been explicitly set.
+  var hasPatchCode: Bool {return self._patchCode != nil}
+  /// Clears the value of `patchCode`. Subsequent reads from it will return its default value.
+  mutating func clearPatchCode() {self._patchCode = nil}
+
+  var patchReason: String {
+    get {return _patchReason ?? String()}
+    set {_patchReason = newValue}
+  }
+  /// Returns true if `patchReason` has been explicitly set.
+  var hasPatchReason: Bool {return self._patchReason != nil}
+  /// Clears the value of `patchReason`. Subsequent reads from it will return its default value.
+  mutating func clearPatchReason() {self._patchReason = nil}
+
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
   init() {}
@@ -2156,6 +2208,8 @@ struct IMPatchItem {
   fileprivate var _from: String? = nil
   fileprivate var _binaryMsg: Data? = nil
   fileprivate var _mentionAll: Bool? = nil
+  fileprivate var _patchCode: Int64? = nil
+  fileprivate var _patchReason: String? = nil
 }
 
 struct IMPatchCommand {
@@ -2601,6 +2655,7 @@ extension IMCommandType: SwiftProtobuf._ProtoNameProviding {
     18: .same(proto: "patch"),
     19: .same(proto: "pubsub"),
     20: .same(proto: "blacklist"),
+    21: .same(proto: "goaway"),
   ]
 }
 
@@ -2661,6 +2716,8 @@ extension IMOpType: SwiftProtobuf._ProtoNameProviding {
     173: .same(proto: "unblocked"),
     174: .same(proto: "members_blocked"),
     175: .same(proto: "members_unblocked"),
+    176: .same(proto: "check_block"),
+    177: .same(proto: "check_result"),
     180: .same(proto: "add_shutup"),
     181: .same(proto: "remove_shutup"),
     182: .same(proto: "query_shutup"),
@@ -2671,6 +2728,7 @@ extension IMOpType: SwiftProtobuf._ProtoNameProviding {
     187: .same(proto: "unshutuped"),
     188: .same(proto: "members_shutuped"),
     189: .same(proto: "members_unshutuped"),
+    190: .same(proto: "check_shutup"),
   ]
 }
 
@@ -3193,6 +3251,7 @@ extension IMErrorCommand: SwiftProtobuf.Message, SwiftProtobuf._MessageImplement
     3: .same(proto: "appCode"),
     4: .same(proto: "detail"),
     5: .same(proto: "pids"),
+    6: .same(proto: "appMsg"),
   ]
 
   public var isInitialized: Bool {
@@ -3209,6 +3268,7 @@ extension IMErrorCommand: SwiftProtobuf.Message, SwiftProtobuf._MessageImplement
       case 3: try decoder.decodeSingularInt32Field(value: &self._appCode)
       case 4: try decoder.decodeSingularStringField(value: &self._detail)
       case 5: try decoder.decodeRepeatedStringField(value: &self.pids)
+      case 6: try decoder.decodeSingularStringField(value: &self._appMsg)
       default: break
       }
     }
@@ -3230,6 +3290,9 @@ extension IMErrorCommand: SwiftProtobuf.Message, SwiftProtobuf._MessageImplement
     if !self.pids.isEmpty {
       try visitor.visitRepeatedStringField(value: self.pids, fieldNumber: 5)
     }
+    if let v = self._appMsg {
+      try visitor.visitSingularStringField(value: v, fieldNumber: 6)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -3239,6 +3302,7 @@ extension IMErrorCommand: SwiftProtobuf.Message, SwiftProtobuf._MessageImplement
     if lhs._appCode != rhs._appCode {return false}
     if lhs._detail != rhs._detail {return false}
     if lhs.pids != rhs.pids {return false}
+    if lhs._appMsg != rhs._appMsg {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -3471,6 +3535,7 @@ extension IMAckCommand: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementat
     9: .same(proto: "type"),
     10: .same(proto: "ids"),
     11: .same(proto: "appCode"),
+    12: .same(proto: "appMsg"),
   ]
 
   mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -3487,6 +3552,7 @@ extension IMAckCommand: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementat
       case 9: try decoder.decodeSingularStringField(value: &self._type)
       case 10: try decoder.decodeRepeatedStringField(value: &self.ids)
       case 11: try decoder.decodeSingularInt32Field(value: &self._appCode)
+      case 12: try decoder.decodeSingularStringField(value: &self._appMsg)
       default: break
       }
     }
@@ -3526,6 +3592,9 @@ extension IMAckCommand: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementat
     if let v = self._appCode {
       try visitor.visitSingularInt32Field(value: v, fieldNumber: 11)
     }
+    if let v = self._appMsg {
+      try visitor.visitSingularStringField(value: v, fieldNumber: 12)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -3541,6 +3610,7 @@ extension IMAckCommand: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementat
     if lhs._type != rhs._type {return false}
     if lhs.ids != rhs.ids {return false}
     if lhs._appCode != rhs._appCode {return false}
+    if lhs._appMsg != rhs._appMsg {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -4398,6 +4468,8 @@ extension IMPatchItem: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementati
     8: .same(proto: "binaryMsg"),
     9: .same(proto: "mentionAll"),
     10: .same(proto: "mentionPids"),
+    11: .same(proto: "patchCode"),
+    12: .same(proto: "patchReason"),
   ]
 
   mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -4413,6 +4485,8 @@ extension IMPatchItem: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementati
       case 8: try decoder.decodeSingularBytesField(value: &self._binaryMsg)
       case 9: try decoder.decodeSingularBoolField(value: &self._mentionAll)
       case 10: try decoder.decodeRepeatedStringField(value: &self.mentionPids)
+      case 11: try decoder.decodeSingularInt64Field(value: &self._patchCode)
+      case 12: try decoder.decodeSingularStringField(value: &self._patchReason)
       default: break
       }
     }
@@ -4449,6 +4523,12 @@ extension IMPatchItem: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementati
     if !self.mentionPids.isEmpty {
       try visitor.visitRepeatedStringField(value: self.mentionPids, fieldNumber: 10)
     }
+    if let v = self._patchCode {
+      try visitor.visitSingularInt64Field(value: v, fieldNumber: 11)
+    }
+    if let v = self._patchReason {
+      try visitor.visitSingularStringField(value: v, fieldNumber: 12)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -4463,6 +4543,8 @@ extension IMPatchItem: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementati
     if lhs._binaryMsg != rhs._binaryMsg {return false}
     if lhs._mentionAll != rhs._mentionAll {return false}
     if lhs.mentionPids != rhs.mentionPids {return false}
+    if lhs._patchCode != rhs._patchCode {return false}
+    if lhs._patchReason != rhs._patchReason {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
