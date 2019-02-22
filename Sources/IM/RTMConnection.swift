@@ -122,6 +122,10 @@ protocol RTMConnectionDelegate: class {
 
 class RTMConnection {
     
+    #if DEBUG
+    static let TestGoawayCommandReceivedNotification = Notification.Name.init("TestGoawayCommandReceivedNotification")
+    #endif
+    
     /// ref: https://github.com/leancloud/avoscloud-push/blob/develop/push-server/doc/protocol.md#传输协议
     enum LCIMProtocol: String {
         case protobuf1 = "lc.protobuf2.1"
@@ -305,7 +309,7 @@ class RTMConnection {
     
     let application: LCApplication
     let lcimProtocol: LCIMProtocol
-    let customRTMServerURL: URL?
+    var customRTMServerURL: URL? = nil
     let rtmRouter: RTMRouter
     
     let serialQueue: DispatchQueue = DispatchQueue(label: "LeanCloud.Connection.serialQueue")
@@ -650,10 +654,10 @@ extension RTMConnection {
             socket.pongDelegate = nil
             socket.disconnect()
             self.socket = nil
-        }
-        for item in self.delegatorMap.values {
-            item.queue.async {
-                item.delegate?.connection(self, didDisconnect: error)
+            for item in self.delegatorMap.values {
+                item.queue.async {
+                    item.delegate?.connection(self, didDisconnect: error)
+                }
             }
         }
         self.timer = nil
@@ -710,6 +714,31 @@ extension RTMConnection {
         }
     }
     
+    private func handleGoaway(inCommand: IMGenericCommand) {
+        assert(self.specificAssertion)
+        guard inCommand.cmd == .goaway else {
+            return
+        }
+        var userInfo: [String: Any]? = nil
+        do {
+            try self.rtmRouter.cache.clear()
+            self.tryClearConnection(with: LCError.closedByRemote)
+            self.tryConnecting()
+        } catch {
+            Logger.shared.error(error)
+            userInfo = ["error": error]
+        }
+        #if DEBUG
+        NotificationCenter.default.post(
+            name: RTMConnection.TestGoawayCommandReceivedNotification,
+            object: self,
+            userInfo: userInfo
+        )
+        #else
+        _ = userInfo
+        #endif
+    }
+    
 }
 
 // MARK: - WebSocketDelegate
@@ -754,13 +783,17 @@ extension RTMConnection: WebSocketDelegate, WebSocketPongDelegate {
         if inCommand.hasI {
             self.timer?.handle(callbackCommand: inCommand)
         } else {
-            let peerID = inCommand.peerID
-            if let delegator: Delegator = self.delegatorMap[peerID] {
-                delegator.queue.async {
-                    delegator.delegate?.connection(self, didReceiveCommand: inCommand)
+            if inCommand.hasPeerID {
+                let peerID = inCommand.peerID
+                if let delegator: Delegator = self.delegatorMap[peerID] {
+                    delegator.queue.async {
+                        delegator.delegate?.connection(self, didReceiveCommand: inCommand)
+                    }
+                } else {
+                    Logger.shared.error("\(type(of: self)) not found delegator for peer ID: \(peerID)")
                 }
             } else {
-                Logger.shared.error("\(type(of: self)) not found delegator for peer ID: \(peerID)")
+                self.handleGoaway(inCommand: inCommand)
             }
         }
     }
