@@ -53,6 +53,11 @@ open class IMMessage {
         return IMClient.date(fromMillisecond: sentTimestamp)
     }
     
+    public struct PatchedReason {
+        let code: Int?
+        let reason: String?
+    }
+    
     public final internal(set) var patchedTimestamp: Int64?
     public final var patchedDate: Date? {
         return IMClient.date(fromMillisecond: patchedTimestamp)

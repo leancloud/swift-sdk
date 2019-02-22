@@ -1437,6 +1437,8 @@ extension IMClient: RTMConnectionDelegate {
     
 }
 
+// MARK: - Event
+
 public enum IMClientEvent {
     
     case sessionDidOpen
@@ -1473,7 +1475,7 @@ public enum IMMessageEvent {
     
     case received(message: IMMessage)
     
-    case updated(updatedMessage: IMMessage)
+    case updated(updatedMessage: IMMessage, reason: IMMessage.PatchedReason?)
     
     case delivered(toClientID: String?, messageID: String, deliveredTimestamp: Int64)
     
