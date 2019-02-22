@@ -231,6 +231,40 @@ class RTMConnectionTestCase: RTMBaseTestCase {
         
         XCTAssertEqual(connection.underlyingSerialIndex, 3)
     }
+    
+    func testGoaway() {
+        let tuple = connectedConnection(customServerURL: testableRTMURL)
+        let connection = tuple.0
+        let delegator = tuple.1
+        connection.customRTMServerURL = nil
+        do {
+            let exp = expectation(description: "get goaway")
+            exp.expectedFulfillmentCount = 3
+            let table1 = try connection.rtmRouter.cache.getRoutingTable()
+            NotificationCenter.default.addObserver(
+                forName: RTMConnection.TestGoawayCommandReceivedNotification,
+                object: connection,
+                queue: OperationQueue.main)
+            { (notification) in
+                XCTAssertNil(notification.userInfo?["error"])
+                exp.fulfill()
+            }
+            delegator.didDisconnect = { _, error in
+                XCTAssertEqual(error.code, LCError.InternalErrorCode.connectionLost.rawValue)
+                exp.fulfill()
+            }
+            delegator.didConnect = { _ in
+                exp.fulfill()
+            }
+            wait(for: [exp], timeout: 120)
+            let table2 = try connection.rtmRouter.cache.getRoutingTable()
+            XCTAssertNotNil(table2)
+            XCTAssertNotNil(table2?.createdAt)
+            XCTAssertNotEqual(table2?.createdAt, table1?.createdAt)
+        } catch {
+            XCTFail("\(error)")
+        }
+    }
 
 }
 
@@ -238,10 +272,16 @@ extension RTMConnectionTestCase {
     
     func connectedConnection(
         application: LCApplication = .default,
-        peerID: String = uuid)
+        peerID: String = uuid,
+        customServerURL: URL? = nil)
         -> (RTMConnection, Delegator)
     {
-        let connection = try! RTMConnectionRefering(application: application, peerID: peerID, lcimProtocol: .protobuf1)
+        let connection = try! RTMConnectionRefering(
+            application: application,
+            peerID: peerID,
+            lcimProtocol: .protobuf1,
+            customServerURL: customServerURL
+        )
         let delegator = Delegator()
         let connectionDelegator = RTMConnection.Delegator(queue: .main)
         connectionDelegator.delegate = delegator
