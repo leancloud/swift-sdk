@@ -9,3 +9,8 @@
 import Foundation
 
 public let version = "15.0.0"
+
+/// `version` is a common word, so use `lc_version` to wrap it to avoid conflict.
+var lc_version: String {
+    return version
+}

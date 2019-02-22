@@ -841,6 +841,9 @@ extension IMErrorCommand {
         if self.hasAppCode {
             userInfo?["appCode"] = self.appCode
         }
+        if self.hasAppMsg {
+            userInfo?["appMsg"] = self.appMsg
+        }
         if self.hasDetail {
             userInfo?["detail"] = self.detail
         }
@@ -894,6 +897,9 @@ extension IMAckCommand {
             var userInfo: LCError.UserInfo? = [:]
             if self.hasAppCode {
                 userInfo?["appCode"] = self.appCode
+            }
+            if self.hasAppMsg {
+                userInfo?["appMsg"] = self.appMsg
             }
             if let ui = userInfo, ui.isEmpty {
                 userInfo = nil
