@@ -758,9 +758,10 @@ class IMMessageTestCase: RTMBaseTestCase {
         }
         receivingTuple?.delegator.messageEvent = { client, conv, event in
             switch event {
-            case .updated(updatedMessage: let patchedMessage):
+            case .updated(updatedMessage: let patchedMessage, reason: let reason):
                 XCTAssertTrue(conv.lastMessage === patchedMessage)
                 patchedMessageChecker(patchedMessage, oldMessage)
+                XCTAssertNil(reason)
                 exp.fulfill()
             default:
                 break
@@ -813,9 +814,10 @@ class IMMessageTestCase: RTMBaseTestCase {
         }
         receivingTuple?.delegator.messageEvent = { client, conv, event in
             switch event {
-            case .updated(updatedMessage: let recalledMessage):
+            case .updated(updatedMessage: let recalledMessage, reason: let reason):
                 XCTAssertTrue(conv.lastMessage === recalledMessage)
                 recalledMessageChecker(recalledMessage, oldMessage)
+                XCTAssertNil(reason)
                 exp.fulfill()
             default:
                 break
@@ -870,8 +872,9 @@ class IMMessageTestCase: RTMBaseTestCase {
         receivingTuple.delegator.messageEvent = { client, conv, event in
             if conv.ID == receivingTuple.conversation.ID {
                 switch event {
-                case .updated(updatedMessage: let message):
+                case .updated(updatedMessage: let message, reason: let reason):
                     XCTAssertTrue(message is IMFileMessage)
+                    XCTAssertNil(reason)
                     patchMessageExp.fulfill()
                 default:
                     break
@@ -938,8 +941,9 @@ class IMMessageTestCase: RTMBaseTestCase {
         receivingTuple.delegator.messageEvent = { client, conv, event in
             if conv.ID == receivingTuple.conversation.ID {
                 switch event {
-                case .updated(updatedMessage: let message):
+                case .updated(updatedMessage: let message, reason: let reason):
                     XCTAssertTrue(message is IMTextMessage)
+                    XCTAssertNil(reason)
                     getPatchExp.fulfill()
                 default:
                     break
@@ -956,6 +960,61 @@ class IMMessageTestCase: RTMBaseTestCase {
         } else {
             XCTFail()
         }
+    }
+    
+    func testMessagePatchError() {
+        guard
+            let tuples = convenienceInit(
+                clientCount: 3,
+                clientOptions: [.receiveUnreadMessageCountAfterSessionDidOpen],
+                RTMServerURL: testableRTMURL
+            ),
+            let sendingTuple = tuples.first,
+            let receivingTuple = tuples.last
+            else
+        {
+            XCTFail()
+            return
+        }
+        
+        let exp = expectation(description: "patch error")
+        exp.expectedFulfillmentCount = 3
+        let invalidContent = "无码种子"
+        receivingTuple.delegator.messageEvent = { client, conv, event in
+            if receivingTuple.conversation === conv {
+                switch event {
+                case .received(message: let message):
+                    XCTAssertNotNil(message.content?.string)
+                    XCTAssertNotEqual(message.content?.string, invalidContent)
+                    exp.fulfill()
+                default:
+                    break
+                }
+            }
+        }
+        sendingTuple.delegator.messageEvent = { client, conv, event in
+            if sendingTuple.conversation === conv {
+                switch event {
+                case .updated(updatedMessage: let message, reason: let reason):
+                    XCTAssertNotNil(message.content?.string)
+                    XCTAssertNotEqual(message.content?.string, invalidContent)
+                    XCTAssertNotNil(reason)
+                    XCTAssertNotNil(reason?.code)
+                    XCTAssertNotNil(reason?.reason)
+                    exp.fulfill()
+                default:
+                    break
+                }
+            }
+        }
+        let contentInvalidMessage = IMMessage()
+        try! contentInvalidMessage.set(content: .string(invalidContent))
+        try? sendingTuple.conversation.send(message: contentInvalidMessage, completion: { (result) in
+            XCTAssertTrue(result.isSuccess)
+            XCTAssertNil(result.error)
+            exp.fulfill()
+        })
+        wait(for: [exp], timeout: timeout)
     }
     
     func testGetMessageReceiptFlag() {
