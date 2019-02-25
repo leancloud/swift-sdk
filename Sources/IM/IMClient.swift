@@ -1392,10 +1392,18 @@ extension IMClient: RTMConnectionDelegate {
     
     func connection(_ connection: RTMConnection, didDisconnect error: LCError) {
         assert(self.specificAssertion)
+        
         let routerError = LCError.malformedRTMRouterResponse
-        if error.code == routerError.code, error.reason == routerError.reason {
+        if
+            error.code == routerError.code,
+            error.reason == routerError.reason,
+            (error.userInfo?["stop"] as? Bool) == true
+        {
             self.sessionClosed(with: .failure(error: error), completion: self.openingCompletion)
-        } else if let openingCompletion = self.openingCompletion {
+            return
+        }
+        
+        if let openingCompletion = self.openingCompletion {
             self.sessionClosed(with: .failure(error: error), completion: openingCompletion)
         } else if let _ = self.sessionToken, self.sessionState != .paused {
             self.sessionState = .paused

@@ -318,7 +318,6 @@ class RTMConnection {
     private(set) var socket: WebSocket? = nil
     private(set) var timer: Timer? = nil
     private(set) var useSecondaryServer: Bool = false
-    private(set) var continuousConnectingFailedFlag: UInt = 0
     var isAutoReconnectionEnabled: Bool {
         return !self.delegatorMap.isEmpty
     }
@@ -558,24 +557,6 @@ extension RTMConnection {
         return nil
     }
     
-    private func check(isServerError error: Error?) -> Bool {
-        if error == nil {
-            // Result: Stream end encountered, Socket Connection reset by remote peer.
-            // Reason: Maybe due to Network Environment, maybe due to LeanCloud Server Error.
-            // Handling: Anyway, SDK regrad it as LeanCloud Server Error.
-            return true
-        } else if let wsError: WSError = error as? WSError {
-            switch wsError.type {
-            case .protocolError, .invalidSSLError, .upgradeError:
-                // 99.99% is LeanCloud Server Error.
-                return true
-            default:
-                break
-            }
-        }
-        return false
-    }
-    
     private func tryConnecting(forcing: Bool = false, delay: Int = 0) {
         assert(self.specificAssertion)
         let canConnecting: () -> Bool = {
@@ -716,7 +697,6 @@ extension RTMConnection: WebSocketDelegate, WebSocketPongDelegate {
         assert(self.specificAssertion)
         assert(self.socket === socket && self.timer == nil)
         Logger.shared.verbose("\(socket) connect success")
-        self.continuousConnectingFailedFlag = 0
         self.timer = Timer(connection: self, socket: socket)
         for item in self.delegatorMap.values {
             item.queue.async {
@@ -730,19 +710,9 @@ extension RTMConnection: WebSocketDelegate, WebSocketPongDelegate {
         assert(self.socket === socket)
         Logger.shared.verbose("\(socket) disconnect with error: \(String(describing: error))")
         let isFailedInConnecting: Bool = (self.timer == nil)
-        if isFailedInConnecting {
-            self.continuousConnectingFailedFlag += 1
-            if self.continuousConnectingFailedFlag >= 60 {
-                do {
-                    try self.rtmRouter.cache.clear()
-                } catch {
-                    Logger.shared.error(error)
-                }
-            }
-        }
+        let delay: Int = (isFailedInConnecting ? 1 : 0)
         self.tryClearConnection(with: LCError(error: error ?? LCError.closedByRemote))
         self.useSecondaryServer.toggle()
-        let delay: Int = (isFailedInConnecting ? 1 : 0)
         self.tryConnecting(delay: delay)
     }
     

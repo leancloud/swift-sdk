@@ -162,12 +162,19 @@ final class RTMRouter {
 
 extension LCError {
 
-    static let rtmRouterURLNotFound = LCError(
-        code: .inconsistency,
-        reason: "RTM router URL not found.")
+    static var rtmRouterURLNotFound: LCError {
+        return LCError(
+            code: .inconsistency,
+            reason: "RTM router URL not found."
+        )
+    }
 
-    static let malformedRTMRouterResponse = LCError(
-        code: .malformedData,
-        reason: "Malformed RTM router response.")
+    static var malformedRTMRouterResponse: LCError {
+        return LCError(
+            code: .malformedData,
+            reason: "Malformed RTM router response.",
+            userInfo: ["stop": true]
+        )
+    }
 
 }
