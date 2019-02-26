@@ -9,36 +9,121 @@
 import Foundation
 
 /// IM Conversation Query
-public final class IMConversationQuery {
+public class IMConversationQuery: LCQuery {
     
-    #if DEBUG
-    private let specificKey: DispatchSpecificKey<Int>?
-    // whatever random Int is OK.
-    private let specificValue: Int?
-    private var specificAssertion: Bool {
-        if let key = specificKey, let value = specificValue {
-            return value == DispatchQueue.getSpecific(key: key)
-        } else {
-            return true
+    public static let limitRangeOfQueryResult = 1...100
+    
+    public struct Options: OptionSet {
+        public let rawValue: Int
+        
+        public init(rawValue: Int) {
+            self.rawValue = rawValue
         }
+        
+        static let notContainMembers = Options(rawValue: 1 << 0)
+        static let withLastMessage = Options(rawValue: 1 << 1)
     }
-    #else
-    private var specificAssertion: Bool {
-        return true
-    }
-    #endif
     
-    private weak var client: IMClient?
+    public var options: Options? = nil
     
-    private let eventQueue: DispatchQueue?
+    public private(set) weak var client: IMClient?
+    
+    let eventQueue: DispatchQueue?
     
     init(client: IMClient, eventQueue: DispatchQueue? = nil) {
-        #if DEBUG
-        self.specificKey = client.specificKey
-        self.specificValue = client.specificValue
-        #endif
-        self.client = client
         self.eventQueue = eventQueue
+        self.client = client
+        super.init(className: "_Conversation")
+    }
+    
+    @available(*, unavailable)
+    public override init(className: String) {
+        fatalError("not support")
+    }
+    
+    @available(*, unavailable)
+    public override func copy(with zone: NSZone?) -> Any {
+        fatalError("not support")
+    }
+    
+    @available(*, unavailable)
+    public required init?(coder aDecoder: NSCoder) {
+        fatalError("not support")
+    }
+    
+    @available(*, unavailable)
+    public override func encode(with aCoder: NSCoder) {
+        fatalError("not support")
+    }
+    
+    @available(*, unavailable)
+    public override func get<T>(_ objectId: LCStringConvertible) -> LCValueResult<T> where T : LCObject {
+        fatalError("not support")
+    }
+    
+    @available(*, unavailable)
+    public override func get<T>(_ objectId: LCStringConvertible, completion: @escaping (LCValueResult<T>) -> Void) -> LCRequest where T : LCObject {
+        fatalError("not support")
+    }
+    
+    @available(*, unavailable)
+    public override func getFirst<T>() -> LCValueResult<T> where T : LCObject {
+        fatalError("not support")
+    }
+    
+    @available(*, unavailable)
+    public override func getFirst<T>(_ completion: @escaping (LCValueResult<T>) -> Void) -> LCRequest where T : LCObject {
+        fatalError("not support")
+    }
+    
+    @available(*, unavailable)
+    public override func find<T>() -> LCQueryResult<T> where T : LCObject {
+        fatalError("not support")
+    }
+    
+    @available(*, unavailable)
+    public override func find<T>(_ completion: @escaping (LCQueryResult<T>) -> Void) -> LCRequest where T : LCObject {
+        fatalError("not support")
+    }
+    
+    @available(*, unavailable)
+    public override func count() -> LCCountResult {
+        fatalError("not support")
+    }
+    
+    @available(*, unavailable)
+    public override func count(_ completion: @escaping (LCCountResult) -> Void) -> LCRequest {
+        fatalError("not support")
+    }
+    
+    @available(*, unavailable)
+    public override func and(_ query: LCQuery) throws -> LCQuery {
+        throw LCError(code: .inconsistency, reason: "not support")
+    }
+    
+    @available(*, unavailable)
+    public override func or(_ query: LCQuery) throws -> LCQuery {
+        throw LCError(code: .inconsistency, reason: "not support")
+    }
+    
+    public func and(_ query: IMConversationQuery) throws -> IMConversationQuery? {
+        return try self.combine(op: "$and", query: query)
+    }
+    
+    public func or(_ query: IMConversationQuery) throws -> IMConversationQuery? {
+        return try self.combine(op: "$or", query: query)
+    }
+    
+    private func combine(op: String, query: IMConversationQuery) throws -> IMConversationQuery? {
+        guard let client = self.client else {
+            return nil
+        }
+        guard client === query.client else {
+            throw LCError(code: .inconsistency, reason: "Different IM client.")
+        }
+        let result = IMConversationQuery(client: client, eventQueue: self.eventQueue)
+        result.constraintDictionary[op] = [self.constraintDictionary, query.constraintDictionary]
+        return result
     }
     
     /// Get Conversation by ID.
@@ -47,8 +132,21 @@ public final class IMConversationQuery {
     ///   - ID: The ID of the conversation.
     ///   - completion: callback.
     /// - Throws: if `ID` invalid, then throw error.
-    public func getConversation<T: IMConversation>(by ID: String, completion: @escaping (LCGenericResult<T>) -> Void) throws {
-        try self.queryConversations(IDs: [ID]) { result in
+    public func getConversation<T: IMConversation>(
+        by ID: String,
+        completion: @escaping (LCGenericResult<T>) -> Void)
+        throws
+    {
+        if T.self == IMTemporaryConversation.self {
+            throw LCError.conversationQueryTypeInvalid
+        }
+        self.whereKey(IMConversation.Key.objectId.rawValue, .equalTo(ID))
+        let tuple = try self.whereAndSort()
+        self.queryConversations(
+            whereString: tuple.whereString,
+            limit: 1,
+            options: self.options)
+        { (result) in
             switch result {
             case .success(value: let conversations):
                 if let conversation: T = conversations.first as? T {
@@ -57,20 +155,32 @@ public final class IMConversationQuery {
                     let error = LCError(code: .conversationNotFound)
                     completion(.failure(error: error))
                 }
-            case .failure(error: let error):
+            case .failure(let error):
                 completion(.failure(error: error))
             }
         }
     }
     
-    /// Get Conversations by ID set.
-    ///
-    /// - Parameters:
-    ///   - IDs: The ID set of the conversations, should not empty.
-    ///   - completion: callback.
-    /// - Throws: if `IDs` invalid, then throw error.
-    public func getConversations<T: IMConversation>(by IDs: Set<String>, completion: @escaping (LCGenericResult<[T]>) -> Void) throws {
-        try self.queryConversations(IDs: Array<String>(IDs), completion: completion)
+    public func getConversations<T: IMConversation>(
+        by IDs: Set<String>,
+        completion: @escaping (LCGenericResult<[T]>) -> Void)
+        throws
+    {
+        if T.self == IMTemporaryConversation.self {
+            throw LCError.conversationQueryTypeInvalid
+        }
+        guard IMConversationQuery.limitRangeOfQueryResult.contains(IDs.count) else {
+            throw LCError.conversationQueryLimitInvalid
+        }
+        self.whereKey(IMConversation.Key.objectId.rawValue, .containedIn(Array(IDs)))
+        let tuple = try self.whereAndSort()
+        self.queryConversations(
+            whereString: tuple.whereString,
+            sortString: tuple.sortString,
+            limit: IDs.count,
+            options: self.options,
+            completion: completion
+        )
     }
     
     /// Get Temporary Conversations by ID set.
@@ -79,8 +189,39 @@ public final class IMConversationQuery {
     ///   - IDs: The ID set of the temporary conversations, should not empty.
     ///   - completion: callback.
     /// - Throws: if `IDs` invalid, then throw error.
-    public func getTemporaryConversations(by IDs: Set<String>, completion: @escaping (LCGenericResult<[IMTemporaryConversation]>) -> Void) throws {
-        try self.queryConversations(IDs: Array<String>(IDs), isTemporary: true, completion: completion)
+    public func getTemporaryConversations(
+        by IDs: Set<String>,
+        completion: @escaping (LCGenericResult<[IMTemporaryConversation]>) -> Void)
+        throws
+    {
+        guard IMConversationQuery.limitRangeOfQueryResult.contains(IDs.count) else {
+            throw LCError.conversationQueryLimitInvalid
+        }
+        self.queryConversations(
+            limit: IDs.count,
+            tempConvIDs: Array(IDs),
+            completion: completion
+        )
+    }
+    
+    public func findConversations<T: IMConversation>(completion: @escaping (LCGenericResult<[T]>) -> Void) throws {
+        if T.self == IMTemporaryConversation.self {
+            throw LCError.conversationQueryTypeInvalid
+        }
+        if let limit: Int = self.limit {
+            guard IMConversationQuery.limitRangeOfQueryResult.contains(limit) else {
+                throw LCError.conversationQueryLimitInvalid
+            }
+        }
+        let tuple = try self.whereAndSort()
+        self.queryConversations(
+            whereString: tuple.whereString,
+            sortString: tuple.sortString,
+            limit: self.limit,
+            skip: self.skip,
+            options: self.options,
+            completion: completion
+        )
     }
     
 }
@@ -88,30 +229,39 @@ public final class IMConversationQuery {
 private extension IMConversationQuery {
     
     func queryConversations<T: IMConversation>(
-        IDs: [String],
-        isTemporary: Bool = false,
+        whereString: String? = nil,
+        sortString: String? = nil,
+        limit: Int? = nil,
+        skip: Int? = nil,
+        options: Options? = nil,
+        tempConvIDs: [String]? = nil,
         completion: @escaping (LCGenericResult<[T]>) -> Void)
-        throws
     {
-        guard !IDs.isEmpty else {
-            throw LCError.conversationQueriedIDsNotFound
-        }
-        var whereString: String = ""
-        if !isTemporary {
-            whereString = try self.whereString(IDs: IDs)
-        }
         self.client?.sendCommand(constructor: { () -> IMGenericCommand in
             var outCommand = IMGenericCommand()
             outCommand.cmd = .conv
             outCommand.op = .query
             var convCommand = IMConvCommand()
-            convCommand.limit = Int32(IDs.count)
-            if isTemporary {
-                convCommand.tempConvIds = IDs
+            if let limit = limit {
+                convCommand.limit = Int32(limit)
+            }
+            if let tempConvIDs = tempConvIDs {
+                convCommand.tempConvIds = tempConvIDs
             } else {
-                var jsonCommand = IMJsonObjectMessage()
-                jsonCommand.data = whereString
-                convCommand.where = jsonCommand
+                if let whereString = whereString {
+                    var jsonCommand = IMJsonObjectMessage()
+                    jsonCommand.data = whereString
+                    convCommand.where = jsonCommand
+                }
+                if let sort = sortString {
+                    convCommand.sort = sort
+                }
+                if let skip = skip {
+                    convCommand.skip = Int32(skip)
+                }
+                if let flag = options {
+                    convCommand.flag = Int32(flag.rawValue)
+                }
             }
             outCommand.convMessage = convCommand
             return outCommand
@@ -125,7 +275,7 @@ private extension IMConversationQuery {
             }
             switch commandCallbackResult {
             case .inCommand(let inCommand):
-                assert(self.specificAssertion)
+                assert(client.specificAssertion)
                 do {
                     let conversations: [T] = try self.conversations(command: inCommand, client: client)
                     let result = LCGenericResult<[T]>.success(value: conversations)
@@ -142,23 +292,22 @@ private extension IMConversationQuery {
         })
     }
     
-    func whereString(IDs: [String]) throws -> String {
-        var value: Any
-        if let ID = IDs.first, IDs.count == 1 {
-            value = ID
-        } else {
-            value = ["$in": IDs]
+    func whereAndSort() throws -> (whereString: String?, sortString: String?) {
+        let dictionary = self.lconValue
+        var whereString: String? = nil
+        var sortString: String? = nil
+        if let whereCondition: Any = dictionary["where"] {
+            let data = try JSONSerialization.data(withJSONObject: whereCondition)
+            whereString = String(data: data, encoding: .utf8)
         }
-        let json: [String: Any] = [IMConversation.Key.objectId.rawValue: value]
-        let data: Data = try JSONSerialization.data(withJSONObject: json)
-        guard let string = String(data: data, encoding: .utf8) else {
-            throw LCError.conversationQueryWhereNotFound
+        if let sortCondition: String = dictionary["order"] as? String {
+            sortString = sortCondition
         }
-        return string
+        return (whereString, sortString)
     }
     
     func conversations<T: IMConversation>(command: IMGenericCommand, client: IMClient) throws -> [T] {
-        assert(self.specificAssertion)
+        assert(client.specificAssertion)
         let convMessage: IMConvCommand? = (command.hasConvMessage ? command.convMessage : nil)
         let jsonMessage: IMJsonObjectMessage? = ((convMessage?.hasResults ?? false) ? convMessage?.results : nil)
         guard let jsonString: String = ((jsonMessage?.hasData ?? false) ? jsonMessage?.data : nil) else {
@@ -170,7 +319,7 @@ private extension IMConversationQuery {
         var conversations: [T] = []
         for rawData in rawDatas {
             guard let objectId: String = rawData[IMConversation.Key.objectId.rawValue] as? String else {
-                throw LCError.conversationIDNotFound
+                throw LCError.conversationQueryObjectIDNotFound
             }
             let instance: IMConversation
             if let existConversation: IMConversation = client.convCollection[objectId] {
@@ -195,24 +344,24 @@ private extension IMConversationQuery {
 
 fileprivate extension LCError {
     
-    static var conversationQueriedIDsNotFound: LCError {
-        return LCError(
-            code: .inconsistency,
-            reason: "The array of conversation ID to be to be queried is empty"
-        )
-    }
-    
-    static var conversationQueryWhereNotFound: LCError {
-        return LCError(
-            code: .inconsistency,
-            reason: "The where condition of conversation-query not found"
-        )
-    }
-    
-    static var conversationIDNotFound: LCError {
+    static var conversationQueryObjectIDNotFound: LCError {
         return LCError(
             code: .malformedData,
-            reason: "The objectId of conversation-query-result not found"
+            reason: "The object ID of result not found"
+        )
+    }
+    
+    static var conversationQueryLimitInvalid: LCError {
+        return LCError(
+            code: .inconsistency,
+            reason: "The limit of query shoule in \(IMConversationQuery.limitRangeOfQueryResult)"
+        )
+    }
+    
+    static var conversationQueryTypeInvalid: LCError {
+        return LCError(
+            code: .invalidType,
+            reason: "if result type is \(IMTemporaryConversation.self), should use Get-Temporary-Conversations API"
         )
     }
     

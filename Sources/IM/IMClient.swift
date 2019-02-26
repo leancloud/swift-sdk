@@ -811,7 +811,12 @@ private extension IMClient {
             case .error(let error):
                 if error.code == LCError.InternalErrorCode.commandTimeout.rawValue {
                     client.send(reopenCommand: command)
+                } else if error.code == LCError.InternalErrorCode.connectionLost.rawValue {
+                    Logger.shared.debug(error)
                 } else if error.code == LCError.ServerErrorCode.sessionTokenExpired.rawValue {
+                    var openCommand = client.newOpenCommand()
+                    openCommand.sessionMessage.r = true
+                    client.send(reopenCommand: openCommand)
                     #if DEBUG
                     NotificationCenter.default.post(
                         name: IMClient.TestSessionTokenExpiredNotification,
@@ -819,11 +824,9 @@ private extension IMClient {
                         userInfo: ["error": error]
                     )
                     #endif
-                    var openCommand = client.newOpenCommand()
-                    openCommand.sessionMessage.r = true
-                    client.send(reopenCommand: openCommand)
                 } else {
-                    Logger.shared.debug(error)
+                    // unknown error, maybe should close session.
+                    client.sessionClosed(with: .failure(error: error))
                 }
             }
         }
@@ -1392,10 +1395,18 @@ extension IMClient: RTMConnectionDelegate {
     
     func connection(_ connection: RTMConnection, didDisconnect error: LCError) {
         assert(self.specificAssertion)
+        
         let routerError = LCError.malformedRTMRouterResponse
-        if error.code == routerError.code, error.reason == routerError.reason {
+        if
+            error.code == routerError.code,
+            error.reason == routerError.reason,
+            (error.userInfo?["stop"] as? Bool) == true
+        {
             self.sessionClosed(with: .failure(error: error), completion: self.openingCompletion)
-        } else if let openingCompletion = self.openingCompletion {
+            return
+        }
+        
+        if let openingCompletion = self.openingCompletion {
             self.sessionClosed(with: .failure(error: error), completion: openingCompletion)
         } else if let _ = self.sessionToken, self.sessionState != .paused {
             self.sessionState = .paused

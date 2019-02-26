@@ -205,6 +205,63 @@ public class IMConversation {
     var notServiceConversation: Bool {
         return self.type != .system
     }
+    
+    /* Due to IMTemporaryConversation should override these functions, so they can't define in extension. */
+    
+    public func join(completion: @escaping (LCBooleanResult) -> Void) throws {
+        try self.add(members: [self.clientID]) { result in
+            switch result {
+            case .allSucceeded:
+                completion(.success)
+            case .failure(error: let error):
+                completion(.failure(error: error))
+            case .segment(success: _, failure: let errors):
+                let error = (errors.first?.error ?? LCError(code: .malformedData))
+                completion(.failure(error: error))
+            }
+        }
+    }
+    
+    public func leave(completion: @escaping (LCBooleanResult) -> Void) throws {
+        try self.remove(members: [self.clientID]) { result in
+            switch result {
+            case .allSucceeded:
+                completion(.success)
+            case .failure(error: let error):
+                completion(.failure(error: error))
+            case .segment(success: _, failure: let errors):
+                let error = (errors.first?.error ?? LCError(code: .malformedData))
+                completion(.failure(error: error))
+            }
+        }
+    }
+    
+    public func add(members: Set<String>, completion: @escaping (MemberResult) -> Void) throws {
+        try self.update(members: members, op: .add, completion: completion)
+    }
+    
+    public func remove(members: Set<String>, completion: @escaping (MemberResult) -> Void) throws {
+        try self.update(members: members, op: .remove, completion: completion)
+    }
+    
+    public func mute(completion: @escaping (LCBooleanResult) -> Void) {
+        self.sendMuteOrUnmute(op: .mute, completion: completion)
+    }
+    
+    public func unmute(completion: @escaping (LCBooleanResult) -> Void) {
+        self.sendMuteOrUnmute(op: .unmute, completion: completion)
+    }
+    
+    public func refresh(completion: @escaping (LCBooleanResult) -> Void) throws {
+        try self.client?.conversationQuery.getConversation(by: self.ID, completion: { (result) in
+            switch result {
+            case .success:
+                completion(.success)
+            case .failure(error: let error):
+                completion(.failure(error: error))
+            }
+        })
+    }
 
 }
 
@@ -736,42 +793,6 @@ extension IMConversation {
         }
     }
     
-    public func join(completion: @escaping (LCBooleanResult) -> Void) throws {
-        try self.add(members: [self.clientID]) { result in
-            switch result {
-            case .allSucceeded:
-                completion(.success)
-            case .failure(error: let error):
-                completion(.failure(error: error))
-            case .segment(success: _, failure: let errors):
-                let error = (errors.first?.error ?? LCError(code: .malformedData))
-                completion(.failure(error: error))
-            }
-        }
-    }
-    
-    public func leave(completion: @escaping (LCBooleanResult) -> Void) throws {
-        try self.remove(members: [self.clientID]) { result in
-            switch result {
-            case .allSucceeded:
-                completion(.success)
-            case .failure(error: let error):
-                completion(.failure(error: error))
-            case .segment(success: _, failure: let errors):
-                let error = (errors.first?.error ?? LCError(code: .malformedData))
-                completion(.failure(error: error))
-            }
-        }
-    }
-    
-    public func add(members: Set<String>, completion: @escaping (MemberResult) -> Void) throws {
-        try self.update(members: members, op: .add, completion: completion)
-    }
-    
-    public func remove(members: Set<String>, completion: @escaping (MemberResult) -> Void) throws {
-        try self.update(members: members, op: .remove, completion: completion)
-    }
-    
     private func update(members: Set<String>, op: IMOpType, completion: @escaping (MemberResult) -> Void) throws {
         guard !members.isEmpty else {
             throw LCError(code: .inconsistency, reason: "parameter `members` should not be empty.")
@@ -837,14 +858,6 @@ extension IMConversation {
 // MARK: - Mute
 
 extension IMConversation {
-    
-    public func mute(completion: @escaping (LCBooleanResult) -> Void) {
-        self.sendMuteOrUnmute(op: .mute, completion: completion)
-    }
-    
-    public func unmute(completion: @escaping (LCBooleanResult) -> Void) {
-        self.sendMuteOrUnmute(op: .unmute, completion: completion)
-    }
     
     private func sendMuteOrUnmute(op: IMOpType, completion: @escaping (LCBooleanResult) -> Void) {
         self.client?.sendCommand(constructor: { () -> IMGenericCommand in
@@ -1152,8 +1165,65 @@ public class IMTemporaryConversation: IMConversation {
     
     static let prefixOfID: String = "_tmp:"
     
+    public var expiration: Date? {
+        guard
+            let ttl = self.timeToLive,
+            let createDate: Date = self.createdAt
+            else
+        {
+            return nil
+        }
+        return Date(timeInterval: TimeInterval(ttl), since: createDate)
+    }
+    
     public var timeToLive: Int? {
         return safeDecodingRawData(with: .temporaryTTL)
+    }
+    
+    @available(*, unavailable)
+    public override func join(completion: @escaping (LCBooleanResult) -> Void) throws {
+        throw LCError.temporaryConversationNotSupport
+    }
+    
+    @available(*, unavailable)
+    public override func leave(completion: @escaping (LCBooleanResult) -> Void) throws {
+        throw LCError.temporaryConversationNotSupport
+    }
+    
+    @available(*, unavailable)
+    public override func add(members: Set<String>, completion: @escaping (IMConversation.MemberResult) -> Void) throws {
+        throw LCError.temporaryConversationNotSupport
+    }
+    
+    @available(*, unavailable)
+    public override func remove(members: Set<String>, completion: @escaping (IMConversation.MemberResult) -> Void) throws {
+        throw LCError.temporaryConversationNotSupport
+    }
+    
+    @available(*, unavailable)
+    public override func mute(completion: @escaping (LCBooleanResult) -> Void) {
+        completion(.failure(error: LCError.temporaryConversationNotSupport))
+    }
+    
+    @available(*, unavailable)
+    public override func unmute(completion: @escaping (LCBooleanResult) -> Void) {
+        completion(.failure(error: LCError.temporaryConversationNotSupport))
+    }
+    
+    @available(*, unavailable)
+    public override func refresh(completion: @escaping (LCBooleanResult) -> Void) throws {
+        throw LCError.temporaryConversationNotSupport
+    }
+    
+}
+
+extension LCError {
+    
+    static var temporaryConversationNotSupport: LCError {
+        return LCError(
+            code: .inconsistency,
+            reason: "\(IMTemporaryConversation.self) not support this API"
+        )
     }
     
 }

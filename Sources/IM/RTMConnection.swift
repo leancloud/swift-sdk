@@ -12,6 +12,7 @@ import UIKit
 #endif
 import Alamofire
 
+public var RTMConnectingTimeoutInterval: TimeInterval = 5.0
 public var RTMTimeoutInterval: TimeInterval = 30.0
 
 private let RTMMutex = NSLock()
@@ -121,6 +122,10 @@ protocol RTMConnectionDelegate: class {
 }
 
 class RTMConnection {
+    
+    #if DEBUG
+    static let TestGoawayCommandReceivedNotification = Notification.Name.init("TestGoawayCommandReceivedNotification")
+    #endif
     
     /// ref: https://github.com/leancloud/avoscloud-push/blob/develop/push-server/doc/protocol.md#传输协议
     enum LCIMProtocol: String {
@@ -305,7 +310,7 @@ class RTMConnection {
     
     let application: LCApplication
     let lcimProtocol: LCIMProtocol
-    let customRTMServerURL: URL?
+    var customRTMServerURL: URL? = nil
     let rtmRouter: RTMRouter
     
     let serialQueue: DispatchQueue = DispatchQueue(label: "LeanCloud.Connection.serialQueue")
@@ -552,70 +557,54 @@ extension RTMConnection {
         return nil
     }
     
-    private func check(isServerError error: Error?) -> Bool {
-        if error == nil {
-            // Result: Stream end encountered, Socket Connection reset by remote peer.
-            // Reason: Maybe due to Network Environment, maybe due to LeanCloud Server Error.
-            // Handling: Anyway, SDK regrad it as LeanCloud Server Error.
-            return true
-        } else if let wsError: WSError = error as? WSError {
-            switch wsError.type {
-            case .protocolError, .invalidSSLError, .upgradeError:
-                // 99.99% is LeanCloud Server Error.
-                return true
-            default:
-                break
-            }
-        }
-        return false
-    }
-    
     private func tryConnecting(forcing: Bool = false, delay: Int = 0) {
         assert(self.specificAssertion)
-        guard (self.isAutoReconnectionEnabled || forcing) else {
-            // if auto-reconnection not enabled and not forcing,
-            // then not try connecting.
+        let canConnecting: () -> Bool = {
+            if
+                (self.isAutoReconnectionEnabled || forcing),
+                self.checkIfCanDoConnecting() == nil
+            {
+                return true
+            } else {
+                return false
+            }
+        }
+        let tryNotifyingInConnecting: () -> Void = {
+            if self.socket == nil {
+                for item in self.delegatorMap.values {
+                    item.queue.async {
+                        item.delegate?.connection(inConnecting: self)
+                    }
+                }
+            }
+        }
+        guard canConnecting() else {
             return
         }
-        let workItem = DispatchWorkItem { [weak self] in
-            guard let self = self else {
-                return
-            }
+        let workItem = DispatchWorkItem {
             assert(self.specificAssertion)
-            guard (self.isAutoReconnectionEnabled || forcing) &&
-                self.checkIfCanDoConnecting() == nil
-                else
-            {
-                // if auto-reconnection not enabled and not forcing and can't do connecting,
-                // then not try connecting.
+            guard canConnecting() else {
                 return
             }
+            tryNotifyingInConnecting()
             self.getRTMServer { (result: LCGenericResult<URL>) in
                 assert(self.specificAssertion)
-                guard (self.isAutoReconnectionEnabled || forcing) &&
-                    self.checkIfCanDoConnecting() == nil &&
+                guard
+                    canConnecting(),
                     self.socket == nil
                     else
-                {
-                    // if auto-reconnection not enabled and not forcing and can't do connecting,
-                    // then not try connecting.
-                    // if socket exists, means in connecting or did connect,
-                    // so just return.
-                    return
-                }
+                { return }
                 switch result {
                 case .success(value: let url):
-                    let socket = WebSocket(url: url, protocols: [self.lcimProtocol.rawValue])
+                    tryNotifyingInConnecting()
+                    var request = URLRequest(url: url)
+                    request.timeoutInterval = RTMConnectingTimeoutInterval
+                    let socket = WebSocket(request: request, protocols: [self.lcimProtocol.rawValue])
                     socket.delegate = self
                     socket.pongDelegate = self
                     socket.callbackQueue = self.serialQueue
                     socket.connect()
                     self.socket = socket
-                    for item in self.delegatorMap.values {
-                        item.queue.async {
-                            item.delegate?.connection(inConnecting: self)
-                        }
-                    }
                     Logger.shared.verbose("\(socket) connecting URL<\"\(url)\"> with protocol<\"\(self.lcimProtocol.rawValue)\">")
                 case .failure(error: let error):
                     Logger.shared.verbose("Get RTM server URL failed: \(error)")
@@ -630,16 +619,11 @@ extension RTMConnection {
         if delay <= 0 {
             workItem.perform()
         } else {
-            if self.socket == nil && self.checkIfCanDoConnecting() == nil {
-                // Although now is not real in-connecting, but due to delay,
-                // so need to notify delegator in-connecting-event when socket not exists and can do connecting.
-                for item in self.delegatorMap.values {
-                    item.queue.async {
-                        item.delegate?.connection(inConnecting: self)
-                    }
-                }
-            }
-            self.serialQueue.asyncAfter(deadline: .now() + .seconds(delay), execute: workItem)
+            tryNotifyingInConnecting()
+            self.serialQueue.asyncAfter(
+                deadline: .now() + .seconds(delay),
+                execute: workItem
+            )
         }
     }
     
@@ -664,15 +648,6 @@ extension RTMConnection {
         if let serverURL: URL = self.customRTMServerURL {
             callback(.success(value: serverURL))
         } else {
-            if self.socket == nil {
-                // because RTMRouter maybe get URL from Server,
-                // so need to notify delegator in-connecting-event if socket not exists.
-                for item in self.delegatorMap.values {
-                    item.queue.async {
-                        item.delegate?.connection(inConnecting: self)
-                    }
-                }
-            }
             self.rtmRouter.route { (result: LCGenericResult<RTMRoutingTable>) in
                 self.serialQueue.async {
                     switch result {
@@ -687,27 +662,29 @@ extension RTMConnection {
         }
     }
     
-    private func handleDisconnectForServerError() {
+    private func handleGoaway(inCommand: IMGenericCommand) {
         assert(self.specificAssertion)
-        let secondaryServerEncounteredError: Bool = self.useSecondaryServer
-        self.useSecondaryServer.toggle()
-        if secondaryServerEncounteredError {
-            // Primary & Secondary Server both encountered error
-            do {
-                let routerCache: RTMRouterCache = self.rtmRouter.cache
-                if let routingTable = try routerCache.getRoutingTable(),
-                    Date().timeIntervalSince1970 - routingTable.createdAt.timeIntervalSince1970 > 60
-                {
-                    try routerCache.clear()
-                }
-            } catch {
-                Logger.shared.error(error)
-            }
-            self.tryConnecting(delay: 10)
-        } else {
-            // Primary Server encountered error
-            self.tryConnecting()
+        guard inCommand.cmd == .goaway else {
+            return
         }
+        var userInfo: [String: Any]? = nil
+        do {
+            try self.rtmRouter.cache.clear()
+            self.tryClearConnection(with: LCError.closedByRemote)
+            self.tryConnecting()
+        } catch {
+            Logger.shared.error(error)
+            userInfo = ["error": error]
+        }
+        #if DEBUG
+        NotificationCenter.default.post(
+            name: RTMConnection.TestGoawayCommandReceivedNotification,
+            object: self,
+            userInfo: userInfo
+        )
+        #else
+        _ = userInfo
+        #endif
     }
     
 }
@@ -732,12 +709,11 @@ extension RTMConnection: WebSocketDelegate, WebSocketPongDelegate {
         assert(self.specificAssertion)
         assert(self.socket === socket)
         Logger.shared.verbose("\(socket) disconnect with error: \(String(describing: error))")
+        let isFailedInConnecting: Bool = (self.timer == nil)
+        let delay: Int = (isFailedInConnecting ? 1 : 0)
         self.tryClearConnection(with: LCError(error: error ?? LCError.closedByRemote))
-        if self.check(isServerError: error) {
-            self.handleDisconnectForServerError()
-        } else {
-            self.tryConnecting(delay: 1)
-        }
+        self.useSecondaryServer.toggle()
+        self.tryConnecting(delay: delay)
     }
     
     func websocketDidReceiveData(socket: WebSocketClient, data: Data) {
@@ -754,13 +730,17 @@ extension RTMConnection: WebSocketDelegate, WebSocketPongDelegate {
         if inCommand.hasI {
             self.timer?.handle(callbackCommand: inCommand)
         } else {
-            let peerID = inCommand.peerID
-            if let delegator: Delegator = self.delegatorMap[peerID] {
-                delegator.queue.async {
-                    delegator.delegate?.connection(self, didReceiveCommand: inCommand)
+            if inCommand.hasPeerID {
+                let peerID = inCommand.peerID
+                if let delegator: Delegator = self.delegatorMap[peerID] {
+                    delegator.queue.async {
+                        delegator.delegate?.connection(self, didReceiveCommand: inCommand)
+                    }
+                } else {
+                    Logger.shared.error("\(type(of: self)) not found delegator for peer ID: \(peerID)")
                 }
             } else {
-                Logger.shared.error("\(type(of: self)) not found delegator for peer ID: \(peerID)")
+                self.handleGoaway(inCommand: inCommand)
             }
         }
     }

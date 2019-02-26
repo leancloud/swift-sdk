@@ -17,7 +17,7 @@ class IMConversationTestCase: RTMBaseTestCase {
         configuration: HTTPRouter.Configuration(apiVersion: "1.2")
     )
 
-    func testCreateConversationErrorThrows() {
+    func testCreateConversationThenErrorThrows() {
         
         let client: IMClient = try! IMClient(ID: uuid)
         
@@ -550,8 +550,8 @@ class IMConversationTestCase: RTMBaseTestCase {
             exp.expectedFulfillmentCount = 2
             let message = IMMessage()
             message.content = .string("")
-            if i == 0 {
-                try! clientA.createTemporaryConversation(clientIDs: [otherClientID], timeToLive: 3600, completion: { (result) in
+            if i % 2 == 0 {
+                try! clientA.createTemporaryConversation(clientIDs: [otherClientID, uuid], timeToLive: 3600, completion: { (result) in
                     XCTAssertNotNil(result.value)
                     try! result.value?.send(message: message, completion: { (result) in
                         XCTAssertTrue(result.isSuccess)
@@ -898,6 +898,193 @@ class IMConversationTestCase: RTMBaseTestCase {
             unmuteExp.fulfill()
         })
         wait(for: [unmuteExp], timeout: timeout)
+    }
+    
+    func testConversationQuery() {
+        guard let clientA = newOpenedClient() else {
+            XCTFail()
+            return
+        }
+        
+        var ID1: String? = nil
+        var ID2: String? = nil
+        var ID3: String? = nil
+        var ID4: String? = nil
+        for i in 0...3 {
+            switch i {
+            case 0:
+                let createExp = expectation(description: "create normal conversation")
+                createExp.expectedFulfillmentCount = 2
+                try? clientA.createConversation(clientIDs: [uuid], completion: { (result) in
+                    XCTAssertTrue(result.isSuccess)
+                    XCTAssertNil(result.error)
+                    ID1 = result.value?.ID
+                    let message = IMTextMessage()
+                    message.text = "test"
+                    try? result.value?.send(message: message, completion: { (result) in
+                        XCTAssertTrue(result.isSuccess)
+                        XCTAssertNil(result.error)
+                        createExp.fulfill()
+                    })
+                    createExp.fulfill()
+                })
+                wait(for: [createExp], timeout: timeout)
+            case 1:
+                let createExp = expectation(description: "create chat room")
+                try? clientA.createChatRoom(completion: { (result) in
+                    XCTAssertTrue(result.isSuccess)
+                    XCTAssertNil(result.error)
+                    ID2 = result.value?.ID
+                    createExp.fulfill()
+                })
+                wait(for: [createExp], timeout: timeout)
+            case 2:
+                let ID = IMConversationTestCase.newServiceConversation()
+                XCTAssertNotNil(ID)
+                ID3 = ID
+            case 3:
+                let createExp = expectation(description: "create temporary conversation")
+                try? clientA.createTemporaryConversation(clientIDs: [uuid], timeToLive: 3600, completion: { (result) in
+                    XCTAssertTrue(result.isSuccess)
+                    XCTAssertNil(result.error)
+                    ID4 = result.value?.ID
+                    createExp.fulfill()
+                })
+                wait(for: [createExp], timeout: timeout)
+            default:
+                break
+            }
+        }
+        
+        guard
+            let normalConvID = ID1,
+            let chatRoomID = ID2,
+            let serviceID = ID3,
+            let tempID = ID4
+            else
+        {
+            XCTFail()
+            return
+        }
+        
+        delay()
+        clientA.convCollection.removeAll()
+        
+        let queryExp1 = expectation(description: "query normal conversation with message and without member")
+        let query1 = clientA.conversationQuery
+        query1.options = [.notContainMembers, .withLastMessage]
+        try? query1.getConversation(by: normalConvID) { (result) in
+            XCTAssertTrue(result.isSuccess)
+            XCTAssertNil(result.error)
+            XCTAssertEqual(result.value?.type, .normal)
+            if let conv = result.value {
+                XCTAssertTrue(type(of: conv) == IMConversation.self)
+            }
+            XCTAssertEqual(result.value?.members ?? [], [])
+            XCTAssertNotNil(result.value?.lastMessage)
+            queryExp1.fulfill()
+        }
+        wait(for: [queryExp1], timeout: timeout)
+        
+        let queryExp2 = expectation(description: "query chat room")
+        try? clientA.conversationQuery.getConversation(by: chatRoomID, completion: { (result) in
+            XCTAssertTrue(result.isSuccess)
+            XCTAssertNil(result.error)
+            XCTAssertEqual(result.value?.type, .transient)
+            if let conv = result.value as? IMChatRoom {
+                XCTAssertTrue(type(of: conv) == IMChatRoom.self)
+            }
+            queryExp2.fulfill()
+        })
+        wait(for: [queryExp2], timeout: timeout)
+
+        let queryExp3 = expectation(description: "query service conversation")
+        try? clientA.conversationQuery.getConversation(by: serviceID, completion: { (result) in
+            XCTAssertTrue(result.isSuccess)
+            XCTAssertNil(result.error)
+            XCTAssertEqual(result.value?.type, .system)
+            if let conv = result.value as? IMServiceConversation {
+                XCTAssertTrue(type(of: conv) == IMServiceConversation.self)
+            }
+            queryExp3.fulfill()
+        })
+        wait(for: [queryExp3], timeout: timeout)
+        
+        clientA.convCollection.removeAll()
+        
+        let queryAllExp = expectation(description: "query all")
+        queryAllExp.expectedFulfillmentCount = 4
+        try? clientA.conversationQuery.getConversations(by: [normalConvID, chatRoomID, serviceID], completion: { (result) in
+            XCTAssertTrue(result.isSuccess)
+            XCTAssertNil(result.error)
+            XCTAssertEqual(result.value?.count, 3)
+            if let convs = result.value {
+                for conv in convs {
+                    switch conv.type {
+                    case .normal:
+                        queryAllExp.fulfill()
+                    case .transient:
+                        queryAllExp.fulfill()
+                    case .system:
+                        queryAllExp.fulfill()
+                    default:
+                        break
+                    }
+                }
+            }
+            queryAllExp.fulfill()
+        })
+        wait(for: [queryAllExp], timeout: timeout)
+        
+        let queryTempExp = expectation(description: "query temporary conversation")
+        try? clientA.conversationQuery.getTemporaryConversations(by: [tempID], completion: { (result) in
+            XCTAssertTrue(result.isSuccess)
+            XCTAssertNil(result.error)
+            XCTAssertEqual(result.value?.count, 1)
+            queryTempExp.fulfill()
+        })
+        wait(for: [queryTempExp], timeout: timeout)
+        
+        clientA.convCollection.removeAll()
+        
+        let generalQueryExp1 = expectation(description: "general query with default conditon")
+        try? clientA.conversationQuery.findConversations(completion: { (result) in
+            XCTAssertTrue(result.isSuccess)
+            XCTAssertNil(result.error)
+            XCTAssertEqual(result.value?.count, 1)
+            XCTAssertEqual(result.value?.first?.type, .normal)
+            XCTAssertEqual(result.value?.first?.members?.contains(clientA.ID), true)
+            generalQueryExp1.fulfill()
+        })
+        wait(for: [generalQueryExp1], timeout: timeout)
+        
+        let generalQueryExp2 = expectation(description: "general query with custom conditon")
+        let generalQuery1 = clientA.conversationQuery
+        generalQuery1.whereKey(IMConversation.Key.transient.rawValue, .equalTo(true))
+        let generalQuery2 = clientA.conversationQuery
+        generalQuery2.whereKey(IMConversation.Key.system.rawValue, .equalTo(true))
+        let generalQuery3 = try? generalQuery1.or(generalQuery2)
+        generalQuery3??.whereKey(IMConversation.Key.createdAt.rawValue, .ascending)
+        generalQuery3??.limit = 5
+        try? generalQuery3??.findConversations(completion: { (result) in
+            XCTAssertTrue(result.isSuccess)
+            XCTAssertNil(result.error)
+            XCTAssertLessThanOrEqual(result.value?.count ?? .max, 5)
+            if let convs = result.value {
+                let types: [IMConversation.ConvType] = [.system, .transient]
+                var date = Date(timeIntervalSince1970: 0)
+                for conv in convs {
+                    XCTAssertTrue(types.contains(conv.type))
+                    XCTAssertNotNil(conv.createdAt)
+                    if let createdAt = conv.createdAt {
+                        XCTAssertGreaterThanOrEqual(createdAt, date)
+                        date = createdAt
+                    }
+                }
+            }
+            generalQueryExp2.fulfill()
+        })
+        wait(for: [generalQueryExp2], timeout: timeout)
     }
     
 }
