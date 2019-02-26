@@ -11,7 +11,7 @@ import Foundation
 /**
  Query defines a query for objects.
  */
-final public class LCQuery: NSObject, NSCopying, NSCoding {
+public class LCQuery: NSObject, NSCopying, NSCoding {
     /// Object class name.
     public let objectClassName: String
 
@@ -40,7 +40,7 @@ final public class LCQuery: NSObject, NSCopying, NSCoding {
 
     /// Dictionary of constraints indexed by key.
     /// Note that it may contains LCValue or Query value.
-    private var constraintDictionary: [String: Any] = [:]
+    var constraintDictionary: [String: Any] = [:]
 
     /// Extra parameters for query request.
     var extraParameters: [String: Any]?
