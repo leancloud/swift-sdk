@@ -54,8 +54,8 @@ open class IMMessage {
     }
     
     public struct PatchedReason {
-        let code: Int?
-        let reason: String?
+        public let code: Int?
+        public let reason: String?
     }
     
     public final internal(set) var patchedTimestamp: Int64?
@@ -88,14 +88,14 @@ open class IMMessage {
         
         case data(Data)
         
-        var string: String? {
+        public var string: String? {
             switch self {
             case .string(let s): return s
             default: return nil
             }
         }
         
-        var data: Data? {
+        public var data: Data? {
             switch self {
             case .data(let d): return d
             default: return nil
@@ -219,13 +219,15 @@ private var LCCategorizedMessageMap: [Int: IMCategorizedMessage.Type] = [
 
 public protocol IMMessageCategorizing {
     
-    var type: Int { get }
+    typealias MessageType = Int
+    
+    var type: MessageType { get }
     
 }
 
 open class IMCategorizedMessage: IMMessage, IMMessageCategorizing {
     
-    enum ReservedType: Int {
+    enum ReservedType: MessageType {
         case none = 0
         case text = -1
         case image = -2
@@ -271,7 +273,7 @@ open class IMCategorizedMessage: IMMessage, IMMessageCategorizing {
         LCCategorizedMessageMap[type] = self
     }
     
-    public var type: Int {
+    public var type: MessageType {
         return ReservedType.none.rawValue
     }
     
@@ -489,7 +491,7 @@ open class IMCategorizedMessage: IMMessage, IMMessageCategorizing {
 
 public final class IMTextMessage: IMCategorizedMessage {
     
-    public override var type: Int {
+    public override var type: MessageType {
         return ReservedType.text.rawValue
     }
     
@@ -497,7 +499,7 @@ public final class IMTextMessage: IMCategorizedMessage {
 
 public final class IMImageMessage: IMCategorizedMessage {
     
-    public override var type: Int {
+    public override var type: MessageType {
         return ReservedType.image.rawValue
     }
     
@@ -530,7 +532,7 @@ public final class IMImageMessage: IMCategorizedMessage {
 
 public final class IMAudioMessage: IMCategorizedMessage {
     
-    public override var type: Int {
+    public override var type: MessageType {
         return ReservedType.audio.rawValue
     }
     
@@ -559,7 +561,7 @@ public final class IMAudioMessage: IMCategorizedMessage {
 
 public final class IMVideoMessage: IMCategorizedMessage {
     
-    public override var type: Int {
+    public override var type: MessageType {
         return ReservedType.video.rawValue
     }
     
@@ -588,7 +590,7 @@ public final class IMVideoMessage: IMCategorizedMessage {
 
 public final class IMFileMessage: IMCategorizedMessage {
     
-    public override var type: Int {
+    public override var type: MessageType {
         return ReservedType.file.rawValue
     }
     
@@ -613,7 +615,7 @@ public final class IMFileMessage: IMCategorizedMessage {
 
 public final class IMLocationMessage: IMCategorizedMessage {
     
-    public override var type: Int {
+    public override var type: MessageType {
         return ReservedType.location.rawValue
     }
     
@@ -629,7 +631,7 @@ public final class IMLocationMessage: IMCategorizedMessage {
 
 public final class IMRecalledMessage: IMCategorizedMessage {
     
-    public override var type: Int {
+    public override var type: MessageType {
         return ReservedType.recalled.rawValue
     }
     
