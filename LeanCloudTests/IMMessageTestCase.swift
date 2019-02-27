@@ -221,7 +221,7 @@ class IMMessageTestCase: RTMBaseTestCase {
         for _ in 0..<count {
             let sendAExp = expectation(description: "send message")
             let messageA = IMMessage()
-            messageA.content = .string("")
+            try? messageA.set(content: .string("test"))
             try? conversationA.send(message: messageA, completion: { (result) in
                 XCTAssertTrue(result.isSuccess)
                 XCTAssertNil(result.error)
@@ -230,7 +230,7 @@ class IMMessageTestCase: RTMBaseTestCase {
             wait(for: [sendAExp], timeout: timeout)
             let sendBExp = expectation(description: "send message")
             let messageB = IMMessage()
-            messageB.content = .string("")
+            try? messageB.set(content: .string("test"))
             try? conversationB.send(message: messageB, completion: { (result) in
                 XCTAssertTrue(result.isSuccess)
                 XCTAssertNil(result.error)
@@ -360,7 +360,7 @@ class IMMessageTestCase: RTMBaseTestCase {
             }
         }
         let message = IMMessage()
-        message.content = .string("")
+        try? message.set(content: .string("test"))
         try? conversationA.send(message: message, options: [.isTransient]) { (result) in
             XCTAssertTrue(result.isSuccess)
             XCTAssertNil(result.error)
@@ -388,7 +388,7 @@ class IMMessageTestCase: RTMBaseTestCase {
         
         let sendExp = expectation(description: "send message")
         let willMessage = IMMessage()
-        willMessage.content = .string("")
+        try? willMessage.set(content: .string("test"))
         try? conversationA.send(message: willMessage, options: [.isAutoDeliveringWhenOffline]) { (result) in
             XCTAssertTrue(result.isSuccess)
             XCTAssertNil(result.error)
@@ -1123,8 +1123,9 @@ class IMMessageTestCase: RTMBaseTestCase {
             XCTFail("\(error)")
         }
         guard
-            let client = newOpenedClient(),
-            let conversation = createConversation(client: client, clientIDs: [uuid])
+            let clientA = newOpenedClient(),
+            let clientB = newOpenedClient(),
+            let conversation = createConversation(client: clientA, clientIDs: [clientA.ID, clientB.ID])
             else
         {
             XCTFail()
@@ -1293,6 +1294,9 @@ class IMMessageTestCase: RTMBaseTestCase {
             XCTAssertNil(result.error)
             XCTAssertEqual(result.value?.count, 1)
             XCTAssertEqual((result.value?.first as? IMTextMessage)?.type, IMTextMessage().type)
+            XCTAssertNotNil(result.value?.first?.deliveredTimestamp)
+            XCTAssertNotNil(result.value?.first?.deliveredDate)
+            XCTAssertEqual(result.value?.first?.status, .delivered)
             typeQuery.fulfill()
         })
         wait(for: [typeQuery], timeout: timeout)
