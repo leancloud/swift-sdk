@@ -124,7 +124,6 @@
 		D3706A07221FAC5400AA9CE1 /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D521D7E6808004D1A0E /* User.swift */; };
 		D3706A08221FAC5400AA9CE1 /* File.swift in Sources */ = {isa = PBXBuildFile; fileRef = 114E1E762151FFB600DA7DB0 /* File.swift */; };
 		D3706A09221FAC5400AA9CE1 /* Installation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 117A2D0B21704620007C509A /* Installation.swift */; };
-		D3706A0A221FAC6E00AA9CE1 /* LeanCloud.h in Headers */ = {isa = PBXBuildFile; fileRef = 835F5D561D7E6808004D1A0E /* LeanCloud.h */; };
 		D3706A0B221FAC7200AA9CE1 /* LeanCloud.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D571D7E6808004D1A0E /* LeanCloud.swift */; };
 		D3706A0C221FAC7200AA9CE1 /* Value.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D651D7E6808004D1A0E /* Value.swift */; };
 		D3706A0D221FAC7200AA9CE1 /* Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D551D7E6808004D1A0E /* Extension.swift */; };
@@ -188,7 +187,6 @@
 		D3706A60221FC17600AA9CE1 /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D521D7E6808004D1A0E /* User.swift */; };
 		D3706A61221FC17600AA9CE1 /* File.swift in Sources */ = {isa = PBXBuildFile; fileRef = 114E1E762151FFB600DA7DB0 /* File.swift */; };
 		D3706A62221FC17600AA9CE1 /* Installation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 117A2D0B21704620007C509A /* Installation.swift */; };
-		D3706A63221FC17600AA9CE1 /* LeanCloud.h in Headers */ = {isa = PBXBuildFile; fileRef = 835F5D561D7E6808004D1A0E /* LeanCloud.h */; };
 		D3706A64221FC17600AA9CE1 /* LeanCloud.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D571D7E6808004D1A0E /* LeanCloud.swift */; };
 		D3706A65221FC17600AA9CE1 /* Value.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D651D7E6808004D1A0E /* Value.swift */; };
 		D3706A66221FC17600AA9CE1 /* Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D551D7E6808004D1A0E /* Extension.swift */; };
@@ -248,7 +246,6 @@
 		D3706AA8221FC7AD00AA9CE1 /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D521D7E6808004D1A0E /* User.swift */; };
 		D3706AA9221FC7AD00AA9CE1 /* File.swift in Sources */ = {isa = PBXBuildFile; fileRef = 114E1E762151FFB600DA7DB0 /* File.swift */; };
 		D3706AAA221FC7AD00AA9CE1 /* Installation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 117A2D0B21704620007C509A /* Installation.swift */; };
-		D3706AAB221FC7AD00AA9CE1 /* LeanCloud.h in Headers */ = {isa = PBXBuildFile; fileRef = 835F5D561D7E6808004D1A0E /* LeanCloud.h */; };
 		D3706AAC221FC7AD00AA9CE1 /* LeanCloud.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D571D7E6808004D1A0E /* LeanCloud.swift */; };
 		D3706AAD221FC7AD00AA9CE1 /* Value.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D651D7E6808004D1A0E /* Value.swift */; };
 		D3706AAE221FC7AD00AA9CE1 /* Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D551D7E6808004D1A0E /* Extension.swift */; };
@@ -733,6 +730,7 @@
 		8342FCBD1C7B13A700C3CF15 /* LeanCloud */ = {
 			isa = PBXGroup;
 			children = (
+				835F5D561D7E6808004D1A0E /* LeanCloud.h */,
 				8342FCC01C7B13A700C3CF15 /* Info.plist */,
 			);
 			path = LeanCloud;
@@ -782,7 +780,6 @@
 			isa = PBXGroup;
 			children = (
 				835F5D441D7E6808004D1A0E /* DataType */,
-				835F5D561D7E6808004D1A0E /* LeanCloud.h */,
 				835F5D571D7E6808004D1A0E /* LeanCloud.swift */,
 				835F5D651D7E6808004D1A0E /* Value.swift */,
 				835F5D551D7E6808004D1A0E /* Extension.swift */,
@@ -961,7 +958,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				D37069DB221FAA1D00AA9CE1 /* LeanCloud_macOS.h in Headers */,
-				D3706A0A221FAC6E00AA9CE1 /* LeanCloud.h in Headers */,
 				D37069F1221FAC3D00AA9CE1 /* Polyfill.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -971,7 +967,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				D3706A41221FC0FB00AA9CE1 /* LeanCloud_tvOS.h in Headers */,
-				D3706A63221FC17600AA9CE1 /* LeanCloud.h in Headers */,
 				D3706A4A221FC16B00AA9CE1 /* Polyfill.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -981,7 +976,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				D3706A8E221FC77100AA9CE1 /* LeanCloud_watchOS.h in Headers */,
-				D3706AAB221FC7AD00AA9CE1 /* LeanCloud.h in Headers */,
 				D3706A92221FC7A100AA9CE1 /* Polyfill.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
