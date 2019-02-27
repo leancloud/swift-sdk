@@ -329,7 +329,7 @@ class IMConversationTestCase: RTMBaseTestCase {
         
         let otherClientID: String = uuid
         let message = IMMessage()
-        message.content = .string("test")
+        try? message.set(content: .string("test"))
         message.isAllMembersMentioned = true
         
         let sendExp = expectation(description: "create conversation and send message")
@@ -423,7 +423,7 @@ class IMConversationTestCase: RTMBaseTestCase {
         
         let otherClientID: String = uuid
         let message = IMMessage()
-        message.content = .string("test")
+        try? message.set(content: .string("test"))
         message.isAllMembersMentioned = true
         
         let sendExp = expectation(description: "create temporary conversation and send message")
@@ -549,7 +549,7 @@ class IMConversationTestCase: RTMBaseTestCase {
             let exp = expectation(description: "create conversation and send message")
             exp.expectedFulfillmentCount = 2
             let message = IMMessage()
-            message.content = .string("")
+            try? message.set(content: .string("test"))
             if i % 2 == 0 {
                 try! clientA.createTemporaryConversation(clientIDs: [otherClientID, uuid], timeToLive: 3600, completion: { (result) in
                     XCTAssertNotNil(result.value)

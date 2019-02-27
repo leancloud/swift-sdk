@@ -11,7 +11,7 @@ import Foundation
 /// IM Conversation
 public class IMConversation {
     
-    typealias RawData = [String: Any]
+    public typealias RawData = [String: Any]
     
     enum Key: String {
         case objectId = "objectId"
@@ -518,8 +518,7 @@ extension IMConversation {
                 messageID: messageID,
                 content: content,
                 isAllMembersMentioned: nil,
-                mentionedMembers: nil,
-                status: .sent
+                mentionedMembers: nil
             )
             return message
         }()
@@ -681,8 +680,7 @@ extension IMConversation {
             messageID: messageID,
             content: content,
             isAllMembersMentioned: (patchItem.hasMentionAll ? patchItem.mentionAll : nil),
-            mentionedMembers: (patchItem.mentionPids.count > 0 ? patchItem.mentionPids : nil),
-            status: .sent
+            mentionedMembers: (patchItem.mentionPids.count > 0 ? patchItem.mentionPids : nil)
         )
         self.safeUpdatingLastMessage(newMessage: patchedMessage, client: client)
         var reason: IMMessage.PatchedReason? = nil
@@ -705,12 +703,12 @@ extension IMConversation {
 extension IMConversation {
     
     public struct MessageReceiptFlag {
-        let readFlagTimestamp: Int64?
-        var readFlagDate: Date? {
+        public let readFlagTimestamp: Int64?
+        public var readFlagDate: Date? {
             return IMClient.date(fromMillisecond: self.readFlagTimestamp)
         }
-        let deliveredFlagTimestamp: Int64?
-        var deliveredFlagDate: Date? {
+        public let deliveredFlagTimestamp: Int64?
+        public var deliveredFlagDate: Date? {
             return IMClient.date(fromMillisecond: self.deliveredFlagTimestamp)
         }
     }
@@ -747,6 +745,152 @@ extension IMConversation {
                         )
                         completion(.success(value: flag))
                     } else {
+                        let error = LCError(code: .commandInvalid)
+                        completion(.failure(error: error))
+                    }
+                }
+            case .error(let error):
+                client.eventQueue.async {
+                    completion(.failure(error: error))
+                }
+            }
+        })
+    }
+    
+}
+
+// MARK: - Message Query
+
+extension IMConversation {
+    
+    public static let limitRangeOfMessageQuery = 1...100
+    
+    public struct MessageQueryEndpoint {
+        public let messageID: String?
+        public let sentTimestamp: Int64?
+        public let isClosed: Bool?
+    }
+    
+    public enum MessageQueryDirection: Int {
+        case newToOld = 1
+        case oldToNew = 2
+        
+        internal var protobufEnum: IMLogsCommand.QueryDirection {
+            switch self {
+            case .newToOld:
+                return .old
+            case .oldToNew:
+                return .new
+            }
+        }
+    }
+    
+    public func queryMessage(
+        start: MessageQueryEndpoint? = nil,
+        end: MessageQueryEndpoint? = nil,
+        direction: MessageQueryDirection? = nil,
+        limit: Int? = nil,
+        type: IMMessageCategorizing.MessageType? = nil,
+        completion: @escaping (LCGenericResult<[IMMessage]>) -> Void)
+        throws
+    {
+        if let limit: Int = limit {
+            guard IMConversation.limitRangeOfMessageQuery.contains(limit) else {
+                throw LCError(
+                    code: .inconsistency,
+                    reason: "limit should in range \(IMConversation.limitRangeOfMessageQuery)"
+                )
+            }
+        }
+        self.client?.sendCommand(constructor: { () -> IMGenericCommand in
+            var outCommand = IMGenericCommand()
+            outCommand.cmd = .logs
+            var logCommand = IMLogsCommand()
+            logCommand.cid = self.ID
+            if let endpoint = start {
+                if let mid = endpoint.messageID {
+                    logCommand.mid = mid
+                }
+                if let t = endpoint.sentTimestamp {
+                    logCommand.t = t
+                }
+                if let tIncluded = endpoint.isClosed {
+                    logCommand.tIncluded = tIncluded
+                }
+            }
+            if let endpoint = end {
+                if let tmid = endpoint.messageID {
+                    logCommand.tmid = tmid
+                }
+                if let tt = endpoint.sentTimestamp {
+                    logCommand.tt = tt
+                }
+                if let ttIncluded = endpoint.isClosed {
+                    logCommand.ttIncluded = ttIncluded
+                }
+            }
+            if let direction = direction {
+                logCommand.direction = direction.protobufEnum
+            }
+            if let limit = limit {
+                logCommand.limit = Int32(limit)
+            }
+            if let type = type {
+                logCommand.lctype = Int32(type)
+            }
+            outCommand.logsMessage = logCommand
+            return outCommand
+        }, completion: { (client, result) in
+            switch result {
+            case .inCommand(let inCommand):
+                assert(client.specificAssertion)
+                if inCommand.hasLogsMessage {
+                    var messages: [IMMessage] = []
+                    for item in inCommand.logsMessage.logs {
+                        guard
+                            let messageID = (item.hasMsgID ? item.msgID : nil),
+                            let timestamp = (item.hasTimestamp ? item.timestamp : nil)
+                            else
+                        { continue }
+                        var content: IMMessage.Content? = nil
+                        if item.hasData {
+                            /*
+                             For Compatibility,
+                             Should check `binaryMsg` at first.
+                             Then check `msg`.
+                             */
+                            if item.hasBin {
+                                if let decodedData = Data(base64Encoded: item.data) {                                
+                                    content = .data(decodedData)
+                                }
+                            } else {
+                                content = .string(item.data)
+                            }
+                        }
+                        let message = IMMessage.instance(
+                            isTransient: false,
+                            conversationID: self.ID,
+                            localClientID: client.ID,
+                            fromClientID: (item.hasFrom ? item.from : nil),
+                            timestamp: timestamp,
+                            patchedTimestamp: (item.hasPatchTimestamp ? item.patchTimestamp : nil),
+                            messageID: messageID,
+                            content: content,
+                            isAllMembersMentioned: (item.hasMentionAll ? item.mentionAll : nil),
+                            mentionedMembers: (item.mentionPids.isEmpty ? nil : item.mentionPids)
+                        )
+                        message.deliveredTimestamp = (item.hasAckAt ? item.ackAt : nil)
+                        message.readTimestamp = (item.hasReadAt ? item.readAt : nil)
+                        messages.append(message)
+                    }
+                    if let newestMessage = messages.last {
+                        self.safeUpdatingLastMessage(newMessage: newestMessage, client: client)
+                    }
+                    client.eventQueue.async {
+                        completion(.success(value: messages))
+                    }
+                } else {
+                    client.eventQueue.async {
                         let error = LCError(code: .commandInvalid)
                         completion(.failure(error: error))
                     }
@@ -1095,8 +1239,7 @@ private extension IMConversation {
             messageID: messageID,
             content: content,
             isAllMembersMentioned: self.decodingRawData(with: .lastMessageMentionAll),
-            mentionedMembers: self.decodingRawData(with: .lastMessageMentionPids),
-            status: .sent
+            mentionedMembers: self.decodingRawData(with: .lastMessageMentionPids)
         )
         /// set in initialization, so no need mutex.
         self.underlyingLastMessage = message

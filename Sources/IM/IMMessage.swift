@@ -27,22 +27,41 @@ open class IMMessage {
             let fromClientID: String = self.fromClientID,
             let localClientID: String = self.localClientID,
             fromClientID == localClientID
-        { return .out }
-        else
-        { return .in }
+        {
+            return .out
+        } else {
+            return .in
+        }
     }
     
     public final private(set) var fromClientID: String?
-    internal private(set) var localClientID: String?
+    
+    private(set) var localClientID: String?
     
     public enum Status {
         case none
         case sending
         case sent
+        case delivered
+        case read
         case failed
     }
     
-    public final private(set) var status: Status = .none
+    public final var status: Status {
+        let currentStatus = self.underlyingStatus
+        if currentStatus == .sent {
+            if let _ = self.readTimestamp {
+                return .read
+            } else if let _ = self.deliveredTimestamp {
+                return .delivered
+            } else {
+                return currentStatus
+            }
+        } else {
+            return currentStatus
+        }
+    }
+    private var underlyingStatus: Status = .none
     
     public final private(set) var ID: String?
     
@@ -53,9 +72,19 @@ open class IMMessage {
         return IMClient.date(fromMillisecond: sentTimestamp)
     }
     
+    public final var deliveredTimestamp: Int64?
+    public final var deliveredDate: Date? {
+        return IMClient.date(fromMillisecond: deliveredTimestamp)
+    }
+    
+    public final var readTimestamp: Int64?
+    public final var readDate: Date? {
+        return IMClient.date(fromMillisecond: readTimestamp)
+    }
+    
     public struct PatchedReason {
-        let code: Int?
-        let reason: String?
+        public let code: Int?
+        public let reason: String?
     }
     
     public final internal(set) var patchedTimestamp: Int64?
@@ -83,39 +112,35 @@ open class IMMessage {
     }
     
     public enum Content {
-        
         case string(String)
-        
         case data(Data)
         
-        var string: String? {
+        public var string: String? {
             switch self {
-            case .string(let s): return s
-            default: return nil
+            case .string(let str):
+                return str
+            default:
+                return nil
             }
         }
         
-        var data: Data? {
+        public var data: Data? {
             switch self {
-            case .data(let d): return d
-            default: return nil
+            case .data(let data):
+                return data
+            default:
+                return nil
             }
         }
-        
     }
     
-    public final internal(set) var content: Content?
+    public final fileprivate(set) var content: Content?
     
     public final func set(content: Content) throws {
         if self is IMCategorizedMessage {
             throw LCError(
                 code: .inconsistency,
-                reason:
-                """
-                \(type(of: self))'s content can't be set directly,
-                if want to set content directly,
-                should use \(IMMessage.self).
-                """
+                reason:"\(type(of: self))'s content can't be set directly"
             )
         } else {
             self.content = content
@@ -134,8 +159,8 @@ open class IMMessage {
         messageID: String,
         content: Content?,
         isAllMembersMentioned: Bool?,
-        mentionedMembers: [String]?,
-        status: Status) -> IMMessage
+        mentionedMembers: [String]?)
+        -> IMMessage
     {
         var message = IMMessage()
         do {
@@ -161,46 +186,48 @@ open class IMMessage {
         message.content = content
         message.isAllMembersMentioned = isAllMembersMentioned
         message.mentionedMembers = mentionedMembers
-        message.status = status
         message.fromClientID = fromClientID
         message.localClientID = localClientID
+        message.underlyingStatus = .sent
         return message
     }
     
-    internal var isTransient: Bool = false
-    internal var notTransientMessage: Bool {
+    var isTransient: Bool = false
+    var notTransientMessage: Bool {
         return !self.isTransient
     }
     
-    internal var isWill: Bool = false
-    internal var notWillMessage: Bool {
+    var isWill: Bool = false
+    var notWillMessage: Bool {
         return !self.isWill
     }
     
     /// ref: https://github.com/leancloud/avoscloud-push/blob/develop/push-server/doc/protocol.md#客户端发起-3
     /// parameter: `dt`
-    internal var dToken: String? = nil
+    var dToken: String? = nil
     
-    internal var sendingTimestamp: Int64? = nil
+    var sendingTimestamp: Int64? = nil
     
-    internal func setup(clientID: String, conversationID: String) {
+    func setup(clientID: String, conversationID: String) {
         self.fromClientID = clientID
         self.localClientID = clientID
         self.conversationID = conversationID
     }
     
-    internal func update(status newStatus: IMMessage.Status, ID: String? = nil, timestamp: Int64? = nil) {
-        self.status = newStatus
+    func update(status newStatus: IMMessage.Status, ID: String? = nil, timestamp: Int64? = nil) {
+        self.underlyingStatus = newStatus
         if newStatus == .sent {
             self.ID = ID
             self.sentTimestamp = timestamp
         }
     }
     
-    internal var isSent: Bool {
+    var isSent: Bool {
         switch self.status {
-        case .sent: return true
-        default: return false
+        case .sent, .delivered, .read:
+            return true
+        default:
+            return false
         }
     }
     
@@ -219,13 +246,15 @@ private var LCCategorizedMessageMap: [Int: IMCategorizedMessage.Type] = [
 
 public protocol IMMessageCategorizing {
     
-    var type: Int { get }
+    typealias MessageType = Int
+    
+    var type: MessageType { get }
     
 }
 
 open class IMCategorizedMessage: IMMessage, IMMessageCategorizing {
     
-    enum ReservedType: Int {
+    enum ReservedType: MessageType {
         case none = 0
         case text = -1
         case image = -2
@@ -271,7 +300,7 @@ open class IMCategorizedMessage: IMMessage, IMMessageCategorizing {
         LCCategorizedMessageMap[type] = self
     }
     
-    public var type: Int {
+    public var type: MessageType {
         return ReservedType.none.rawValue
     }
     
@@ -489,7 +518,7 @@ open class IMCategorizedMessage: IMMessage, IMMessageCategorizing {
 
 public final class IMTextMessage: IMCategorizedMessage {
     
-    public override var type: Int {
+    public override var type: MessageType {
         return ReservedType.text.rawValue
     }
     
@@ -497,7 +526,7 @@ public final class IMTextMessage: IMCategorizedMessage {
 
 public final class IMImageMessage: IMCategorizedMessage {
     
-    public override var type: Int {
+    public override var type: MessageType {
         return ReservedType.image.rawValue
     }
     
@@ -530,7 +559,7 @@ public final class IMImageMessage: IMCategorizedMessage {
 
 public final class IMAudioMessage: IMCategorizedMessage {
     
-    public override var type: Int {
+    public override var type: MessageType {
         return ReservedType.audio.rawValue
     }
     
@@ -559,7 +588,7 @@ public final class IMAudioMessage: IMCategorizedMessage {
 
 public final class IMVideoMessage: IMCategorizedMessage {
     
-    public override var type: Int {
+    public override var type: MessageType {
         return ReservedType.video.rawValue
     }
     
@@ -588,7 +617,7 @@ public final class IMVideoMessage: IMCategorizedMessage {
 
 public final class IMFileMessage: IMCategorizedMessage {
     
-    public override var type: Int {
+    public override var type: MessageType {
         return ReservedType.file.rawValue
     }
     
@@ -613,7 +642,7 @@ public final class IMFileMessage: IMCategorizedMessage {
 
 public final class IMLocationMessage: IMCategorizedMessage {
     
-    public override var type: Int {
+    public override var type: MessageType {
         return ReservedType.location.rawValue
     }
     
@@ -629,7 +658,7 @@ public final class IMLocationMessage: IMCategorizedMessage {
 
 public final class IMRecalledMessage: IMCategorizedMessage {
     
-    public override var type: Int {
+    public override var type: MessageType {
         return ReservedType.recalled.rawValue
     }
     

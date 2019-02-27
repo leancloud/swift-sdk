@@ -1124,8 +1124,7 @@ private extension IMClient {
                     messageID: messageID,
                     content: content,
                     isAllMembersMentioned: (command.hasMentionAll ? command.mentionAll : nil),
-                    mentionedMembers: (command.mentionPids.isEmpty ? nil : command.mentionPids),
-                    status: .sent
+                    mentionedMembers: (command.mentionPids.isEmpty ? nil : command.mentionPids)
                 )
                 var unreadEvent: IMConversationEvent?
                 let isUnreadMessageIncreased: Bool = conversation.safeUpdatingLastMessage(newMessage: message, client: client)
