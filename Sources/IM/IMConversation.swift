@@ -518,8 +518,7 @@ extension IMConversation {
                 messageID: messageID,
                 content: content,
                 isAllMembersMentioned: nil,
-                mentionedMembers: nil,
-                status: .sent
+                mentionedMembers: nil
             )
             return message
         }()
@@ -681,8 +680,7 @@ extension IMConversation {
             messageID: messageID,
             content: content,
             isAllMembersMentioned: (patchItem.hasMentionAll ? patchItem.mentionAll : nil),
-            mentionedMembers: (patchItem.mentionPids.count > 0 ? patchItem.mentionPids : nil),
-            status: .sent
+            mentionedMembers: (patchItem.mentionPids.count > 0 ? patchItem.mentionPids : nil)
         )
         self.safeUpdatingLastMessage(newMessage: patchedMessage, client: client)
         var reason: IMMessage.PatchedReason? = nil
@@ -879,9 +877,10 @@ extension IMConversation {
                             messageID: messageID,
                             content: content,
                             isAllMembersMentioned: (item.hasMentionAll ? item.mentionAll : nil),
-                            mentionedMembers: (item.mentionPids.isEmpty ? nil : item.mentionPids),
-                            status: .sent
+                            mentionedMembers: (item.mentionPids.isEmpty ? nil : item.mentionPids)
                         )
+                        message.deliveredTimestamp = (item.hasAckAt ? item.ackAt : nil)
+                        message.readTimestamp = (item.hasReadAt ? item.readAt : nil)
                         messages.append(message)
                     }
                     if let newestMessage = messages.last {
@@ -1240,8 +1239,7 @@ private extension IMConversation {
             messageID: messageID,
             content: content,
             isAllMembersMentioned: self.decodingRawData(with: .lastMessageMentionAll),
-            mentionedMembers: self.decodingRawData(with: .lastMessageMentionPids),
-            status: .sent
+            mentionedMembers: self.decodingRawData(with: .lastMessageMentionPids)
         )
         /// set in initialization, so no need mutex.
         self.underlyingLastMessage = message
