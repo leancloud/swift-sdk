@@ -1115,6 +1115,191 @@ class IMMessageTestCase: RTMBaseTestCase {
             XCTAssertTrue(error is LCError)
         }
     }
+    
+    func testMessageQuery() {
+        do {
+            try CustomMessage.register()
+        } catch {
+            XCTFail("\(error)")
+        }
+        guard
+            let client = newOpenedClient(),
+            let conversation = createConversation(client: client, clientIDs: [uuid])
+            else
+        {
+            XCTFail()
+            return
+        }
+        
+        do {
+            try conversation.queryMessage(limit: 101, completion: { (_) in })
+            XCTFail()
+        } catch {
+            XCTAssertTrue(error is LCError)
+        }
+        
+        var sentTuples: [(String, Int64)] = []
+        for i in 0...8 {
+            var message: IMMessage!
+            switch i {
+            case 0:
+                message = IMMessage()
+                try? message.set(content: .string("test"))
+            case 1:
+                message = IMMessage()
+                try? message.set(content: .data("bin".data(using: .utf8)!))
+            case 2:
+                message = IMTextMessage()
+                (message as! IMTextMessage).text = "text"
+            case 3:
+                message = IMImageMessage()
+                (message as! IMImageMessage).file = LCFile(payload: .fileURL(fileURL: resourceURL(name: "test", ext: "jpg")))
+            case 4:
+                message = IMAudioMessage()
+                (message as! IMAudioMessage).file = LCFile(payload: .fileURL(fileURL: resourceURL(name: "test", ext: "mp3")))
+            case 5:
+                message = IMVideoMessage()
+                (message as! IMVideoMessage).file = LCFile(payload: .fileURL(fileURL: resourceURL(name: "test", ext: "mp4")))
+            case 6:
+                message = IMFileMessage()
+                (message as! IMFileMessage).file = LCFile(payload: .fileURL(fileURL: resourceURL(name: "test", ext: "zip")))
+            case 7:
+                message = IMLocationMessage()
+                (message as! IMLocationMessage).location = LCGeoPoint(latitude: 90.0, longitude: 180.0)
+            case 8:
+                message = CustomMessage()
+                (message as! CustomMessage).text = "custom"
+            default:
+                XCTFail()
+            }
+            let exp = expectation(description: "send message")
+            try? conversation.send(message: message, completion: { (result) in
+                XCTAssertTrue(result.isSuccess)
+                XCTAssertNil(result.error)
+                if let messageID = message.ID, let ts = message.sentTimestamp {
+                    sentTuples.append((messageID, ts))
+                }
+                exp.fulfill()
+            })
+            wait(for: [exp], timeout: timeout)
+        }
+        XCTAssertEqual(sentTuples.count, 9)
+        
+        delay(seconds: 5)
+        
+        let defaultQueryExp = expectation(description: "default query")
+        try? conversation.queryMessage(completion: { (result) in
+            XCTAssertTrue(Thread.isMainThread)
+            XCTAssertTrue(result.isSuccess)
+            XCTAssertNil(result.error)
+            XCTAssertEqual(result.value?.count, sentTuples.count)
+            for i in 0..<sentTuples.count {
+                XCTAssertEqual(result.value?[i].ID, sentTuples[i].0)
+                XCTAssertEqual(result.value?[i].sentTimestamp, sentTuples[i].1)
+                if i == 1 {
+                    if let data = result.value?[i].content?.data,
+                        let content = String(data: data, encoding: .utf8) {
+                        XCTAssertEqual(content, "bin")
+                    } else {
+                        XCTFail()
+                    }
+                }
+            }
+            defaultQueryExp.fulfill()
+        })
+        wait(for: [defaultQueryExp], timeout: timeout)
+        
+        let directionQueryExp = expectation(description: "direction query")
+        directionQueryExp.expectedFulfillmentCount = 2
+        try? conversation.queryMessage(direction: .newToOld, limit: 1, completion: { (result) in
+            XCTAssertTrue(result.isSuccess)
+            XCTAssertNil(result.error)
+            XCTAssertEqual(result.value?.count, 1)
+            XCTAssertEqual(result.value?.first?.ID, sentTuples.last?.0)
+            XCTAssertEqual(result.value?.first?.sentTimestamp, sentTuples.last?.1)
+            directionQueryExp.fulfill()
+        })
+        try? conversation.queryMessage(direction: .oldToNew, limit: 1, completion: { (result) in
+            XCTAssertTrue(result.isSuccess)
+            XCTAssertNil(result.error)
+            XCTAssertEqual(result.value?.count, 1)
+            XCTAssertEqual(result.value?.first?.ID, sentTuples.first?.0)
+            XCTAssertEqual(result.value?.first?.sentTimestamp, sentTuples.first?.1)
+            directionQueryExp.fulfill()
+        })
+        wait(for: [directionQueryExp], timeout: timeout)
+        
+        let endpointQueryExp = expectation(description: "endpoint query")
+        endpointQueryExp.expectedFulfillmentCount = 2
+        let endpointQueryTuple = sentTuples[sentTuples.count / 2]
+        let endpointQueryStart1 = IMConversation.MessageQueryEndpoint(
+            messageID: endpointQueryTuple.0,
+            sentTimestamp: endpointQueryTuple.1,
+            isClosed: true
+        )
+        try? conversation.queryMessage(start: endpointQueryStart1, direction: .newToOld, limit: 5, completion: { (result) in
+            XCTAssertTrue(result.isSuccess)
+            XCTAssertNil(result.error)
+            XCTAssertEqual(result.value?.count, 5)
+            for i in 0..<5 {
+                XCTAssertEqual(result.value?[i].ID, sentTuples[i].0)
+                XCTAssertEqual(result.value?[i].sentTimestamp, sentTuples[i].1)
+            }
+            endpointQueryExp.fulfill()
+        })
+        let endpointQueryStart2 = IMConversation.MessageQueryEndpoint(
+            messageID: endpointQueryTuple.0,
+            sentTimestamp: endpointQueryTuple.1,
+            isClosed: false
+        )
+        try? conversation.queryMessage(start: endpointQueryStart2, direction: .oldToNew, limit: 5, completion: { (result) in
+            XCTAssertTrue(result.isSuccess)
+            XCTAssertNil(result.error)
+            XCTAssertEqual(result.value?.count, 4)
+            for i in 0..<4 {
+                XCTAssertEqual(result.value?[i].ID, sentTuples[i + 5].0)
+                XCTAssertEqual(result.value?[i].sentTimestamp, sentTuples[i + 5].1)
+            }
+            endpointQueryExp.fulfill()
+        })
+        wait(for: [endpointQueryExp], timeout: timeout)
+        
+        let intervalQueryExp = expectation(description: "interval query")
+        let end = IMConversation.MessageQueryEndpoint(
+            messageID: sentTuples.first?.0,
+            sentTimestamp: sentTuples.first?.1,
+            isClosed: true
+        )
+        let start = IMConversation.MessageQueryEndpoint(
+            messageID: sentTuples.last?.0,
+            sentTimestamp: sentTuples.last?.1,
+            isClosed: true
+        )
+        try? conversation.queryMessage(start: start, end: end, limit: sentTuples.count, completion: { (result) in
+            XCTAssertTrue(result.isSuccess)
+            XCTAssertNil(result.error)
+            XCTAssertEqual(result.value?.count, sentTuples.count)
+            for i in 0..<sentTuples.count {
+                XCTAssertEqual(result.value?[i].ID, sentTuples[i].0)
+                XCTAssertEqual(result.value?[i].sentTimestamp, sentTuples[i].1)
+            }
+            intervalQueryExp.fulfill()
+        })
+        wait(for: [intervalQueryExp], timeout: timeout)
+        
+        let typeQuery = expectation(description: "type query")
+        try? conversation.queryMessage(type: IMTextMessage().type, completion: { (result) in
+            XCTAssertTrue(result.isSuccess)
+            XCTAssertNil(result.error)
+            XCTAssertEqual(result.value?.count, 1)
+            XCTAssertEqual((result.value?.first as? IMTextMessage)?.type, IMTextMessage().type)
+            typeQuery.fulfill()
+        })
+        wait(for: [typeQuery], timeout: timeout)
+        
+        XCTAssertEqual(conversation.lastMessage?.ID, sentTuples.last?.0)
+        XCTAssertEqual(conversation.lastMessage?.sentTimestamp, sentTuples.last?.1)
+    }
 
 }
 
@@ -1123,13 +1308,13 @@ extension IMMessageTestCase {
     typealias Tuple = (client: IMClient, conversation: IMConversation, delegator: IMClientTestCase.Delegator)
     
     class CustomMessage: IMCategorizedMessage {
-        override var type: Int {
+        override var type: MessageType {
             return 1
         }
     }
     
     class InvalidCustomMessage: IMCategorizedMessage {
-        override var type: Int {
+        override var type: MessageType {
             return -1
         }
     }
