@@ -747,6 +747,14 @@ extension IMClient {
 
 extension IMClient {
     
+    static func date(fromMillisecond timestamp: Int64?) -> Date? {
+        guard let timestamp = timestamp else {
+            return nil
+        }
+        let second = TimeInterval(timestamp) / 1000.0
+        return Date(timeIntervalSince1970: second)
+    }
+    
     func sendCommand(
         constructor: () -> IMGenericCommand,
         completion: ((IMClient, RTMConnection.CommandCallback.Result) -> Void)? = nil)
@@ -1032,29 +1040,56 @@ private extension IMClient {
             assert(client.specificAssertion)
             switch result {
             case .success(value: let conversation):
-                let byClientID: String? = (command.hasInitBy ? command.initBy : nil)
-                let members: [String] = command.m
-                let event: IMConversationEvent
-                let rawDataOperation: IMConversation.RawDataChangeOperation
+                var event: IMConversationEvent? = nil
+                var rawDataOperation: IMConversation.RawDataChangeOperation? = nil
                 switch op {
-                case .joined:
-                    event = .joined(byClientID: byClientID)
-                    rawDataOperation = .append(members: [client.ID])
-                case .left:
-                    event = .left(byClientID: byClientID)
-                    rawDataOperation = .remove(members: [client.ID])
-                case .membersJoined:
-                    event = .membersJoined(members: members, byClientID: byClientID)
-                    rawDataOperation = .append(members: Set(members))
-                case .membersLeft:
-                    event = .membersLeft(members: members, byClientID: byClientID)
-                    rawDataOperation = .remove(members: Set(members))
+                case .joined, .left, .membersJoined, .membersLeft:
+                    let byClientID: String? = (command.hasInitBy ? command.initBy : nil)
+                    let members: [String] = command.m
+                    switch op {
+                    case .joined:
+                        rawDataOperation = .append(members: [client.ID])
+                        event = .joined(byClientID: byClientID)
+                    case .left:
+                        rawDataOperation = .remove(members: [client.ID])
+                        event = .left(byClientID: byClientID)
+                    case .membersJoined:
+                        rawDataOperation = .append(members: Set(members))
+                        event = .membersJoined(members: members, byClientID: byClientID)
+                    case .membersLeft:
+                        rawDataOperation = .remove(members: Set(members))
+                        event = .membersLeft(members: members, byClientID: byClientID)
+                    default:
+                        break
+                    }
+                case .updated:
+                    do {
+                        if
+                            command.hasAttr,
+                            command.attr.hasData,
+                            let attr: [String: Any] = try command.attr.data.jsonObject(),
+                            command.hasAttrModified,
+                            command.attrModified.hasData,
+                            let attrModified: [String: Any] = try command.attrModified.data.jsonObject()
+                        {
+                            rawDataOperation = .updated(attr: attr, attrModified: attrModified)
+                            event = .dataUpdated
+                        } else {
+                            Logger.shared.verbose("invalid command \(command)")
+                        }
+                    } catch {
+                        Logger.shared.error(error)
+                    }
                 default:
-                    return
+                    break
                 }
-                conversation.safeChangingRawData(operation: rawDataOperation)
-                client.eventQueue.async {
-                    client.delegate?.client(client, conversation: conversation, event: event)
+                if let rawDataOperation = rawDataOperation {
+                    conversation.safeChangingRawData(operation: rawDataOperation)
+                }
+                if let event = event {
+                    client.eventQueue.async {
+                        client.delegate?.client(client, conversation: conversation, event: event)
+                    }
                 }
             case .failure(error: let error):
                 Logger.shared.error(error)
@@ -1526,18 +1561,6 @@ extension LCError {
             code: .inconsistency,
             reason: "\"\(IMClient.reservedValueOfTag)\" string should not be used on tag"
         )
-    }
-    
-}
-
-extension IMClient {
-    
-    static func date(fromMillisecond timestamp: Int64?) -> Date? {
-        guard let timestamp = timestamp else {
-            return nil
-        }
-        let second = TimeInterval(timestamp) / 1000.0
-        return Date(timeIntervalSince1970: second)
     }
     
 }
