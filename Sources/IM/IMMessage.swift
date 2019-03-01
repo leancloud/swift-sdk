@@ -248,7 +248,8 @@ public protocol IMMessageCategorizing {
     
     typealias MessageType = Int
     
-    var type: MessageType { get }
+    /// add `lc` prefix to avoid conflict
+    var lcType: MessageType { get }
     
 }
 
@@ -290,7 +291,7 @@ open class IMCategorizedMessage: IMMessage, IMMessageCategorizing {
     }
     
     public static func register() throws {
-        let type: Int = self.init().type
+        let type: Int = self.init().lcType
         guard type > 0 else {
             throw LCError(
                 code: .inconsistency,
@@ -300,7 +301,7 @@ open class IMCategorizedMessage: IMMessage, IMMessageCategorizing {
         LCCategorizedMessageMap[type] = self
     }
     
-    public var type: MessageType {
+    public var lcType: MessageType {
         return ReservedType.none.rawValue
     }
     
@@ -474,7 +475,7 @@ open class IMCategorizedMessage: IMMessage, IMMessageCategorizing {
     }
     
     func encodingMessageContent() throws {
-        self.rawData[ReservedKey.type.rawValue] = self.type
+        self.rawData[ReservedKey.type.rawValue] = self.lcType
         if let text: String = self.text {
             self.rawData[ReservedKey.text.rawValue] = text
         }
@@ -518,7 +519,7 @@ open class IMCategorizedMessage: IMMessage, IMMessageCategorizing {
 
 public final class IMTextMessage: IMCategorizedMessage {
     
-    public override var type: MessageType {
+    public override var lcType: MessageType {
         return ReservedType.text.rawValue
     }
     
@@ -526,7 +527,7 @@ public final class IMTextMessage: IMCategorizedMessage {
 
 public final class IMImageMessage: IMCategorizedMessage {
     
-    public override var type: MessageType {
+    public override var lcType: MessageType {
         return ReservedType.image.rawValue
     }
     
@@ -559,7 +560,7 @@ public final class IMImageMessage: IMCategorizedMessage {
 
 public final class IMAudioMessage: IMCategorizedMessage {
     
-    public override var type: MessageType {
+    public override var lcType: MessageType {
         return ReservedType.audio.rawValue
     }
     
@@ -588,7 +589,7 @@ public final class IMAudioMessage: IMCategorizedMessage {
 
 public final class IMVideoMessage: IMCategorizedMessage {
     
-    public override var type: MessageType {
+    public override var lcType: MessageType {
         return ReservedType.video.rawValue
     }
     
@@ -617,7 +618,7 @@ public final class IMVideoMessage: IMCategorizedMessage {
 
 public final class IMFileMessage: IMCategorizedMessage {
     
-    public override var type: MessageType {
+    public override var lcType: MessageType {
         return ReservedType.file.rawValue
     }
     
@@ -642,7 +643,7 @@ public final class IMFileMessage: IMCategorizedMessage {
 
 public final class IMLocationMessage: IMCategorizedMessage {
     
-    public override var type: MessageType {
+    public override var lcType: MessageType {
         return ReservedType.location.rawValue
     }
     
@@ -658,7 +659,7 @@ public final class IMLocationMessage: IMCategorizedMessage {
 
 public final class IMRecalledMessage: IMCategorizedMessage {
     
-    public override var type: MessageType {
+    public override var lcType: MessageType {
         return ReservedType.recalled.rawValue
     }
     
