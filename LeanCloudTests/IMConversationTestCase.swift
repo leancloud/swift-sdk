@@ -66,7 +66,7 @@ class IMConversationTestCase: RTMBaseTestCase {
         
         let convAssertion: (IMConversation, IMClient) -> Void = { conv, client in
             XCTAssertTrue(type(of: conv) == IMConversation.self)
-            XCTAssertEqual(conv.type, .normal)
+            XCTAssertEqual(conv.lcType, .normal)
             XCTAssertEqual(conv.members?.count, 2)
             XCTAssertEqual(conv.members?.contains(clientA.ID), true)
             XCTAssertEqual(conv.members?.contains(clientB.ID), true)
@@ -190,7 +190,7 @@ class IMConversationTestCase: RTMBaseTestCase {
         try? clientA.createConversation(clientIDs: [clientA.ID, clientB.ID], isUnique: true, completion: { (result) in
             if let conv: IMConversation = result.value {
                 XCTAssertTrue(type(of: conv) == IMConversation.self)
-                XCTAssertEqual(conv.type, .normal)
+                XCTAssertEqual(conv.lcType, .normal)
                 XCTAssertTrue(conv.isUnique)
                 XCTAssertNotNil(conv.uniqueID)
             } else {
@@ -204,7 +204,7 @@ class IMConversationTestCase: RTMBaseTestCase {
         try? clientB.createConversation(clientIDs: [clientA.ID, clientB.ID], isUnique: true, completion: { (result) in
             if let conv: IMConversation = result.value {
                 XCTAssertTrue(type(of: conv) == IMConversation.self)
-                XCTAssertEqual(conv.type, .normal)
+                XCTAssertEqual(conv.lcType, .normal)
                 XCTAssertTrue(conv.isUnique)
                 XCTAssertNotNil(conv.uniqueID)
             } else {
@@ -234,7 +234,7 @@ class IMConversationTestCase: RTMBaseTestCase {
         try? client.createChatRoom() { (result) in
             XCTAssertTrue(Thread.isMainThread)
             let chatRoom: IMChatRoom? = result.value
-            XCTAssertEqual(chatRoom?.type, .transient)
+            XCTAssertEqual(chatRoom?.lcType, .transient)
             if let members = chatRoom?.members {
                 XCTAssertTrue(members.isEmpty)
             } else {
@@ -266,7 +266,7 @@ class IMConversationTestCase: RTMBaseTestCase {
         delegatorA.conversationEvent = { client, conv, event in
             XCTAssertTrue(Thread.isMainThread)
             if client === clientA {
-                XCTAssertEqual(conv.type, .temporary)
+                XCTAssertEqual(conv.lcType, .temporary)
                 XCTAssertEqual((conv as? IMTemporaryConversation)?.timeToLive, Int(ttl))
                 switch event {
                 case .joined(byClientID: let cID):
@@ -284,7 +284,7 @@ class IMConversationTestCase: RTMBaseTestCase {
         delegatorB.conversationEvent = { client, conv, event in
             XCTAssertTrue(Thread.isMainThread)
             if client === clientB {
-                XCTAssertEqual(conv.type, .temporary)
+                XCTAssertEqual(conv.lcType, .temporary)
                 XCTAssertEqual((conv as? IMTemporaryConversation)?.timeToLive, Int(ttl))
                 switch event {
                 case .joined(byClientID: let cID):
@@ -302,7 +302,7 @@ class IMConversationTestCase: RTMBaseTestCase {
         try? clientA.createTemporaryConversation(clientIDs: [clientA.ID, clientB.ID], timeToLive: ttl, completion: { (result) in
             XCTAssertTrue(Thread.isMainThread)
             if let conv: IMTemporaryConversation = result.value {
-                XCTAssertEqual(conv.type, .temporary)
+                XCTAssertEqual(conv.lcType, .temporary)
                 XCTAssertEqual(conv.timeToLive, Int(ttl))
             } else {
                 XCTFail()
@@ -976,7 +976,7 @@ class IMConversationTestCase: RTMBaseTestCase {
         try? query1.getConversation(by: normalConvID) { (result) in
             XCTAssertTrue(result.isSuccess)
             XCTAssertNil(result.error)
-            XCTAssertEqual(result.value?.type, .normal)
+            XCTAssertEqual(result.value?.lcType, .normal)
             if let conv = result.value {
                 XCTAssertTrue(type(of: conv) == IMConversation.self)
             }
@@ -990,7 +990,7 @@ class IMConversationTestCase: RTMBaseTestCase {
         try? clientA.conversationQuery.getConversation(by: chatRoomID, completion: { (result) in
             XCTAssertTrue(result.isSuccess)
             XCTAssertNil(result.error)
-            XCTAssertEqual(result.value?.type, .transient)
+            XCTAssertEqual(result.value?.lcType, .transient)
             if let conv = result.value as? IMChatRoom {
                 XCTAssertTrue(type(of: conv) == IMChatRoom.self)
             }
@@ -1002,7 +1002,7 @@ class IMConversationTestCase: RTMBaseTestCase {
         try? clientA.conversationQuery.getConversation(by: serviceID, completion: { (result) in
             XCTAssertTrue(result.isSuccess)
             XCTAssertNil(result.error)
-            XCTAssertEqual(result.value?.type, .system)
+            XCTAssertEqual(result.value?.lcType, .system)
             if let conv = result.value as? IMServiceConversation {
                 XCTAssertTrue(type(of: conv) == IMServiceConversation.self)
             }
@@ -1020,7 +1020,7 @@ class IMConversationTestCase: RTMBaseTestCase {
             XCTAssertEqual(result.value?.count, 3)
             if let convs = result.value {
                 for conv in convs {
-                    switch conv.type {
+                    switch conv.lcType {
                     case .normal:
                         queryAllExp.fulfill()
                     case .transient:
@@ -1052,7 +1052,7 @@ class IMConversationTestCase: RTMBaseTestCase {
             XCTAssertTrue(result.isSuccess)
             XCTAssertNil(result.error)
             XCTAssertEqual(result.value?.count, 1)
-            XCTAssertEqual(result.value?.first?.type, .normal)
+            XCTAssertEqual(result.value?.first?.lcType, .normal)
             XCTAssertEqual(result.value?.first?.members?.contains(clientA.ID), true)
             generalQueryExp1.fulfill()
         })
@@ -1074,7 +1074,7 @@ class IMConversationTestCase: RTMBaseTestCase {
                 let types: [IMConversation.ConvType] = [.system, .transient]
                 var date = Date(timeIntervalSince1970: 0)
                 for conv in convs {
-                    XCTAssertTrue(types.contains(conv.type))
+                    XCTAssertTrue(types.contains(conv.lcType))
                     XCTAssertNotNil(conv.createdAt)
                     if let createdAt = conv.createdAt {
                         XCTAssertGreaterThanOrEqual(createdAt, date)
@@ -1085,6 +1085,91 @@ class IMConversationTestCase: RTMBaseTestCase {
             generalQueryExp2.fulfill()
         })
         wait(for: [generalQueryExp2], timeout: timeout)
+    }
+    
+    func testUpdating() {
+        guard let clientA = newOpenedClient() else {
+            XCTFail()
+            return
+        }
+        
+        RTMConnectionRefMap_protobuf1.removeAll()
+        RTMConnectionRefMap_protobuf3.removeAll()
+        
+        guard let clientB = newOpenedClient() else {
+            XCTFail()
+            return
+        }
+        
+        let delegatorA = IMClientTestCase.Delegator()
+        clientA.delegate = delegatorA
+        let delegatorB = IMClientTestCase.Delegator()
+        clientB.delegate = delegatorB
+        
+        var convA: IMConversation? = nil
+        var convB: IMConversation? = nil
+        
+        let nameKey = IMConversation.Key.name.rawValue
+        let attrKey = IMConversation.Key.attributes.rawValue
+        let createKey = "create"
+        let deleteKey = "delete"
+        let arrayKey = "array"
+        
+        let createConvExp = expectation(description: "create conversation")
+        try? clientA.createConversation(
+            clientIDs: [clientA.ID, clientB.ID],
+            name: uuid,
+            attributes: [
+                deleteKey: uuid,
+                arrayKey: [uuid]
+            ])
+        { (result) in
+            XCTAssertTrue(result.isSuccess)
+            XCTAssertNil(result.error)
+            convA = result.value
+            createConvExp.fulfill()
+        }
+        wait(for: [createConvExp], timeout: timeout)
+        
+        delay()
+        
+        let data: [String: Any] = [
+            nameKey: uuid,
+            "\(attrKey).\(createKey)": uuid,
+            "\(attrKey).\(deleteKey)": ["__op": "Delete"],
+            "\(attrKey).\(arrayKey)": ["__op": "Add", "objects": [uuid]]
+        ]
+        
+        let updateExp = expectation(description: "update")
+        updateExp.expectedFulfillmentCount = 2
+        delegatorB.conversationEvent = { client, conv, event in
+            if conv.ID == convA?.ID {
+                switch event {
+                case .dataUpdated:
+                    convB = conv
+                    updateExp.fulfill()
+                default:
+                    break
+                }
+            }
+        }
+        try? convA?.update(with: data, completion: { (result) in
+            XCTAssertTrue(Thread.isMainThread)
+            XCTAssertTrue(result.isSuccess)
+            XCTAssertNil(result.error)
+            updateExp.fulfill()
+        })
+        wait(for: [updateExp], timeout: timeout)
+        
+        let check = { (conv: IMConversation?) in
+            XCTAssertEqual(conv?.name, data[nameKey] as? String)
+            XCTAssertEqual(conv?.attributes?[createKey] as? String, data["\(attrKey).\(createKey)"] as? String)
+            XCTAssertNil(conv?.attributes?[deleteKey])
+            XCTAssertNotNil(conv?.attributes?[arrayKey])
+        }
+        check(convA)
+        check(convB)
+        XCTAssertEqual(convA?.attributes?[arrayKey] as? [String], convB?.attributes?[arrayKey] as? [String])
     }
     
 }

@@ -90,6 +90,8 @@ class RTMConnectionTestCase: RTMBaseTestCase {
     }
     
     func testTimerCommandTimeout() {
+        RTMTimeoutInterval = 5
+        
         let peerID = uuid
         let tuple = connectedConnection(peerID: peerID)
         let connection = tuple.0
@@ -97,21 +99,23 @@ class RTMConnectionTestCase: RTMBaseTestCase {
         let originRTMTimeoutInterval = RTMTimeoutInterval
         
         let timeoutExp = expectation(description: "command callback timeout")
-        RTMTimeoutInterval = 5
         let start = Date().timeIntervalSince1970
         let commandCallback = RTMConnection.CommandCallback(callingQueue: .main) { (result) in
             XCTAssertTrue(Thread.isMainThread)
             XCTAssertEqual(result.error?.code, LCError.InternalErrorCode.commandTimeout.rawValue)
             let interval = Date().timeIntervalSince1970 - start
             XCTAssertTrue(((RTMTimeoutInterval - 3)...(RTMTimeoutInterval + 3)) ~= interval)
-            XCTAssertEqual(connection.timer?.commandCallbackCollection.count, 0)
-            XCTAssertEqual(connection.timer?.commandIndexSequence.count, 0)
             timeoutExp.fulfill()
         }
         connection.serialQueue.async {
             connection.timer?.insert(commandCallback: commandCallback, index: connection.underlyingSerialIndex)
         }
-        wait(for: [timeoutExp], timeout: RTMTimeoutInterval + 5)
+        wait(for: [timeoutExp], timeout: RTMTimeoutInterval * 2)
+        
+        delay()
+        
+        XCTAssertEqual(connection.timer?.commandCallbackCollection.count, 0)
+        XCTAssertEqual(connection.timer?.commandIndexSequence.count, 0)
         
         RTMTimeoutInterval = originRTMTimeoutInterval
     }
