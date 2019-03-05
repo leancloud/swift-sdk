@@ -12,7 +12,7 @@ import UIKit
 #endif
 import Alamofire
 
-public var RTMConnectingTimeoutInterval: TimeInterval = 5.0
+public var RTMConnectingTimeoutInterval: TimeInterval = 10.0
 public var RTMTimeoutInterval: TimeInterval = 30.0
 
 private let RTMMutex = NSLock()
