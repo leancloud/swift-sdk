@@ -323,7 +323,7 @@ private extension IMConversationQuery {
             }
             let instance: IMConversation
             if let existConversation: IMConversation = client.convCollection[objectId] {
-                existConversation.safeChangingRawData(operation: .rawDataReplaced(by: rawData))
+                existConversation.safeChangingRawData(operation: .rawDataReplaced(by: rawData), client: client)
                 instance = existConversation
             } else {
                 instance = IMConversation.instance(ID: objectId, rawData: rawData, client: client)

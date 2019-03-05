@@ -20,6 +20,7 @@ public final class IMClient {
     /// Notification for unit test case
     static let TestReportDeviceTokenNotification = Notification.Name.init("TestReportDeviceTokenNotification")
     static let TestSessionTokenExpiredNotification = Notification.Name.init("TestSessionTokenExpiredNotification")
+    static let TestGetOfflineEventsNotification = Notification.Name.init("TestGetOfflineEventNotification")
     let specificKey = DispatchSpecificKey<Int>()
     let specificValue: Int = Int.random(in: 1...999)
     var specificAssertion: Bool {
@@ -149,6 +150,7 @@ public final class IMClient {
             .patchMessage,
             .temporaryConversationMessage,
             .transientMessageACK,
+            .notification,
             .partialFailedMessage
         ]
     }
@@ -243,10 +245,21 @@ public final class IMClient {
     let lock = NSLock()
     
     /// Session Token & Opening Config
-    var sessionToken: String?
+    private(set) var sessionToken: String?
     private(set) var sessionTokenExpiration: Date?
+    private(set) var serverTimestamp: Int64?
     private(set) var openingCompletion: ((LCBooleanResult) -> Void)?
     private(set) var openingOptions: SessionOpenOptions?
+    
+    #if DEBUG
+    func change(sessionToken token: String?, sessionTokenExpiration date: Date?) {
+        self.sessionToken = token
+        self.sessionTokenExpiration = date
+    }
+    func change(serverTimestamp timestamp: Int64?) {
+        self.serverTimestamp = timestamp
+    }
+    #endif
     
     /// Device Token and fallback-UDID
     private(set) var deviceTokenObservation: NSKeyValueObservation?
@@ -647,7 +660,7 @@ extension IMClient {
         let conversation: IMConversation
         if let conv: IMConversation = self.convCollection[id] {
             if let json: [String: Any] = try attrString?.jsonObject() {
-                conv.safeChangingRawData(operation: .rawDataMerging(data: json))
+                conv.safeChangingRawData(operation: .rawDataMerging(data: json), client: self)
             }
             conversation = conv
         } else {
@@ -747,6 +760,14 @@ extension IMClient {
 
 extension IMClient {
     
+    static func date(fromMillisecond timestamp: Int64?) -> Date? {
+        guard let timestamp = timestamp else {
+            return nil
+        }
+        let second = TimeInterval(timestamp) / 1000.0
+        return Date(timeIntervalSince1970: second)
+    }
+    
     func sendCommand(
         constructor: () -> IMGenericCommand,
         completion: ((IMClient, RTMConnection.CommandCallback.Result) -> Void)? = nil)
@@ -770,17 +791,161 @@ extension IMClient {
         }
     }
     
+    func refresh(sessionToken oldToken: String, completion: @escaping (IMClient, LCGenericResult<String>) -> Void) {
+        assert(self.specificAssertion)
+        self.sendCommand(constructor: { () -> IMGenericCommand in
+            return self.newSessionCommand(op: .refresh, token: oldToken)
+        }) { (client, result) in
+            assert(client.specificAssertion)
+            switch result {
+            case .inCommand(let inCommand):
+                guard
+                    inCommand.hasSessionMessage,
+                    inCommand.sessionMessage.hasSt,
+                    inCommand.sessionMessage.hasStTtl
+                    else
+                {
+                    let error = LCError(code: .commandInvalid)
+                    completion(client, .failure(error: error))
+                    return
+                }
+                let newToken = inCommand.sessionMessage.st
+                let newTTL = TimeInterval(inCommand.sessionMessage.stTtl)
+                client.sessionToken = newToken
+                client.sessionTokenExpiration = Date(timeIntervalSinceNow: newTTL)
+                completion(client, .success(value: newToken))
+            case .error(let error):
+                completion(client, .failure(error: error))
+            }
+        }
+    }
+    
+    func getSessionToken(completion: @escaping (IMClient, LCGenericResult<String>) -> Void) {
+        assert(self.specificAssertion)
+        if let token: String = self.sessionToken {
+            if let expiration = self.sessionTokenExpiration,
+                expiration > Date() {
+                completion(self, .success(value: token))
+            } else {
+                self.refresh(sessionToken: token, completion: completion)
+            }
+        } else {
+            let error = LCError(code: .clientNotOpen)
+            completion(self, .failure(error: error))
+        }
+    }
+    
+    func getOfflineEvents(serverTimestamp: Int64?, conversations: [IMConversation]) {
+        assert(self.specificAssertion)
+        self.getSessionToken { (client, result) in
+            assert(client.specificAssertion)
+            switch result {
+            case .success(value: let token):
+                guard var serverTimestamp: Int64 = serverTimestamp else {
+                    return
+                }
+                let parameters: [String: Any] = [
+                    "client_id": client.ID,
+                    "start_ts": serverTimestamp
+                ]
+                let headers: [String: String] = ["X-LC-IM-Session-Token": token]
+                let _ = HTTPClient.default.request(
+                    .get,
+                    "/rtm/notifications",
+                    parameters: parameters,
+                    headers: headers,
+                    completionDispatchQueue: client.serialQueue)
+                { [weak client] (response) in
+                    guard let sClient: IMClient = client else {
+                        return
+                    }
+                    assert(sClient.specificAssertion)
+                    if let error = response.error {
+                        Logger.shared.error(error)
+                    } else if let responseValue: [String: Any] = response.value as? [String: Any] {
+                        let group = DispatchGroup()
+                        var groupFlags: Set<String> = []
+                        let groupFlagSuccess: String = "success"
+                        let groupFlagFailure: String = "failure"
+                        let handleNotifications: ([[String: Any]]) -> Void = { notifications in
+                            for item in notifications {
+                                group.enter()
+                                sClient.process(notification: item, completion: { (result) in
+                                    if let serverTs: Int64 = result.value {
+                                        if serverTs > serverTimestamp {
+                                            serverTimestamp = serverTs
+                                        }
+                                        groupFlags.insert(groupFlagSuccess)
+                                    } else {
+                                        groupFlags.insert(groupFlagFailure)
+                                        if let error = result.error {
+                                            Logger.shared.error(error)
+                                        }
+                                    }
+                                    group.leave()
+                                })
+                            }
+                        }
+                        if let droppable = responseValue["droppable"] as? [String: Any],
+                            let droppables = droppable["notifications"] as? [[String: Any]] {
+                            if let invalidLocalConvCache = droppable["invalidLocalConvCache"] as? Bool,
+                                invalidLocalConvCache {
+                                for conv in conversations {
+                                    conv.isOutdated = true
+                                }
+                            } else {
+                                handleNotifications(droppables)
+                            }
+                        }
+                        if let permanent = responseValue["permanent"] as? [String: Any],
+                            let permanents =  permanent["notifications"] as? [[String: Any]] {
+                            handleNotifications(permanents)
+                        }
+                        group.notify(queue: sClient.serialQueue, execute: { [weak sClient] in
+                            guard let ssClient: IMClient = sClient, !groupFlags.isEmpty else {
+                                return
+                            }
+                            let hasSuccess = groupFlags.contains(groupFlagSuccess)
+                            let hasFailure = groupFlags.contains(groupFlagFailure)
+                            if hasSuccess, hasFailure {
+                                for conv in conversations {
+                                    conv.isOutdated = true
+                                }
+                            } else if hasSuccess {
+                                if serverTimestamp > (ssClient.serverTimestamp ?? -1) {
+                                    ssClient.serverTimestamp = serverTimestamp
+                                }
+                                #if DEBUG
+                                NotificationCenter.default.post(
+                                    name: IMClient.TestGetOfflineEventsNotification,
+                                    object: client,
+                                    userInfo: ["serverTimestamp": ssClient.serverTimestamp ?? -1]
+                                )
+                                #endif
+                            }
+                        })
+                    } else {
+                        Logger.shared.verbose(response.response)
+                    }
+                }
+            case .failure(error: let error):
+                Logger.shared.error(error)
+            }
+        }
+    }
+    
 }
 
 // MARK: - Private
 
 private extension IMClient {
     
-    func newOpenCommand() -> IMGenericCommand {
+    func newSessionCommand(op: IMOpType, token: String? = nil, isReopen: Bool? = nil) -> IMGenericCommand {
         assert(self.specificAssertion)
+        assert(op == .open || op == .refresh)
         var outCommand = IMGenericCommand()
         outCommand.cmd = .session
-        outCommand.op = .open
+        outCommand.op = op
         outCommand.appID = self.application.id
         outCommand.peerID = self.ID
         var sessionCommand = IMSessionCommand()
@@ -790,11 +955,19 @@ private extension IMClient {
         if let tag: String = self.tag {
             sessionCommand.tag = tag
         }
-        if let lastUnreadNotifTime: Int64 = self.lastUnreadNotifTime {
-            sessionCommand.lastUnreadNotifTime = lastUnreadNotifTime
+        if let token = token {
+            sessionCommand.st = token
         }
-        if let lastPatchTime: Int64 = self.lastPatchTime {
-            sessionCommand.lastPatchTime = lastPatchTime
+        if let r = isReopen {
+            sessionCommand.r = r
+        }
+        if op == .open {
+            if let lastUnreadNotifTime: Int64 = self.lastUnreadNotifTime {
+                sessionCommand.lastUnreadNotifTime = lastUnreadNotifTime
+            }
+            if let lastPatchTime: Int64 = self.lastPatchTime {
+                sessionCommand.lastPatchTime = lastPatchTime
+            }
         }
         outCommand.sessionMessage = sessionCommand
         return outCommand
@@ -814,8 +987,7 @@ private extension IMClient {
                 } else if error.code == LCError.InternalErrorCode.connectionLost.rawValue {
                     Logger.shared.debug(error)
                 } else if error.code == LCError.ServerErrorCode.sessionTokenExpired.rawValue {
-                    var openCommand = client.newOpenCommand()
-                    openCommand.sessionMessage.r = true
+                    let openCommand = client.newSessionCommand(op: .open, isReopen: true)
                     client.send(reopenCommand: openCommand)
                     #if DEBUG
                     NotificationCenter.default.post(
@@ -876,6 +1048,10 @@ private extension IMClient {
                 self.sessionTokenExpiration = Date(timeIntervalSinceNow: TimeInterval(sessionMessage.stTtl))
             }
             self.sessionState = .opened
+            self.getOfflineEvents(
+                serverTimestamp: self.serverTimestamp,
+                conversations: Array(self.convCollection.values)
+            )
             self.eventQueue.async {
                 if let completion = completion {
                     completion(.success)
@@ -1023,7 +1199,7 @@ private extension IMClient {
         }
     }
     
-    func process(convCommand command: IMConvCommand, op: IMOpType) {
+    func process(convCommand command: IMConvCommand, op: IMOpType, serverTs: Int64? = nil) {
         assert(self.specificAssertion)
         guard let conversationID: String = (command.hasCid ? command.cid : nil) else {
             return
@@ -1032,29 +1208,60 @@ private extension IMClient {
             assert(client.specificAssertion)
             switch result {
             case .success(value: let conversation):
-                let byClientID: String? = (command.hasInitBy ? command.initBy : nil)
-                let members: [String] = command.m
-                let event: IMConversationEvent
-                let rawDataOperation: IMConversation.RawDataChangeOperation
+                var event: IMConversationEvent? = nil
+                var rawDataOperation: IMConversation.RawDataChangeOperation? = nil
                 switch op {
-                case .joined:
-                    event = .joined(byClientID: byClientID)
-                    rawDataOperation = .append(members: [client.ID])
-                case .left:
-                    event = .left(byClientID: byClientID)
-                    rawDataOperation = .remove(members: [client.ID])
-                case .membersJoined:
-                    event = .membersJoined(members: members, byClientID: byClientID)
-                    rawDataOperation = .append(members: Set(members))
-                case .membersLeft:
-                    event = .membersLeft(members: members, byClientID: byClientID)
-                    rawDataOperation = .remove(members: Set(members))
+                case .joined, .left, .membersJoined, .membersLeft:
+                    let byClientID: String? = (command.hasInitBy ? command.initBy : nil)
+                    let members: [String] = command.m
+                    switch op {
+                    case .joined:
+                        rawDataOperation = .append(members: [client.ID])
+                        event = .joined(byClientID: byClientID)
+                    case .left:
+                        rawDataOperation = .remove(members: [client.ID])
+                        event = .left(byClientID: byClientID)
+                    case .membersJoined:
+                        rawDataOperation = .append(members: Set(members))
+                        event = .membersJoined(members: members, byClientID: byClientID)
+                    case .membersLeft:
+                        rawDataOperation = .remove(members: Set(members))
+                        event = .membersLeft(members: members, byClientID: byClientID)
+                    default:
+                        break
+                    }
+                case .updated:
+                    do {
+                        if
+                            command.hasAttr,
+                            command.attr.hasData,
+                            let attr: [String: Any] = try command.attr.data.jsonObject(),
+                            command.hasAttrModified,
+                            command.attrModified.hasData,
+                            let attrModified: [String: Any] = try command.attrModified.data.jsonObject(),
+                            let udate: String = (command.hasUdate ? command.udate : nil)
+                        {
+                            rawDataOperation = .updated(attr: attr, attrModified: attrModified, udate: udate)
+                            event = .dataUpdated
+                        } else {
+                            Logger.shared.verbose("invalid command \(command)")
+                        }
+                    } catch {
+                        Logger.shared.error(error)
+                    }
                 default:
-                    return
+                    break
                 }
-                conversation.safeChangingRawData(operation: rawDataOperation)
-                client.eventQueue.async {
-                    client.delegate?.client(client, conversation: conversation, event: event)
+                if let rawDataOperation = rawDataOperation {
+                    conversation.safeChangingRawData(operation: rawDataOperation, client: client)
+                    if (serverTs ?? -1) > (client.serverTimestamp ?? -1) {
+                        client.serverTimestamp = serverTs
+                    }
+                }
+                if let event = event {
+                    client.eventQueue.async {
+                        client.delegate?.client(client, conversation: conversation, event: event)
+                    }
                 }
             case .failure(error: let error):
                 Logger.shared.error(error)
@@ -1307,7 +1514,7 @@ private extension IMClient {
         }
     }
     
-    func process(rcpCommand: IMRcpCommand) {
+    func process(rcpCommand: IMRcpCommand, serverTs: Int64? = nil) {
         assert(self.specificAssertion)
         guard let conversationID: String = (rcpCommand.hasCid ? rcpCommand.cid : nil) else {
             return
@@ -1339,10 +1546,144 @@ private extension IMClient {
                 client.eventQueue.async {
                     client.delegate?.client(client, conversation: conversation, event: .message(event: event))
                 }
+                if (serverTs ?? -1) > (client.serverTimestamp ?? -1) {
+                    client.serverTimestamp = serverTs
+                }
             case .failure(error: let error):
                 Logger.shared.error(error)
             }
         }
+    }
+    
+    private enum NotificationKey: String {
+        // general
+        case cmd = "cmd"
+        case op = "op"
+        case cid = "cid"
+        case serverTs = "serverTs"
+        // conv
+        case initBy = "initBy"
+        case m = "m"
+        case attr = "attr"
+        case attrModified = "attrModified"
+        case udate = "udate"
+        // rcp
+        case id = "id"
+        case t = "t"
+        case read = "read"
+        case from = "from"
+    }
+    
+    private enum NotificationCommand: String {
+        case conv = "conv"
+        case rcp = "rcp"
+    }
+    
+    private enum NotificationOperation: String {
+        case joined = "joined"
+        case left = "left"
+        case membersJoined = "members-joined"
+        case membersLeft = "members-left"
+        case updated = "updated"
+        
+        var opType: IMOpType {
+            switch self {
+            case .joined:
+                return .joined
+            case .left:
+                return .left
+            case .membersJoined:
+                return .membersJoined
+            case .membersLeft:
+                return .membersLeft
+            case .updated:
+                return .updated
+            }
+        }
+    }
+    
+    // for compatibility, should regard some unknown condition or unsupport message as success and callback with timestamp -1.
+    func process(notification: [String: Any], completion: @escaping (LCGenericResult<Int64>) -> Void) {
+        assert(self.specificAssertion)
+        guard
+            let cid: String = notification[NotificationKey.cid.rawValue] as? String,
+            let serverTs: Int64 = notification[NotificationKey.serverTs.rawValue] as? Int64
+            else
+        {
+            completion(.success(value: -1))
+            return
+        }
+        self.getConversation(by: cid, completion: { (client, result) in
+            assert(client.specificAssertion)
+            switch result {
+            case .success(value: _):
+                guard
+                    let cmdValue = notification[NotificationKey.cmd.rawValue] as? String,
+                    let cmd = NotificationCommand(rawValue: cmdValue)
+                    else
+                {
+                    completion(.success(value: -1))
+                    return
+                }
+                switch cmd {
+                case .conv:
+                    guard
+                        let opValue = notification[NotificationKey.op.rawValue] as? String,
+                        let op = NotificationOperation(rawValue: opValue)
+                        else
+                    {
+                        completion(.success(value: -1))
+                        return
+                    }
+                    var convCommand = IMConvCommand()
+                    convCommand.cid = cid
+                    switch op {
+                    case .joined, .left, .membersJoined, .membersLeft:
+                        if let initBy = notification[NotificationKey.initBy.rawValue] as? String {
+                            convCommand.initBy = initBy
+                        }
+                        if let m = notification[NotificationKey.m.rawValue] as? [String] {
+                            convCommand.m = m
+                        }
+                    case .updated:
+                        if let attr = notification[NotificationKey.attr.rawValue] as? String {
+                            var jsonObject = IMJsonObjectMessage()
+                            jsonObject.data = attr
+                            convCommand.attr = jsonObject
+                        }
+                        if let attrModified = notification[NotificationKey.attrModified.rawValue] as? String {
+                            var jsonObject = IMJsonObjectMessage()
+                            jsonObject.data = attrModified
+                            convCommand.attrModified = jsonObject
+                        }
+                        if let udate = notification[NotificationKey.udate.rawValue] as? String {
+                            convCommand.udate = udate
+                        }
+                    }
+                    client.process(convCommand: convCommand, op: op.opType)
+                    completion(.success(value: serverTs))
+                case .rcp:
+                    var rcpCommand = IMRcpCommand()
+                    rcpCommand.cid = cid
+                    if let mid = notification[NotificationKey.id.rawValue] as? String {
+                        rcpCommand.id = mid
+                    }
+                    if let timestamp = notification[NotificationKey.t.rawValue] as? Int64 {
+                        rcpCommand.t = timestamp
+                    }
+                    if let isRead = notification[NotificationKey.read.rawValue] as? Bool {
+                        rcpCommand.read = isRead
+                    }
+                    if let fromPeerID = notification[NotificationKey.from.rawValue] as? String {
+                        rcpCommand.from = fromPeerID
+                    }
+                    client.process(rcpCommand: rcpCommand)
+                    completion(.success(value: serverTs))
+                }
+            case .failure(error: let error):
+                completion(.failure(error: error))
+            }
+        })
     }
     
 }
@@ -1364,12 +1705,11 @@ extension IMClient: RTMConnectionDelegate {
     
     func connection(didConnect connection: RTMConnection) {
         assert(self.specificAssertion)
-        var openCommand = self.newOpenCommand()
         if
             let openingCompletion = self.openingCompletion,
             let openingOptions = self.openingOptions
         {
-            openCommand.sessionMessage.r = openingOptions.r
+            let openCommand = self.newSessionCommand(op: .open, isReopen: openingOptions.r)
             self.connection.send(command: openCommand, callingQueue: self.serialQueue) { [weak self] (result) in
                 guard let self = self else { return }
                 assert(self.specificAssertion)
@@ -1386,8 +1726,13 @@ extension IMClient: RTMConnectionDelegate {
                 }
             }
         } else if let sessionToken = self.sessionToken {
-            openCommand.sessionMessage.r = true
-            openCommand.sessionMessage.st = sessionToken
+            let openCommand: IMGenericCommand
+            if let expiration = self.sessionTokenExpiration,
+                expiration > Date() {
+                openCommand = self.newSessionCommand(op: .open, token: sessionToken, isReopen: true)
+            } else {
+                openCommand = self.newSessionCommand(op: .open, isReopen: true)
+            }
             self.send(reopenCommand: openCommand)
         }
     }
@@ -1417,6 +1762,7 @@ extension IMClient: RTMConnectionDelegate {
     
     func connection(_ connection: RTMConnection, didReceiveCommand inCommand: IMGenericCommand) {
         assert(self.specificAssertion)
+        let serverTs: Int64? = (inCommand.hasServerTs ? inCommand.serverTs : nil)
         switch inCommand.cmd {
         case .session:
             switch inCommand.op {
@@ -1430,7 +1776,7 @@ extension IMClient: RTMConnectionDelegate {
         case .unread:
             self.process(unreadCommand: inCommand.unreadMessage)
         case .conv:
-            self.process(convCommand: inCommand.convMessage, op: inCommand.op)
+            self.process(convCommand: inCommand.convMessage, op: inCommand.op, serverTs: serverTs)
         case .patch:
             switch inCommand.op {
             case .modify:
@@ -1439,7 +1785,7 @@ extension IMClient: RTMConnectionDelegate {
                 break
             }
         case .rcp:
-            self.process(rcpCommand: inCommand.rcpMessage)
+            self.process(rcpCommand: inCommand.rcpMessage, serverTs: serverTs)
         default:
             break
         }
@@ -1526,18 +1872,6 @@ extension LCError {
             code: .inconsistency,
             reason: "\"\(IMClient.reservedValueOfTag)\" string should not be used on tag"
         )
-    }
-    
-}
-
-extension IMClient {
-    
-    static func date(fromMillisecond timestamp: Int64?) -> Date? {
-        guard let timestamp = timestamp else {
-            return nil
-        }
-        let second = TimeInterval(timestamp) / 1000.0
-        return Date(timeIntervalSince1970: second)
     }
     
 }

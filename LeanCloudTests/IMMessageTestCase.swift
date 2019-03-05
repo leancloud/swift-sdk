@@ -751,7 +751,7 @@ class IMMessageTestCase: RTMBaseTestCase {
         let exp = expectation(description: "message patch")
         exp.expectedFulfillmentCount = 2
         do {
-            try receivingTuple?.conversation.update(oldMessage: oldMessage, by: newMessage, completion: { (_) in })
+            try receivingTuple?.conversation.update(oldMessage: oldMessage, to: newMessage, completion: { (_) in })
             XCTFail()
         } catch {
             XCTAssertTrue(error is LCError)
@@ -767,7 +767,7 @@ class IMMessageTestCase: RTMBaseTestCase {
                 break
             }
         }
-        try? sendingTuple?.conversation.update(oldMessage: oldMessage, by: newMessage, completion: { (result) in
+        try? sendingTuple?.conversation.update(oldMessage: oldMessage, to: newMessage, completion: { (result) in
             XCTAssertTrue(Thread.isMainThread)
             XCTAssertTrue(result.isSuccess)
             XCTAssertNil(result.error)
@@ -883,7 +883,7 @@ class IMMessageTestCase: RTMBaseTestCase {
         }
         let newMessage = IMFileMessage()
         newMessage.file = LCFile(payload: .fileURL(fileURL: resourceURL(name: "test", ext: "zip")))
-        try? sendingTuple.conversation.update(oldMessage: oldMessage, by: newMessage, completion: { (result) in
+        try? sendingTuple.conversation.update(oldMessage: oldMessage, to: newMessage, completion: { (result) in
             XCTAssertTrue(result.isSuccess)
             XCTAssertNil(result.error)
             XCTAssertNotNil(oldMessage.ID)
@@ -930,7 +930,7 @@ class IMMessageTestCase: RTMBaseTestCase {
         let patchMessageWhenOfflineExp = expectation(description: "patch message when offline")
         let newerMessage = IMTextMessage()
         newerMessage.text = "newer"
-        try? sendingTuple.conversation.update(oldMessage: newMessage, by: newerMessage) { (result) in
+        try? sendingTuple.conversation.update(oldMessage: newMessage, to: newerMessage) { (result) in
             XCTAssertTrue(result.isSuccess)
             XCTAssertNil(result.error)
             patchMessageWhenOfflineExp.fulfill()
@@ -1107,7 +1107,7 @@ class IMMessageTestCase: RTMBaseTestCase {
         wait(for: [getDeliveredFlagExp], timeout: timeout)
         
         let client = try! IMClient(ID: uuid, options: [])
-        let conversation = IMConversation(ID: uuid, rawData: [:], type: .normal, client: client)
+        let conversation = IMConversation(ID: uuid, rawData: [:], lcType: .normal, client: client)
         do {
             try conversation.getMessageReceiptFlag(completion: { (_) in })
             XCTFail()
@@ -1289,11 +1289,11 @@ class IMMessageTestCase: RTMBaseTestCase {
         wait(for: [intervalQueryExp], timeout: timeout)
         
         let typeQuery = expectation(description: "type query")
-        try? conversation.queryMessage(type: IMTextMessage().type, completion: { (result) in
+        try? conversation.queryMessage(type: IMTextMessage().lcType, completion: { (result) in
             XCTAssertTrue(result.isSuccess)
             XCTAssertNil(result.error)
             XCTAssertEqual(result.value?.count, 1)
-            XCTAssertEqual((result.value?.first as? IMTextMessage)?.type, IMTextMessage().type)
+            XCTAssertEqual((result.value?.first as? IMTextMessage)?.lcType, IMTextMessage().lcType)
             XCTAssertNotNil(result.value?.first?.deliveredTimestamp)
             XCTAssertNotNil(result.value?.first?.deliveredDate)
             XCTAssertEqual(result.value?.first?.status, .delivered)
@@ -1312,13 +1312,13 @@ extension IMMessageTestCase {
     typealias Tuple = (client: IMClient, conversation: IMConversation, delegator: IMClientTestCase.Delegator)
     
     class CustomMessage: IMCategorizedMessage {
-        override var type: MessageType {
+        override var lcType: MessageType {
             return 1
         }
     }
     
     class InvalidCustomMessage: IMCategorizedMessage {
-        override var type: MessageType {
+        override var lcType: MessageType {
             return -1
         }
     }

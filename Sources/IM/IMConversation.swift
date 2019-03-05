@@ -46,7 +46,8 @@ public class IMConversation {
         case temporary = 4
     }
     
-    let type: ConvType
+    /// add `lc` prefix to avoid conflict
+    let lcType: ConvType
     
     public private(set) weak var client: IMClient?
 
@@ -99,7 +100,7 @@ public class IMConversation {
         }
     }
     
-    public private(set) var isOutdated: Bool {
+    public internal(set) var isOutdated: Bool {
         set {
             sync(self.underlyingOutdated = newValue)
         }
@@ -152,43 +153,43 @@ public class IMConversation {
     }
     
     static func instance(ID: String, rawData: RawData, client: IMClient) -> IMConversation {
-        var type: ConvType = .normal
-        if let convType: Int = rawData[Key.convType.rawValue] as? Int,
-            let validType = ConvType(rawValue: convType) {
-            type = validType
+        var convType: ConvType = .normal
+        if let typeRawValue: Int = rawData[Key.convType.rawValue] as? Int,
+            let validType = ConvType(rawValue: typeRawValue) {
+            convType = validType
         } else {
             if let transient: Bool = rawData[Key.transient.rawValue] as? Bool,
                 transient == true {
-                type = .transient
+                convType = .transient
             } else if let system: Bool = rawData[Key.system.rawValue] as? Bool,
                 system == true {
-                type = .system
+                convType = .system
             } else if let temporary: Bool = rawData[Key.temporary.rawValue] as? Bool,
                 temporary == true {
-                type = .temporary
+                convType = .temporary
             } else if ID.hasPrefix(IMTemporaryConversation.prefixOfID) {
-                type = .temporary
+                convType = .temporary
             }
         }
-        switch type {
+        switch convType {
         case .normal:
-            return IMConversation(ID: ID, rawData: rawData, type: type, client: client)
+            return IMConversation(ID: ID, rawData: rawData, lcType: convType, client: client)
         case .transient:
-            return IMChatRoom(ID: ID, rawData: rawData, type: type, client: client)
+            return IMChatRoom(ID: ID, rawData: rawData, lcType: convType, client: client)
         case .system:
-            return IMServiceConversation(ID: ID, rawData: rawData, type: type, client: client)
+            return IMServiceConversation(ID: ID, rawData: rawData, lcType: convType, client: client)
         case .temporary:
-            return IMTemporaryConversation(ID: ID, rawData: rawData, type: type, client: client)
+            return IMTemporaryConversation(ID: ID, rawData: rawData, lcType: convType, client: client)
         }
     }
 
-    init(ID: String, rawData: RawData, type: ConvType, client: IMClient) {
+    init(ID: String, rawData: RawData, lcType: ConvType, client: IMClient) {
         self.ID = ID
         self.client = client
         self.rawData = rawData
         self.lock = client.lock
         self.clientID = client.ID
-        self.type = type
+        self.lcType = lcType
         self.isUnique = (rawData[Key.unique.rawValue] as? Bool) ?? false
         self.uniqueID = (rawData[Key.uniqueId.rawValue] as? String)
         self.decodingLastMessage()
@@ -199,11 +200,11 @@ public class IMConversation {
     let lock: NSLock
     
     var notTransientConversation: Bool {
-        return self.type != .transient
+        return self.lcType != .transient
     }
     
     var notServiceConversation: Bool {
-        return self.type != .system
+        return self.lcType != .system
     }
     
     /* Due to IMTemporaryConversation should override these functions, so they can't define in extension. */
@@ -255,10 +256,72 @@ public class IMConversation {
     public func refresh(completion: @escaping (LCBooleanResult) -> Void) throws {
         try self.client?.conversationQuery.getConversation(by: self.ID, completion: { (result) in
             switch result {
-            case .success:
+            case .success(value: _):
                 completion(.success)
             case .failure(error: let error):
                 completion(.failure(error: error))
+            }
+        })
+    }
+    
+    public func update(with data: [String: Any], completion: @escaping (LCBooleanResult) -> Void) throws {
+        guard !data.isEmpty else {
+            throw LCError(code: .inconsistency, reason: "parameter invalid.")
+        }
+        let binaryData = try JSONSerialization.data(withJSONObject: data)
+        guard let jsonString = String(data: binaryData, encoding: .utf8) else {
+            throw LCError(code: .inconsistency, reason: "parameter invalid.")
+        }
+        self.client?.sendCommand(constructor: { () -> IMGenericCommand in
+            var outCommand = IMGenericCommand()
+            outCommand.cmd = .conv
+            outCommand.op = .update
+            var convCommand = IMConvCommand()
+            convCommand.cid = self.ID
+            var jsonObject = IMJsonObjectMessage()
+            jsonObject.data = jsonString
+            convCommand.attr = jsonObject
+            outCommand.convMessage = convCommand
+            return outCommand
+        }, completion: { (client, result) in
+            switch result {
+            case .inCommand(let inCommand):
+                assert(client.specificAssertion)
+                guard
+                    let convCommand = (inCommand.hasConvMessage ? inCommand.convMessage : nil),
+                    let jsonCommand = (convCommand.hasAttrModified ? convCommand.attrModified : nil),
+                    let attrModifiedString = (jsonCommand.hasData ? jsonCommand.data : nil)
+                    else
+                {
+                    client.eventQueue.async {
+                        let error = LCError(code: .commandInvalid)
+                        completion(.failure(error: error))
+                    }
+                    return
+                }
+                do {
+                    if let attrModified: [String: Any] = try attrModifiedString.jsonObject(),
+                        let udate: String = (convCommand.hasUdate ? convCommand.udate : nil) {
+                        self.safeChangingRawData(operation: .updated(attr: data, attrModified: attrModified, udate: udate), client: client)
+                        client.eventQueue.async {
+                            completion(.success)
+                        }
+                    } else {
+                        client.eventQueue.async {
+                            let error = LCError(code: .commandInvalid)
+                            completion(.failure(error: error))
+                        }
+                    }
+                } catch {
+                    let err = LCError(error: error)
+                    client.eventQueue.async {
+                        completion(.failure(error: err))
+                    }
+                }
+            case .error(let error):
+                client.eventQueue.async {
+                    completion(.failure(error: error))
+                }
             }
         })
     }
@@ -544,7 +607,7 @@ extension IMConversation {
     
     public func update(
         oldMessage: IMMessage,
-        by newMessage: IMMessage,
+        to newMessage: IMMessage,
         progress: ((Double) -> Void)? = nil,
         completion: @escaping (LCBooleanResult) -> Void)
         throws
@@ -619,6 +682,8 @@ extension IMConversation {
                             clientID: self.clientID,
                             conversationID: self.ID
                         )
+                        newMessage.deliveredTimestamp = oldMessage.deliveredTimestamp
+                        newMessage.readTimestamp = oldMessage.readTimestamp
                         self.safeUpdatingLastMessage(newMessage: newMessage, client: client)
                         client.eventQueue.async {
                             completion(.success)
@@ -640,7 +705,7 @@ extension IMConversation {
     
     public func recall(message: IMMessage, completion: @escaping (LCGenericResult<IMRecalledMessage>) -> Void) throws {
         let recalledMessage = IMRecalledMessage()
-        try self.update(oldMessage: message, by: recalledMessage, completion: { (result) in
+        try self.update(oldMessage: message, to: recalledMessage, completion: { (result) in
             switch result {
             case .success:
                 completion(.success(value: recalledMessage))
@@ -975,9 +1040,9 @@ extension IMConversation {
                     }
                     switch inCommand.op {
                     case .added:
-                        self.safeChangingRawData(operation: .append(members: Set(allowedPids)))
+                        self.safeChangingRawData(operation: .append(members: Set(allowedPids)), client: client)
                     case .removed:
-                        self.safeChangingRawData(operation: .remove(members: Set(allowedPids)))
+                        self.safeChangingRawData(operation: .remove(members: Set(allowedPids)), client: client)
                     default:
                         break
                     }
@@ -1018,7 +1083,7 @@ extension IMConversation {
                 assert(client.specificAssertion)
                 if inCommand.cmd == .conv, inCommand.op == .updated {
                     let operation: RawDataChangeOperation = ((op == .mute) ? .muted : .unmuted)
-                    self.safeChangingRawData(operation: operation)
+                    self.safeChangingRawData(operation: operation, client: client)
                     client.eventQueue.async {
                         completion(.success)
                     }
@@ -1047,20 +1112,27 @@ internal extension IMConversation {
         case rawDataReplaced(by: RawData)
         case append(members: Set<String>)
         case remove(members: Set<String>)
+        case updated(attr: [String: Any], attrModified: [String: Any], udate: String)
         case muted
         case unmuted
     }
     
-    func safeChangingRawData(operation: RawDataChangeOperation) {
+    private class KeyAndDictionary {
+        let key: String
+        var dictionary: [String: Any]
+        init(key: String, dictionary: [String: Any]) {
+            self.key = key
+            self.dictionary = dictionary
+        }
+    }
+    
+    func safeChangingRawData(operation: RawDataChangeOperation, client: IMClient) {
+        assert(client.specificAssertion)
         switch operation {
         case .rawDataMerging(data: let data):
-            sync {
-                self.rawData = self.rawData.merging(data) { (_, new) in new }
-            }
+            sync(self.rawData = self.rawData.merging(data) { (_, new) in new })
         case .rawDataReplaced(by: let data):
-            sync {
-                self.rawData = data
-            }
+            sync(self.rawData = data)
         case .append(members: let joinedMembers):
             guard
                 self.notTransientConversation,
@@ -1068,17 +1140,14 @@ internal extension IMConversation {
                 !joinedMembers.isEmpty
                 else
             { break }
-            let key = Key.members
-            sync {
-                let newMembers: [String]
-                if let originMembers: [String] = self.decodingRawData(with: key) {
-                    let newMemberSet: Set<String> = Set(originMembers).union(joinedMembers)
-                    newMembers = Array(newMemberSet)
-                } else {
-                    newMembers = Array(joinedMembers)
-                }
-                self.updatingRawData(key: key, value: newMembers)
+            let newMembers: [String]
+            if let originMembers: [String] = self.members {
+                let newMemberSet: Set<String> = Set(originMembers).union(joinedMembers)
+                newMembers = Array(newMemberSet)
+            } else {
+                newMembers = Array(joinedMembers)
             }
+            self.safeUpdatingRawData(key: .members, value: newMembers)
         case .remove(members: let leftMembers):
             guard
                 self.notTransientConversation,
@@ -1086,44 +1155,85 @@ internal extension IMConversation {
                 !leftMembers.isEmpty
                 else
             { break }
-            let key = Key.members
-            sync {
-                if leftMembers.contains(self.clientID) {
-                    /*
-                     if this client has left this conversation,
-                     then can consider thsi conversation's data is outdated
-                     */
-                    self.underlyingOutdated = true
-                }
-                if let originMembers: [String] = self.decodingRawData(with: key) {
-                    let newMembers: [String] = Array(Set(originMembers).subtracting(leftMembers))
-                    self.updatingRawData(key: key, value: newMembers)
-                }
+            if leftMembers.contains(self.clientID) {
+                self.isOutdated = true
+            }
+            if let originMembers: [String] = self.members {
+                let newMembers: [String] = Array(Set(originMembers).subtracting(leftMembers))
+                self.safeUpdatingRawData(key: .members, value: newMembers)
             }
         case .muted, .unmuted:
             guard self.notTransientConversation else {
                 return
             }
             let key = Key.mutedMembers
-            sync {
-                var newMutedMembers: [String]
-                if let originMutedMembers: [String] = self.decodingRawData(with: key) {
-                    var set = Set(originMutedMembers)
-                    if case .muted = operation {
-                        set.insert(self.clientID)
-                    } else {
-                        set.remove(self.clientID)
-                    }
-                    newMutedMembers = Array(set)
+            var newMutedMembers: [String]
+            if let originMutedMembers: [String] = self.safeDecodingRawData(with: key) {
+                var set = Set(originMutedMembers)
+                if case .muted = operation {
+                    set.insert(self.clientID)
                 } else {
-                    if case .muted = operation {
-                        newMutedMembers = [self.clientID]
+                    set.remove(self.clientID)
+                }
+                newMutedMembers = Array(set)
+            } else {
+                if case .muted = operation {
+                    newMutedMembers = [self.clientID]
+                } else {
+                    newMutedMembers = []
+                }
+            }
+            self.safeUpdatingRawData(key: key, value: newMutedMembers)
+        case .updated(attr: let attr, attrModified: let attrModified, let udate):
+            if let updateAt = self.updatedAt {
+                guard
+                    let updateDate: Date = LCDate(isoString: udate)?.value,
+                    updateDate > updateAt
+                    else
+                { return }
+            }
+            var rawDataCopy: RawData! = nil
+            sync(rawDataCopy = self.rawData)
+            for key in attr.keys {
+                var stack: [KeyAndDictionary] = []
+                var modifiedValue: Any? = nil
+                for subkey in key.components(separatedBy: ".") {
+                    if stack.isEmpty {
+                        let nestStruct = KeyAndDictionary(
+                            key: subkey,
+                            dictionary: rawDataCopy
+                        )
+                        stack.insert(nestStruct, at: 0)
+                        modifiedValue = attrModified[subkey]
                     } else {
-                        newMutedMembers = []
+                        let newNestStruct = KeyAndDictionary(
+                            key: subkey,
+                            dictionary: (stack[0].dictionary[stack[0].key] as? [String: Any]) ?? [:]
+                        )
+                        stack.insert(newNestStruct, at: 0)
+                        if let modifiedDic: [String: Any] = modifiedValue as? [String: Any] {
+                            modifiedValue = modifiedDic[subkey]
+                        }
                     }
                 }
-                self.updatingRawData(key: key, value: newMutedMembers)
+                for (index, item) in stack.enumerated() {
+                    if index == 0 {
+                        if let value = modifiedValue {
+                            item.dictionary[item.key] = value
+                        } else {
+                            item.dictionary.removeValue(forKey: item.key)
+                        }
+                    } else {
+                        let preItem = stack[index - 1]
+                        item.dictionary[item.key] = preItem.dictionary
+                    }
+                }
+                if let newRawData = stack.last?.dictionary {
+                    rawDataCopy = newRawData
+                }
             }
+            rawDataCopy[Key.updatedAt.rawValue] = udate
+            sync(self.rawData = rawDataCopy)
         }
     }
     
@@ -1203,6 +1313,14 @@ private extension IMConversation {
         return self.rawData[string] as? T
     }
     
+    func safeUpdatingRawData(key: Key, value: Any) {
+        self.safeUpdatingRawData(string: key.rawValue, value: value)
+    }
+    
+    func safeUpdatingRawData(string: String, value: Any) {
+        sync(self.updatingRawData(string: string, value: value))
+    }
+    
     func updatingRawData(key: Key, value: Any) {
         self.updatingRawData(string: key.rawValue, value: value)
     }
@@ -1256,6 +1374,16 @@ public class IMChatRoom: IMConversation {
         case low = 3
     }
     
+    @available(*, unavailable)
+    public override func mute(completion: @escaping (LCBooleanResult) -> Void) {
+        completion(.failure(error: LCError.conversationNotSupport(convType: type(of: self))))
+    }
+    
+    @available(*, unavailable)
+    public override func unmute(completion: @escaping (LCBooleanResult) -> Void) {
+        completion(.failure(error: LCError.conversationNotSupport(convType: type(of: self))))
+    }
+    
     public func getOnlineMemberCount(completion: @escaping (LCCountResult) -> Void) {
         self.client?.sendCommand(constructor: { () -> IMGenericCommand in
             var outCommand = IMGenericCommand()
@@ -1292,6 +1420,11 @@ public class IMChatRoom: IMConversation {
 /// IM Service Conversation
 public class IMServiceConversation: IMConversation {
     
+    @available(*, unavailable)
+    public override func update(with data: [String : Any], completion: @escaping (LCBooleanResult) -> Void) throws {
+        throw LCError.conversationNotSupport(convType: type(of: self))
+    }
+    
     public func subscribe(completion: @escaping (LCBooleanResult) -> Void) throws {
         try self.join(completion: completion)
     }
@@ -1325,47 +1458,63 @@ public class IMTemporaryConversation: IMConversation {
     
     @available(*, unavailable)
     public override func join(completion: @escaping (LCBooleanResult) -> Void) throws {
-        throw LCError.temporaryConversationNotSupport
+        throw LCError.conversationNotSupport(convType: type(of: self))
     }
     
     @available(*, unavailable)
     public override func leave(completion: @escaping (LCBooleanResult) -> Void) throws {
-        throw LCError.temporaryConversationNotSupport
+        throw LCError.conversationNotSupport(convType: type(of: self))
     }
     
     @available(*, unavailable)
     public override func add(members: Set<String>, completion: @escaping (IMConversation.MemberResult) -> Void) throws {
-        throw LCError.temporaryConversationNotSupport
+        throw LCError.conversationNotSupport(convType: type(of: self))
     }
     
     @available(*, unavailable)
     public override func remove(members: Set<String>, completion: @escaping (IMConversation.MemberResult) -> Void) throws {
-        throw LCError.temporaryConversationNotSupport
+        throw LCError.conversationNotSupport(convType: type(of: self))
     }
     
     @available(*, unavailable)
     public override func mute(completion: @escaping (LCBooleanResult) -> Void) {
-        completion(.failure(error: LCError.temporaryConversationNotSupport))
+        completion(.failure(error: LCError.conversationNotSupport(convType: type(of: self))))
     }
     
     @available(*, unavailable)
     public override func unmute(completion: @escaping (LCBooleanResult) -> Void) {
-        completion(.failure(error: LCError.temporaryConversationNotSupport))
+        completion(.failure(error: LCError.conversationNotSupport(convType: type(of: self))))
     }
     
     @available(*, unavailable)
+    public override func update(with data: [String : Any], completion: @escaping (LCBooleanResult) -> Void) throws {
+        throw LCError.conversationNotSupport(convType: type(of: self))
+    }
+    
     public override func refresh(completion: @escaping (LCBooleanResult) -> Void) throws {
-        throw LCError.temporaryConversationNotSupport
+        try self.client?.conversationQuery.getTemporaryConversations(by: [self.ID], completion: { (result) in
+            switch result {
+            case .success(value: let tempConvs):
+                if tempConvs.isEmpty {
+                    let error = LCError(code: .conversationNotFound)
+                    completion(.failure(error: error))
+                } else {
+                    completion(.success)
+                }
+            case .failure(error: let error):
+                completion(.failure(error: error))
+            }
+        })
     }
     
 }
 
 extension LCError {
     
-    static var temporaryConversationNotSupport: LCError {
+    static func conversationNotSupport(convType: IMConversation.Type) -> LCError {
         return LCError(
             code: .inconsistency,
-            reason: "\(IMTemporaryConversation.self) not support this API"
+            reason: "\(convType) not support this API"
         )
     }
     

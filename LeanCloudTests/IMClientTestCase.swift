@@ -217,7 +217,7 @@ class IMClientTestCase: RTMBaseTestCase {
         }
         wait(for: [openExp], timeout: timeout)
         
-        client.sessionToken = uuid
+        client.change(sessionToken: uuid, sessionTokenExpiration: Date(timeIntervalSinceNow: 36000))
         
         let exp = expectation(description: "Pause, Resume, First Reopen Then Session Token Expired and Second Reopen Success")
         exp.expectedFulfillmentCount = 4
