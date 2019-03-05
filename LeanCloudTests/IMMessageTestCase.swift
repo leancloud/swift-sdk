@@ -751,7 +751,7 @@ class IMMessageTestCase: RTMBaseTestCase {
         let exp = expectation(description: "message patch")
         exp.expectedFulfillmentCount = 2
         do {
-            try receivingTuple?.conversation.update(oldMessage: oldMessage, by: newMessage, completion: { (_) in })
+            try receivingTuple?.conversation.update(oldMessage: oldMessage, to: newMessage, completion: { (_) in })
             XCTFail()
         } catch {
             XCTAssertTrue(error is LCError)
@@ -767,7 +767,7 @@ class IMMessageTestCase: RTMBaseTestCase {
                 break
             }
         }
-        try? sendingTuple?.conversation.update(oldMessage: oldMessage, by: newMessage, completion: { (result) in
+        try? sendingTuple?.conversation.update(oldMessage: oldMessage, to: newMessage, completion: { (result) in
             XCTAssertTrue(Thread.isMainThread)
             XCTAssertTrue(result.isSuccess)
             XCTAssertNil(result.error)
@@ -883,7 +883,7 @@ class IMMessageTestCase: RTMBaseTestCase {
         }
         let newMessage = IMFileMessage()
         newMessage.file = LCFile(payload: .fileURL(fileURL: resourceURL(name: "test", ext: "zip")))
-        try? sendingTuple.conversation.update(oldMessage: oldMessage, by: newMessage, completion: { (result) in
+        try? sendingTuple.conversation.update(oldMessage: oldMessage, to: newMessage, completion: { (result) in
             XCTAssertTrue(result.isSuccess)
             XCTAssertNil(result.error)
             XCTAssertNotNil(oldMessage.ID)
@@ -930,7 +930,7 @@ class IMMessageTestCase: RTMBaseTestCase {
         let patchMessageWhenOfflineExp = expectation(description: "patch message when offline")
         let newerMessage = IMTextMessage()
         newerMessage.text = "newer"
-        try? sendingTuple.conversation.update(oldMessage: newMessage, by: newerMessage) { (result) in
+        try? sendingTuple.conversation.update(oldMessage: newMessage, to: newerMessage) { (result) in
             XCTAssertTrue(result.isSuccess)
             XCTAssertNil(result.error)
             patchMessageWhenOfflineExp.fulfill()

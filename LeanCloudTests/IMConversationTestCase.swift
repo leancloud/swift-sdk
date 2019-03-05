@@ -1172,6 +1172,72 @@ class IMConversationTestCase: RTMBaseTestCase {
         XCTAssertEqual(convA?.attributes?[arrayKey] as? [String], convB?.attributes?[arrayKey] as? [String])
     }
     
+    func testGetOfflineEvents() {
+        guard let clientB = newOpenedClient() else {
+            return
+        }
+        
+        RTMConnectionRefMap_protobuf1.removeAll()
+        RTMConnectionRefMap_protobuf3.removeAll()
+        clientB.connection.disconnect()
+        delay()
+        
+        guard let clientA = newOpenedClient() else {
+            return
+        }
+        let delegatorA = IMClientTestCase.Delegator()
+        clientA.delegate = delegatorA
+        
+        let createExp = expectation(description: "create conversation")
+        createExp.expectedFulfillmentCount = 3
+        delegatorA.conversationEvent = { client, conv, event in
+            switch event {
+            case .joined(byClientID: _):
+                createExp.fulfill()
+            case .membersJoined(members: _, byClientID: _):
+                createExp.fulfill()
+            default:
+                break
+            }
+        }
+        try? clientA.createConversation(clientIDs: [clientB.ID]) { (result) in
+            XCTAssertTrue(result.isSuccess)
+            XCTAssertNil(result.error)
+            createExp.fulfill()
+        }
+        wait(for: [createExp], timeout: timeout)
+        
+        XCTAssertNotNil(clientA.serverTimestamp)
+        delay()
+        clientB.change(serverTimestamp: (clientA.serverTimestamp ?? 0) - 3600000)
+        
+        let getEventsExp = expectation(description: "get offline events")
+        getEventsExp.expectedFulfillmentCount = 3
+        let delegatorB = IMClientTestCase.Delegator()
+        clientB.delegate = delegatorB
+        delegatorB.conversationEvent = { client, conv, event in
+            switch event {
+            case .joined(byClientID: _):
+                getEventsExp.fulfill()
+            case .membersJoined(members: _, byClientID: _):
+                getEventsExp.fulfill()
+            default:
+                break
+            }
+        }
+        NotificationCenter.default.addObserver(forName: IMClient.TestGetOfflineEventsNotification, object: clientB, queue: OperationQueue.main) { (notification) in
+            XCTAssertTrue(((notification.userInfo?["serverTimestamp"] as? Int64) ?? -1) > 0)
+            getEventsExp.fulfill()
+        }
+        clientB.connection.connect()
+        wait(for: [getEventsExp], timeout: timeout)
+        
+        XCTAssertEqual(clientA.convCollection.count, 1)
+        XCTAssertEqual(clientB.convCollection.count, 1)
+        XCTAssertEqual(clientA.convCollection.first?.value.ID, clientB.convCollection.first?.value.ID)
+        XCTAssertEqual(clientA.serverTimestamp, clientB.serverTimestamp)
+    }
+    
 }
 
 extension IMConversationTestCase {
