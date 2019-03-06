@@ -16,7 +16,7 @@ class ViewController: UITableViewController {
     }
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return 1
+        return 2
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -24,6 +24,8 @@ class ViewController: UITableViewController {
         switch indexPath.row {
         case 0:
             cell.textLabel?.text = "Connection Test"
+        case 1:
+            cell.textLabel?.text = "Message Push Test"
         default:
             fatalError()
         }
@@ -34,6 +36,9 @@ class ViewController: UITableViewController {
         switch indexPath.row {
         case 0:
             let vc = self.storyboard!.instantiateViewController(withIdentifier: "ConnectionTestViewController")
+            self.navigationController?.pushViewController(vc, animated: true)
+        case 1:
+            let vc = self.storyboard!.instantiateViewController(withIdentifier: "MessagePushTestViewController")
             self.navigationController?.pushViewController(vc, animated: true)
         default:
             fatalError()

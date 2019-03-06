@@ -48,6 +48,44 @@
             </objects>
             <point key="canvasLocation" x="-750" y="15"/>
         </scene>
+        <!--Message Push Test View Controller-->
+        <scene sceneID="SPF-0h-clX">
+            <objects>
+                <viewController storyboardIdentifier="MessagePushTestViewController" id="6dj-SC-5bR" customClass="MessagePushTestViewController" customModule="RuntimeTests_iOS" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="Ler-Rs-ifr">
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="uwV-VU-gMr">
+                                <rect key="frame" x="118" y="328.5" width="139" height="30"/>
+                                <state key="normal" title="Send Push Message"/>
+                                <connections>
+                                    <action selector="sendPushMessageAction:" destination="6dj-SC-5bR" eventType="touchUpInside" id="0x1-5i-6XB"/>
+                                </connections>
+                            </button>
+                            <activityIndicatorView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" hidesWhenStopped="YES" animating="YES" style="whiteLarge" translatesAutoresizingMaskIntoConstraints="NO" id="aB5-X3-FoB">
+                                <rect key="frame" x="169" y="325" width="37" height="37"/>
+                                <color key="color" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                            </activityIndicatorView>
+                        </subviews>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                        <constraints>
+                            <constraint firstItem="uwV-VU-gMr" firstAttribute="centerX" secondItem="aAo-JZ-vAg" secondAttribute="centerX" id="88c-ri-uyf"/>
+                            <constraint firstItem="uwV-VU-gMr" firstAttribute="centerY" secondItem="aAo-JZ-vAg" secondAttribute="centerY" id="9QP-mR-XUf"/>
+                            <constraint firstItem="aB5-X3-FoB" firstAttribute="centerX" secondItem="aAo-JZ-vAg" secondAttribute="centerX" id="FRj-Yx-duD"/>
+                            <constraint firstItem="aB5-X3-FoB" firstAttribute="centerY" secondItem="aAo-JZ-vAg" secondAttribute="centerY" id="fLU-pQ-i8q"/>
+                        </constraints>
+                        <viewLayoutGuide key="safeArea" id="aAo-JZ-vAg"/>
+                    </view>
+                    <connections>
+                        <outlet property="activityIndicatorView" destination="aB5-X3-FoB" id="rbQ-Is-Fsg"/>
+                        <outlet property="sendPushMessageButton" destination="uwV-VU-gMr" id="dNW-Yk-ETR"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="4bi-NE-Gj2" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="-751" y="742"/>
+        </scene>
         <!--Navigation Controller-->
         <scene sceneID="xSC-R4-F0e">
             <objects>

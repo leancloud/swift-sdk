@@ -292,6 +292,7 @@
 		D3E1F4AF21940E8E007B6FFB /* SwiftProtobuf.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = D3872641217726B500DD8FBF /* SwiftProtobuf.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		D3E1F4B321940E95007B6FFB /* Alamofire.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 837E04EE1CABA688008CC3FF /* Alamofire.framework */; };
 		D3E1F4B421940E95007B6FFB /* Alamofire.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 837E04EE1CABA688008CC3FF /* Alamofire.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		D3F030E4222FB31F009F6C67 /* MessagePushTestViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3F030E3222FB31F009F6C67 /* MessagePushTestViewController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -567,6 +568,8 @@
 		D3C3782E21E48D3C00EA9AC9 /* IMConversationQuery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IMConversationQuery.swift; sourceTree = "<group>"; };
 		D3DAD03B218DA402008BCD37 /* RTMConnectionTestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RTMConnectionTestCase.swift; sourceTree = "<group>"; };
 		D3E1F48C2193EDF3007B6FFB /* ConnectionTestViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionTestViewController.swift; sourceTree = "<group>"; };
+		D3F030E3222FB31F009F6C67 /* MessagePushTestViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessagePushTestViewController.swift; sourceTree = "<group>"; };
+		D3F030F2222FB411009F6C67 /* RuntimeTests-iOS.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "RuntimeTests-iOS.entitlements"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -847,9 +850,11 @@
 		D31798392193DC860037DE57 /* RuntimeTests-iOS */ = {
 			isa = PBXGroup;
 			children = (
+				D3F030F2222FB411009F6C67 /* RuntimeTests-iOS.entitlements */,
 				D317983A2193DC860037DE57 /* AppDelegate.swift */,
 				D317983C2193DC860037DE57 /* ViewController.swift */,
 				D3E1F48C2193EDF3007B6FFB /* ConnectionTestViewController.swift */,
+				D3F030E3222FB31F009F6C67 /* MessagePushTestViewController.swift */,
 				D317983E2193DC860037DE57 /* Main.storyboard */,
 				D31798412193DC880037DE57 /* Assets.xcassets */,
 				D31798432193DC880037DE57 /* LaunchScreen.storyboard */,
@@ -1155,6 +1160,11 @@
 						CreatedOnToolsVersion = 10.1;
 						DevelopmentTeam = 7J5XFNL99Q;
 						ProvisioningStyle = Automatic;
+						SystemCapabilities = {
+							com.apple.Push = {
+								enabled = 1;
+							};
+						};
 					};
 					D37069CA221FAA1D00AA9CE1 = {
 						CreatedOnToolsVersion = 10.1;
@@ -1483,6 +1493,7 @@
 			files = (
 				D317983D2193DC860037DE57 /* ViewController.swift in Sources */,
 				D3E1F48D2193EDF3007B6FFB /* ConnectionTestViewController.swift in Sources */,
+				D3F030E4222FB31F009F6C67 /* MessagePushTestViewController.swift in Sources */,
 				D317983B2193DC860037DE57 /* AppDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1948,6 +1959,7 @@
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_ENTITLEMENTS = "RuntimeTests-iOS/RuntimeTests-iOS.entitlements";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 7J5XFNL99Q;
@@ -1959,6 +1971,7 @@
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = "LeanCloud.RuntimeTests-iOS";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_INCLUDE_PATHS = "\"$(SRCROOT)\"/**";
 				SWIFT_VERSION = 4.2;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -1976,6 +1989,7 @@
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_ENTITLEMENTS = "RuntimeTests-iOS/RuntimeTests-iOS.entitlements";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 7J5XFNL99Q;
@@ -1986,6 +2000,7 @@
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = "LeanCloud.RuntimeTests-iOS";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_INCLUDE_PATHS = "\"$(SRCROOT)\"/**";
 				SWIFT_VERSION = 4.2;
 				TARGETED_DEVICE_FAMILY = "1,2";
