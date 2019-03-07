@@ -322,7 +322,7 @@ class IMConversationTestCase: RTMBaseTestCase {
     }
     
     func testNormalConversationUnreadEvent() {
-        guard let clientA = newOpenedClient(options: [.receiveUnreadMessageCountAfterSessionDidOpen]) else {
+        guard let clientA = newOpenedClient() else {
             XCTFail()
             return
         }
@@ -345,7 +345,7 @@ class IMConversationTestCase: RTMBaseTestCase {
         })
         wait(for: [sendExp], timeout: timeout)
         
-        let clientB = try! IMClient(ID: otherClientID, options: [.receiveUnreadMessageCountAfterSessionDidOpen])
+        let clientB = try! IMClient(ID: otherClientID)
         let delegatorB = IMClientTestCase.Delegator()
         clientB.delegate = delegatorB
         
@@ -416,7 +416,7 @@ class IMConversationTestCase: RTMBaseTestCase {
     }
     
     func testTemporaryConversationUnreadEvent() {
-        guard let clientA = newOpenedClient(options: [.receiveUnreadMessageCountAfterSessionDidOpen]) else {
+        guard let clientA = newOpenedClient() else {
             XCTFail()
             return
         }
@@ -438,7 +438,7 @@ class IMConversationTestCase: RTMBaseTestCase {
         })
         wait(for: [sendExp], timeout: timeout)
         
-        let clientB = try! IMClient(ID: otherClientID, options: [.receiveUnreadMessageCountAfterSessionDidOpen])
+        let clientB = try! IMClient(ID: otherClientID)
         let delegator = IMClientTestCase.Delegator()
         clientB.delegate = delegator
         
@@ -497,7 +497,7 @@ class IMConversationTestCase: RTMBaseTestCase {
         
         delay(seconds: 15)
         
-        let clientA = try! IMClient(ID: clientID, options: [.receiveUnreadMessageCountAfterSessionDidOpen])
+        let clientA = try! IMClient(ID: clientID)
         let delegator = IMClientTestCase.Delegator()
         clientA.delegate = delegator
         
@@ -537,7 +537,7 @@ class IMConversationTestCase: RTMBaseTestCase {
     }
     
     func testLargeUnreadEvent() {
-        guard let clientA = newOpenedClient(options: [.receiveUnreadMessageCountAfterSessionDidOpen]) else {
+        guard let clientA = newOpenedClient() else {
             XCTFail()
             return
         }
@@ -574,7 +574,7 @@ class IMConversationTestCase: RTMBaseTestCase {
         }
         
         let convIDSet = Set<String>(clientA.convCollection.keys)
-        let clientB = try! IMClient(ID: otherClientID, options: [.receiveUnreadMessageCountAfterSessionDidOpen])
+        let clientB = try! IMClient(ID: otherClientID)
         let delegator = IMClientTestCase.Delegator()
         clientB.delegate = delegator
         
@@ -1242,13 +1242,8 @@ class IMConversationTestCase: RTMBaseTestCase {
 
 extension IMConversationTestCase {
     
-    func newOpenedClient(
-        clientID: String? = nil,
-        options: IMClient.Options = .default,
-        customRTMURL: URL? = nil)
-        -> IMClient?
-    {
-        var client: IMClient? = try? IMClient(ID: clientID ?? uuid, options:options, customServerURL: customRTMURL)
+    func newOpenedClient(clientID: String? = nil, customRTMURL: URL? = nil) -> IMClient? {
+        var client: IMClient? = try? IMClient(ID: clientID ?? uuid, customServerURL: customRTMURL)
         let exp = expectation(description: "open")
         client?.open { (result) in
             if result.isFailure { client = nil }

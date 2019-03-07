@@ -13,7 +13,7 @@ class IMMessageTestCase: RTMBaseTestCase {
     
     func testMessageSendingAndReceiving() {
         guard
-            let tuples = convenienceInit(clientOptions: [.receiveUnreadMessageCountAfterSessionDidOpen]),
+            let tuples = convenienceInit(),
             let tuple1 = tuples.first,
             let tuple2 = tuples.last
             else
@@ -150,7 +150,7 @@ class IMMessageTestCase: RTMBaseTestCase {
     
     func testMessageContinuousSendingAndReceiving() {
         guard
-            let tuples = convenienceInit(clientOptions: [.receiveUnreadMessageCountAfterSessionDidOpen]),
+            let tuples = convenienceInit(),
             let tuple1 = tuples.first,
             let tuple2 = tuples.last
             else
@@ -263,7 +263,7 @@ class IMMessageTestCase: RTMBaseTestCase {
     
     func testMessageReceipt() {
         guard
-            let tuples = convenienceInit(clientOptions: [.receiveUnreadMessageCountAfterSessionDidOpen]),
+            let tuples = convenienceInit(),
             let tuple1 = tuples.first,
             let tuple2 = tuples.last
             else
@@ -777,7 +777,7 @@ class IMMessageTestCase: RTMBaseTestCase {
         })
         wait(for: [exp], timeout: timeout)
         
-        XCTAssertNil(receivingTuple?.client.lastPatchTime)
+        XCTAssertNotNil(receivingTuple?.client.lastPatchTime)
     }
     
     func testMessageRecalling() {
@@ -837,16 +837,12 @@ class IMMessageTestCase: RTMBaseTestCase {
         })
         wait(for: [exp], timeout: timeout)
         
-        XCTAssertNil(receivingTuple?.client.lastPatchTime)
+        XCTAssertNotNil(receivingTuple?.client.lastPatchTime)
     }
     
     func testMessagePatchNotification() {
         guard
-            let tuples = convenienceInit(
-                clientOptions: [.receiveUnreadMessageCountAfterSessionDidOpen],
-                RTMServerURL: testableRTMURL,
-                shouldConnectionShared: false
-            ),
+            let tuples = convenienceInit(RTMServerURL: testableRTMURL, shouldConnectionShared: false),
             let sendingTuple = tuples.first,
             let receivingTuple = tuples.last
             else
@@ -964,11 +960,7 @@ class IMMessageTestCase: RTMBaseTestCase {
     
     func testMessagePatchError() {
         guard
-            let tuples = convenienceInit(
-                clientCount: 3,
-                clientOptions: [.receiveUnreadMessageCountAfterSessionDidOpen],
-                RTMServerURL: testableRTMURL
-            ),
+            let tuples = convenienceInit(clientCount: 3, RTMServerURL: testableRTMURL),
             let sendingTuple = tuples.first,
             let receivingTuple = tuples.last
             else
@@ -1023,7 +1015,6 @@ class IMMessageTestCase: RTMBaseTestCase {
         var sendingTuple: Tuple? = nil
         var receivingTuple: Tuple? = nil
         let success = sendingAndReceiving(
-            clientOptions: .receiveUnreadMessageCountAfterSessionDidOpen,
             sentMessage: message,
             sendingTuple: &sendingTuple,
             receivingTuple: &receivingTuple
@@ -1363,13 +1354,7 @@ extension IMMessageTestCase {
         return conversation
     }
     
-    func convenienceInit(
-        clientCount: Int = 2,
-        clientOptions: IMClient.Options = .default,
-        RTMServerURL: URL? = nil,
-        shouldConnectionShared: Bool = true)
-        -> [Tuple]?
-    {
+    func convenienceInit(clientCount: Int = 2, RTMServerURL: URL? = nil, shouldConnectionShared: Bool = true) -> [Tuple]? {
         var tuples: [Tuple] = []
         let exp = expectation(description: "get conversations")
         exp.expectedFulfillmentCount = clientCount
@@ -1378,7 +1363,7 @@ extension IMMessageTestCase {
         var conversationMap: [String: IMConversation] = [:]
         var clientIDs: [String] = []
         for _ in 0..<clientCount {
-            guard let client = newOpenedClient(options: clientOptions, customRTMURL: RTMServerURL) else {
+            guard let client = newOpenedClient(customRTMURL: RTMServerURL) else {
                 continue
             }
             let delegator = IMClientTestCase.Delegator()
@@ -1440,7 +1425,6 @@ extension IMMessageTestCase {
     }
     
     func sendingAndReceiving<T: IMMessage>(
-        clientOptions: IMClient.Options = .default,
         sentMessage: T,
         sendingTuple: inout Tuple?,
         receivingTuple: inout Tuple?,
@@ -1449,7 +1433,7 @@ extension IMMessageTestCase {
         -> Bool
     {
         guard
-            let tuples = convenienceInit(clientOptions: clientOptions),
+            let tuples = convenienceInit(),
             let tuple1 = tuples.first,
             let tuple2 = tuples.last
             else
