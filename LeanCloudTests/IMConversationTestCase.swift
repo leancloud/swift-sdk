@@ -1060,11 +1060,11 @@ class IMConversationTestCase: RTMBaseTestCase {
         
         let generalQueryExp2 = expectation(description: "general query with custom conditon")
         let generalQuery1 = clientA.conversationQuery
-        generalQuery1.whereKey(IMConversation.Key.transient.rawValue, .equalTo(true))
+        try! generalQuery1.where(key: IMConversation.Key.transient.rawValue, .equalTo(true))
         let generalQuery2 = clientA.conversationQuery
-        generalQuery2.whereKey(IMConversation.Key.system.rawValue, .equalTo(true))
+        try! generalQuery2.where(key: IMConversation.Key.system.rawValue, .equalTo(true))
         let generalQuery3 = try? generalQuery1.or(generalQuery2)
-        generalQuery3??.whereKey(IMConversation.Key.createdAt.rawValue, .ascending)
+        try! generalQuery3??.where(key: IMConversation.Key.createdAt.rawValue, .ascending)
         generalQuery3??.limit = 5
         try? generalQuery3??.findConversations(completion: { (result) in
             XCTAssertTrue(result.isSuccess)
@@ -1085,6 +1085,24 @@ class IMConversationTestCase: RTMBaseTestCase {
             generalQueryExp2.fulfill()
         })
         wait(for: [generalQueryExp2], timeout: timeout)
+        
+        let invalidQuery = LCQuery(className: "invalid")
+        for constraint in
+            [ LCQuery.Constraint.selected,
+              LCQuery.Constraint.included,
+              LCQuery.Constraint.matchedQuery(invalidQuery),
+              LCQuery.Constraint.notMatchedQuery(invalidQuery),
+              LCQuery.Constraint.matchedQueryAndKey(query: invalidQuery, key: ""),
+              LCQuery.Constraint.notMatchedQueryAndKey(query: invalidQuery, key: "")]
+        {
+            do {
+                let conversationQuery = clientA.conversationQuery
+                try conversationQuery.where(key: "key", constraint)
+                XCTFail()
+            } catch {
+                XCTAssertTrue(error is LCError)
+            }
+        }
     }
     
     func testUpdating() {
