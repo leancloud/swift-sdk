@@ -192,7 +192,9 @@ public class IMConversation {
         self.lcType = lcType
         self.isUnique = (rawData[Key.unique.rawValue] as? Bool) ?? false
         self.uniqueID = (rawData[Key.uniqueId.rawValue] as? String)
-        self.decodingLastMessage()
+        if let message = self.decodingLastMessage(from: rawData) {
+            self.safeUpdatingLastMessage(newMessage: message, client: client)
+        }
     }
     
     private(set) var rawData: RawData
@@ -1133,6 +1135,9 @@ internal extension IMConversation {
             sync(self.rawData = self.rawData.merging(data) { (_, new) in new })
         case .rawDataReplaced(by: let data):
             sync(self.rawData = data)
+            if let message = self.decodingLastMessage(from: data) {
+                self.safeUpdatingLastMessage(newMessage: message, client: client)
+            }
         case .append(members: let joinedMembers):
             guard
                 self.notTransientConversation,
@@ -1310,7 +1315,15 @@ private extension IMConversation {
     }
     
     func decodingRawData<T>(with string: String) -> T? {
-        return self.rawData[string] as? T
+        return self.decoding(string: string, from: self.rawData)
+    }
+    
+    func decoding<T>(key: Key, from data: RawData) -> T? {
+        return self.decoding(string: key.rawValue, from: data)
+    }
+    
+    func decoding<T>(string: String, from data: RawData) -> T? {
+        return data[string] as? T
     }
     
     func safeUpdatingRawData(key: Key, value: Any) {
@@ -1329,38 +1342,39 @@ private extension IMConversation {
         self.rawData[string] = value
     }
     
-    func decodingLastMessage() {
+    func decodingLastMessage(from data: RawData) -> IMMessage? {
         guard
             self.notTransientConversation,
-            let timestamp: Int64 = self.decodingRawData(with: .lastMessageTimestamp),
-            let messageID: String = self.decodingRawData(with: .lastMessageId)
+            let timestamp: Int64 = self.decoding(key: .lastMessageTimestamp, from: data),
+            let messageID: String = self.decoding(key: .lastMessageId, from: data)
             else
-        { return }
+        {
+            return nil
+        }
         var content: IMMessage.Content? = nil
         /*
          For Compatibility,
          Should check `lastMessageBinary` at first.
          Then check `lastMessageString`.
          */
-        if let data: Data = self.decodingRawData(with: .lastMessageBinary) {
+        if let data: Data = self.decoding(key: .lastMessageBinary, from: data) {
             content = .data(data)
-        } else if let string: String = self.decodingRawData(with: .lastMessageString) {
+        } else if let string: String = self.decoding(key: .lastMessageString, from: data) {
             content = .string(string)
         }
         let message = IMMessage.instance(
             isTransient: false,
             conversationID: self.ID,
             localClientID: self.clientID,
-            fromClientID: self.decodingRawData(with: .lastMessageFrom),
+            fromClientID: self.decoding(key: .lastMessageFrom, from: data),
             timestamp: timestamp,
-            patchedTimestamp: self.decodingRawData(with: .lastMessagePatchTimestamp),
+            patchedTimestamp: self.decoding(key: .lastMessagePatchTimestamp, from: data),
             messageID: messageID,
             content: content,
-            isAllMembersMentioned: self.decodingRawData(with: .lastMessageMentionAll),
-            mentionedMembers: self.decodingRawData(with: .lastMessageMentionPids)
+            isAllMembersMentioned: self.decoding(key: .lastMessageMentionAll, from: data),
+            mentionedMembers: self.decoding(key: .lastMessageMentionPids, from: data)
         )
-        /// set in initialization, so no need mutex.
-        self.underlyingLastMessage = message
+        return message
     }
     
 }
