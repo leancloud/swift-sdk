@@ -117,7 +117,7 @@ public final class IMClient {
             self.rawValue = rawValue
         }
         
-        /// Default options.
+        /// Default option is `receiveUnreadMessageCountAfterSessionDidOpen`.
         public static let `default`: Options = [.receiveUnreadMessageCountAfterSessionDidOpen]
         
         /// Receive unread message count after session did open.
@@ -425,7 +425,7 @@ extension IMClient {
 
 extension IMClient {
     
-    /// Create a normal conversation.
+    /// Create a normal conversation. Default is a unique conversation.
     ///
     /// - Parameters:
     ///   - clientIDs: An array of client ID. it's the members of the conversation which will be created. the initialized members always contains this client's ID.
@@ -443,7 +443,7 @@ extension IMClient {
         clientIDs: Set<String>,
         name: String? = nil,
         attributes: [String: Any]? = nil,
-        isUnique: Bool = false,
+        isUnique: Bool = true,
         completion: @escaping (LCGenericResult<IMConversation>) -> Void)
         throws
     {
