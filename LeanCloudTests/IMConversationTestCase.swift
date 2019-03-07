@@ -22,7 +22,7 @@ class IMConversationTestCase: RTMBaseTestCase {
         let client: IMClient = try! IMClient(ID: uuid)
         
         let errExp = expectation(description: "not open")
-        try? client.createConversation(clientIDs: []) { (r) in
+        try? client.createConversation(clientIDs: [], isUnique: false) { (r) in
             XCTAssertTrue(Thread.isMainThread)
             XCTAssertFalse(r.isSuccess)
             XCTAssertNotNil(r.error)
@@ -32,7 +32,7 @@ class IMConversationTestCase: RTMBaseTestCase {
         
         do {
             let invalidID: String = Array<String>.init(repeating: "a", count: 65).joined()
-            try client.createConversation(clientIDs: [invalidID], completion: { (_) in })
+            try client.createConversation(clientIDs: [invalidID], isUnique: false, completion: { (_) in })
             XCTFail()
         } catch {
             XCTAssertTrue(error is LCError)
@@ -154,7 +154,7 @@ class IMConversationTestCase: RTMBaseTestCase {
                 }
             }
         }
-        try? clientA.createConversation(clientIDs: [clientA.ID, clientB.ID], name: name, attributes: attribution) { (result) in
+        try? clientA.createConversation(clientIDs: [clientA.ID, clientB.ID], name: name, attributes: attribution, isUnique: false) { (result) in
             XCTAssertTrue(Thread.isMainThread)
             if let conv: IMConversation = result.value {
                 convAssertion(conv, clientA)
@@ -187,7 +187,7 @@ class IMConversationTestCase: RTMBaseTestCase {
         }
         
         let exp1 = expectation(description: "create unique conversation")
-        try? clientA.createConversation(clientIDs: [clientA.ID, clientB.ID], isUnique: true, completion: { (result) in
+        try? clientA.createConversation(clientIDs: [clientA.ID, clientB.ID], completion: { (result) in
             if let conv: IMConversation = result.value {
                 XCTAssertTrue(type(of: conv) == IMConversation.self)
                 XCTAssertEqual(conv.lcType, .normal)
@@ -201,7 +201,7 @@ class IMConversationTestCase: RTMBaseTestCase {
         wait(for: [exp1], timeout: timeout)
         
         let exp2 = expectation(description: "create unique conversation")
-        try? clientB.createConversation(clientIDs: [clientA.ID, clientB.ID], isUnique: true, completion: { (result) in
+        try? clientB.createConversation(clientIDs: [clientA.ID, clientB.ID], completion: { (result) in
             if let conv: IMConversation = result.value {
                 XCTAssertTrue(type(of: conv) == IMConversation.self)
                 XCTAssertEqual(conv.lcType, .normal)
@@ -334,7 +334,7 @@ class IMConversationTestCase: RTMBaseTestCase {
         
         let sendExp = expectation(description: "create conversation and send message")
         sendExp.expectedFulfillmentCount = 2
-        try? clientA.createConversation(clientIDs: [otherClientID], completion: { (result) in
+        try? clientA.createConversation(clientIDs: [otherClientID], isUnique: false, completion: { (result) in
             XCTAssertTrue(result.isSuccess)
             XCTAssertNil(result.error)
             try? result.value?.send(message: message, completion: { (result) in
@@ -561,7 +561,7 @@ class IMConversationTestCase: RTMBaseTestCase {
                 })
                 wait(for: [exp], timeout: timeout)
             } else {
-                try! clientA.createConversation(clientIDs: [otherClientID]) { (result) in
+                try! clientA.createConversation(clientIDs: [otherClientID], isUnique: false) { (result) in
                     XCTAssertNotNil(result.value)
                     try! result.value?.send(message: message, completion: { (result) in
                         XCTAssertTrue(result.isSuccess)
@@ -657,7 +657,7 @@ class IMConversationTestCase: RTMBaseTestCase {
                 break
             }
         }
-        try? clientA.createConversation(clientIDs: [clientA.ID, clientB.ID]) { (result) in
+        try? clientA.createConversation(clientIDs: [clientA.ID, clientB.ID], isUnique: false) { (result) in
             XCTAssertTrue(result.isSuccess)
             XCTAssertNil(result.error)
             convA = result.value
@@ -866,7 +866,7 @@ class IMConversationTestCase: RTMBaseTestCase {
         var conversation: IMConversation? = nil
         
         let createExp = expectation(description: "create conversation")
-        try? client.createConversation(clientIDs: [uuid, uuid]) { (result) in
+        try? client.createConversation(clientIDs: [uuid, uuid], isUnique: false) { (result) in
             XCTAssertTrue(result.isSuccess)
             XCTAssertNil(result.error)
             conversation = result.value
@@ -915,7 +915,7 @@ class IMConversationTestCase: RTMBaseTestCase {
             case 0:
                 let createExp = expectation(description: "create normal conversation")
                 createExp.expectedFulfillmentCount = 2
-                try? clientA.createConversation(clientIDs: [uuid], completion: { (result) in
+                try? clientA.createConversation(clientIDs: [uuid], isUnique: false, completion: { (result) in
                     XCTAssertTrue(result.isSuccess)
                     XCTAssertNil(result.error)
                     ID1 = result.value?.ID
@@ -1122,7 +1122,8 @@ class IMConversationTestCase: RTMBaseTestCase {
             attributes: [
                 deleteKey: uuid,
                 arrayKey: [uuid]
-            ])
+            ],
+            isUnique: false)
         { (result) in
             XCTAssertTrue(result.isSuccess)
             XCTAssertNil(result.error)
@@ -1200,7 +1201,7 @@ class IMConversationTestCase: RTMBaseTestCase {
                 break
             }
         }
-        try? clientA.createConversation(clientIDs: [clientB.ID]) { (result) in
+        try? clientA.createConversation(clientIDs: [clientB.ID], isUnique: false) { (result) in
             XCTAssertTrue(result.isSuccess)
             XCTAssertNil(result.error)
             createExp.fulfill()

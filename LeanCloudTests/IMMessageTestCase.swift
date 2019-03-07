@@ -1343,7 +1343,7 @@ extension IMMessageTestCase {
                 exp.fulfill()
             })
         } else {
-            try? client.createConversation(clientIDs: clientIDs, completion: { (result) in
+            try? client.createConversation(clientIDs: clientIDs, isUnique: false, completion: { (result) in
                 XCTAssertTrue(result.isSuccess)
                 XCTAssertNil(result.error)
                 conversation = result.value
