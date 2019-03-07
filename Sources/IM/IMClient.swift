@@ -118,7 +118,7 @@ public final class IMClient {
         }
         
         /// Default options.
-        public static let `default`: Options = []
+        public static let `default`: Options = [.receiveUnreadMessageCountAfterSessionDidOpen]
         
         /// Receive unread message count after session did open.
         public static let receiveUnreadMessageCountAfterSessionDidOpen = Options(rawValue: 1 << 0)
@@ -132,6 +132,9 @@ public final class IMClient {
             }
         }
         
+        var isProtobuf3: Bool {
+            return self.lcimProtocol == .protobuf3
+        }
     }
     
     /// ref: https://github.com/leancloud/avoscloud-push/blob/develop/push-server/doc/protocol.md#sdk-登录功能标志位-session-config-bitmap
@@ -1335,8 +1338,7 @@ private extension IMClient {
                 )
                 var unreadEvent: IMConversationEvent?
                 let isUnreadMessageIncreased: Bool = conversation.safeUpdatingLastMessage(newMessage: message, client: client)
-                if client.options.contains(.receiveUnreadMessageCountAfterSessionDidOpen),
-                    isUnreadMessageIncreased {
+                if client.options.isProtobuf3, isUnreadMessageIncreased {
                     conversation.unreadMessageCount += 1
                     unreadEvent = .unreadMessageUpdated
                 }
@@ -1375,8 +1377,7 @@ private extension IMClient {
         }
         let updateLastUnreadNotifTime: () -> Void = { [weak self] in
             guard let client: IMClient = self else { return }
-            if client.options.contains(.receiveUnreadMessageCountAfterSessionDidOpen),
-                unreadCommand.hasNotifTime {
+            if client.options.isProtobuf3, unreadCommand.hasNotifTime {
                 if let oldTime: Int64 = client.lastUnreadNotifTime {
                     if unreadCommand.notifTime > oldTime {
                         client.lastUnreadNotifTime = unreadCommand.notifTime
@@ -1457,8 +1458,7 @@ private extension IMClient {
         }
         let updateLastPatchTime: () -> Void = { [weak self] in
             guard let client: IMClient = self else { return }
-            if client.options.contains(.receiveUnreadMessageCountAfterSessionDidOpen),
-                lastPatchTimestamp > 0 {
+            if client.options.isProtobuf3, lastPatchTimestamp > 0 {
                 if let oldTime = client.lastPatchTime {
                     if lastPatchTimestamp > oldTime {
                         client.lastPatchTime = lastPatchTimestamp

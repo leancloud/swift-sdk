@@ -780,7 +780,7 @@ extension IMConversation {
     
     public func getMessageReceiptFlag(completion: @escaping (LCGenericResult<MessageReceiptFlag>) -> Void) throws {
         if let options = self.client?.options {
-            guard options.contains(.receiveUnreadMessageCountAfterSessionDidOpen) else {
+            guard options.isProtobuf3 else {
                 throw LCError(
                     code: .inconsistency,
                     reason: "only client init with \(IMClient.Options.receiveUnreadMessageCountAfterSessionDidOpen) support this function."
