@@ -94,193 +94,6 @@
 		D33D36DC22019197008C9BDA /* test.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = D33D36DA22019197008C9BDA /* test.mp4 */; };
 		D3662F9222019B590046A390 /* test.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = D3662F9122019B590046A390 /* test.mp3 */; };
 		D3665C3721FEAAC1005B44B0 /* IMMessageTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3665C3621FEAAC1005B44B0 /* IMMessageTestCase.swift */; };
-		D37069D4221FAA1D00AA9CE1 /* LeanCloud_macOS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D37069CB221FAA1D00AA9CE1 /* LeanCloud_macOS.framework */; };
-		D37069D9221FAA1D00AA9CE1 /* LeanCloud_macOSTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37069D8221FAA1D00AA9CE1 /* LeanCloud_macOSTests.swift */; };
-		D37069DB221FAA1D00AA9CE1 /* LeanCloud_macOS.h in Headers */ = {isa = PBXBuildFile; fileRef = D37069CD221FAA1D00AA9CE1 /* LeanCloud_macOS.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		D37069EF221FABF400AA9CE1 /* Alamofire.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 837E04F21CABA688008CC3FF /* Alamofire.framework */; };
-		D37069F0221FABFB00AA9CE1 /* SwiftProtobuf.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D387263D217726B500DD8FBF /* SwiftProtobuf.framework */; };
-		D37069F1221FAC3D00AA9CE1 /* Polyfill.h in Headers */ = {isa = PBXBuildFile; fileRef = 11FD150D21742CCD008389D4 /* Polyfill.h */; };
-		D37069F2221FAC4000AA9CE1 /* Polyfill.m in Sources */ = {isa = PBXBuildFile; fileRef = 11FD150F21742CD3008389D4 /* Polyfill.m */; };
-		D37069F3221FAC4900AA9CE1 /* MD5.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11D9C100216DFB2D00A620B7 /* MD5.swift */; };
-		D37069F4221FAC4900AA9CE1 /* Error.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11D9C0F8216DF63B00A620B7 /* Error.swift */; };
-		D37069F5221FAC4900AA9CE1 /* Lazyload.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11FD151321743A09008389D4 /* Lazyload.swift */; };
-		D37069F6221FAC4900AA9CE1 /* Application.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11D9C0F9216DF63B00A620B7 /* Application.swift */; };
-		D37069F7221FAC4900AA9CE1 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11D9C0FE216DF91A00A620B7 /* Logger.swift */; };
-		D37069F8221FAC4D00AA9CE1 /* LocalStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A166CC214F57360094AF13 /* LocalStorage.swift */; };
-		D37069F9221FAC4D00AA9CE1 /* PersistentController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A166DD214F5E440094AF13 /* PersistentController.swift */; };
-		D37069FA221FAC5400AA9CE1 /* ACL.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D451D7E6808004D1A0E /* ACL.swift */; };
-		D37069FB221FAC5400AA9CE1 /* Array.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D461D7E6808004D1A0E /* Array.swift */; };
-		D37069FC221FAC5400AA9CE1 /* Bool.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D471D7E6808004D1A0E /* Bool.swift */; };
-		D37069FD221FAC5400AA9CE1 /* Data.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D481D7E6808004D1A0E /* Data.swift */; };
-		D37069FE221FAC5400AA9CE1 /* Date.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D491D7E6808004D1A0E /* Date.swift */; };
-		D37069FF221FAC5400AA9CE1 /* Dictionary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D4A1D7E6808004D1A0E /* Dictionary.swift */; };
-		D3706A00221FAC5400AA9CE1 /* GeoPoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D4B1D7E6808004D1A0E /* GeoPoint.swift */; };
-		D3706A01221FAC5400AA9CE1 /* Null.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D4C1D7E6808004D1A0E /* Null.swift */; };
-		D3706A02221FAC5400AA9CE1 /* Number.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D4D1D7E6808004D1A0E /* Number.swift */; };
-		D3706A03221FAC5400AA9CE1 /* Object.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D4E1D7E6808004D1A0E /* Object.swift */; };
-		D3706A04221FAC5400AA9CE1 /* Relation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D4F1D7E6808004D1A0E /* Relation.swift */; };
-		D3706A05221FAC5400AA9CE1 /* Role.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D501D7E6808004D1A0E /* Role.swift */; };
-		D3706A06221FAC5400AA9CE1 /* String.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D511D7E6808004D1A0E /* String.swift */; };
-		D3706A07221FAC5400AA9CE1 /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D521D7E6808004D1A0E /* User.swift */; };
-		D3706A08221FAC5400AA9CE1 /* File.swift in Sources */ = {isa = PBXBuildFile; fileRef = 114E1E762151FFB600DA7DB0 /* File.swift */; };
-		D3706A09221FAC5400AA9CE1 /* Installation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 117A2D0B21704620007C509A /* Installation.swift */; };
-		D3706A0B221FAC7200AA9CE1 /* LeanCloud.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D571D7E6808004D1A0E /* LeanCloud.swift */; };
-		D3706A0C221FAC7200AA9CE1 /* Value.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D651D7E6808004D1A0E /* Value.swift */; };
-		D3706A0D221FAC7200AA9CE1 /* Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D551D7E6808004D1A0E /* Extension.swift */; };
-		D3706A0E221FAC7200AA9CE1 /* Runtime.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D621D7E6808004D1A0E /* Runtime.swift */; };
-		D3706A0F221FAC7200AA9CE1 /* Utility.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D641D7E6808004D1A0E /* Utility.swift */; };
-		D3706A10221FAC7200AA9CE1 /* HTTPClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D601D7E6808004D1A0E /* HTTPClient.swift */; };
-		D3706A11221FAC7200AA9CE1 /* HTTPRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1178D131214019F800429131 /* HTTPRouter.swift */; };
-		D3706A12221FAC7200AA9CE1 /* AppRouterCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A166E121509F020094AF13 /* AppRouterCache.swift */; };
-		D3706A13221FAC7500AA9CE1 /* AppRouterCache.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 11A166E62150A39F0094AF13 /* AppRouterCache.xcdatamodeld */; };
-		D3706A14221FAC7700AA9CE1 /* StorageContextCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 118763AC2176DF440078645B /* StorageContextCache.swift */; };
-		D3706A15221FAC7A00AA9CE1 /* StorageContext.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 118763A92176DF110078645B /* StorageContext.xcdatamodeld */; };
-		D3706A16221FAC7D00AA9CE1 /* Operation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D5C1D7E6808004D1A0E /* Operation.swift */; };
-		D3706A17221FAC7D00AA9CE1 /* ObjectProfiler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D5A1D7E6808004D1A0E /* ObjectProfiler.swift */; };
-		D3706A18221FAC7D00AA9CE1 /* ObjectUpdater.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D5B1D7E6808004D1A0E /* ObjectUpdater.swift */; };
-		D3706A19221FAC7D00AA9CE1 /* FileUploader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 114E1E802152500200DA7DB0 /* FileUploader.swift */; };
-		D3706A1A221FAC7D00AA9CE1 /* Request.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D5E1D7E6808004D1A0E /* Request.swift */; };
-		D3706A1B221FAC7D00AA9CE1 /* BatchRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D411D7E6808004D1A0E /* BatchRequest.swift */; };
-		D3706A1C221FAC7D00AA9CE1 /* Response.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D5F1D7E6808004D1A0E /* Response.swift */; };
-		D3706A1D221FAC7D00AA9CE1 /* Result.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D611D7E6808004D1A0E /* Result.swift */; };
-		D3706A1E221FAC7D00AA9CE1 /* Query.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D5D1D7E6808004D1A0E /* Query.swift */; };
-		D3706A1F221FAC7D00AA9CE1 /* CQLClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D431D7E6808004D1A0E /* CQLClient.swift */; };
-		D3706A20221FAC7D00AA9CE1 /* Engine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D531D7E6808004D1A0E /* Engine.swift */; };
-		D3706A21221FAC7D00AA9CE1 /* SMSClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D631D7E6808004D1A0E /* SMSClient.swift */; };
-		D3706A22221FAC8100AA9CE1 /* Command.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3301278217727870007286A /* Command.pb.swift */; };
-		D3706A23221FAC8100AA9CE1 /* WebSocket.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3AA1352216E0D3A008FECA6 /* WebSocket.swift */; };
-		D3706A24221FAC8100AA9CE1 /* RTMConnection.swift in Sources */ = {isa = PBXBuildFile; fileRef = D324CD9121774A9B003FA35F /* RTMConnection.swift */; };
-		D3706A25221FAC8100AA9CE1 /* RTMRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 113D23D021901A71006B53EC /* RTMRouter.swift */; };
-		D3706A26221FAC8100AA9CE1 /* RTMRouterCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 112392142190AB6E00ECCBCC /* RTMRouterCache.swift */; };
-		D3706A27221FAC8300AA9CE1 /* RTMRouterCache.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 11239228219165BE00ECCBCC /* RTMRouterCache.xcdatamodeld */; };
-		D3706A28221FAC8600AA9CE1 /* IMClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 119D16AE219A7FCE0023BFEF /* IMClient.swift */; };
-		D3706A29221FAC8600AA9CE1 /* IMConversation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1113D80321AB963B000677BD /* IMConversation.swift */; };
-		D3706A2A221FAC8600AA9CE1 /* IMMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D393EDBD21D38206001CBB2B /* IMMessage.swift */; };
-		D3706A2B221FAC8600AA9CE1 /* IMConversationQuery.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3C3782E21E48D3C00EA9AC9 /* IMConversationQuery.swift */; };
-		D3706A3A221FC0FB00AA9CE1 /* LeanCloud_tvOS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D3706A31221FC0FB00AA9CE1 /* LeanCloud_tvOS.framework */; };
-		D3706A3F221FC0FB00AA9CE1 /* LeanCloud_tvOSTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3706A3E221FC0FB00AA9CE1 /* LeanCloud_tvOSTests.swift */; };
-		D3706A41221FC0FB00AA9CE1 /* LeanCloud_tvOS.h in Headers */ = {isa = PBXBuildFile; fileRef = D3706A33221FC0FB00AA9CE1 /* LeanCloud_tvOS.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		D3706A48221FC14000AA9CE1 /* Alamofire.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 837E04F61CABA688008CC3FF /* Alamofire.framework */; };
-		D3706A49221FC14600AA9CE1 /* SwiftProtobuf.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D3872645217726B500DD8FBF /* SwiftProtobuf.framework */; };
-		D3706A4A221FC16B00AA9CE1 /* Polyfill.h in Headers */ = {isa = PBXBuildFile; fileRef = 11FD150D21742CCD008389D4 /* Polyfill.h */; };
-		D3706A4B221FC16B00AA9CE1 /* Polyfill.m in Sources */ = {isa = PBXBuildFile; fileRef = 11FD150F21742CD3008389D4 /* Polyfill.m */; };
-		D3706A4C221FC16B00AA9CE1 /* MD5.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11D9C100216DFB2D00A620B7 /* MD5.swift */; };
-		D3706A4D221FC16B00AA9CE1 /* Error.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11D9C0F8216DF63B00A620B7 /* Error.swift */; };
-		D3706A4E221FC16B00AA9CE1 /* Lazyload.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11FD151321743A09008389D4 /* Lazyload.swift */; };
-		D3706A4F221FC16B00AA9CE1 /* Application.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11D9C0F9216DF63B00A620B7 /* Application.swift */; };
-		D3706A50221FC16B00AA9CE1 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11D9C0FE216DF91A00A620B7 /* Logger.swift */; };
-		D3706A51221FC16E00AA9CE1 /* LocalStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A166CC214F57360094AF13 /* LocalStorage.swift */; };
-		D3706A52221FC16E00AA9CE1 /* PersistentController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A166DD214F5E440094AF13 /* PersistentController.swift */; };
-		D3706A53221FC17600AA9CE1 /* ACL.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D451D7E6808004D1A0E /* ACL.swift */; };
-		D3706A54221FC17600AA9CE1 /* Array.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D461D7E6808004D1A0E /* Array.swift */; };
-		D3706A55221FC17600AA9CE1 /* Bool.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D471D7E6808004D1A0E /* Bool.swift */; };
-		D3706A56221FC17600AA9CE1 /* Data.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D481D7E6808004D1A0E /* Data.swift */; };
-		D3706A57221FC17600AA9CE1 /* Date.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D491D7E6808004D1A0E /* Date.swift */; };
-		D3706A58221FC17600AA9CE1 /* Dictionary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D4A1D7E6808004D1A0E /* Dictionary.swift */; };
-		D3706A59221FC17600AA9CE1 /* GeoPoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D4B1D7E6808004D1A0E /* GeoPoint.swift */; };
-		D3706A5A221FC17600AA9CE1 /* Null.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D4C1D7E6808004D1A0E /* Null.swift */; };
-		D3706A5B221FC17600AA9CE1 /* Number.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D4D1D7E6808004D1A0E /* Number.swift */; };
-		D3706A5C221FC17600AA9CE1 /* Object.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D4E1D7E6808004D1A0E /* Object.swift */; };
-		D3706A5D221FC17600AA9CE1 /* Relation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D4F1D7E6808004D1A0E /* Relation.swift */; };
-		D3706A5E221FC17600AA9CE1 /* Role.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D501D7E6808004D1A0E /* Role.swift */; };
-		D3706A5F221FC17600AA9CE1 /* String.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D511D7E6808004D1A0E /* String.swift */; };
-		D3706A60221FC17600AA9CE1 /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D521D7E6808004D1A0E /* User.swift */; };
-		D3706A61221FC17600AA9CE1 /* File.swift in Sources */ = {isa = PBXBuildFile; fileRef = 114E1E762151FFB600DA7DB0 /* File.swift */; };
-		D3706A62221FC17600AA9CE1 /* Installation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 117A2D0B21704620007C509A /* Installation.swift */; };
-		D3706A64221FC17600AA9CE1 /* LeanCloud.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D571D7E6808004D1A0E /* LeanCloud.swift */; };
-		D3706A65221FC17600AA9CE1 /* Value.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D651D7E6808004D1A0E /* Value.swift */; };
-		D3706A66221FC17600AA9CE1 /* Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D551D7E6808004D1A0E /* Extension.swift */; };
-		D3706A67221FC17600AA9CE1 /* Runtime.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D621D7E6808004D1A0E /* Runtime.swift */; };
-		D3706A68221FC17600AA9CE1 /* Utility.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D641D7E6808004D1A0E /* Utility.swift */; };
-		D3706A69221FC17600AA9CE1 /* HTTPClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D601D7E6808004D1A0E /* HTTPClient.swift */; };
-		D3706A6A221FC17600AA9CE1 /* HTTPRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1178D131214019F800429131 /* HTTPRouter.swift */; };
-		D3706A6B221FC17600AA9CE1 /* AppRouterCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A166E121509F020094AF13 /* AppRouterCache.swift */; };
-		D3706A6C221FC17800AA9CE1 /* StorageContextCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 118763AC2176DF440078645B /* StorageContextCache.swift */; };
-		D3706A6D221FC17A00AA9CE1 /* AppRouterCache.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 11A166E62150A39F0094AF13 /* AppRouterCache.xcdatamodeld */; };
-		D3706A6E221FC17D00AA9CE1 /* StorageContext.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 118763A92176DF110078645B /* StorageContext.xcdatamodeld */; };
-		D3706A6F221FC18100AA9CE1 /* Operation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D5C1D7E6808004D1A0E /* Operation.swift */; };
-		D3706A70221FC18100AA9CE1 /* ObjectProfiler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D5A1D7E6808004D1A0E /* ObjectProfiler.swift */; };
-		D3706A71221FC18100AA9CE1 /* ObjectUpdater.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D5B1D7E6808004D1A0E /* ObjectUpdater.swift */; };
-		D3706A72221FC18100AA9CE1 /* FileUploader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 114E1E802152500200DA7DB0 /* FileUploader.swift */; };
-		D3706A73221FC18100AA9CE1 /* Request.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D5E1D7E6808004D1A0E /* Request.swift */; };
-		D3706A74221FC18100AA9CE1 /* BatchRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D411D7E6808004D1A0E /* BatchRequest.swift */; };
-		D3706A75221FC18100AA9CE1 /* Response.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D5F1D7E6808004D1A0E /* Response.swift */; };
-		D3706A76221FC18100AA9CE1 /* Result.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D611D7E6808004D1A0E /* Result.swift */; };
-		D3706A77221FC18100AA9CE1 /* Query.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D5D1D7E6808004D1A0E /* Query.swift */; };
-		D3706A78221FC18100AA9CE1 /* CQLClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D431D7E6808004D1A0E /* CQLClient.swift */; };
-		D3706A79221FC18100AA9CE1 /* Engine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D531D7E6808004D1A0E /* Engine.swift */; };
-		D3706A7A221FC18100AA9CE1 /* SMSClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D631D7E6808004D1A0E /* SMSClient.swift */; };
-		D3706A7B221FC18500AA9CE1 /* Command.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3301278217727870007286A /* Command.pb.swift */; };
-		D3706A7C221FC18500AA9CE1 /* WebSocket.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3AA1352216E0D3A008FECA6 /* WebSocket.swift */; };
-		D3706A7D221FC18500AA9CE1 /* RTMConnection.swift in Sources */ = {isa = PBXBuildFile; fileRef = D324CD9121774A9B003FA35F /* RTMConnection.swift */; };
-		D3706A7E221FC18500AA9CE1 /* RTMRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 113D23D021901A71006B53EC /* RTMRouter.swift */; };
-		D3706A7F221FC18500AA9CE1 /* RTMRouterCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 112392142190AB6E00ECCBCC /* RTMRouterCache.swift */; };
-		D3706A80221FC18800AA9CE1 /* IMClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 119D16AE219A7FCE0023BFEF /* IMClient.swift */; };
-		D3706A81221FC18800AA9CE1 /* IMConversation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1113D80321AB963B000677BD /* IMConversation.swift */; };
-		D3706A82221FC18800AA9CE1 /* IMMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D393EDBD21D38206001CBB2B /* IMMessage.swift */; };
-		D3706A83221FC18800AA9CE1 /* IMConversationQuery.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3C3782E21E48D3C00EA9AC9 /* IMConversationQuery.swift */; };
-		D3706A84221FC18A00AA9CE1 /* RTMRouterCache.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 11239228219165BE00ECCBCC /* RTMRouterCache.xcdatamodeld */; };
-		D3706A8E221FC77100AA9CE1 /* LeanCloud_watchOS.h in Headers */ = {isa = PBXBuildFile; fileRef = D3706A8C221FC77100AA9CE1 /* LeanCloud_watchOS.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		D3706A92221FC7A100AA9CE1 /* Polyfill.h in Headers */ = {isa = PBXBuildFile; fileRef = 11FD150D21742CCD008389D4 /* Polyfill.h */; };
-		D3706A93221FC7A100AA9CE1 /* Polyfill.m in Sources */ = {isa = PBXBuildFile; fileRef = 11FD150F21742CD3008389D4 /* Polyfill.m */; };
-		D3706A94221FC7A600AA9CE1 /* MD5.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11D9C100216DFB2D00A620B7 /* MD5.swift */; };
-		D3706A95221FC7A600AA9CE1 /* Error.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11D9C0F8216DF63B00A620B7 /* Error.swift */; };
-		D3706A96221FC7A600AA9CE1 /* Lazyload.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11FD151321743A09008389D4 /* Lazyload.swift */; };
-		D3706A97221FC7A600AA9CE1 /* Application.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11D9C0F9216DF63B00A620B7 /* Application.swift */; };
-		D3706A98221FC7A600AA9CE1 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11D9C0FE216DF91A00A620B7 /* Logger.swift */; };
-		D3706A99221FC7A800AA9CE1 /* LocalStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A166CC214F57360094AF13 /* LocalStorage.swift */; };
-		D3706A9A221FC7A800AA9CE1 /* PersistentController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A166DD214F5E440094AF13 /* PersistentController.swift */; };
-		D3706A9B221FC7AD00AA9CE1 /* ACL.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D451D7E6808004D1A0E /* ACL.swift */; };
-		D3706A9C221FC7AD00AA9CE1 /* Array.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D461D7E6808004D1A0E /* Array.swift */; };
-		D3706A9D221FC7AD00AA9CE1 /* Bool.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D471D7E6808004D1A0E /* Bool.swift */; };
-		D3706A9E221FC7AD00AA9CE1 /* Data.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D481D7E6808004D1A0E /* Data.swift */; };
-		D3706A9F221FC7AD00AA9CE1 /* Date.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D491D7E6808004D1A0E /* Date.swift */; };
-		D3706AA0221FC7AD00AA9CE1 /* Dictionary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D4A1D7E6808004D1A0E /* Dictionary.swift */; };
-		D3706AA1221FC7AD00AA9CE1 /* GeoPoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D4B1D7E6808004D1A0E /* GeoPoint.swift */; };
-		D3706AA2221FC7AD00AA9CE1 /* Null.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D4C1D7E6808004D1A0E /* Null.swift */; };
-		D3706AA3221FC7AD00AA9CE1 /* Number.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D4D1D7E6808004D1A0E /* Number.swift */; };
-		D3706AA4221FC7AD00AA9CE1 /* Object.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D4E1D7E6808004D1A0E /* Object.swift */; };
-		D3706AA5221FC7AD00AA9CE1 /* Relation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D4F1D7E6808004D1A0E /* Relation.swift */; };
-		D3706AA6221FC7AD00AA9CE1 /* Role.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D501D7E6808004D1A0E /* Role.swift */; };
-		D3706AA7221FC7AD00AA9CE1 /* String.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D511D7E6808004D1A0E /* String.swift */; };
-		D3706AA8221FC7AD00AA9CE1 /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D521D7E6808004D1A0E /* User.swift */; };
-		D3706AA9221FC7AD00AA9CE1 /* File.swift in Sources */ = {isa = PBXBuildFile; fileRef = 114E1E762151FFB600DA7DB0 /* File.swift */; };
-		D3706AAA221FC7AD00AA9CE1 /* Installation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 117A2D0B21704620007C509A /* Installation.swift */; };
-		D3706AAC221FC7AD00AA9CE1 /* LeanCloud.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D571D7E6808004D1A0E /* LeanCloud.swift */; };
-		D3706AAD221FC7AD00AA9CE1 /* Value.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D651D7E6808004D1A0E /* Value.swift */; };
-		D3706AAE221FC7AD00AA9CE1 /* Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D551D7E6808004D1A0E /* Extension.swift */; };
-		D3706AAF221FC7AD00AA9CE1 /* Runtime.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D621D7E6808004D1A0E /* Runtime.swift */; };
-		D3706AB0221FC7AD00AA9CE1 /* Utility.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D641D7E6808004D1A0E /* Utility.swift */; };
-		D3706AB1221FC7AD00AA9CE1 /* HTTPClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D601D7E6808004D1A0E /* HTTPClient.swift */; };
-		D3706AB2221FC7AD00AA9CE1 /* HTTPRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1178D131214019F800429131 /* HTTPRouter.swift */; };
-		D3706AB3221FC7AD00AA9CE1 /* AppRouterCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A166E121509F020094AF13 /* AppRouterCache.swift */; };
-		D3706AB4221FC7AF00AA9CE1 /* AppRouterCache.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 11A166E62150A39F0094AF13 /* AppRouterCache.xcdatamodeld */; };
-		D3706AB5221FC7B300AA9CE1 /* StorageContextCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 118763AC2176DF440078645B /* StorageContextCache.swift */; };
-		D3706AB6221FC7B500AA9CE1 /* StorageContext.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 118763A92176DF110078645B /* StorageContext.xcdatamodeld */; };
-		D3706AB7221FC7B800AA9CE1 /* Operation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D5C1D7E6808004D1A0E /* Operation.swift */; };
-		D3706AB8221FC7B800AA9CE1 /* ObjectProfiler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D5A1D7E6808004D1A0E /* ObjectProfiler.swift */; };
-		D3706AB9221FC7B800AA9CE1 /* ObjectUpdater.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D5B1D7E6808004D1A0E /* ObjectUpdater.swift */; };
-		D3706ABA221FC7B800AA9CE1 /* FileUploader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 114E1E802152500200DA7DB0 /* FileUploader.swift */; };
-		D3706ABB221FC7B800AA9CE1 /* Request.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D5E1D7E6808004D1A0E /* Request.swift */; };
-		D3706ABC221FC7B800AA9CE1 /* BatchRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D411D7E6808004D1A0E /* BatchRequest.swift */; };
-		D3706ABD221FC7B800AA9CE1 /* Response.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D5F1D7E6808004D1A0E /* Response.swift */; };
-		D3706ABE221FC7B800AA9CE1 /* Result.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D611D7E6808004D1A0E /* Result.swift */; };
-		D3706ABF221FC7B800AA9CE1 /* Query.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D5D1D7E6808004D1A0E /* Query.swift */; };
-		D3706AC0221FC7B800AA9CE1 /* CQLClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D431D7E6808004D1A0E /* CQLClient.swift */; };
-		D3706AC1221FC7B800AA9CE1 /* Engine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D531D7E6808004D1A0E /* Engine.swift */; };
-		D3706AC2221FC7B800AA9CE1 /* SMSClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D631D7E6808004D1A0E /* SMSClient.swift */; };
-		D3706AC3221FC7BB00AA9CE1 /* Command.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3301278217727870007286A /* Command.pb.swift */; };
-		D3706AC4221FC7BB00AA9CE1 /* WebSocket.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3AA1352216E0D3A008FECA6 /* WebSocket.swift */; };
-		D3706AC5221FC7BB00AA9CE1 /* RTMConnection.swift in Sources */ = {isa = PBXBuildFile; fileRef = D324CD9121774A9B003FA35F /* RTMConnection.swift */; };
-		D3706AC6221FC7BB00AA9CE1 /* RTMRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 113D23D021901A71006B53EC /* RTMRouter.swift */; };
-		D3706AC7221FC7BB00AA9CE1 /* RTMRouterCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 112392142190AB6E00ECCBCC /* RTMRouterCache.swift */; };
-		D3706AC8221FC7BD00AA9CE1 /* RTMRouterCache.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 11239228219165BE00ECCBCC /* RTMRouterCache.xcdatamodeld */; };
-		D3706AC9221FC7C000AA9CE1 /* IMClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 119D16AE219A7FCE0023BFEF /* IMClient.swift */; };
-		D3706ACA221FC7C000AA9CE1 /* IMConversation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1113D80321AB963B000677BD /* IMConversation.swift */; };
-		D3706ACB221FC7C000AA9CE1 /* IMMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D393EDBD21D38206001CBB2B /* IMMessage.swift */; };
-		D3706ACC221FC7C000AA9CE1 /* IMConversationQuery.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3C3782E21E48D3C00EA9AC9 /* IMConversationQuery.swift */; };
-		D3706ACD221FC81F00AA9CE1 /* Alamofire.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 837E04FA1CABA688008CC3FF /* Alamofire.framework */; };
-		D3706ACE221FC82700AA9CE1 /* SwiftProtobuf.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D3872649217726B500DD8FBF /* SwiftProtobuf.framework */; };
 		D3783A1221F453C3006F6635 /* IMConversationTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3783A1121F453C3006F6635 /* IMConversationTestCase.swift */; };
 		D393EDBE21D38206001CBB2B /* IMMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D393EDBD21D38206001CBB2B /* IMMessage.swift */; };
 		D3AA135B216E0D3A008FECA6 /* WebSocket.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3AA1352216E0D3A008FECA6 /* WebSocket.swift */; };
@@ -358,20 +171,6 @@
 			proxyType = 1;
 			remoteGlobalIDString = 8342FCBA1C7B13A700C3CF15;
 			remoteInfo = LeanCloud;
-		};
-		D37069D5221FAA1D00AA9CE1 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 8342FCB21C7B13A600C3CF15 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = D37069CA221FAA1D00AA9CE1;
-			remoteInfo = "LeanCloud-macOS";
-		};
-		D3706A3B221FC0FB00AA9CE1 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 8342FCB21C7B13A600C3CF15 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = D3706A30221FC0FB00AA9CE1;
-			remoteInfo = "LeanCloud tvOS";
 		};
 		D387263C217726B500DD8FBF /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -545,21 +344,6 @@
 		D33D36DA22019197008C9BDA /* test.mp4 */ = {isa = PBXFileReference; lastKnownFileType = file; path = test.mp4; sourceTree = "<group>"; };
 		D3662F9122019B590046A390 /* test.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = test.mp3; sourceTree = "<group>"; };
 		D3665C3621FEAAC1005B44B0 /* IMMessageTestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IMMessageTestCase.swift; sourceTree = "<group>"; };
-		D37069CB221FAA1D00AA9CE1 /* LeanCloud_macOS.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = LeanCloud_macOS.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		D37069CD221FAA1D00AA9CE1 /* LeanCloud_macOS.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LeanCloud_macOS.h; sourceTree = "<group>"; };
-		D37069CE221FAA1D00AA9CE1 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		D37069D3221FAA1D00AA9CE1 /* LeanCloud-macOSTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "LeanCloud-macOSTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
-		D37069D8221FAA1D00AA9CE1 /* LeanCloud_macOSTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeanCloud_macOSTests.swift; sourceTree = "<group>"; };
-		D37069DA221FAA1D00AA9CE1 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		D3706A31221FC0FB00AA9CE1 /* LeanCloud_tvOS.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = LeanCloud_tvOS.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		D3706A33221FC0FB00AA9CE1 /* LeanCloud_tvOS.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LeanCloud_tvOS.h; sourceTree = "<group>"; };
-		D3706A34221FC0FB00AA9CE1 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		D3706A39221FC0FB00AA9CE1 /* LeanCloud tvOSTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "LeanCloud tvOSTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
-		D3706A3E221FC0FB00AA9CE1 /* LeanCloud_tvOSTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeanCloud_tvOSTests.swift; sourceTree = "<group>"; };
-		D3706A40221FC0FB00AA9CE1 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		D3706A8A221FC77100AA9CE1 /* LeanCloud_watchOS.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = LeanCloud_watchOS.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		D3706A8C221FC77100AA9CE1 /* LeanCloud_watchOS.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LeanCloud_watchOS.h; sourceTree = "<group>"; };
-		D3706A8D221FC77100AA9CE1 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		D3783A1121F453C3006F6635 /* IMConversationTestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IMConversationTestCase.swift; sourceTree = "<group>"; };
 		D387262A217726B500DD8FBF /* SwiftProtobuf.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = SwiftProtobuf.xcodeproj; path = SwiftProtobuf/SwiftProtobuf.xcodeproj; sourceTree = "<group>"; };
 		D393EDBD21D38206001CBB2B /* IMMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IMMessage.swift; sourceTree = "<group>"; };
@@ -597,49 +381,6 @@
 				D3E1F4AE21940E8E007B6FFB /* SwiftProtobuf.framework in Frameworks */,
 				D3E1F4B321940E95007B6FFB /* Alamofire.framework in Frameworks */,
 				D314AFA4219540A700C9C146 /* LeanCloud.framework in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		D37069C8221FAA1D00AA9CE1 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				D37069F0221FABFB00AA9CE1 /* SwiftProtobuf.framework in Frameworks */,
-				D37069EF221FABF400AA9CE1 /* Alamofire.framework in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		D37069D0221FAA1D00AA9CE1 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				D37069D4221FAA1D00AA9CE1 /* LeanCloud_macOS.framework in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		D3706A2E221FC0FB00AA9CE1 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				D3706A49221FC14600AA9CE1 /* SwiftProtobuf.framework in Frameworks */,
-				D3706A48221FC14000AA9CE1 /* Alamofire.framework in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		D3706A36221FC0FB00AA9CE1 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				D3706A3A221FC0FB00AA9CE1 /* LeanCloud_tvOS.framework in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		D3706A87221FC77100AA9CE1 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				D3706ACE221FC82700AA9CE1 /* SwiftProtobuf.framework in Frameworks */,
-				D3706ACD221FC81F00AA9CE1 /* Alamofire.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -704,11 +445,6 @@
 				835F5D3F1D7E6808004D1A0E /* Sources */,
 				8342FCBD1C7B13A700C3CF15 /* LeanCloud */,
 				8342FCC91C7B13A700C3CF15 /* LeanCloudTests */,
-				D37069CC221FAA1D00AA9CE1 /* LeanCloud-macOS */,
-				D37069D7221FAA1D00AA9CE1 /* LeanCloud-macOSTests */,
-				D3706A32221FC0FB00AA9CE1 /* LeanCloud tvOS */,
-				D3706A3D221FC0FB00AA9CE1 /* LeanCloud tvOSTests */,
-				D3706A8B221FC77100AA9CE1 /* LeanCloud watchOS */,
 				D31798392193DC860037DE57 /* RuntimeTests-iOS */,
 				8342FCBC1C7B13A700C3CF15 /* Products */,
 				113D23BF21900CEB006B53EC /* Frameworks */,
@@ -721,11 +457,6 @@
 				8342FCBB1C7B13A700C3CF15 /* LeanCloud.framework */,
 				8342FCC51C7B13A700C3CF15 /* LeanCloudTests.xctest */,
 				D31798382193DC860037DE57 /* RuntimeTests-iOS.app */,
-				D37069CB221FAA1D00AA9CE1 /* LeanCloud_macOS.framework */,
-				D37069D3221FAA1D00AA9CE1 /* LeanCloud-macOSTests.xctest */,
-				D3706A31221FC0FB00AA9CE1 /* LeanCloud_tvOS.framework */,
-				D3706A39221FC0FB00AA9CE1 /* LeanCloud tvOSTests.xctest */,
-				D3706A8A221FC77100AA9CE1 /* LeanCloud_watchOS.framework */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -863,51 +594,6 @@
 			path = "RuntimeTests-iOS";
 			sourceTree = "<group>";
 		};
-		D37069CC221FAA1D00AA9CE1 /* LeanCloud-macOS */ = {
-			isa = PBXGroup;
-			children = (
-				D37069CD221FAA1D00AA9CE1 /* LeanCloud_macOS.h */,
-				D37069CE221FAA1D00AA9CE1 /* Info.plist */,
-			);
-			path = "LeanCloud-macOS";
-			sourceTree = "<group>";
-		};
-		D37069D7221FAA1D00AA9CE1 /* LeanCloud-macOSTests */ = {
-			isa = PBXGroup;
-			children = (
-				D37069D8221FAA1D00AA9CE1 /* LeanCloud_macOSTests.swift */,
-				D37069DA221FAA1D00AA9CE1 /* Info.plist */,
-			);
-			path = "LeanCloud-macOSTests";
-			sourceTree = "<group>";
-		};
-		D3706A32221FC0FB00AA9CE1 /* LeanCloud tvOS */ = {
-			isa = PBXGroup;
-			children = (
-				D3706A33221FC0FB00AA9CE1 /* LeanCloud_tvOS.h */,
-				D3706A34221FC0FB00AA9CE1 /* Info.plist */,
-			);
-			path = "LeanCloud tvOS";
-			sourceTree = "<group>";
-		};
-		D3706A3D221FC0FB00AA9CE1 /* LeanCloud tvOSTests */ = {
-			isa = PBXGroup;
-			children = (
-				D3706A3E221FC0FB00AA9CE1 /* LeanCloud_tvOSTests.swift */,
-				D3706A40221FC0FB00AA9CE1 /* Info.plist */,
-			);
-			path = "LeanCloud tvOSTests";
-			sourceTree = "<group>";
-		};
-		D3706A8B221FC77100AA9CE1 /* LeanCloud watchOS */ = {
-			isa = PBXGroup;
-			children = (
-				D3706A8C221FC77100AA9CE1 /* LeanCloud_watchOS.h */,
-				D3706A8D221FC77100AA9CE1 /* Info.plist */,
-			);
-			path = "LeanCloud watchOS";
-			sourceTree = "<group>";
-		};
 		D387262B217726B500DD8FBF /* Products */ = {
 			isa = PBXGroup;
 			children = (
@@ -955,33 +641,6 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		D37069C6221FAA1D00AA9CE1 /* Headers */ = {
-			isa = PBXHeadersBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				D37069DB221FAA1D00AA9CE1 /* LeanCloud_macOS.h in Headers */,
-				D37069F1221FAC3D00AA9CE1 /* Polyfill.h in Headers */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		D3706A2C221FC0FB00AA9CE1 /* Headers */ = {
-			isa = PBXHeadersBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				D3706A41221FC0FB00AA9CE1 /* LeanCloud_tvOS.h in Headers */,
-				D3706A4A221FC16B00AA9CE1 /* Polyfill.h in Headers */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		D3706A85221FC77100AA9CE1 /* Headers */ = {
-			isa = PBXHeadersBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				D3706A8E221FC77100AA9CE1 /* LeanCloud_watchOS.h in Headers */,
-				D3706A92221FC7A100AA9CE1 /* Polyfill.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1046,96 +705,6 @@
 			productReference = D31798382193DC860037DE57 /* RuntimeTests-iOS.app */;
 			productType = "com.apple.product-type.application";
 		};
-		D37069CA221FAA1D00AA9CE1 /* LeanCloud-macOS */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = D37069ED221FAA1D00AA9CE1 /* Build configuration list for PBXNativeTarget "LeanCloud-macOS" */;
-			buildPhases = (
-				D37069C6221FAA1D00AA9CE1 /* Headers */,
-				D37069C7221FAA1D00AA9CE1 /* Sources */,
-				D37069C8221FAA1D00AA9CE1 /* Frameworks */,
-				D37069C9221FAA1D00AA9CE1 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			name = "LeanCloud-macOS";
-			productName = "LeanCloud-macOS";
-			productReference = D37069CB221FAA1D00AA9CE1 /* LeanCloud_macOS.framework */;
-			productType = "com.apple.product-type.framework";
-		};
-		D37069D2221FAA1D00AA9CE1 /* LeanCloud-macOSTests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = D37069EE221FAA1D00AA9CE1 /* Build configuration list for PBXNativeTarget "LeanCloud-macOSTests" */;
-			buildPhases = (
-				D37069CF221FAA1D00AA9CE1 /* Sources */,
-				D37069D0221FAA1D00AA9CE1 /* Frameworks */,
-				D37069D1221FAA1D00AA9CE1 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				D37069D6221FAA1D00AA9CE1 /* PBXTargetDependency */,
-			);
-			name = "LeanCloud-macOSTests";
-			productName = "LeanCloud-macOSTests";
-			productReference = D37069D3221FAA1D00AA9CE1 /* LeanCloud-macOSTests.xctest */;
-			productType = "com.apple.product-type.bundle.unit-test";
-		};
-		D3706A30221FC0FB00AA9CE1 /* LeanCloud tvOS */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = D3706A42221FC0FB00AA9CE1 /* Build configuration list for PBXNativeTarget "LeanCloud tvOS" */;
-			buildPhases = (
-				D3706A2C221FC0FB00AA9CE1 /* Headers */,
-				D3706A2D221FC0FB00AA9CE1 /* Sources */,
-				D3706A2E221FC0FB00AA9CE1 /* Frameworks */,
-				D3706A2F221FC0FB00AA9CE1 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			name = "LeanCloud tvOS";
-			productName = "LeanCloud tvOS";
-			productReference = D3706A31221FC0FB00AA9CE1 /* LeanCloud_tvOS.framework */;
-			productType = "com.apple.product-type.framework";
-		};
-		D3706A38221FC0FB00AA9CE1 /* LeanCloud tvOSTests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = D3706A45221FC0FB00AA9CE1 /* Build configuration list for PBXNativeTarget "LeanCloud tvOSTests" */;
-			buildPhases = (
-				D3706A35221FC0FB00AA9CE1 /* Sources */,
-				D3706A36221FC0FB00AA9CE1 /* Frameworks */,
-				D3706A37221FC0FB00AA9CE1 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				D3706A3C221FC0FB00AA9CE1 /* PBXTargetDependency */,
-			);
-			name = "LeanCloud tvOSTests";
-			productName = "LeanCloud tvOSTests";
-			productReference = D3706A39221FC0FB00AA9CE1 /* LeanCloud tvOSTests.xctest */;
-			productType = "com.apple.product-type.bundle.unit-test";
-		};
-		D3706A89221FC77100AA9CE1 /* LeanCloud watchOS */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = D3706A8F221FC77100AA9CE1 /* Build configuration list for PBXNativeTarget "LeanCloud watchOS" */;
-			buildPhases = (
-				D3706A85221FC77100AA9CE1 /* Headers */,
-				D3706A86221FC77100AA9CE1 /* Sources */,
-				D3706A87221FC77100AA9CE1 /* Frameworks */,
-				D3706A88221FC77100AA9CE1 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			name = "LeanCloud watchOS";
-			productName = "LeanCloud watchOS";
-			productReference = D3706A8A221FC77100AA9CE1 /* LeanCloud_watchOS.framework */;
-			productType = "com.apple.product-type.framework";
-		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -1150,11 +719,13 @@
 						CreatedOnToolsVersion = 7.2;
 						DevelopmentTeam = 7J5XFNL99Q;
 						LastSwiftMigration = 1000;
+						ProvisioningStyle = Automatic;
 					};
 					8342FCC41C7B13A700C3CF15 = {
 						CreatedOnToolsVersion = 7.2;
-						DevelopmentTeam = Y6X8P44TM5;
+						DevelopmentTeam = 7J5XFNL99Q;
 						LastSwiftMigration = 1000;
+						ProvisioningStyle = Automatic;
 					};
 					D31798372193DC860037DE57 = {
 						CreatedOnToolsVersion = 10.1;
@@ -1165,31 +736,6 @@
 								enabled = 1;
 							};
 						};
-					};
-					D37069CA221FAA1D00AA9CE1 = {
-						CreatedOnToolsVersion = 10.1;
-						DevelopmentTeam = 7J5XFNL99Q;
-						ProvisioningStyle = Automatic;
-					};
-					D37069D2221FAA1D00AA9CE1 = {
-						CreatedOnToolsVersion = 10.1;
-						DevelopmentTeam = 7J5XFNL99Q;
-						ProvisioningStyle = Automatic;
-					};
-					D3706A30221FC0FB00AA9CE1 = {
-						CreatedOnToolsVersion = 10.1;
-						DevelopmentTeam = 7J5XFNL99Q;
-						ProvisioningStyle = Automatic;
-					};
-					D3706A38221FC0FB00AA9CE1 = {
-						CreatedOnToolsVersion = 10.1;
-						DevelopmentTeam = 7J5XFNL99Q;
-						ProvisioningStyle = Automatic;
-					};
-					D3706A89221FC77100AA9CE1 = {
-						CreatedOnToolsVersion = 10.1;
-						DevelopmentTeam = 7J5XFNL99Q;
-						ProvisioningStyle = Automatic;
 					};
 				};
 			};
@@ -1218,11 +764,6 @@
 			targets = (
 				8342FCBA1C7B13A700C3CF15 /* LeanCloud */,
 				8342FCC41C7B13A700C3CF15 /* LeanCloudTests */,
-				D37069CA221FAA1D00AA9CE1 /* LeanCloud-macOS */,
-				D37069D2221FAA1D00AA9CE1 /* LeanCloud-macOSTests */,
-				D3706A30221FC0FB00AA9CE1 /* LeanCloud tvOS */,
-				D3706A38221FC0FB00AA9CE1 /* LeanCloud tvOSTests */,
-				D3706A89221FC77100AA9CE1 /* LeanCloud watchOS */,
 				D31798372193DC860037DE57 /* RuntimeTests-iOS */,
 			);
 		};
@@ -1359,41 +900,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		D37069C9221FAA1D00AA9CE1 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		D37069D1221FAA1D00AA9CE1 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		D3706A2F221FC0FB00AA9CE1 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		D3706A37221FC0FB00AA9CE1 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		D3706A88221FC77100AA9CE1 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -1498,214 +1004,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		D37069C7221FAA1D00AA9CE1 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				D3706A17221FAC7D00AA9CE1 /* ObjectProfiler.swift in Sources */,
-				D3706A29221FAC8600AA9CE1 /* IMConversation.swift in Sources */,
-				D3706A01221FAC5400AA9CE1 /* Null.swift in Sources */,
-				D37069F6221FAC4900AA9CE1 /* Application.swift in Sources */,
-				D37069FB221FAC5400AA9CE1 /* Array.swift in Sources */,
-				D3706A04221FAC5400AA9CE1 /* Relation.swift in Sources */,
-				D37069F7221FAC4900AA9CE1 /* Logger.swift in Sources */,
-				D3706A12221FAC7200AA9CE1 /* AppRouterCache.swift in Sources */,
-				D3706A26221FAC8100AA9CE1 /* RTMRouterCache.swift in Sources */,
-				D3706A03221FAC5400AA9CE1 /* Object.swift in Sources */,
-				D3706A08221FAC5400AA9CE1 /* File.swift in Sources */,
-				D3706A09221FAC5400AA9CE1 /* Installation.swift in Sources */,
-				D3706A0F221FAC7200AA9CE1 /* Utility.swift in Sources */,
-				D37069F9221FAC4D00AA9CE1 /* PersistentController.swift in Sources */,
-				D37069FC221FAC5400AA9CE1 /* Bool.swift in Sources */,
-				D3706A14221FAC7700AA9CE1 /* StorageContextCache.swift in Sources */,
-				D37069F3221FAC4900AA9CE1 /* MD5.swift in Sources */,
-				D37069F5221FAC4900AA9CE1 /* Lazyload.swift in Sources */,
-				D3706A1E221FAC7D00AA9CE1 /* Query.swift in Sources */,
-				D3706A07221FAC5400AA9CE1 /* User.swift in Sources */,
-				D3706A1A221FAC7D00AA9CE1 /* Request.swift in Sources */,
-				D3706A02221FAC5400AA9CE1 /* Number.swift in Sources */,
-				D3706A23221FAC8100AA9CE1 /* WebSocket.swift in Sources */,
-				D37069FD221FAC5400AA9CE1 /* Data.swift in Sources */,
-				D37069F4221FAC4900AA9CE1 /* Error.swift in Sources */,
-				D3706A0E221FAC7200AA9CE1 /* Runtime.swift in Sources */,
-				D3706A27221FAC8300AA9CE1 /* RTMRouterCache.xcdatamodeld in Sources */,
-				D3706A21221FAC7D00AA9CE1 /* SMSClient.swift in Sources */,
-				D3706A20221FAC7D00AA9CE1 /* Engine.swift in Sources */,
-				D3706A00221FAC5400AA9CE1 /* GeoPoint.swift in Sources */,
-				D3706A24221FAC8100AA9CE1 /* RTMConnection.swift in Sources */,
-				D37069F8221FAC4D00AA9CE1 /* LocalStorage.swift in Sources */,
-				D3706A19221FAC7D00AA9CE1 /* FileUploader.swift in Sources */,
-				D3706A13221FAC7500AA9CE1 /* AppRouterCache.xcdatamodeld in Sources */,
-				D3706A16221FAC7D00AA9CE1 /* Operation.swift in Sources */,
-				D3706A0D221FAC7200AA9CE1 /* Extension.swift in Sources */,
-				D3706A1F221FAC7D00AA9CE1 /* CQLClient.swift in Sources */,
-				D3706A18221FAC7D00AA9CE1 /* ObjectUpdater.swift in Sources */,
-				D37069FA221FAC5400AA9CE1 /* ACL.swift in Sources */,
-				D37069FF221FAC5400AA9CE1 /* Dictionary.swift in Sources */,
-				D3706A11221FAC7200AA9CE1 /* HTTPRouter.swift in Sources */,
-				D37069FE221FAC5400AA9CE1 /* Date.swift in Sources */,
-				D3706A2B221FAC8600AA9CE1 /* IMConversationQuery.swift in Sources */,
-				D3706A25221FAC8100AA9CE1 /* RTMRouter.swift in Sources */,
-				D3706A1B221FAC7D00AA9CE1 /* BatchRequest.swift in Sources */,
-				D3706A1C221FAC7D00AA9CE1 /* Response.swift in Sources */,
-				D3706A06221FAC5400AA9CE1 /* String.swift in Sources */,
-				D37069F2221FAC4000AA9CE1 /* Polyfill.m in Sources */,
-				D3706A10221FAC7200AA9CE1 /* HTTPClient.swift in Sources */,
-				D3706A22221FAC8100AA9CE1 /* Command.pb.swift in Sources */,
-				D3706A28221FAC8600AA9CE1 /* IMClient.swift in Sources */,
-				D3706A0B221FAC7200AA9CE1 /* LeanCloud.swift in Sources */,
-				D3706A05221FAC5400AA9CE1 /* Role.swift in Sources */,
-				D3706A0C221FAC7200AA9CE1 /* Value.swift in Sources */,
-				D3706A2A221FAC8600AA9CE1 /* IMMessage.swift in Sources */,
-				D3706A1D221FAC7D00AA9CE1 /* Result.swift in Sources */,
-				D3706A15221FAC7A00AA9CE1 /* StorageContext.xcdatamodeld in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		D37069CF221FAA1D00AA9CE1 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				D37069D9221FAA1D00AA9CE1 /* LeanCloud_macOSTests.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		D3706A2D221FC0FB00AA9CE1 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				D3706A70221FC18100AA9CE1 /* ObjectProfiler.swift in Sources */,
-				D3706A5A221FC17600AA9CE1 /* Null.swift in Sources */,
-				D3706A4F221FC16B00AA9CE1 /* Application.swift in Sources */,
-				D3706A54221FC17600AA9CE1 /* Array.swift in Sources */,
-				D3706A5D221FC17600AA9CE1 /* Relation.swift in Sources */,
-				D3706A80221FC18800AA9CE1 /* IMClient.swift in Sources */,
-				D3706A50221FC16B00AA9CE1 /* Logger.swift in Sources */,
-				D3706A6B221FC17600AA9CE1 /* AppRouterCache.swift in Sources */,
-				D3706A7F221FC18500AA9CE1 /* RTMRouterCache.swift in Sources */,
-				D3706A5C221FC17600AA9CE1 /* Object.swift in Sources */,
-				D3706A81221FC18800AA9CE1 /* IMConversation.swift in Sources */,
-				D3706A61221FC17600AA9CE1 /* File.swift in Sources */,
-				D3706A62221FC17600AA9CE1 /* Installation.swift in Sources */,
-				D3706A68221FC17600AA9CE1 /* Utility.swift in Sources */,
-				D3706A52221FC16E00AA9CE1 /* PersistentController.swift in Sources */,
-				D3706A55221FC17600AA9CE1 /* Bool.swift in Sources */,
-				D3706A4C221FC16B00AA9CE1 /* MD5.swift in Sources */,
-				D3706A4E221FC16B00AA9CE1 /* Lazyload.swift in Sources */,
-				D3706A60221FC17600AA9CE1 /* User.swift in Sources */,
-				D3706A77221FC18100AA9CE1 /* Query.swift in Sources */,
-				D3706A5B221FC17600AA9CE1 /* Number.swift in Sources */,
-				D3706A73221FC18100AA9CE1 /* Request.swift in Sources */,
-				D3706A56221FC17600AA9CE1 /* Data.swift in Sources */,
-				D3706A7C221FC18500AA9CE1 /* WebSocket.swift in Sources */,
-				D3706A6C221FC17800AA9CE1 /* StorageContextCache.swift in Sources */,
-				D3706A4D221FC16B00AA9CE1 /* Error.swift in Sources */,
-				D3706A67221FC17600AA9CE1 /* Runtime.swift in Sources */,
-				D3706A83221FC18800AA9CE1 /* IMConversationQuery.swift in Sources */,
-				D3706A7A221FC18100AA9CE1 /* SMSClient.swift in Sources */,
-				D3706A79221FC18100AA9CE1 /* Engine.swift in Sources */,
-				D3706A59221FC17600AA9CE1 /* GeoPoint.swift in Sources */,
-				D3706A7D221FC18500AA9CE1 /* RTMConnection.swift in Sources */,
-				D3706A51221FC16E00AA9CE1 /* LocalStorage.swift in Sources */,
-				D3706A72221FC18100AA9CE1 /* FileUploader.swift in Sources */,
-				D3706A66221FC17600AA9CE1 /* Extension.swift in Sources */,
-				D3706A6F221FC18100AA9CE1 /* Operation.swift in Sources */,
-				D3706A84221FC18A00AA9CE1 /* RTMRouterCache.xcdatamodeld in Sources */,
-				D3706A53221FC17600AA9CE1 /* ACL.swift in Sources */,
-				D3706A78221FC18100AA9CE1 /* CQLClient.swift in Sources */,
-				D3706A71221FC18100AA9CE1 /* ObjectUpdater.swift in Sources */,
-				D3706A58221FC17600AA9CE1 /* Dictionary.swift in Sources */,
-				D3706A6A221FC17600AA9CE1 /* HTTPRouter.swift in Sources */,
-				D3706A57221FC17600AA9CE1 /* Date.swift in Sources */,
-				D3706A5F221FC17600AA9CE1 /* String.swift in Sources */,
-				D3706A7E221FC18500AA9CE1 /* RTMRouter.swift in Sources */,
-				D3706A74221FC18100AA9CE1 /* BatchRequest.swift in Sources */,
-				D3706A75221FC18100AA9CE1 /* Response.swift in Sources */,
-				D3706A4B221FC16B00AA9CE1 /* Polyfill.m in Sources */,
-				D3706A82221FC18800AA9CE1 /* IMMessage.swift in Sources */,
-				D3706A69221FC17600AA9CE1 /* HTTPClient.swift in Sources */,
-				D3706A64221FC17600AA9CE1 /* LeanCloud.swift in Sources */,
-				D3706A7B221FC18500AA9CE1 /* Command.pb.swift in Sources */,
-				D3706A5E221FC17600AA9CE1 /* Role.swift in Sources */,
-				D3706A65221FC17600AA9CE1 /* Value.swift in Sources */,
-				D3706A6D221FC17A00AA9CE1 /* AppRouterCache.xcdatamodeld in Sources */,
-				D3706A76221FC18100AA9CE1 /* Result.swift in Sources */,
-				D3706A6E221FC17D00AA9CE1 /* StorageContext.xcdatamodeld in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		D3706A35221FC0FB00AA9CE1 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				D3706A3F221FC0FB00AA9CE1 /* LeanCloud_tvOSTests.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		D3706A86221FC77100AA9CE1 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				D3706AB8221FC7B800AA9CE1 /* ObjectProfiler.swift in Sources */,
-				D3706ACA221FC7C000AA9CE1 /* IMConversation.swift in Sources */,
-				D3706AA2221FC7AD00AA9CE1 /* Null.swift in Sources */,
-				D3706A97221FC7A600AA9CE1 /* Application.swift in Sources */,
-				D3706A9C221FC7AD00AA9CE1 /* Array.swift in Sources */,
-				D3706AA5221FC7AD00AA9CE1 /* Relation.swift in Sources */,
-				D3706A98221FC7A600AA9CE1 /* Logger.swift in Sources */,
-				D3706AB3221FC7AD00AA9CE1 /* AppRouterCache.swift in Sources */,
-				D3706AC7221FC7BB00AA9CE1 /* RTMRouterCache.swift in Sources */,
-				D3706AA4221FC7AD00AA9CE1 /* Object.swift in Sources */,
-				D3706AA9221FC7AD00AA9CE1 /* File.swift in Sources */,
-				D3706AAA221FC7AD00AA9CE1 /* Installation.swift in Sources */,
-				D3706AB0221FC7AD00AA9CE1 /* Utility.swift in Sources */,
-				D3706A9A221FC7A800AA9CE1 /* PersistentController.swift in Sources */,
-				D3706A9D221FC7AD00AA9CE1 /* Bool.swift in Sources */,
-				D3706AB5221FC7B300AA9CE1 /* StorageContextCache.swift in Sources */,
-				D3706A94221FC7A600AA9CE1 /* MD5.swift in Sources */,
-				D3706A96221FC7A600AA9CE1 /* Lazyload.swift in Sources */,
-				D3706ABF221FC7B800AA9CE1 /* Query.swift in Sources */,
-				D3706AA8221FC7AD00AA9CE1 /* User.swift in Sources */,
-				D3706ABB221FC7B800AA9CE1 /* Request.swift in Sources */,
-				D3706AA3221FC7AD00AA9CE1 /* Number.swift in Sources */,
-				D3706AC4221FC7BB00AA9CE1 /* WebSocket.swift in Sources */,
-				D3706A9E221FC7AD00AA9CE1 /* Data.swift in Sources */,
-				D3706A95221FC7A600AA9CE1 /* Error.swift in Sources */,
-				D3706AAF221FC7AD00AA9CE1 /* Runtime.swift in Sources */,
-				D3706AC8221FC7BD00AA9CE1 /* RTMRouterCache.xcdatamodeld in Sources */,
-				D3706AC2221FC7B800AA9CE1 /* SMSClient.swift in Sources */,
-				D3706AC1221FC7B800AA9CE1 /* Engine.swift in Sources */,
-				D3706AA1221FC7AD00AA9CE1 /* GeoPoint.swift in Sources */,
-				D3706AC5221FC7BB00AA9CE1 /* RTMConnection.swift in Sources */,
-				D3706A99221FC7A800AA9CE1 /* LocalStorage.swift in Sources */,
-				D3706ABA221FC7B800AA9CE1 /* FileUploader.swift in Sources */,
-				D3706AB4221FC7AF00AA9CE1 /* AppRouterCache.xcdatamodeld in Sources */,
-				D3706AB7221FC7B800AA9CE1 /* Operation.swift in Sources */,
-				D3706AAE221FC7AD00AA9CE1 /* Extension.swift in Sources */,
-				D3706AC0221FC7B800AA9CE1 /* CQLClient.swift in Sources */,
-				D3706AB9221FC7B800AA9CE1 /* ObjectUpdater.swift in Sources */,
-				D3706A9B221FC7AD00AA9CE1 /* ACL.swift in Sources */,
-				D3706AA0221FC7AD00AA9CE1 /* Dictionary.swift in Sources */,
-				D3706AB2221FC7AD00AA9CE1 /* HTTPRouter.swift in Sources */,
-				D3706A9F221FC7AD00AA9CE1 /* Date.swift in Sources */,
-				D3706ACC221FC7C000AA9CE1 /* IMConversationQuery.swift in Sources */,
-				D3706AC6221FC7BB00AA9CE1 /* RTMRouter.swift in Sources */,
-				D3706ABC221FC7B800AA9CE1 /* BatchRequest.swift in Sources */,
-				D3706ABD221FC7B800AA9CE1 /* Response.swift in Sources */,
-				D3706AA7221FC7AD00AA9CE1 /* String.swift in Sources */,
-				D3706A93221FC7A100AA9CE1 /* Polyfill.m in Sources */,
-				D3706AB1221FC7AD00AA9CE1 /* HTTPClient.swift in Sources */,
-				D3706AC3221FC7BB00AA9CE1 /* Command.pb.swift in Sources */,
-				D3706AC9221FC7C000AA9CE1 /* IMClient.swift in Sources */,
-				D3706AAC221FC7AD00AA9CE1 /* LeanCloud.swift in Sources */,
-				D3706AA6221FC7AD00AA9CE1 /* Role.swift in Sources */,
-				D3706AAD221FC7AD00AA9CE1 /* Value.swift in Sources */,
-				D3706ACB221FC7C000AA9CE1 /* IMMessage.swift in Sources */,
-				D3706ABE221FC7B800AA9CE1 /* Result.swift in Sources */,
-				D3706AB6221FC7B500AA9CE1 /* StorageContext.xcdatamodeld in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -1718,16 +1016,6 @@
 			isa = PBXTargetDependency;
 			target = 8342FCBA1C7B13A700C3CF15 /* LeanCloud */;
 			targetProxy = D314AFA6219540A700C9C146 /* PBXContainerItemProxy */;
-		};
-		D37069D6221FAA1D00AA9CE1 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = D37069CA221FAA1D00AA9CE1 /* LeanCloud-macOS */;
-			targetProxy = D37069D5221FAA1D00AA9CE1 /* PBXContainerItemProxy */;
-		};
-		D3706A3C221FC0FB00AA9CE1 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = D3706A30221FC0FB00AA9CE1 /* LeanCloud tvOS */;
-			targetProxy = D3706A3B221FC0FB00AA9CE1 /* PBXContainerItemProxy */;
 		};
 		D3E1F4B121940E8E007B6FFB /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -1879,6 +1167,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "";
+				CODE_SIGN_STYLE = Automatic;
 				DEFINES_MODULE = YES;
 				DEVELOPMENT_TEAM = 7J5XFNL99Q;
 				DYLIB_COMPATIBILITY_VERSION = 1;
@@ -1888,9 +1177,11 @@
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				IPHONEOS_DEPLOYMENT_TARGET = 10;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = cn.leancloud.LeanCloud;
+				PRODUCT_BUNDLE_IDENTIFIER = LeanCloud.SDK.Swift;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphonesimulator iphoneos macosx appletvos appletvsimulator watchos watchsimulator";
 				SWIFT_INCLUDE_PATHS = "\"$(SRCROOT)\"/**";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 4.2;
@@ -1903,6 +1194,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "";
+				CODE_SIGN_STYLE = Automatic;
 				DEFINES_MODULE = YES;
 				DEVELOPMENT_TEAM = 7J5XFNL99Q;
 				DYLIB_COMPATIBILITY_VERSION = 1;
@@ -1912,9 +1204,11 @@
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				IPHONEOS_DEPLOYMENT_TARGET = 10;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = cn.leancloud.LeanCloud;
+				PRODUCT_BUNDLE_IDENTIFIER = LeanCloud.SDK.Swift;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphonesimulator iphoneos macosx appletvos appletvsimulator watchos watchsimulator";
 				SWIFT_INCLUDE_PATHS = "\"$(SRCROOT)\"/**";
 				SWIFT_VERSION = 4.2;
 			};
@@ -1923,12 +1217,15 @@
 		8342FCD31C7B13A700C3CF15 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				DEVELOPMENT_TEAM = Y6X8P44TM5;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 7J5XFNL99Q;
 				INFOPLIST_FILE = LeanCloudTests/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = cn.leancloud.LeanCloudTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_OBJC_BRIDGING_HEADER = LeanCloudTests/BridgingHeader.h;
 				SWIFT_VERSION = 4.2;
 			};
@@ -1937,12 +1234,15 @@
 		8342FCD41C7B13A700C3CF15 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				DEVELOPMENT_TEAM = Y6X8P44TM5;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 7J5XFNL99Q;
 				INFOPLIST_FILE = LeanCloudTests/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = cn.leancloud.LeanCloudTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_OBJC_BRIDGING_HEADER = LeanCloudTests/BridgingHeader.h;
 				SWIFT_VERSION = 4.2;
 			};
@@ -2007,309 +1307,6 @@
 			};
 			name = Release;
 		};
-		D37069DC221FAA1D00AA9CE1 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CLANG_ANALYZER_NONNULL = YES;
-				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
-				CLANG_ENABLE_OBJC_WEAK = YES;
-				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
-				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
-				CODE_SIGN_IDENTITY = "Mac Developer";
-				CODE_SIGN_STYLE = Automatic;
-				COMBINE_HIDPI_IMAGES = YES;
-				DEFINES_MODULE = YES;
-				DEVELOPMENT_TEAM = 7J5XFNL99Q;
-				DYLIB_COMPATIBILITY_VERSION = 1;
-				DYLIB_CURRENT_VERSION = 1;
-				DYLIB_INSTALL_NAME_BASE = "@rpath";
-				FRAMEWORK_VERSION = A;
-				GCC_C_LANGUAGE_STANDARD = gnu11;
-				INFOPLIST_FILE = "LeanCloud-macOS/Info.plist";
-				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 10.14;
-				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
-				MTL_FAST_MATH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = "LeanCloud.LeanCloud-macOS";
-				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
-				SDKROOT = macosx;
-				SKIP_INSTALL = YES;
-				SWIFT_INCLUDE_PATHS = "\"$(SRCROOT)\"/**";
-				SWIFT_VERSION = 4.2;
-			};
-			name = Debug;
-		};
-		D37069DD221FAA1D00AA9CE1 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CLANG_ANALYZER_NONNULL = YES;
-				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
-				CLANG_ENABLE_OBJC_WEAK = YES;
-				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
-				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
-				CODE_SIGN_IDENTITY = "Mac Developer";
-				CODE_SIGN_STYLE = Automatic;
-				COMBINE_HIDPI_IMAGES = YES;
-				DEFINES_MODULE = YES;
-				DEVELOPMENT_TEAM = 7J5XFNL99Q;
-				DYLIB_COMPATIBILITY_VERSION = 1;
-				DYLIB_CURRENT_VERSION = 1;
-				DYLIB_INSTALL_NAME_BASE = "@rpath";
-				FRAMEWORK_VERSION = A;
-				GCC_C_LANGUAGE_STANDARD = gnu11;
-				INFOPLIST_FILE = "LeanCloud-macOS/Info.plist";
-				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 10.14;
-				MTL_FAST_MATH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = "LeanCloud.LeanCloud-macOS";
-				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
-				SDKROOT = macosx;
-				SKIP_INSTALL = YES;
-				SWIFT_INCLUDE_PATHS = "\"$(SRCROOT)\"/**";
-				SWIFT_VERSION = 4.2;
-			};
-			name = Release;
-		};
-		D37069DE221FAA1D00AA9CE1 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
-				CLANG_ANALYZER_NONNULL = YES;
-				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
-				CLANG_ENABLE_OBJC_WEAK = YES;
-				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
-				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
-				CODE_SIGN_IDENTITY = "Mac Developer";
-				CODE_SIGN_STYLE = Automatic;
-				COMBINE_HIDPI_IMAGES = YES;
-				DEVELOPMENT_TEAM = 7J5XFNL99Q;
-				GCC_C_LANGUAGE_STANDARD = gnu11;
-				INFOPLIST_FILE = "LeanCloud-macOSTests/Info.plist";
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 10.14;
-				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
-				MTL_FAST_MATH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = "LeanCloud.LeanCloud-macOSTests";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = macosx;
-				SWIFT_VERSION = 4.2;
-			};
-			name = Debug;
-		};
-		D37069DF221FAA1D00AA9CE1 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
-				CLANG_ANALYZER_NONNULL = YES;
-				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
-				CLANG_ENABLE_OBJC_WEAK = YES;
-				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
-				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
-				CODE_SIGN_IDENTITY = "Mac Developer";
-				CODE_SIGN_STYLE = Automatic;
-				COMBINE_HIDPI_IMAGES = YES;
-				DEVELOPMENT_TEAM = 7J5XFNL99Q;
-				GCC_C_LANGUAGE_STANDARD = gnu11;
-				INFOPLIST_FILE = "LeanCloud-macOSTests/Info.plist";
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 10.14;
-				MTL_FAST_MATH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = "LeanCloud.LeanCloud-macOSTests";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = macosx;
-				SWIFT_VERSION = 4.2;
-			};
-			name = Release;
-		};
-		D3706A43221FC0FB00AA9CE1 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CLANG_ANALYZER_NONNULL = YES;
-				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
-				CLANG_ENABLE_OBJC_WEAK = YES;
-				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
-				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
-				CODE_SIGN_IDENTITY = "";
-				CODE_SIGN_STYLE = Automatic;
-				DEFINES_MODULE = YES;
-				DEVELOPMENT_TEAM = 7J5XFNL99Q;
-				DYLIB_COMPATIBILITY_VERSION = 1;
-				DYLIB_CURRENT_VERSION = 1;
-				DYLIB_INSTALL_NAME_BASE = "@rpath";
-				GCC_C_LANGUAGE_STANDARD = gnu11;
-				INFOPLIST_FILE = "LeanCloud tvOS/Info.plist";
-				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
-				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
-				MTL_FAST_MATH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = "LeanCloud.LeanCloud-tvOS";
-				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
-				SDKROOT = appletvos;
-				SKIP_INSTALL = YES;
-				SWIFT_INCLUDE_PATHS = "\"$(SRCROOT)\"/**";
-				SWIFT_VERSION = 4.2;
-				TARGETED_DEVICE_FAMILY = 3;
-				TVOS_DEPLOYMENT_TARGET = 12.1;
-			};
-			name = Debug;
-		};
-		D3706A44221FC0FB00AA9CE1 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CLANG_ANALYZER_NONNULL = YES;
-				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
-				CLANG_ENABLE_OBJC_WEAK = YES;
-				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
-				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
-				CODE_SIGN_IDENTITY = "";
-				CODE_SIGN_STYLE = Automatic;
-				DEFINES_MODULE = YES;
-				DEVELOPMENT_TEAM = 7J5XFNL99Q;
-				DYLIB_COMPATIBILITY_VERSION = 1;
-				DYLIB_CURRENT_VERSION = 1;
-				DYLIB_INSTALL_NAME_BASE = "@rpath";
-				GCC_C_LANGUAGE_STANDARD = gnu11;
-				INFOPLIST_FILE = "LeanCloud tvOS/Info.plist";
-				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
-				MTL_FAST_MATH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = "LeanCloud.LeanCloud-tvOS";
-				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
-				SDKROOT = appletvos;
-				SKIP_INSTALL = YES;
-				SWIFT_INCLUDE_PATHS = "\"$(SRCROOT)\"/**";
-				SWIFT_VERSION = 4.2;
-				TARGETED_DEVICE_FAMILY = 3;
-				TVOS_DEPLOYMENT_TARGET = 12.1;
-			};
-			name = Release;
-		};
-		D3706A46221FC0FB00AA9CE1 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
-				CLANG_ANALYZER_NONNULL = YES;
-				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
-				CLANG_ENABLE_OBJC_WEAK = YES;
-				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
-				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
-				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 7J5XFNL99Q;
-				GCC_C_LANGUAGE_STANDARD = gnu11;
-				INFOPLIST_FILE = "LeanCloud tvOSTests/Info.plist";
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
-				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
-				MTL_FAST_MATH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = "LeanCloud.LeanCloud-tvOSTests";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = appletvos;
-				SWIFT_VERSION = 4.2;
-				TARGETED_DEVICE_FAMILY = 3;
-				TVOS_DEPLOYMENT_TARGET = 12.1;
-			};
-			name = Debug;
-		};
-		D3706A47221FC0FB00AA9CE1 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
-				CLANG_ANALYZER_NONNULL = YES;
-				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
-				CLANG_ENABLE_OBJC_WEAK = YES;
-				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
-				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
-				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 7J5XFNL99Q;
-				GCC_C_LANGUAGE_STANDARD = gnu11;
-				INFOPLIST_FILE = "LeanCloud tvOSTests/Info.plist";
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
-				MTL_FAST_MATH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = "LeanCloud.LeanCloud-tvOSTests";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = appletvos;
-				SWIFT_VERSION = 4.2;
-				TARGETED_DEVICE_FAMILY = 3;
-				TVOS_DEPLOYMENT_TARGET = 12.1;
-			};
-			name = Release;
-		};
-		D3706A90221FC77100AA9CE1 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				APPLICATION_EXTENSION_API_ONLY = YES;
-				CLANG_ANALYZER_NONNULL = YES;
-				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
-				CLANG_ENABLE_OBJC_WEAK = YES;
-				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
-				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
-				CODE_SIGN_IDENTITY = "";
-				CODE_SIGN_STYLE = Automatic;
-				DEFINES_MODULE = YES;
-				DEVELOPMENT_TEAM = 7J5XFNL99Q;
-				DYLIB_COMPATIBILITY_VERSION = 1;
-				DYLIB_CURRENT_VERSION = 1;
-				DYLIB_INSTALL_NAME_BASE = "@rpath";
-				GCC_C_LANGUAGE_STANDARD = gnu11;
-				INFOPLIST_FILE = "LeanCloud watchOS/Info.plist";
-				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
-				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
-				MTL_FAST_MATH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = "LeanCloud.LeanCloud-watchOS";
-				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
-				SDKROOT = watchos;
-				SKIP_INSTALL = YES;
-				SWIFT_INCLUDE_PATHS = "\"$(SRCROOT)\"/**";
-				SWIFT_VERSION = 4.2;
-				TARGETED_DEVICE_FAMILY = 4;
-				WATCHOS_DEPLOYMENT_TARGET = 5.1;
-			};
-			name = Debug;
-		};
-		D3706A91221FC77100AA9CE1 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				APPLICATION_EXTENSION_API_ONLY = YES;
-				CLANG_ANALYZER_NONNULL = YES;
-				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
-				CLANG_ENABLE_OBJC_WEAK = YES;
-				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
-				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
-				CODE_SIGN_IDENTITY = "";
-				CODE_SIGN_STYLE = Automatic;
-				DEFINES_MODULE = YES;
-				DEVELOPMENT_TEAM = 7J5XFNL99Q;
-				DYLIB_COMPATIBILITY_VERSION = 1;
-				DYLIB_CURRENT_VERSION = 1;
-				DYLIB_INSTALL_NAME_BASE = "@rpath";
-				GCC_C_LANGUAGE_STANDARD = gnu11;
-				INFOPLIST_FILE = "LeanCloud watchOS/Info.plist";
-				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
-				MTL_FAST_MATH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = "LeanCloud.LeanCloud-watchOS";
-				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
-				SDKROOT = watchos;
-				SKIP_INSTALL = YES;
-				SWIFT_INCLUDE_PATHS = "\"$(SRCROOT)\"/**";
-				SWIFT_VERSION = 4.2;
-				TARGETED_DEVICE_FAMILY = 4;
-				WATCHOS_DEPLOYMENT_TARGET = 5.1;
-			};
-			name = Release;
-		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -2345,51 +1342,6 @@
 			buildConfigurations = (
 				D31798472193DC880037DE57 /* Debug */,
 				D31798482193DC880037DE57 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		D37069ED221FAA1D00AA9CE1 /* Build configuration list for PBXNativeTarget "LeanCloud-macOS" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				D37069DC221FAA1D00AA9CE1 /* Debug */,
-				D37069DD221FAA1D00AA9CE1 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		D37069EE221FAA1D00AA9CE1 /* Build configuration list for PBXNativeTarget "LeanCloud-macOSTests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				D37069DE221FAA1D00AA9CE1 /* Debug */,
-				D37069DF221FAA1D00AA9CE1 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		D3706A42221FC0FB00AA9CE1 /* Build configuration list for PBXNativeTarget "LeanCloud tvOS" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				D3706A43221FC0FB00AA9CE1 /* Debug */,
-				D3706A44221FC0FB00AA9CE1 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		D3706A45221FC0FB00AA9CE1 /* Build configuration list for PBXNativeTarget "LeanCloud tvOSTests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				D3706A46221FC0FB00AA9CE1 /* Debug */,
-				D3706A47221FC0FB00AA9CE1 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		D3706A8F221FC77100AA9CE1 /* Build configuration list for PBXNativeTarget "LeanCloud watchOS" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				D3706A90221FC77100AA9CE1 /* Debug */,
-				D3706A91221FC77100AA9CE1 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
