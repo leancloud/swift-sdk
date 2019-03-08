@@ -17,7 +17,6 @@ import IOKit
 public final class IMClient {
     
     #if DEBUG
-    /// Notification for unit test case
     static let TestReportDeviceTokenNotification = Notification.Name.init("TestReportDeviceTokenNotification")
     static let TestSessionTokenExpiredNotification = Notification.Name.init("TestSessionTokenExpiredNotification")
     static let TestGetOfflineEventsNotification = Notification.Name.init("TestGetOfflineEventNotification")
@@ -32,17 +31,16 @@ public final class IMClient {
     }
     #endif
     
-    /// length range of client ID.
+    /// Length range of the client ID.
     public static let lengthRangeOfClientID = 1...64
     
-    /// reserved value of tag
+    /// Reserved value of the tag.
     public static let reservedValueOfTag: String = "default"
     
     /// The client identifier.
     public let ID: String
     
-    /// The client tag, which represents what kind of session that current client will open.
-    /// @related `SessionOpenOptions`
+    /// The client tag.
     public let tag: String?
     
     /// The client options.
@@ -51,46 +49,37 @@ public final class IMClient {
     /// The application that the client belongs to.
     public let application: LCApplication
     
-    /// Application's current installation
     let installation: LCInstallation
     
-    /// The session connection.
     let connection: RTMConnection
     
     let rtmDelegator: RTMConnection.Delegator
     
-    /// The delegate object.
+    /// The client delegate.
     public weak var delegate: IMClientDelegate?
     
-    /// The dispatch queue on which the event about IM are called. Default is main.
+    /// The dispatch queue where the event about IM are called. Default is main.
     public let eventQueue: DispatchQueue
     
     /// The custom server URL.
     public let customServerURL: URL?
     
-    /**
-     Client session state.
-     */
+    /// The session state of the client.
+    ///
+    /// - opened: opened.
+    /// - resuming: resuming.
+    /// - paused: paused.
+    /// - closing: closing.
+    /// - closed: closed.
     public enum SessionState {
-        
-        /// Session is opened
         case opened
-        
-        /// Session is resuming
         case resuming
-        
-        /// Session is paused
         case paused
-        
-        /// Session is closing
         case closing
-        
-        /// Session is closed
         case closed
-        
     }
     
-    /// The client session state.
+    /// The current session state of the client.
     public private(set) var sessionState: SessionState {
         set {
             sync(self.underlyingSessionState = newValue)
@@ -106,9 +95,7 @@ public final class IMClient {
         return self.sessionState == .opened
     }
     
-    /**
-     Options that can modify behaviors of client.
-     */
+    /// Options that can modify behaviors of client.
     public struct Options: OptionSet {
         
         public let rawValue: Int
@@ -123,7 +110,6 @@ public final class IMClient {
         /// Receive unread message count after session did open.
         public static let receiveUnreadMessageCountAfterSessionDidOpen = Options(rawValue: 1 << 0)
         
-        /// Get IM protocol for current options.
         var lcimProtocol: RTMConnection.LCIMProtocol {
             if contains(.receiveUnreadMessageCountAfterSessionDidOpen) {
                 return .protobuf3
@@ -137,7 +123,7 @@ public final class IMClient {
         }
     }
     
-    /// ref: https://github.com/leancloud/avoscloud-push/blob/develop/push-server/doc/protocol.md#sdk-登录功能标志位-session-config-bitmap
+    /// ref: `https://github.com/leancloud/avoscloud-push/blob/develop/push-server/doc/protocol.md`
     private struct SessionConfigs: OptionSet {
         let rawValue: Int64
         
@@ -158,17 +144,16 @@ public final class IMClient {
         ]
     }
     
-    /// Initialize client with identifier and tag.
+    /// Initialization.
     ///
     /// - Parameters:
-    ///   - ID: The client identifier. Length should in [1...64].
-    ///   - tag: The client tag. "default" string should not be used.
+    ///   - ID: The client identifier. Length should in range `lengthRangeOfClientID`.
+    ///   - tag: The client tag. `reservedValueOfTag` should not be used.
     ///   - options: @see `IMClient.Options`.
     ///   - delegate: @see `IMClientDelegate`.
     ///   - eventQueue: @see property `eventQueue`, default is main.
     ///   - customServerURL: The custom server URL for private deployment.
     ///   - application: The application that the client belongs to.
-    /// - Throws: if `ID` or `tag` invalid, then throw error.
     public init(
         ID: String,
         tag: String? = nil,
@@ -241,13 +226,10 @@ public final class IMClient {
         )
     }
     
-    /// The client serial dispatch queue.
-    private let serialQueue = DispatchQueue(label: "LeanCloud.IMClient.serialQueue", qos: .userInitiated)
+    let serialQueue = DispatchQueue(label: "LeanCloud.IMClient.serialQueue")
     
-    /// Internal mutex
     let lock = NSLock()
     
-    /// Session Token & Opening Config
     private(set) var sessionToken: String?
     private(set) var sessionTokenExpiration: Date?
     private(set) var serverTimestamp: Int64?
@@ -264,7 +246,6 @@ public final class IMClient {
     }
     #endif
     
-    /// Device Token and fallback-UDID
     private(set) var deviceTokenObservation: NSKeyValueObservation?
     private(set) var currentDeviceToken: String?
     private(set) lazy var fallbackUDID: String = {
@@ -291,16 +272,11 @@ public final class IMClient {
         return udid
     }()
     
-    /// Conversation Container
-    /// use it to manage all instance of IMConversation belong to this client
     var convCollection: [String: IMConversation] = [:]
     
-    /// Single-Conversation Query Callback Container
-    /// use it to merge concurrent Single-Conversation Query
     var convQueryCallbackCollection: [String: Array<(IMClient, LCGenericResult<IMConversation>) -> Void>] = [:]
     
-    /// ref: https://github.com/leancloud/avoscloud-push/blob/develop/push-server/doc/protocol.md#sessionopen
-    /// parameter: `lastUnreadNotifTime`, `lastPatchTime`
+    /// ref: `https://github.com/leancloud/avoscloud-push/blob/develop/push-server/doc/protocol.md#sessionopen`
     private(set) var lastUnreadNotifTime: Int64? = nil
     private(set) var lastPatchTime: Int64? = nil
     
@@ -318,9 +294,7 @@ extension IMClient: InternalSynchronizing {
 
 extension IMClient {
     
-    /**
-     Options that can modify behaviors of session open operation.
-     */
+    /// Options that can modify behaviors of session open operation.
     public struct SessionOpenOptions: OptionSet {
         
         public let rawValue: Int
@@ -329,23 +303,21 @@ extension IMClient {
             self.rawValue = rawValue
         }
         
-        /// Default options is forced.
+        /// Default options is `forced`.
         public static let `default`: SessionOpenOptions = [.forced]
         
-        /// For two sessions of one client with same tag, the later one will force to make previous one offline.
+        /// For two sessions of the same client (Application, ID and Tag are same), the later one will force to make the previous one offline. After later one opened success, the previous one will get session closed error (code: 4111).
         public static let forced = SessionOpenOptions(rawValue: 1 << 0)
         
-        /// ref: https://github.com/leancloud/avoscloud-push/blob/develop/push-server/doc/protocol.md#sessionopen
-        /// parameter: `r` 
+        /// ref: `https://github.com/leancloud/avoscloud-push/blob/develop/push-server/doc/protocol.md#sessionopen`
         var r: Bool { return !contains(.forced) }
     }
     
-    /**
-     Open a session to IM system.
-     
-     - parameter options: @see `IMClient.SessionOpenOptions`.
-     - parameter completion: The completion handler.
-     */
+    /// Open IM session.
+    ///
+    /// - Parameters:
+    ///   - options: @see `IMClient.SessionOpenOptions`.
+    ///   - completion: callback.
     public func open(options: SessionOpenOptions = .default, completion: @escaping (LCBooleanResult) -> Void) {
         self.serialQueue.async {
             guard self.openingCompletion == nil && self.sessionToken == nil else {
@@ -370,11 +342,9 @@ extension IMClient {
         }
     }
     
-    /**
-     Close with completion handler.
-     
-     - parameter completion: The completion handler.
-     */
+    /// Close IM session.
+    ///
+    /// - Parameter completion: callback.
     public func close(completion: @escaping (LCBooleanResult) -> Void) {
         self.serialQueue.async {
             guard self.isSessionOpened else {
@@ -425,20 +395,14 @@ extension IMClient {
 
 extension IMClient {
     
-    /// Create a normal conversation. Default is a unique conversation.
+    /// Create a Normal Conversation. Default is a Unique Conversation.
     ///
     /// - Parameters:
-    ///   - clientIDs: An array of client ID. it's the members of the conversation which will be created. the initialized members always contains this client's ID.
-    ///   - name: The name of the conversation
-    ///   - attributes: The custom attributes of the conversation
-    ///   - isUnique: if true, the created conversation will has a unique ID which is related to members's ID. you can use this parameter to create a new unique conversation or get an exists unique conversation.
-    ///     e.g.
-    ///     at first, create conversation with members ["a", "b"] and `isUnique` is true
-    ///     then, backend will have a new unique conversation which `ID` is 'qweasdzxc'
-    ///     after that, create conversation with members ["a", "b"] and `isUnique` is true (same with the firstly)
-    ///     finally, you will get the exists unique conversation which `ID` is 'qweasdzxc' and backend will not create new one.
-    ///   - completion: callback
-    /// - Throws: if `clientIDs`, `name` or `attributes` invalid, then throw error.
+    ///   - clientIDs: The set of client ID. it's the members of the conversation which will be created. the initialized members always contains current client's ID. if the created conversation is unique, and server has one unique conversation with the same members, that unique conversation will be returned.
+    ///   - name: The name of the conversation.
+    ///   - attributes: The attributes of the conversation.
+    ///   - isUnique: True means create or get a unique conversation, default is true.
+    ///   - completion: callback.
     public func createConversation(
         clientIDs: Set<String>,
         name: String? = nil,
@@ -456,13 +420,12 @@ extension IMClient {
         )
     }
     
-    /// Create a chat room.
+    /// Create a Chat Room.
     ///
     /// - Parameters:
-    ///   - name: The name of the chat room
-    ///   - attributes: The custom attributes of the chat room
-    ///   - completion: callback
-    /// - Throws: if `name` or `attributes` invalid, then throw error.
+    ///   - name: The name of the chat room.
+    ///   - attributes: The attributes of the chat room.
+    ///   - completion: callback.
     public func createChatRoom(
         name: String? = nil,
         attributes: [String: Any]? = nil,
@@ -478,14 +441,12 @@ extension IMClient {
         )
     }
     
-    /// Create a temporary conversation.
-    /// Temporary conversation is unique in it's Life Cycle.
+    /// Create a Temporary Conversation. Temporary Conversation is unique in it's Life Cycle.
     ///
     /// - Parameters:
-    ///   - clientIDs: An array of client ID. it's the members of the conversation which will be created. the initialized members always contains this client's ID.
-    ///   - timeToLive: After time to live, the temporary conversation will be deleted by backend automatically.
-    ///   - completion: callback
-    /// - Throws: if `clientIDs` invalid, then throw error.
+    ///   - clientIDs: The set of client ID. it's the members of the conversation which will be created. the initialized members always contains this client's ID.
+    ///   - timeToLive: The time interval for the life of the temporary conversation.
+    ///   - completion: callback.
     public func createTemporaryConversation(
         clientIDs: Set<String>,
         timeToLive: Int32,
@@ -704,13 +665,55 @@ extension IMClient {
     
 }
 
-// MARK: - Create Conversation Query
+// MARK: - Conversation Query
 
 extension IMClient {
     
-    /// Create a new conversation query
+    /// Create a new conversation query.
     public var conversationQuery: IMConversationQuery {
         return IMConversationQuery(client: self, eventQueue: self.eventQueue)
+    }
+    
+}
+
+// MARK: - Conversation Memory Cache
+
+extension IMClient {
+    
+    /// Get conversation instance from memory cache.
+    ///
+    /// - Parameters:
+    ///   - ID: The ID of the conversation.
+    ///   - completion: callback.
+    public func get(cachedConversation ID: String, completion: @escaping (LCGenericResult<IMConversation>) -> Void) {
+        self.serialQueue.async {
+            if let conv = self.convCollection[ID] {
+                self.eventQueue.async {
+                    completion(.success(value: conv))
+                }
+            } else {
+                let error = LCError(code: .conversationNotFound)
+                self.eventQueue.async {
+                    completion(.failure(error: error))
+                }
+            }
+        }
+    }
+    
+    /// Remove conversation instance from memory cache.
+    ///
+    /// - Parameters:
+    ///   - IDs: The set of the conversation ID.
+    ///   - completion: callback.
+    public func remove(cachedConversation IDs: Set<String>, completion: @escaping (LCBooleanResult) -> Void) {
+        self.serialQueue.async {
+            for key in IDs {
+                self.convCollection.removeValue(forKey: key)
+            }
+            self.eventQueue.async {
+                completion(.success)
+            }
+        }
     }
     
 }
@@ -719,12 +722,11 @@ extension IMClient {
 
 extension IMClient {
     
-    /// Query online state of clients, the ID in result set means online.
+    /// Query online state of clients, the ID in the result set means online.
     ///
     /// - Parameters:
-    ///   - clientIDs: The client to be queried, count of IDs should in range 1...20
-    ///   - completion: callback
-    /// - Throws: if parameter invalid, then throw error.
+    ///   - clientIDs: The set of ID to be queried, count of IDs should in range 1...20.
+    ///   - completion: callback.
     public func queryOnlineClients(clientIDs: Set<String>, completion: @escaping (LCGenericResult<Set<String>>) -> Void) throws {
         guard !clientIDs.isEmpty, clientIDs.count <= 20 else {
             throw LCError(code: .inconsistency, reason: "parameter `clientIDs`'s count should in range 1...20")
@@ -1245,7 +1247,12 @@ private extension IMClient {
                             let udate: String = (command.hasUdate ? command.udate : nil)
                         {
                             rawDataOperation = .updated(attr: attr, attrModified: attrModified, udate: udate)
-                            event = .dataUpdated
+                            event = IMConversationEvent.dataUpdated(
+                                updatedData: attrModified,
+                                byClientID: (command.hasInitBy ? command.initBy : nil),
+                                at: LCDate(isoString: udate)?.value,
+                                updatingData: attr
+                            )
                         } else {
                             Logger.shared.verbose("invalid command \(command)")
                         }
@@ -1327,7 +1334,7 @@ private extension IMClient {
                 let message = IMMessage.instance(
                     isTransient: (command.hasTransient ? command.transient : false),
                     conversationID: conversationID,
-                    localClientID: client.ID,
+                    currentClientID: client.ID,
                     fromClientID: (command.hasFromPeerID ? command.fromPeerID : nil),
                     timestamp: timestamp,
                     patchedTimestamp: (command.hasPatchTimestamp ? command.patchTimestamp : nil),
@@ -1340,7 +1347,7 @@ private extension IMClient {
                 let isUnreadMessageIncreased: Bool = conversation.safeUpdatingLastMessage(newMessage: message, client: client)
                 if client.options.isProtobuf3, isUnreadMessageIncreased {
                     conversation.unreadMessageCount += 1
-                    unreadEvent = .unreadMessageUpdated
+                    unreadEvent = .unreadMessageCountUpdated
                 }
                 client.eventQueue.async {
                     if let unreadUpdatedEvent = unreadEvent {
@@ -1795,6 +1802,12 @@ extension IMClient: RTMConnectionDelegate {
 
 // MARK: - Event
 
+/// The session event about the client.
+///
+/// - sessionDidOpen: Session opened event.
+/// - sessionDidResume: Session in resuming event.
+/// - sessionDidPause: Session paused event.
+/// - sessionDidClose: Session closed event.
 public enum IMClientEvent {
     
     case sessionDidOpen
@@ -1807,6 +1820,16 @@ public enum IMClientEvent {
     
 }
 
+/// The event about the conversation that belong to the client.
+///
+/// - joined: The client joined the conversation.
+/// - left: The client left the conversation.
+/// - membersJoined: The members joined the conversation.
+/// - membersLeft: The members left the conversation.
+/// - dataUpdated: The data of the conversation updated.
+/// - lastMessageUpdated: The last message of the conversation updated.
+/// - unreadMessageCountUpdated: The unread message count of the conversation updated.
+/// - message: Events about message in the conversation.
 public enum IMConversationEvent {
     
     case joined(byClientID: String?)
@@ -1817,16 +1840,22 @@ public enum IMConversationEvent {
     
     case membersLeft(members: [String], byClientID: String?)
     
-    case dataUpdated
+    case dataUpdated(updatedData: [String: Any]?, byClientID: String?, at: Date?, updatingData: [String: Any]?)
     
     case lastMessageUpdated
     
-    case unreadMessageUpdated
+    case unreadMessageCountUpdated
     
     case message(event: IMMessageEvent)
     
 }
 
+/// The event about the message that belong to the conversation.
+///
+/// - received: The client received message from the conversation.
+/// - updated: The message in the conversation has been updated.
+/// - delivered: The message sent to the conversation by the client has delivered to other.
+/// - read: The message sent to the conversation by the client has been read by other.
 public enum IMMessageEvent {
     
     case received(message: IMMessage)
@@ -1839,16 +1868,17 @@ public enum IMMessageEvent {
     
 }
 
+/// IM Client Delegate
 public protocol IMClientDelegate: class {
     
-    /// Notification of the event about the client.
+    /// Delegate function of the event about the client.
     ///
     /// - Parameters:
     ///   - client: Which the event belong to.
     ///   - event: @see `IMClientEvent`
     func client(_ client: IMClient, event: IMClientEvent)
     
-    /// Notification of the event about the conversation.
+    /// Delegate function of the event about the conversation.
     ///
     /// - Parameters:
     ///   - client: Which the conversation belong to.
