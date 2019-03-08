@@ -31,7 +31,7 @@ class IMMessageTestCase: RTMBaseTestCase {
             XCTAssertEqual(message.status, .sent)
             XCTAssertNotNil(message.ID)
             XCTAssertEqual(conv.ID, message.conversationID)
-            XCTAssertEqual(conv.clientID, message.localClientID)
+            XCTAssertEqual(conv.clientID, message.currentClientID)
             XCTAssertNotNil(message.sentTimestamp)
             XCTAssertNotNil(message.sentDate)
             XCTAssertNotNil(message.content)
@@ -46,7 +46,7 @@ class IMMessageTestCase: RTMBaseTestCase {
             case .lastMessageUpdated:
                 XCTAssertTrue(stringMessage === converstion.lastMessage)
                 exp1.fulfill()
-            case .unreadMessageUpdated:
+            case .unreadMessageCountUpdated:
                 XCTFail()
             default:
                 break
@@ -65,7 +65,7 @@ class IMMessageTestCase: RTMBaseTestCase {
                 }
             case .lastMessageUpdated:
                 exp1.fulfill()
-            case .unreadMessageUpdated:
+            case .unreadMessageCountUpdated:
                 XCTAssertTrue([0,1].contains(conversation.unreadMessageCount))
                 exp1.fulfill()
             default:
@@ -100,7 +100,7 @@ class IMMessageTestCase: RTMBaseTestCase {
                 }
             case .lastMessageUpdated:
                 exp2.fulfill()
-            case .unreadMessageUpdated:
+            case .unreadMessageCountUpdated:
                 XCTAssertTrue([0,1].contains(conversation.unreadMessageCount))
                 exp2.fulfill()
             default:
@@ -112,7 +112,7 @@ class IMMessageTestCase: RTMBaseTestCase {
             case .lastMessageUpdated:
                 XCTAssertTrue(conversation.lastMessage === dataMessage)
                 exp2.fulfill()
-            case .unreadMessageUpdated:
+            case .unreadMessageCountUpdated:
                 XCTFail()
             default:
                 break
@@ -184,7 +184,7 @@ class IMMessageTestCase: RTMBaseTestCase {
                 default:
                     break
                 }
-            case .unreadMessageUpdated:
+            case .unreadMessageCountUpdated:
                 if receivedMessageCountA == 0,
                     conversation.unreadMessageCount == 0 {
                     exp.fulfill()
@@ -209,7 +209,7 @@ class IMMessageTestCase: RTMBaseTestCase {
                 default:
                     break
                 }
-            case .unreadMessageUpdated:
+            case .unreadMessageCountUpdated:
                 if receivedMessageCountB == 0,
                     conversation.unreadMessageCount == 0 {
                     exp.fulfill()
@@ -1026,7 +1026,7 @@ class IMMessageTestCase: RTMBaseTestCase {
         let readExp = expectation(description: "read message")
         receivingTuple?.delegator.conversationEvent = { client, conv, event in
             if conv === receivingTuple?.conversation,
-                case .unreadMessageUpdated = event {
+                case .unreadMessageCountUpdated = event {
                 XCTAssertEqual(conv.unreadMessageCount, 0)
                 readExp.fulfill()
             }

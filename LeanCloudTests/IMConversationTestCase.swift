@@ -359,7 +359,7 @@ class IMConversationTestCase: RTMBaseTestCase {
                     XCTAssertEqual(conversation.lastMessage?.sentTimestamp, message.sentTimestamp)
                     XCTAssertEqual(conversation.lastMessage?.ID, message.ID)
                     unreadExp.fulfill()
-                case .unreadMessageUpdated:
+                case .unreadMessageCountUpdated:
                     XCTAssertEqual(conversation.unreadMessageCount, 1)
                     XCTAssertTrue(conversation.isUnreadMessageContainMention)
                     unreadExp.fulfill()
@@ -391,7 +391,7 @@ class IMConversationTestCase: RTMBaseTestCase {
         }
         delegatorB.conversationEvent = { client, conversation, event in
             if conversation.ID == message.conversationID {
-                if case .unreadMessageUpdated = event {
+                if case .unreadMessageCountUpdated = event {
                     notGetUnreadExp.fulfill()
                 }
             }
@@ -403,7 +403,7 @@ class IMConversationTestCase: RTMBaseTestCase {
         let readExp = expectation(description: "read")
         delegatorB.conversationEvent = { client, conversation, event in
             if conversation.ID == message.conversationID {
-                if case .unreadMessageUpdated = event {
+                if case .unreadMessageCountUpdated = event {
                     XCTAssertEqual(conversation.unreadMessageCount, 0)
                     readExp.fulfill()
                 }
@@ -452,7 +452,7 @@ class IMConversationTestCase: RTMBaseTestCase {
                     XCTAssertEqual(conversation.lastMessage?.sentTimestamp, message.sentTimestamp)
                     XCTAssertEqual(conversation.lastMessage?.ID, message.ID)
                     unreadExp.fulfill()
-                case .unreadMessageUpdated:
+                case .unreadMessageCountUpdated:
                     XCTAssertEqual(conversation.unreadMessageCount, 1)
                     XCTAssertTrue(conversation.isUnreadMessageContainMention)
                     unreadExp.fulfill()
@@ -470,7 +470,7 @@ class IMConversationTestCase: RTMBaseTestCase {
         let readExp = expectation(description: "read")
         delegator.conversationEvent = { client, conversation, event in
             if client === clientB, conversation.ID == message.conversationID {
-                if case .unreadMessageUpdated = event {
+                if case .unreadMessageCountUpdated = event {
                     XCTAssertEqual(conversation.unreadMessageCount, 0)
                     readExp.fulfill()
                 }
@@ -508,7 +508,7 @@ class IMConversationTestCase: RTMBaseTestCase {
                 switch event {
                 case .lastMessageUpdated:
                     unreadExp.fulfill()
-                case .unreadMessageUpdated:
+                case .unreadMessageCountUpdated:
                     unreadExp.fulfill()
                 default:
                     break
@@ -524,7 +524,7 @@ class IMConversationTestCase: RTMBaseTestCase {
         let readExp = expectation(description: "read")
         delegator.conversationEvent = { client, conversation, event in
             if client === clientA, conversation.ID == serviceConvID {
-                if case .unreadMessageUpdated = event {
+                if case .unreadMessageCountUpdated = event {
                     XCTAssertEqual(conversation.unreadMessageCount, 0)
                     readExp.fulfill()
                 }
@@ -583,7 +583,7 @@ class IMConversationTestCase: RTMBaseTestCase {
         delegator.conversationEvent = { client, conversaton, event in
             if client === clientB, convIDSet.contains(conversaton.ID) {
                 switch event {
-                case .lastMessageUpdated, .unreadMessageUpdated:
+                case .lastMessageUpdated, .unreadMessageCountUpdated:
                     largeUnreadExp.fulfill()
                 default:
                     break
@@ -602,7 +602,7 @@ class IMConversationTestCase: RTMBaseTestCase {
         allReadExp.expectedFulfillmentCount = count
         delegator.conversationEvent = { client, conversation, event in
             if client === clientB, convIDSet.contains(conversation.ID) {
-                if case .unreadMessageUpdated = event {
+                if case .unreadMessageCountUpdated = event {
                     allReadExp.fulfill()
                 }
             }
@@ -972,7 +972,7 @@ class IMConversationTestCase: RTMBaseTestCase {
         
         let queryExp1 = expectation(description: "query normal conversation with message and without member")
         let query1 = clientA.conversationQuery
-        query1.options = [.notContainMembers, .withLastMessage]
+        query1.options = [.notContainMembers, .containLastMessage]
         try? query1.getConversation(by: normalConvID) { (result) in
             XCTAssertTrue(result.isSuccess)
             XCTAssertNil(result.error)
@@ -1164,7 +1164,11 @@ class IMConversationTestCase: RTMBaseTestCase {
         delegatorB.conversationEvent = { client, conv, event in
             if conv.ID == convA?.ID {
                 switch event {
-                case .dataUpdated:
+                case let .dataUpdated(updatedData: updatedData, byClientID: byClientID, at: at, updatingData: updatingData):
+                    XCTAssertNotNil(updatedData)
+                    XCTAssertNotNil(updatingData)
+                    XCTAssertNotNil(at)
+                    XCTAssertEqual(byClientID, clientA.ID)
                     convB = conv
                     updateExp.fulfill()
                 default:
