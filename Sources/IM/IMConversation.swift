@@ -49,24 +49,32 @@ public class IMConversation {
     /// add `lc` prefix to avoid conflict
     let lcType: ConvType
     
+    /// The client which this conversation belong to.
     public private(set) weak var client: IMClient?
 
+    /// The ID of the conversation.
     public let ID: String
     
+    /// The ID of the client.
     public let clientID: String
     
+    /// Indicates whether the conversation is unique.
     public let isUnique: Bool
     
+    /// The unique ID of the unique conversation.
     public let uniqueID: String?
 
+    /// The name of the conversation.
     public var name: String? {
         return safeDecodingRawData(with: .name)
     }
     
+    /// The creator of the conversation.
     public var creator: String? {
         return safeDecodingRawData(with: .creator)
     }
-
+    
+    /// The creation date of the conversation.
     public var createdAt: Date? {
         if let str: String = safeDecodingRawData(with: .createdAt) {
             return LCDate(isoString: str)?.value
@@ -75,6 +83,7 @@ public class IMConversation {
         }
     }
     
+    /// The updated date of the conversation.
     public var updatedAt: Date? {
         if let str: String = safeDecodingRawData(with: .updatedAt) {
             return LCDate(isoString: str)?.value
@@ -83,14 +92,17 @@ public class IMConversation {
         }
     }
     
+    /// The attributes of the conversation.
     public var attributes: [String: Any]? {
         return safeDecodingRawData(with: .attributes)
     }
     
+    /// The members of the conversation.
     public var members: [String]? {
         return safeDecodingRawData(with: .members)
     }
     
+    /// Indicates whether the conversation has been muted.
     public var isMuted: Bool {
         if let mutedMembers: [String] = safeDecodingRawData(with: .mutedMembers),
             mutedMembers.contains(self.clientID) {
@@ -100,18 +112,27 @@ public class IMConversation {
         }
     }
     
+    /// Indicates whether the data of conversation is outdated,
+    /// after refresh, this property will be false.
     public internal(set) var isOutdated: Bool {
         set {
+            guard self.notTemporaryConversation else {
+                return
+            }
             sync(self.underlyingOutdated = newValue)
         }
         get {
             var value: Bool = false
+            guard self.notTemporaryConversation else {
+                return value
+            }
             sync(value = self.underlyingOutdated)
             return value
         }
     }
     private var underlyingOutdated: Bool = false
     
+    /// The last message of the conversation.
     public private(set) var lastMessage: IMMessage? {
         set {
             sync(self.underlyingLastMessage = newValue)
@@ -124,6 +145,7 @@ public class IMConversation {
     }
     private var underlyingLastMessage: IMMessage? = nil
     
+    /// The unread message count of the conversation
     public internal(set) var unreadMessageCount: Int {
         set {
             sync(self.underlyingUnreadMessageCount = newValue)
@@ -136,6 +158,7 @@ public class IMConversation {
     }
     private var underlyingUnreadMessageCount: Int = 0
     
+    /// Indicates whether has unread message mentioning the client.
     public var isUnreadMessageContainMention: Bool {
         set {
             sync(self.underlyingIsUnreadMessageContainMention = newValue)
@@ -148,6 +171,7 @@ public class IMConversation {
     }
     private var underlyingIsUnreadMessageContainMention: Bool = false
     
+    /// Get value via subscript syntax.
     public subscript(key: String) -> Any? {
         get { return safeDecodingRawData(with: key) }
     }
@@ -192,7 +216,9 @@ public class IMConversation {
         self.lcType = lcType
         self.isUnique = (rawData[Key.unique.rawValue] as? Bool) ?? false
         self.uniqueID = (rawData[Key.uniqueId.rawValue] as? String)
-        self.decodingLastMessage()
+        if let message = self.decodingLastMessage(from: rawData) {
+            self.safeUpdatingLastMessage(newMessage: message, client: client)
+        }
     }
     
     private(set) var rawData: RawData
@@ -207,8 +233,15 @@ public class IMConversation {
         return self.lcType != .system
     }
     
+    var notTemporaryConversation: Bool {
+        return self.lcType != .temporary
+    }
+    
     /* Due to IMTemporaryConversation should override these functions, so they can't define in extension. */
     
+    /// Join in this conversation.
+    ///
+    /// - Parameter completion: callback.
     public func join(completion: @escaping (LCBooleanResult) -> Void) throws {
         try self.add(members: [self.clientID]) { result in
             switch result {
@@ -216,13 +249,16 @@ public class IMConversation {
                 completion(.success)
             case .failure(error: let error):
                 completion(.failure(error: error))
-            case .segment(success: _, failure: let errors):
+            case .slicing(success: _, failure: let errors):
                 let error = (errors.first?.error ?? LCError(code: .malformedData))
                 completion(.failure(error: error))
             }
         }
     }
     
+    /// Leave this conversation.
+    ///
+    /// - Parameter completion: callback.
     public func leave(completion: @escaping (LCBooleanResult) -> Void) throws {
         try self.remove(members: [self.clientID]) { result in
             switch result {
@@ -230,29 +266,48 @@ public class IMConversation {
                 completion(.success)
             case .failure(error: let error):
                 completion(.failure(error: error))
-            case .segment(success: _, failure: let errors):
+            case .slicing(success: _, failure: let errors):
                 let error = (errors.first?.error ?? LCError(code: .malformedData))
                 completion(.failure(error: error))
             }
         }
     }
     
+    /// Add members to this conversation.
+    ///
+    /// - Parameters:
+    ///   - members: The set of member's ID.
+    ///   - completion: callback.
     public func add(members: Set<String>, completion: @escaping (MemberResult) -> Void) throws {
         try self.update(members: members, op: .add, completion: completion)
     }
     
+    /// Remove members from this conversation.
+    ///
+    /// - Parameters:
+    ///   - members: The set of member's ID.
+    ///   - completion: callback.
     public func remove(members: Set<String>, completion: @escaping (MemberResult) -> Void) throws {
         try self.update(members: members, op: .remove, completion: completion)
     }
     
+    /// Mute this conversation.
+    ///
+    /// - Parameter completion: callback.
     public func mute(completion: @escaping (LCBooleanResult) -> Void) {
         self.sendMuteOrUnmute(op: .mute, completion: completion)
     }
     
+    /// Unmute this conversation.
+    ///
+    /// - Parameter completion: callback.
     public func unmute(completion: @escaping (LCBooleanResult) -> Void) {
         self.sendMuteOrUnmute(op: .unmute, completion: completion)
     }
     
+    /// Refresh conversation's data.
+    ///
+    /// - Parameter completion: callback
     public func refresh(completion: @escaping (LCBooleanResult) -> Void) throws {
         try self.client?.conversationQuery.getConversation(by: self.ID, completion: { (result) in
             switch result {
@@ -264,6 +319,11 @@ public class IMConversation {
         })
     }
     
+    /// Update conversation's data.
+    ///
+    /// - Parameters:
+    ///   - data: The data to be updated.
+    ///   - completion: callback.
     public func update(with data: [String: Any], completion: @escaping (LCBooleanResult) -> Void) throws {
         guard !data.isEmpty else {
             throw LCError(code: .inconsistency, reason: "parameter invalid.")
@@ -340,6 +400,7 @@ extension IMConversation: InternalSynchronizing {
 
 extension IMConversation {
     
+    /// Message Sending Option
     public struct MessageSendOptions: OptionSet {
         public let rawValue: Int
         
@@ -348,11 +409,26 @@ extension IMConversation {
         }
         
         public static let `default`: MessageSendOptions = []
+        
+        /// Get Receipt when other client received message or read message.
         public static let needReceipt = MessageSendOptions(rawValue: 1 << 0)
+        
+        /// Indicates whether this message is transient.
         public static let isTransient = MessageSendOptions(rawValue: 1 << 1)
+        
+        /// Indicates whether this message will be auto delivering to other client when this client disconnected.
         public static let isAutoDeliveringWhenOffline = MessageSendOptions(rawValue: 1 << 2)
     }
     
+    /// Send Message.
+    ///
+    /// - Parameters:
+    ///   - message: The message to be sent.
+    ///   - options: @see `MessageSendOptions`.
+    ///   - priority: @see `IMChatRoom.MessagePriority`.
+    ///   - pushData: The push data of APNs.
+    ///   - progress: The file uploading progress.
+    ///   - completion: callback.
     public func send(
         message: IMMessage,
         options: MessageSendOptions = .default,
@@ -522,6 +598,9 @@ extension IMConversation {
 
 extension IMConversation {
     
+    /// Clear unread messages that its sent timestamp less than the sent timestamp of the parameter message.
+    ///
+    /// - Parameter message: The default is the last message.
     public func read(message: IMMessage? = nil) {
         guard
             self.notTransientConversation,
@@ -574,7 +653,7 @@ extension IMConversation {
             let message = IMMessage.instance(
                 isTransient: false,
                 conversationID: self.ID,
-                localClientID: self.clientID,
+                currentClientID: self.clientID,
                 fromClientID: (unreadTuple.hasFrom ? unreadTuple.from : nil),
                 timestamp: timestamp,
                 patchedTimestamp: (unreadTuple.hasPatchTimestamp ? unreadTuple.patchTimestamp : nil),
@@ -594,7 +673,7 @@ extension IMConversation {
                 self.isUnreadMessageContainMention = isMentioned
             }
             client.eventQueue.async {
-                client.delegate?.client(client, conversation: self, event: .unreadMessageUpdated)
+                client.delegate?.client(client, conversation: self, event: .unreadMessageCountUpdated)
             }
         }
     }
@@ -605,6 +684,13 @@ extension IMConversation {
 
 extension IMConversation {
     
+    /// Update the content of a sent message.
+    ///
+    /// - Parameters:
+    ///   - oldMessage: The sent message to be updated.
+    ///   - newMessage: The message which has new content.
+    ///   - progress: The file uploading progress.
+    ///   - completion: callback.
     public func update(
         oldMessage: IMMessage,
         to newMessage: IMMessage,
@@ -703,6 +789,11 @@ extension IMConversation {
         }
     }
     
+    /// Recall a sent message.
+    ///
+    /// - Parameters:
+    ///   - message: The message has been sent.
+    ///   - completion: callback.
     public func recall(message: IMMessage, completion: @escaping (LCGenericResult<IMRecalledMessage>) -> Void) throws {
         let recalledMessage = IMRecalledMessage()
         try self.update(oldMessage: message, to: recalledMessage, completion: { (result) in
@@ -738,7 +829,7 @@ extension IMConversation {
         let patchedMessage = IMMessage.instance(
             isTransient: false,
             conversationID: self.ID,
-            localClientID: self.clientID,
+            currentClientID: self.clientID,
             fromClientID: (patchItem.hasFrom ? patchItem.from : nil),
             timestamp: timestamp,
             patchedTimestamp: (patchItem.hasPatchTimestamp ? patchItem.patchTimestamp : nil),
@@ -767,20 +858,32 @@ extension IMConversation {
 
 extension IMConversation {
     
+    /// The timestamp flag of message receipt.
     public struct MessageReceiptFlag {
+        
+        /// Means the messages that its sent timestamp less than this flag timestamp has been read.
         public let readFlagTimestamp: Int64?
+        
+        /// Date format of the `readFlagTimestamp`.
         public var readFlagDate: Date? {
             return IMClient.date(fromMillisecond: self.readFlagTimestamp)
         }
+        
+        /// Means the messages that its sent timestamp less than this flag timestamp has been delivered.
         public let deliveredFlagTimestamp: Int64?
+        
+        /// Date format of the `deliveredFlagTimestamp`.
         public var deliveredFlagDate: Date? {
             return IMClient.date(fromMillisecond: self.deliveredFlagTimestamp)
         }
     }
     
+    /// Get the timestamp flag of message receipt.
+    ///
+    /// - Parameter completion: callback.
     public func getMessageReceiptFlag(completion: @escaping (LCGenericResult<MessageReceiptFlag>) -> Void) throws {
         if let options = self.client?.options {
-            guard options.contains(.receiveUnreadMessageCountAfterSessionDidOpen) else {
+            guard options.isProtobuf3 else {
                 throw LCError(
                     code: .inconsistency,
                     reason: "only client init with \(IMClient.Options.receiveUnreadMessageCountAfterSessionDidOpen) support this function."
@@ -828,14 +931,23 @@ extension IMConversation {
 
 extension IMConversation {
     
+    /// The limit of the messge query result.
     public static let limitRangeOfMessageQuery = 1...100
     
+    /// The endpoint of the message queue.
     public struct MessageQueryEndpoint {
+        
+        /// The ID of the endpoint(message).
         public let messageID: String?
+        
+        /// The sent timestamp of the endpoint(message).
         public let sentTimestamp: Int64?
+        
+        /// Interval open or closed.
         public let isClosed: Bool?
     }
     
+    /// The query direction.
     public enum MessageQueryDirection: Int {
         case newToOld = 1
         case oldToNew = 2
@@ -850,6 +962,15 @@ extension IMConversation {
         }
     }
     
+    /// Message Query.
+    ///
+    /// - Parameters:
+    ///   - start: start endpoint, @see `MessageQueryEndpoint`.
+    ///   - end: end endpoint, @see `MessageQueryEndpoint`.
+    ///   - direction: @see `MessageQueryDirection`.
+    ///   - limit: The limit of the query result, should in range `limitRangeOfMessageQuery`.
+    ///   - type: @see `IMMessageCategorizing.MessageType`.
+    ///   - completion: callback.
     public func queryMessage(
         start: MessageQueryEndpoint? = nil,
         end: MessageQueryEndpoint? = nil,
@@ -935,7 +1056,7 @@ extension IMConversation {
                         let message = IMMessage.instance(
                             isTransient: false,
                             conversationID: self.ID,
-                            localClientID: client.ID,
+                            currentClientID: client.ID,
                             fromClientID: (item.hasFrom ? item.from : nil),
                             timestamp: timestamp,
                             patchedTimestamp: (item.hasPatchTimestamp ? item.patchTimestamp : nil),
@@ -974,10 +1095,15 @@ extension IMConversation {
 
 extension IMConversation {
     
+    /// Result for member operation.
+    ///
+    /// - allSucceeded: Operation for all members are succeeded.
+    /// - failure: Operation failed.
+    /// - slicing: Operation for part members are succeeded, and for part members are failed.
     public enum MemberResult: LCResultType {
         case allSucceeded
         case failure(error: LCError)
-        case segment(success: [String]?, failure: [(IDs: [String], error: LCError)])
+        case slicing(success: [String]?, failure: [(IDs: [String], error: LCError)])
         
         public var isSuccess: Bool {
             switch self {
@@ -1036,7 +1162,7 @@ extension IMConversation {
                         for errCommand in failedPids {
                             failures.append((errCommand.pids, errCommand.lcError))
                         }
-                        memberResult = .segment(success: successIDs, failure: failures)
+                        memberResult = .slicing(success: successIDs, failure: failures)
                     }
                     switch inCommand.op {
                     case .added:
@@ -1133,6 +1259,10 @@ internal extension IMConversation {
             sync(self.rawData = self.rawData.merging(data) { (_, new) in new })
         case .rawDataReplaced(by: let data):
             sync(self.rawData = data)
+            if let message = self.decodingLastMessage(from: data) {
+                self.safeUpdatingLastMessage(newMessage: message, client: client)
+            }
+            self.isOutdated = false
         case .append(members: let joinedMembers):
             guard
                 self.notTransientConversation,
@@ -1310,7 +1440,15 @@ private extension IMConversation {
     }
     
     func decodingRawData<T>(with string: String) -> T? {
-        return self.rawData[string] as? T
+        return self.decoding(string: string, from: self.rawData)
+    }
+    
+    func decoding<T>(key: Key, from data: RawData) -> T? {
+        return self.decoding(string: key.rawValue, from: data)
+    }
+    
+    func decoding<T>(string: String, from data: RawData) -> T? {
+        return data[string] as? T
     }
     
     func safeUpdatingRawData(key: Key, value: Any) {
@@ -1329,38 +1467,39 @@ private extension IMConversation {
         self.rawData[string] = value
     }
     
-    func decodingLastMessage() {
+    func decodingLastMessage(from data: RawData) -> IMMessage? {
         guard
             self.notTransientConversation,
-            let timestamp: Int64 = self.decodingRawData(with: .lastMessageTimestamp),
-            let messageID: String = self.decodingRawData(with: .lastMessageId)
+            let timestamp: Int64 = self.decoding(key: .lastMessageTimestamp, from: data),
+            let messageID: String = self.decoding(key: .lastMessageId, from: data)
             else
-        { return }
+        {
+            return nil
+        }
         var content: IMMessage.Content? = nil
         /*
          For Compatibility,
          Should check `lastMessageBinary` at first.
          Then check `lastMessageString`.
          */
-        if let data: Data = self.decodingRawData(with: .lastMessageBinary) {
+        if let data: Data = self.decoding(key: .lastMessageBinary, from: data) {
             content = .data(data)
-        } else if let string: String = self.decodingRawData(with: .lastMessageString) {
+        } else if let string: String = self.decoding(key: .lastMessageString, from: data) {
             content = .string(string)
         }
         let message = IMMessage.instance(
             isTransient: false,
             conversationID: self.ID,
-            localClientID: self.clientID,
-            fromClientID: self.decodingRawData(with: .lastMessageFrom),
+            currentClientID: self.clientID,
+            fromClientID: self.decoding(key: .lastMessageFrom, from: data),
             timestamp: timestamp,
-            patchedTimestamp: self.decodingRawData(with: .lastMessagePatchTimestamp),
+            patchedTimestamp: self.decoding(key: .lastMessagePatchTimestamp, from: data),
             messageID: messageID,
             content: content,
-            isAllMembersMentioned: self.decodingRawData(with: .lastMessageMentionAll),
-            mentionedMembers: self.decodingRawData(with: .lastMessageMentionPids)
+            isAllMembersMentioned: self.decoding(key: .lastMessageMentionAll, from: data),
+            mentionedMembers: self.decoding(key: .lastMessageMentionPids, from: data)
         )
-        /// set in initialization, so no need mutex.
-        self.underlyingLastMessage = message
+        return message
     }
     
 }
@@ -1368,6 +1507,11 @@ private extension IMConversation {
 /// IM Chat Room
 public class IMChatRoom: IMConversation {
     
+    /// Priority for Sending Message in Chat Room.
+    ///
+    /// - high: high.
+    /// - normal: normal.
+    /// - low: low.
     public enum MessagePriority: Int {
         case high = 1
         case normal = 2
@@ -1384,6 +1528,9 @@ public class IMChatRoom: IMConversation {
         completion(.failure(error: LCError.conversationNotSupport(convType: type(of: self))))
     }
     
+    /// Get count of online clients in this Chat Room.
+    ///
+    /// - Parameter completion: callback.
     public func getOnlineMemberCount(completion: @escaping (LCCountResult) -> Void) {
         self.client?.sendCommand(constructor: { () -> IMGenericCommand in
             var outCommand = IMGenericCommand()
@@ -1425,10 +1572,16 @@ public class IMServiceConversation: IMConversation {
         throw LCError.conversationNotSupport(convType: type(of: self))
     }
     
+    /// Subscribe this Service Conversation.
+    ///
+    /// - Parameter completion: callback.
     public func subscribe(completion: @escaping (LCBooleanResult) -> Void) throws {
         try self.join(completion: completion)
     }
-    
+
+    /// Unsubscribe this Service Conversation.
+    ///
+    /// - Parameter completion: callback.
     public func unsubscribe(completion: @escaping (LCBooleanResult) -> Void) throws {
         try self.leave(completion: completion)
     }
@@ -1441,6 +1594,7 @@ public class IMTemporaryConversation: IMConversation {
     
     static let prefixOfID: String = "_tmp:"
     
+    /// Expiration.
     public var expiration: Date? {
         guard
             let ttl = self.timeToLive,
@@ -1452,6 +1606,7 @@ public class IMTemporaryConversation: IMConversation {
         return Date(timeInterval: TimeInterval(ttl), since: createDate)
     }
     
+    /// Time to Live.
     public var timeToLive: Int? {
         return safeDecodingRawData(with: .temporaryTTL)
     }
@@ -1491,6 +1646,9 @@ public class IMTemporaryConversation: IMConversation {
         throw LCError.conversationNotSupport(convType: type(of: self))
     }
     
+    /// Refresh temporary conversation's data.
+    ///
+    /// - Parameter completion: callback
     public override func refresh(completion: @escaping (LCBooleanResult) -> Void) throws {
         try self.client?.conversationQuery.getTemporaryConversations(by: [self.ID], completion: { (result) in
             switch result {

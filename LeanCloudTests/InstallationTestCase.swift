@@ -14,7 +14,7 @@ class InstallationTestCase: BaseTestCase {
     func testCurrentInstallation() {
         let installation = LCApplication.default.currentInstallation
 
-        installation.set(deviceToken: "01010101010101010101010101", apnsTeamId: "LeanCloud")
+        installation.set(deviceToken: UUID().uuidString.replacingOccurrences(of: "-", with: ""), apnsTeamId: "LeanCloud")
 
         XCTAssertTrue(installation.save().isSuccess)
 

@@ -11,8 +11,10 @@ import Foundation
 /// IM Conversation Query
 public class IMConversationQuery: LCQuery {
     
+    /// limit of conversation ID's count in one query.
     public static let limitRangeOfQueryResult = 1...100
     
+    /// conversation query option.
     public struct Options: OptionSet {
         public let rawValue: Int
         
@@ -20,12 +22,17 @@ public class IMConversationQuery: LCQuery {
             self.rawValue = rawValue
         }
         
+        /// the conversations in query result will not contain members info.
         static let notContainMembers = Options(rawValue: 1 << 0)
-        static let withLastMessage = Options(rawValue: 1 << 1)
+        
+        /// the conversations in query result will contain the last message if the last message exist.
+        static let containLastMessage = Options(rawValue: 1 << 1)
     }
     
+    /// @see `Options`, default is nil.
     public var options: Options? = nil
     
+    /// the client which this query belong to.
     public private(set) weak var client: IMClient?
     
     let eventQueue: DispatchQueue?
@@ -106,10 +113,29 @@ public class IMConversationQuery: LCQuery {
         throw LCError(code: .inconsistency, reason: "not support")
     }
     
+    @available(*, unavailable)
+    public override func whereKey(_ key: String, _ constraint: LCQuery.Constraint) {
+        fatalError("not support")
+    }
+    
+    /**
+     Get logic AND of another query.
+     Note that it only combine constraints of two queries, the limit and skip option will be discarded.
+     
+     - parameter query: The another query.
+     - returns: The logic AND of two queries.
+     */
     public func and(_ query: IMConversationQuery) throws -> IMConversationQuery? {
         return try self.combine(op: "$and", query: query)
     }
     
+    /**
+     Get logic OR of another query.
+     Note that it only combine constraints of two queries, the limit and skip option will be discarded.
+     
+     - parameter query: The another query.
+     - returns: The logic OR of two queries.
+     */
     public func or(_ query: IMConversationQuery) throws -> IMConversationQuery? {
         return try self.combine(op: "$or", query: query)
     }
@@ -126,12 +152,43 @@ public class IMConversationQuery: LCQuery {
         return result
     }
     
+    /// Add constraint in query.
+    ///
+    /// - Parameters:
+    ///   - key: The key.
+    ///   - constraint: The constraint.
+    public override func `where`(key: String, _ constraint: Constraint) throws {
+        switch constraint {
+        case .included, .selected:
+            throw LCError(code: .inconsistency, reason: "\(constraint) not support")
+            /* Query matching. */
+        case let .matchedQuery(query):
+            guard let _ = query as? IMConversationQuery else {
+                throw LCError(code: .inconsistency, reason: "\(type(of: query)) not support")
+            }
+        case let .notMatchedQuery(query):
+            guard let _ = query as? IMConversationQuery else {
+                throw LCError(code: .inconsistency, reason: "\(type(of: query)) not support")
+            }
+        case let .matchedQueryAndKey(query, _):
+            guard let _ = query as? IMConversationQuery else {
+                throw LCError(code: .inconsistency, reason: "\(type(of: query)) not support")
+            }
+        case let .notMatchedQueryAndKey(query, _):
+            guard let _ = query as? IMConversationQuery else {
+                throw LCError(code: .inconsistency, reason: "\(type(of: query)) not support")
+            }
+        default:
+            break
+        }
+        try super.where(key: key, constraint)
+    }
+    
     /// Get Conversation by ID.
     ///
     /// - Parameters:
     ///   - ID: The ID of the conversation.
     ///   - completion: callback.
-    /// - Throws: if `ID` invalid, then throw error.
     public func getConversation<T: IMConversation>(
         by ID: String,
         completion: @escaping (LCGenericResult<T>) -> Void)
@@ -140,7 +197,7 @@ public class IMConversationQuery: LCQuery {
         if T.self == IMTemporaryConversation.self {
             throw LCError.conversationQueryTypeInvalid
         }
-        self.whereKey(IMConversation.Key.objectId.rawValue, .equalTo(ID))
+        try self.where(key: IMConversation.Key.objectId.rawValue, .equalTo(ID))
         let tuple = try self.whereAndSort()
         self.queryConversations(
             whereString: tuple.whereString,
@@ -161,6 +218,11 @@ public class IMConversationQuery: LCQuery {
         }
     }
     
+    /// Get Conversations by ID set.
+    ///
+    /// - Parameters:
+    ///   - IDs: The set of ID string.
+    ///   - completion: callback.
     public func getConversations<T: IMConversation>(
         by IDs: Set<String>,
         completion: @escaping (LCGenericResult<[T]>) -> Void)
@@ -172,7 +234,7 @@ public class IMConversationQuery: LCQuery {
         guard IMConversationQuery.limitRangeOfQueryResult.contains(IDs.count) else {
             throw LCError.conversationQueryLimitInvalid
         }
-        self.whereKey(IMConversation.Key.objectId.rawValue, .containedIn(Array(IDs)))
+        try self.where(key: IMConversation.Key.objectId.rawValue, .containedIn(Array(IDs)))
         let tuple = try self.whereAndSort()
         self.queryConversations(
             whereString: tuple.whereString,
@@ -186,9 +248,8 @@ public class IMConversationQuery: LCQuery {
     /// Get Temporary Conversations by ID set.
     ///
     /// - Parameters:
-    ///   - IDs: The ID set of the temporary conversations, should not empty.
+    ///   - IDs: The set of ID string.
     ///   - completion: callback.
-    /// - Throws: if `IDs` invalid, then throw error.
     public func getTemporaryConversations(
         by IDs: Set<String>,
         completion: @escaping (LCGenericResult<[IMTemporaryConversation]>) -> Void)
@@ -204,6 +265,14 @@ public class IMConversationQuery: LCQuery {
         )
     }
     
+    /// General conversation query (not support temporary conversation query).
+    ///
+    /// The default where constraint is {"m": client.ID},
+    /// The default sort is -lm,
+    /// The default limit is 10,
+    /// The default skip is 0.
+    ///
+    /// - Parameter completion: callback
     public func findConversations<T: IMConversation>(completion: @escaping (LCGenericResult<[T]>) -> Void) throws {
         if T.self == IMTemporaryConversation.self {
             throw LCError.conversationQueryTypeInvalid

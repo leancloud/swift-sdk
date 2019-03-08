@@ -14,13 +14,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     var window: UIWindow?
 
+    var didRegisterForRemoteNotificationsWithDeviceToken: ((Data?, Error?) -> Void)?
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
         LCApplication.default.logLevel = .all
         LCApplication.default.set(
-            id: "nq0awk3lh1dpmbkziz54377mryii8ny4xvp6njoygle5nlyg",
-            key: "6vdnmdkdi4fva9i06lt50s4mcsfhppjpzm3zf5zjc9ty4pdz"
+            id: "S5vDI3IeCk1NLLiM1aFg3262-gzGzoHsz",
+            key: "7g5pPsI55piz2PRLPWK5MPz0"
         )
         return true
     }
@@ -46,7 +47,18 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func applicationWillTerminate(_ application: UIApplication) {
         // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
     }
-
+    
+    func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
+        DispatchQueue.main.async {
+            self.didRegisterForRemoteNotificationsWithDeviceToken?(deviceToken, nil)
+        }
+    }
+    
+    func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {
+        DispatchQueue.main.async {
+            self.didRegisterForRemoteNotificationsWithDeviceToken?(nil, error)
+        }
+    }
 
 }
 

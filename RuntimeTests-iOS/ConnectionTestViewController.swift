@@ -8,7 +8,7 @@
 
 import Foundation
 import UIKit
-@testable import LeanCloud
+import LeanCloud
 
 class ConnectionTestViewController: UIViewController {
     
@@ -19,7 +19,7 @@ class ConnectionTestViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        self.client = try! IMClient(id: "ConnectionTestViewController", delegate: self)
+        self.client = try! IMClient(ID: "ConnectionTestViewController", delegate: self)
         self.client.open { (result) in
             self.label.isHidden.toggle()
             self.activityIndicator.stopAnimating()
@@ -30,6 +30,10 @@ class ConnectionTestViewController: UIViewController {
                 self.showError(error)
             }
         }
+    }
+    
+    deinit {
+        print("\(type(of: self)) deinit")
     }
     
     func showError(_ error: Error) {
@@ -51,20 +55,21 @@ class ConnectionTestViewController: UIViewController {
 
 extension ConnectionTestViewController: IMClientDelegate {
     
-    func client(didOpenSession client: IMClient) {
-        self.showConnected()
+    func client(_ client: IMClient, event: IMClientEvent) {
+        switch event {
+        case .sessionDidOpen:
+            self.showConnected()
+        case .sessionDidResume:
+            self.showConnecting()
+        case .sessionDidPause(error: let error):
+            self.showError(error)
+        case .sessionDidClose(error: let error):
+            self.showError(error)
+        }
     }
     
-    func client(didBecomeResumeSession client: IMClient) {
-        self.showConnecting()
-    }
-    
-    func client(_ client: IMClient, didCloseSession error: LCError) {
-        self.showError(error)
-    }
-    
-    func client(_ client: IMClient, didPauseSession error: LCError) {
-        self.showError(error)
+    func client(_ client: IMClient, conversation: IMConversation, event: IMConversationEvent) {
+        
     }
     
 }

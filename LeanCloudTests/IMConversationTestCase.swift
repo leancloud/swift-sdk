@@ -22,7 +22,7 @@ class IMConversationTestCase: RTMBaseTestCase {
         let client: IMClient = try! IMClient(ID: uuid)
         
         let errExp = expectation(description: "not open")
-        try? client.createConversation(clientIDs: []) { (r) in
+        try? client.createConversation(clientIDs: [], isUnique: false) { (r) in
             XCTAssertTrue(Thread.isMainThread)
             XCTAssertFalse(r.isSuccess)
             XCTAssertNotNil(r.error)
@@ -32,7 +32,7 @@ class IMConversationTestCase: RTMBaseTestCase {
         
         do {
             let invalidID: String = Array<String>.init(repeating: "a", count: 65).joined()
-            try client.createConversation(clientIDs: [invalidID], completion: { (_) in })
+            try client.createConversation(clientIDs: [invalidID], isUnique: false, completion: { (_) in })
             XCTFail()
         } catch {
             XCTAssertTrue(error is LCError)
@@ -154,7 +154,7 @@ class IMConversationTestCase: RTMBaseTestCase {
                 }
             }
         }
-        try? clientA.createConversation(clientIDs: [clientA.ID, clientB.ID], name: name, attributes: attribution) { (result) in
+        try? clientA.createConversation(clientIDs: [clientA.ID, clientB.ID], name: name, attributes: attribution, isUnique: false) { (result) in
             XCTAssertTrue(Thread.isMainThread)
             if let conv: IMConversation = result.value {
                 convAssertion(conv, clientA)
@@ -187,7 +187,7 @@ class IMConversationTestCase: RTMBaseTestCase {
         }
         
         let exp1 = expectation(description: "create unique conversation")
-        try? clientA.createConversation(clientIDs: [clientA.ID, clientB.ID], isUnique: true, completion: { (result) in
+        try? clientA.createConversation(clientIDs: [clientA.ID, clientB.ID], completion: { (result) in
             if let conv: IMConversation = result.value {
                 XCTAssertTrue(type(of: conv) == IMConversation.self)
                 XCTAssertEqual(conv.lcType, .normal)
@@ -201,7 +201,7 @@ class IMConversationTestCase: RTMBaseTestCase {
         wait(for: [exp1], timeout: timeout)
         
         let exp2 = expectation(description: "create unique conversation")
-        try? clientB.createConversation(clientIDs: [clientA.ID, clientB.ID], isUnique: true, completion: { (result) in
+        try? clientB.createConversation(clientIDs: [clientA.ID, clientB.ID], completion: { (result) in
             if let conv: IMConversation = result.value {
                 XCTAssertTrue(type(of: conv) == IMConversation.self)
                 XCTAssertEqual(conv.lcType, .normal)
@@ -322,7 +322,7 @@ class IMConversationTestCase: RTMBaseTestCase {
     }
     
     func testNormalConversationUnreadEvent() {
-        guard let clientA = newOpenedClient(options: [.receiveUnreadMessageCountAfterSessionDidOpen]) else {
+        guard let clientA = newOpenedClient() else {
             XCTFail()
             return
         }
@@ -334,7 +334,7 @@ class IMConversationTestCase: RTMBaseTestCase {
         
         let sendExp = expectation(description: "create conversation and send message")
         sendExp.expectedFulfillmentCount = 2
-        try? clientA.createConversation(clientIDs: [otherClientID], completion: { (result) in
+        try? clientA.createConversation(clientIDs: [otherClientID], isUnique: false, completion: { (result) in
             XCTAssertTrue(result.isSuccess)
             XCTAssertNil(result.error)
             try? result.value?.send(message: message, completion: { (result) in
@@ -345,7 +345,7 @@ class IMConversationTestCase: RTMBaseTestCase {
         })
         wait(for: [sendExp], timeout: timeout)
         
-        let clientB = try! IMClient(ID: otherClientID, options: [.receiveUnreadMessageCountAfterSessionDidOpen])
+        let clientB = try! IMClient(ID: otherClientID)
         let delegatorB = IMClientTestCase.Delegator()
         clientB.delegate = delegatorB
         
@@ -359,7 +359,7 @@ class IMConversationTestCase: RTMBaseTestCase {
                     XCTAssertEqual(conversation.lastMessage?.sentTimestamp, message.sentTimestamp)
                     XCTAssertEqual(conversation.lastMessage?.ID, message.ID)
                     unreadExp.fulfill()
-                case .unreadMessageUpdated:
+                case .unreadMessageCountUpdated:
                     XCTAssertEqual(conversation.unreadMessageCount, 1)
                     XCTAssertTrue(conversation.isUnreadMessageContainMention)
                     unreadExp.fulfill()
@@ -391,7 +391,7 @@ class IMConversationTestCase: RTMBaseTestCase {
         }
         delegatorB.conversationEvent = { client, conversation, event in
             if conversation.ID == message.conversationID {
-                if case .unreadMessageUpdated = event {
+                if case .unreadMessageCountUpdated = event {
                     notGetUnreadExp.fulfill()
                 }
             }
@@ -403,7 +403,7 @@ class IMConversationTestCase: RTMBaseTestCase {
         let readExp = expectation(description: "read")
         delegatorB.conversationEvent = { client, conversation, event in
             if conversation.ID == message.conversationID {
-                if case .unreadMessageUpdated = event {
+                if case .unreadMessageCountUpdated = event {
                     XCTAssertEqual(conversation.unreadMessageCount, 0)
                     readExp.fulfill()
                 }
@@ -416,7 +416,7 @@ class IMConversationTestCase: RTMBaseTestCase {
     }
     
     func testTemporaryConversationUnreadEvent() {
-        guard let clientA = newOpenedClient(options: [.receiveUnreadMessageCountAfterSessionDidOpen]) else {
+        guard let clientA = newOpenedClient() else {
             XCTFail()
             return
         }
@@ -438,7 +438,7 @@ class IMConversationTestCase: RTMBaseTestCase {
         })
         wait(for: [sendExp], timeout: timeout)
         
-        let clientB = try! IMClient(ID: otherClientID, options: [.receiveUnreadMessageCountAfterSessionDidOpen])
+        let clientB = try! IMClient(ID: otherClientID)
         let delegator = IMClientTestCase.Delegator()
         clientB.delegate = delegator
         
@@ -452,7 +452,7 @@ class IMConversationTestCase: RTMBaseTestCase {
                     XCTAssertEqual(conversation.lastMessage?.sentTimestamp, message.sentTimestamp)
                     XCTAssertEqual(conversation.lastMessage?.ID, message.ID)
                     unreadExp.fulfill()
-                case .unreadMessageUpdated:
+                case .unreadMessageCountUpdated:
                     XCTAssertEqual(conversation.unreadMessageCount, 1)
                     XCTAssertTrue(conversation.isUnreadMessageContainMention)
                     unreadExp.fulfill()
@@ -470,7 +470,7 @@ class IMConversationTestCase: RTMBaseTestCase {
         let readExp = expectation(description: "read")
         delegator.conversationEvent = { client, conversation, event in
             if client === clientB, conversation.ID == message.conversationID {
-                if case .unreadMessageUpdated = event {
+                if case .unreadMessageCountUpdated = event {
                     XCTAssertEqual(conversation.unreadMessageCount, 0)
                     readExp.fulfill()
                 }
@@ -497,7 +497,7 @@ class IMConversationTestCase: RTMBaseTestCase {
         
         delay(seconds: 15)
         
-        let clientA = try! IMClient(ID: clientID, options: [.receiveUnreadMessageCountAfterSessionDidOpen])
+        let clientA = try! IMClient(ID: clientID)
         let delegator = IMClientTestCase.Delegator()
         clientA.delegate = delegator
         
@@ -508,7 +508,7 @@ class IMConversationTestCase: RTMBaseTestCase {
                 switch event {
                 case .lastMessageUpdated:
                     unreadExp.fulfill()
-                case .unreadMessageUpdated:
+                case .unreadMessageCountUpdated:
                     unreadExp.fulfill()
                 default:
                     break
@@ -524,7 +524,7 @@ class IMConversationTestCase: RTMBaseTestCase {
         let readExp = expectation(description: "read")
         delegator.conversationEvent = { client, conversation, event in
             if client === clientA, conversation.ID == serviceConvID {
-                if case .unreadMessageUpdated = event {
+                if case .unreadMessageCountUpdated = event {
                     XCTAssertEqual(conversation.unreadMessageCount, 0)
                     readExp.fulfill()
                 }
@@ -537,7 +537,7 @@ class IMConversationTestCase: RTMBaseTestCase {
     }
     
     func testLargeUnreadEvent() {
-        guard let clientA = newOpenedClient(options: [.receiveUnreadMessageCountAfterSessionDidOpen]) else {
+        guard let clientA = newOpenedClient() else {
             XCTFail()
             return
         }
@@ -561,7 +561,7 @@ class IMConversationTestCase: RTMBaseTestCase {
                 })
                 wait(for: [exp], timeout: timeout)
             } else {
-                try! clientA.createConversation(clientIDs: [otherClientID]) { (result) in
+                try! clientA.createConversation(clientIDs: [otherClientID], isUnique: false) { (result) in
                     XCTAssertNotNil(result.value)
                     try! result.value?.send(message: message, completion: { (result) in
                         XCTAssertTrue(result.isSuccess)
@@ -574,7 +574,7 @@ class IMConversationTestCase: RTMBaseTestCase {
         }
         
         let convIDSet = Set<String>(clientA.convCollection.keys)
-        let clientB = try! IMClient(ID: otherClientID, options: [.receiveUnreadMessageCountAfterSessionDidOpen])
+        let clientB = try! IMClient(ID: otherClientID)
         let delegator = IMClientTestCase.Delegator()
         clientB.delegate = delegator
         
@@ -583,7 +583,7 @@ class IMConversationTestCase: RTMBaseTestCase {
         delegator.conversationEvent = { client, conversaton, event in
             if client === clientB, convIDSet.contains(conversaton.ID) {
                 switch event {
-                case .lastMessageUpdated, .unreadMessageUpdated:
+                case .lastMessageUpdated, .unreadMessageCountUpdated:
                     largeUnreadExp.fulfill()
                 default:
                     break
@@ -602,7 +602,7 @@ class IMConversationTestCase: RTMBaseTestCase {
         allReadExp.expectedFulfillmentCount = count
         delegator.conversationEvent = { client, conversation, event in
             if client === clientB, convIDSet.contains(conversation.ID) {
-                if case .unreadMessageUpdated = event {
+                if case .unreadMessageCountUpdated = event {
                     allReadExp.fulfill()
                 }
             }
@@ -657,7 +657,7 @@ class IMConversationTestCase: RTMBaseTestCase {
                 break
             }
         }
-        try? clientA.createConversation(clientIDs: [clientA.ID, clientB.ID]) { (result) in
+        try? clientA.createConversation(clientIDs: [clientA.ID, clientB.ID], isUnique: false) { (result) in
             XCTAssertTrue(result.isSuccess)
             XCTAssertNil(result.error)
             convA = result.value
@@ -866,7 +866,7 @@ class IMConversationTestCase: RTMBaseTestCase {
         var conversation: IMConversation? = nil
         
         let createExp = expectation(description: "create conversation")
-        try? client.createConversation(clientIDs: [uuid, uuid]) { (result) in
+        try? client.createConversation(clientIDs: [uuid, uuid], isUnique: false) { (result) in
             XCTAssertTrue(result.isSuccess)
             XCTAssertNil(result.error)
             conversation = result.value
@@ -915,7 +915,7 @@ class IMConversationTestCase: RTMBaseTestCase {
             case 0:
                 let createExp = expectation(description: "create normal conversation")
                 createExp.expectedFulfillmentCount = 2
-                try? clientA.createConversation(clientIDs: [uuid], completion: { (result) in
+                try? clientA.createConversation(clientIDs: [uuid], isUnique: false, completion: { (result) in
                     XCTAssertTrue(result.isSuccess)
                     XCTAssertNil(result.error)
                     ID1 = result.value?.ID
@@ -972,7 +972,7 @@ class IMConversationTestCase: RTMBaseTestCase {
         
         let queryExp1 = expectation(description: "query normal conversation with message and without member")
         let query1 = clientA.conversationQuery
-        query1.options = [.notContainMembers, .withLastMessage]
+        query1.options = [.notContainMembers, .containLastMessage]
         try? query1.getConversation(by: normalConvID) { (result) in
             XCTAssertTrue(result.isSuccess)
             XCTAssertNil(result.error)
@@ -1060,11 +1060,11 @@ class IMConversationTestCase: RTMBaseTestCase {
         
         let generalQueryExp2 = expectation(description: "general query with custom conditon")
         let generalQuery1 = clientA.conversationQuery
-        generalQuery1.whereKey(IMConversation.Key.transient.rawValue, .equalTo(true))
+        try! generalQuery1.where(key: IMConversation.Key.transient.rawValue, .equalTo(true))
         let generalQuery2 = clientA.conversationQuery
-        generalQuery2.whereKey(IMConversation.Key.system.rawValue, .equalTo(true))
+        try! generalQuery2.where(key: IMConversation.Key.system.rawValue, .equalTo(true))
         let generalQuery3 = try? generalQuery1.or(generalQuery2)
-        generalQuery3??.whereKey(IMConversation.Key.createdAt.rawValue, .ascending)
+        try! generalQuery3??.where(key: IMConversation.Key.createdAt.rawValue, .ascending)
         generalQuery3??.limit = 5
         try? generalQuery3??.findConversations(completion: { (result) in
             XCTAssertTrue(result.isSuccess)
@@ -1085,6 +1085,24 @@ class IMConversationTestCase: RTMBaseTestCase {
             generalQueryExp2.fulfill()
         })
         wait(for: [generalQueryExp2], timeout: timeout)
+        
+        let invalidQuery = LCQuery(className: "invalid")
+        for constraint in
+            [ LCQuery.Constraint.selected,
+              LCQuery.Constraint.included,
+              LCQuery.Constraint.matchedQuery(invalidQuery),
+              LCQuery.Constraint.notMatchedQuery(invalidQuery),
+              LCQuery.Constraint.matchedQueryAndKey(query: invalidQuery, key: ""),
+              LCQuery.Constraint.notMatchedQueryAndKey(query: invalidQuery, key: "")]
+        {
+            do {
+                let conversationQuery = clientA.conversationQuery
+                try conversationQuery.where(key: "key", constraint)
+                XCTFail()
+            } catch {
+                XCTAssertTrue(error is LCError)
+            }
+        }
     }
     
     func testUpdating() {
@@ -1122,7 +1140,8 @@ class IMConversationTestCase: RTMBaseTestCase {
             attributes: [
                 deleteKey: uuid,
                 arrayKey: [uuid]
-            ])
+            ],
+            isUnique: false)
         { (result) in
             XCTAssertTrue(result.isSuccess)
             XCTAssertNil(result.error)
@@ -1145,7 +1164,11 @@ class IMConversationTestCase: RTMBaseTestCase {
         delegatorB.conversationEvent = { client, conv, event in
             if conv.ID == convA?.ID {
                 switch event {
-                case .dataUpdated:
+                case let .dataUpdated(updatedData: updatedData, byClientID: byClientID, at: at, updatingData: updatingData):
+                    XCTAssertNotNil(updatedData)
+                    XCTAssertNotNil(updatingData)
+                    XCTAssertNotNil(at)
+                    XCTAssertEqual(byClientID, clientA.ID)
                     convB = conv
                     updateExp.fulfill()
                 default:
@@ -1200,7 +1223,7 @@ class IMConversationTestCase: RTMBaseTestCase {
                 break
             }
         }
-        try? clientA.createConversation(clientIDs: [clientB.ID]) { (result) in
+        try? clientA.createConversation(clientIDs: [clientB.ID], isUnique: false) { (result) in
             XCTAssertTrue(result.isSuccess)
             XCTAssertNil(result.error)
             createExp.fulfill()
@@ -1242,13 +1265,8 @@ class IMConversationTestCase: RTMBaseTestCase {
 
 extension IMConversationTestCase {
     
-    func newOpenedClient(
-        clientID: String? = nil,
-        options: IMClient.Options = .default,
-        customRTMURL: URL? = nil)
-        -> IMClient?
-    {
-        var client: IMClient? = try? IMClient(ID: clientID ?? uuid, options:options, customServerURL: customRTMURL)
+    func newOpenedClient(clientID: String? = nil, customRTMURL: URL? = nil) -> IMClient? {
+        var client: IMClient? = try? IMClient(ID: clientID ?? uuid, customServerURL: customRTMURL)
         let exp = expectation(description: "open")
         client?.open { (result) in
             if result.isFailure { client = nil }

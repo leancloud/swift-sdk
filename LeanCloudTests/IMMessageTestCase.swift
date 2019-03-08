@@ -13,7 +13,7 @@ class IMMessageTestCase: RTMBaseTestCase {
     
     func testMessageSendingAndReceiving() {
         guard
-            let tuples = convenienceInit(clientOptions: [.receiveUnreadMessageCountAfterSessionDidOpen]),
+            let tuples = convenienceInit(),
             let tuple1 = tuples.first,
             let tuple2 = tuples.last
             else
@@ -31,7 +31,7 @@ class IMMessageTestCase: RTMBaseTestCase {
             XCTAssertEqual(message.status, .sent)
             XCTAssertNotNil(message.ID)
             XCTAssertEqual(conv.ID, message.conversationID)
-            XCTAssertEqual(conv.clientID, message.localClientID)
+            XCTAssertEqual(conv.clientID, message.currentClientID)
             XCTAssertNotNil(message.sentTimestamp)
             XCTAssertNotNil(message.sentDate)
             XCTAssertNotNil(message.content)
@@ -46,7 +46,7 @@ class IMMessageTestCase: RTMBaseTestCase {
             case .lastMessageUpdated:
                 XCTAssertTrue(stringMessage === converstion.lastMessage)
                 exp1.fulfill()
-            case .unreadMessageUpdated:
+            case .unreadMessageCountUpdated:
                 XCTFail()
             default:
                 break
@@ -65,7 +65,7 @@ class IMMessageTestCase: RTMBaseTestCase {
                 }
             case .lastMessageUpdated:
                 exp1.fulfill()
-            case .unreadMessageUpdated:
+            case .unreadMessageCountUpdated:
                 XCTAssertTrue([0,1].contains(conversation.unreadMessageCount))
                 exp1.fulfill()
             default:
@@ -100,7 +100,7 @@ class IMMessageTestCase: RTMBaseTestCase {
                 }
             case .lastMessageUpdated:
                 exp2.fulfill()
-            case .unreadMessageUpdated:
+            case .unreadMessageCountUpdated:
                 XCTAssertTrue([0,1].contains(conversation.unreadMessageCount))
                 exp2.fulfill()
             default:
@@ -112,7 +112,7 @@ class IMMessageTestCase: RTMBaseTestCase {
             case .lastMessageUpdated:
                 XCTAssertTrue(conversation.lastMessage === dataMessage)
                 exp2.fulfill()
-            case .unreadMessageUpdated:
+            case .unreadMessageCountUpdated:
                 XCTFail()
             default:
                 break
@@ -150,7 +150,7 @@ class IMMessageTestCase: RTMBaseTestCase {
     
     func testMessageContinuousSendingAndReceiving() {
         guard
-            let tuples = convenienceInit(clientOptions: [.receiveUnreadMessageCountAfterSessionDidOpen]),
+            let tuples = convenienceInit(),
             let tuple1 = tuples.first,
             let tuple2 = tuples.last
             else
@@ -184,7 +184,7 @@ class IMMessageTestCase: RTMBaseTestCase {
                 default:
                     break
                 }
-            case .unreadMessageUpdated:
+            case .unreadMessageCountUpdated:
                 if receivedMessageCountA == 0,
                     conversation.unreadMessageCount == 0 {
                     exp.fulfill()
@@ -209,7 +209,7 @@ class IMMessageTestCase: RTMBaseTestCase {
                 default:
                     break
                 }
-            case .unreadMessageUpdated:
+            case .unreadMessageCountUpdated:
                 if receivedMessageCountB == 0,
                     conversation.unreadMessageCount == 0 {
                     exp.fulfill()
@@ -263,7 +263,7 @@ class IMMessageTestCase: RTMBaseTestCase {
     
     func testMessageReceipt() {
         guard
-            let tuples = convenienceInit(clientOptions: [.receiveUnreadMessageCountAfterSessionDidOpen]),
+            let tuples = convenienceInit(),
             let tuple1 = tuples.first,
             let tuple2 = tuples.last
             else
@@ -777,7 +777,7 @@ class IMMessageTestCase: RTMBaseTestCase {
         })
         wait(for: [exp], timeout: timeout)
         
-        XCTAssertNil(receivingTuple?.client.lastPatchTime)
+        XCTAssertNotNil(receivingTuple?.client.lastPatchTime)
     }
     
     func testMessageRecalling() {
@@ -837,16 +837,12 @@ class IMMessageTestCase: RTMBaseTestCase {
         })
         wait(for: [exp], timeout: timeout)
         
-        XCTAssertNil(receivingTuple?.client.lastPatchTime)
+        XCTAssertNotNil(receivingTuple?.client.lastPatchTime)
     }
     
     func testMessagePatchNotification() {
         guard
-            let tuples = convenienceInit(
-                clientOptions: [.receiveUnreadMessageCountAfterSessionDidOpen],
-                RTMServerURL: testableRTMURL,
-                shouldConnectionShared: false
-            ),
+            let tuples = convenienceInit(RTMServerURL: testableRTMURL, shouldConnectionShared: false),
             let sendingTuple = tuples.first,
             let receivingTuple = tuples.last
             else
@@ -964,11 +960,7 @@ class IMMessageTestCase: RTMBaseTestCase {
     
     func testMessagePatchError() {
         guard
-            let tuples = convenienceInit(
-                clientCount: 3,
-                clientOptions: [.receiveUnreadMessageCountAfterSessionDidOpen],
-                RTMServerURL: testableRTMURL
-            ),
+            let tuples = convenienceInit(clientCount: 3, RTMServerURL: testableRTMURL),
             let sendingTuple = tuples.first,
             let receivingTuple = tuples.last
             else
@@ -1023,7 +1015,6 @@ class IMMessageTestCase: RTMBaseTestCase {
         var sendingTuple: Tuple? = nil
         var receivingTuple: Tuple? = nil
         let success = sendingAndReceiving(
-            clientOptions: .receiveUnreadMessageCountAfterSessionDidOpen,
             sentMessage: message,
             sendingTuple: &sendingTuple,
             receivingTuple: &receivingTuple
@@ -1035,7 +1026,7 @@ class IMMessageTestCase: RTMBaseTestCase {
         let readExp = expectation(description: "read message")
         receivingTuple?.delegator.conversationEvent = { client, conv, event in
             if conv === receivingTuple?.conversation,
-                case .unreadMessageUpdated = event {
+                case .unreadMessageCountUpdated = event {
                 XCTAssertEqual(conv.unreadMessageCount, 0)
                 readExp.fulfill()
             }
@@ -1352,7 +1343,7 @@ extension IMMessageTestCase {
                 exp.fulfill()
             })
         } else {
-            try? client.createConversation(clientIDs: clientIDs, completion: { (result) in
+            try? client.createConversation(clientIDs: clientIDs, isUnique: false, completion: { (result) in
                 XCTAssertTrue(result.isSuccess)
                 XCTAssertNil(result.error)
                 conversation = result.value
@@ -1363,13 +1354,7 @@ extension IMMessageTestCase {
         return conversation
     }
     
-    func convenienceInit(
-        clientCount: Int = 2,
-        clientOptions: IMClient.Options = .default,
-        RTMServerURL: URL? = nil,
-        shouldConnectionShared: Bool = true)
-        -> [Tuple]?
-    {
+    func convenienceInit(clientCount: Int = 2, RTMServerURL: URL? = nil, shouldConnectionShared: Bool = true) -> [Tuple]? {
         var tuples: [Tuple] = []
         let exp = expectation(description: "get conversations")
         exp.expectedFulfillmentCount = clientCount
@@ -1378,7 +1363,7 @@ extension IMMessageTestCase {
         var conversationMap: [String: IMConversation] = [:]
         var clientIDs: [String] = []
         for _ in 0..<clientCount {
-            guard let client = newOpenedClient(options: clientOptions, customRTMURL: RTMServerURL) else {
+            guard let client = newOpenedClient(customRTMURL: RTMServerURL) else {
                 continue
             }
             let delegator = IMClientTestCase.Delegator()
@@ -1440,7 +1425,6 @@ extension IMMessageTestCase {
     }
     
     func sendingAndReceiving<T: IMMessage>(
-        clientOptions: IMClient.Options = .default,
         sentMessage: T,
         sendingTuple: inout Tuple?,
         receivingTuple: inout Tuple?,
@@ -1449,7 +1433,7 @@ extension IMMessageTestCase {
         -> Bool
     {
         guard
-            let tuples = convenienceInit(clientOptions: clientOptions),
+            let tuples = convenienceInit(),
             let tuple1 = tuples.first,
             let tuple2 = tuples.last
             else

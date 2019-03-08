@@ -133,6 +133,7 @@ class IMClientTestCase: RTMBaseTestCase {
             deviceToken: uuid,
             apnsTeamId: ""
         )
+        XCTAssertTrue(application1.currentInstallation.save().isSuccess)
         let delegator1: Delegator = Delegator()
         let client1: IMClient = try! IMClient(
             ID: clientID,
@@ -150,6 +151,7 @@ class IMClientTestCase: RTMBaseTestCase {
         
         RTMConnectionRefMap_protobuf1.removeAll()
         RTMConnectionRefMap_protobuf3.removeAll()
+        delay()
         
         let application2: LCApplication = LCApplication(
             id: LCApplication.default.id,
@@ -159,6 +161,7 @@ class IMClientTestCase: RTMBaseTestCase {
             deviceToken: uuid,
             apnsTeamId: ""
         )
+        XCTAssertTrue(application2.currentInstallation.save().isSuccess)
         let delegator2: Delegator = Delegator()
         let client2: IMClient = try! IMClient(
             ID: clientID,
@@ -169,14 +172,15 @@ class IMClientTestCase: RTMBaseTestCase {
         
         let exp2 = expectation(description: "client2 open success & kick client1 success")
         exp2.expectedFulfillmentCount = 2
-        delegator1.clientEvent = { c, event in
-            if c === client1,
-                case let .sessionDidClose(error: error) = event {
-                XCTAssertEqual(
-                    error.code,
-                    LCError.ServerErrorCode.sessionConflict.rawValue
-                )
-                exp2.fulfill()
+        delegator1.clientEvent = { client, event in
+            if client === client1 {
+                switch event {
+                case let .sessionDidClose(error: error):
+                    XCTAssertEqual(error.code, LCError.ServerErrorCode.sessionConflict.rawValue)
+                    exp2.fulfill()
+                default:
+                    break
+                }
             }
         }
         client2.open { (result) in
@@ -188,17 +192,22 @@ class IMClientTestCase: RTMBaseTestCase {
         let exp3 = expectation(description: "client1 resume with deviceToken1 fail, and set deviceToken2 then resume success")
         exp3.expectedFulfillmentCount = 2
         client1.open(options: []) { (result) in
-            XCTAssertEqual(
-                result.error?.code,
-                LCError.ServerErrorCode.sessionConflict.rawValue
-            )
-            application1.currentInstallation.set(
-                deviceToken: application2.currentInstallation.deviceToken!.value,
-                apnsTeamId: ""
-            )
-            client1.open(options: []) { (result) in
-                XCTAssertNil(result.error)
-                exp3.fulfill()
+            XCTAssertEqual(result.error?.code, LCError.ServerErrorCode.sessionConflict.rawValue)
+            client1.serialQueue.async {
+                application1.currentInstallation.set(
+                    deviceToken: application2.currentInstallation.deviceToken!.value,
+                    apnsTeamId: ""
+                )
+                application1.currentInstallation.save({ (result) in
+                    XCTAssertTrue(result.isSuccess)
+                    XCTAssertNil(result.error)
+                    client1.serialQueue.async {
+                        client1.open(options: []) { (result) in
+                            XCTAssertNil(result.error)
+                            exp3.fulfill()
+                        }
+                    }
+                })
             }
             exp3.fulfill()
         }
@@ -261,20 +270,20 @@ class IMClientTestCase: RTMBaseTestCase {
         
         let exp = expectation(description: "client report device token success")
         exp.expectedFulfillmentCount = 2
-        client.open { (result) in
-            XCTAssertTrue(result.isSuccess)
-            let uuid: String = self.uuid
-            client.installation.set(deviceToken: uuid, apnsTeamId: "")
-            XCTAssertEqual(uuid, client.currentDeviceToken)
-            exp.fulfill()
-        }
+        let otherDeviceToken: String = uuid
         let _ = NotificationCenter.default.addObserver(forName: IMClient.TestReportDeviceTokenNotification, object: client, queue: OperationQueue.main) { (notification) in
             let result = notification.userInfo?["result"] as? RTMConnection.CommandCallback.Result
             XCTAssertEqual(result?.command?.cmd, .report)
             XCTAssertEqual(result?.command?.op, .uploaded)
             exp.fulfill()
         }
-        waitForExpectations(timeout: timeout, handler: nil)
+        client.open { (result) in
+            XCTAssertTrue(result.isSuccess)
+            client.installation.set(deviceToken: otherDeviceToken, apnsTeamId: "")
+            exp.fulfill()
+        }
+        wait(for: [exp], timeout: timeout)
+        XCTAssertEqual(otherDeviceToken, client.currentDeviceToken)
     }
     
     func testSessionQuery() {
