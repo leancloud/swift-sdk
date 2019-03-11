@@ -297,8 +297,10 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
 
         switch name {
         case .set:
+            Runtime.setInstanceVariable(self, key, value)
             propertyTable[key] = value
         case .delete:
+            Runtime.setInstanceVariable(self, key, nil)
             propertyTable[key] = nil
         case .increment:
             guard let number = value as? LCNumber else {
