@@ -151,7 +151,6 @@ class IMClientTestCase: RTMBaseTestCase {
         
         RTMConnectionRefMap_protobuf1.removeAll()
         RTMConnectionRefMap_protobuf3.removeAll()
-        delay()
         
         let application2: LCApplication = LCApplication(
             id: LCApplication.default.id,
@@ -193,21 +192,14 @@ class IMClientTestCase: RTMBaseTestCase {
         exp3.expectedFulfillmentCount = 2
         client1.open(options: []) { (result) in
             XCTAssertEqual(result.error?.code, LCError.ServerErrorCode.sessionConflict.rawValue)
-            client1.serialQueue.async {
-                application1.currentInstallation.set(
-                    deviceToken: application2.currentInstallation.deviceToken!.value,
-                    apnsTeamId: ""
-                )
-                application1.currentInstallation.save({ (result) in
-                    XCTAssertTrue(result.isSuccess)
-                    XCTAssertNil(result.error)
-                    client1.serialQueue.async {
-                        client1.open(options: []) { (result) in
-                            XCTAssertNil(result.error)
-                            exp3.fulfill()
-                        }
-                    }
-                })
+            application1.currentInstallation.set(
+                deviceToken: application2.currentInstallation.deviceToken!.value,
+                apnsTeamId: ""
+            )
+            self.delay()
+            client1.open(options: []) { (result) in
+                XCTAssertNil(result.error)
+                exp3.fulfill()
             }
             exp3.fulfill()
         }
