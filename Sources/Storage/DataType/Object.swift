@@ -519,9 +519,9 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
      Increase a number by amount.
 
      - parameter key:    The key of number which you want to increase.
-     - parameter amount: The amount to increase.
+     - parameter amount: The amount to increase. If no amount is specified, 1 is used by default. 
      */
-    open func increase(_ key: String, by: LCNumberConvertible) throws {
+    open func increase(_ key: String, by: LCNumberConvertible = 1) throws {
         try addOperation(.increment, key, by.lcNumber)
     }
 
