@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name         = 'LeanCloud'
-  s.version      = '15.0.0'
+  s.version      = '16.0.0-beta.1'
   s.license      = { :type => 'Apache License, Version 2.0', :file => 'LICENSE' }
   s.summary      = 'LeanCloud Swift SDK'
   s.homepage     = 'https://leancloud.cn/'
@@ -34,5 +34,14 @@ Pod::Spec.new do |s|
 
     ss.source_files = 'Sources/Storage/**/*.swift'
     ss.resources = 'Sources/Storage/**/*.{xcdatamodeld}'
+  end
+
+  s.subspec 'IM' do |ss|
+    ss.dependency 'SwiftProtobuf', '~> 1.3.0'
+
+    ss.dependency 'LeanCloud/Storage'
+
+    ss.source_files = 'Sources/IM/**/*.swift'
+    ss.resources = 'Sources/IM/**/*.{xcdatamodeld}'
   end
 end
