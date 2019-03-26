@@ -65,7 +65,7 @@ class HTTPClient {
         let defaultTimeoutInterval: TimeInterval?
 
         static let `default` = Configuration(
-            userAgent: "LeanCloud-Swift-SDK/\(lc_version)",
+            userAgent: "LeanCloud-Swift-SDK/\(__LeanCloudVersion)",
             defaultTimeoutInterval: nil)
 
     }
