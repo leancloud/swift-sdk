@@ -8,9 +8,9 @@
 
 import Foundation
 
-public let version = "16.0.0-beta.1"
+public let version = "16.0.0-beta.2"
 
-/// `version` is a common word, so use `lc_version` to wrap it to avoid conflict.
-var lc_version: String {
+/// `version` is a common word, so use `__LeanCloudVersion` to wrap it to avoid conflict.
+var __LeanCloudVersion: String {
     return version
 }

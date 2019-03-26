@@ -711,7 +711,7 @@ class IMConversationTestCase: RTMBaseTestCase {
                 }
             }
         }
-        try? convB?.leave(completion: { (result) in
+        ((try? convB?.leave(completion: { (result) in
             XCTAssertTrue(result.isSuccess)
             XCTAssertNil(result.error)
             XCTAssertEqual(convB?.members?.count, 1)
@@ -725,7 +725,7 @@ class IMConversationTestCase: RTMBaseTestCase {
                 XCTAssertEqual(convB?.members?.contains(clientB.ID), true)
                 leaveAndJoinExp.fulfill()
             })
-        })
+        })) as ()??)
         wait(for: [leaveAndJoinExp], timeout: timeout)
         
         let removeAndAddExp = expectation(description: "remove and add")
@@ -772,7 +772,7 @@ class IMConversationTestCase: RTMBaseTestCase {
                 }
             }
         }
-        try? convA?.remove(members: [clientB.ID], completion: { (result) in
+        ((try? convA?.remove(members: [clientB.ID], completion: { (result) in
             XCTAssertTrue(result.isSuccess)
             XCTAssertNil(result.error)
             XCTAssertEqual(convA?.members?.count, 1)
@@ -786,7 +786,7 @@ class IMConversationTestCase: RTMBaseTestCase {
                 XCTAssertEqual(convA?.members?.contains(clientB.ID), true)
                 removeAndAddExp.fulfill()
             })
-        })
+        })) as ()??)
         wait(for: [removeAndAddExp], timeout: timeout)
     }
     
@@ -831,7 +831,7 @@ class IMConversationTestCase: RTMBaseTestCase {
             XCTAssertNil(result.error)
             XCTAssertEqual(result.intValue, 1)
             countExp.fulfill()
-            try? chatRoomB?.join(completion: { (result) in
+            ((try? chatRoomB?.join(completion: { (result) in
                 XCTAssertTrue(result.isSuccess)
                 XCTAssertNil(result.error)
                 countExp.fulfill()
@@ -852,7 +852,7 @@ class IMConversationTestCase: RTMBaseTestCase {
                         })
                     })
                 })
-            })
+            })) as ()??)
         })
         wait(for: [countExp], timeout: timeout)
     }
@@ -1063,10 +1063,10 @@ class IMConversationTestCase: RTMBaseTestCase {
         try! generalQuery1.where(key: IMConversation.Key.transient.rawValue, .equalTo(true))
         let generalQuery2 = clientA.conversationQuery
         try! generalQuery2.where(key: IMConversation.Key.system.rawValue, .equalTo(true))
-        let generalQuery3 = try? generalQuery1.or(generalQuery2)
+        let generalQuery3 = ((try? generalQuery1.or(generalQuery2)) as IMConversationQuery??)
         try! generalQuery3??.where(key: IMConversation.Key.createdAt.rawValue, .ascending)
         generalQuery3??.limit = 5
-        try? generalQuery3??.findConversations(completion: { (result) in
+        ((try? generalQuery3??.findConversations(completion: { (result) in
             XCTAssertTrue(result.isSuccess)
             XCTAssertNil(result.error)
             XCTAssertLessThanOrEqual(result.value?.count ?? .max, 5)
@@ -1083,7 +1083,7 @@ class IMConversationTestCase: RTMBaseTestCase {
                 }
             }
             generalQueryExp2.fulfill()
-        })
+        })) as ()??)
         wait(for: [generalQueryExp2], timeout: timeout)
         
         let invalidQuery = LCQuery(className: "invalid")
@@ -1176,12 +1176,12 @@ class IMConversationTestCase: RTMBaseTestCase {
                 }
             }
         }
-        try? convA?.update(with: data, completion: { (result) in
+        ((try? convA?.update(with: data, completion: { (result) in
             XCTAssertTrue(Thread.isMainThread)
             XCTAssertTrue(result.isSuccess)
             XCTAssertNil(result.error)
             updateExp.fulfill()
-        })
+        })) as ()??)
         wait(for: [updateExp], timeout: timeout)
         
         let check = { (conv: IMConversation?) in
@@ -1299,7 +1299,7 @@ extension IMConversationTestCase {
             let statusCode = (response as? HTTPURLResponse)?.statusCode ?? 0
             XCTAssertTrue((200..<300).contains(statusCode))
             if let data = data,
-                let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                let object = ((try? JSONSerialization.jsonObject(with: data) as? [String: Any]) as [String : Any]??),
                 let json: [String: Any] = object {
                 print("------\n\(json)\n------\n")
                 objectID = json["objectId"] as? String
@@ -1340,7 +1340,7 @@ extension IMConversationTestCase {
                 XCTFail()
             }
             if let data = data,
-                let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                let object = ((try? JSONSerialization.jsonObject(with: data) as? [String: Any]) as [String : Any]??),
                 let json: [String: Any] = object {
                 print("------\n\(json)\n------\n")
             }
@@ -1377,7 +1377,7 @@ extension IMConversationTestCase {
             let statusCode = (response as? HTTPURLResponse)?.statusCode ?? 0
             XCTAssertTrue((200..<300).contains(statusCode))
             if let data = data,
-                let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                let object = ((try? JSONSerialization.jsonObject(with: data) as? [String: Any]) as [String : Any]??),
                 let json: [String: Any] = object {
                 print("------\n\(json)\n------\n")
                 if let result: [String: Any] = json["result"] as? [String: Any],

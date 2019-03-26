@@ -58,7 +58,7 @@ class Logger {
         _ function: String = #function,
         _ line: Int = #line)
     {
-        log(.debug, value, file, function, line)
+        log(.debug, value(), file, function, line)
     }
 
     func error<T>(
@@ -67,7 +67,7 @@ class Logger {
         _ function: String = #function,
         _ line: Int = #line)
     {
-        log(.error, value, file, function, line)
+        log(.error, value(), file, function, line)
     }
 
     func verbose<T>(
@@ -76,7 +76,7 @@ class Logger {
         _ function: String = #function,
         _ line: Int = #line)
     {
-        log(.verbose, value, file, function, line)
+        log(.verbose, value(), file, function, line)
     }
     
 }

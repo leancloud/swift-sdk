@@ -42,15 +42,12 @@ protocol InternalSynchronizing {
     
     var mutex: NSLock { get }
     
-    func sync(_ closure: @autoclosure () -> Void)
-    
-    func sync(_ closure: () -> Void)
 }
 
 extension InternalSynchronizing {
     
-    func sync(_ closure: @autoclosure () -> Void) {
-        sync { closure() }
+    func sync(_ autoClosure: @autoclosure () -> Void) {
+        sync { autoClosure() }
     }
     
     func sync(_ closure: () -> Void) {

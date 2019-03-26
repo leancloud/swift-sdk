@@ -4,3 +4,6 @@
 [submodule "SwiftProtobuf"]
 	path = SwiftProtobuf
 	url = https://github.com/apple/swift-protobuf.git
+[submodule "Starscream"]
+	path = Starscream
+	url = https://github.com/daltoniam/Starscream.git
