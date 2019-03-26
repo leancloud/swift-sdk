@@ -423,6 +423,7 @@
 			isa = PBXGroup;
 			children = (
 				11FD150021742CAF008389D4 /* Polyfill */,
+				835F5D571D7E6808004D1A0E /* LeanCloud.swift */,
 				11D9C100216DFB2D00A620B7 /* MD5.swift */,
 				11D9C0F8216DF63B00A620B7 /* Error.swift */,
 				11FD151321743A09008389D4 /* Lazyload.swift */,
@@ -520,7 +521,6 @@
 		835F5D3F1D7E6808004D1A0E /* Sources */ = {
 			isa = PBXGroup;
 			children = (
-				835F5D571D7E6808004D1A0E /* LeanCloud.swift */,
 				11D9C0F7216DF63B00A620B7 /* Foundation */,
 				11A166CB214F56F00094AF13 /* LocalStorage */,
 				835F5D401D7E6808004D1A0E /* Storage */,
