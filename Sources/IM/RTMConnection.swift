@@ -10,6 +10,7 @@ import Foundation
 #if os(iOS) || os(tvOS)
 import UIKit
 #endif
+import Starscream
 import Alamofire
 
 public var RTMConnectingTimeoutInterval: TimeInterval = 10.0
