@@ -339,8 +339,8 @@ class RTMConnection {
         case foreground
     }
     private(set) var previousAppState: AppState = .foreground
-    private(set) var enterBackgroundObserver: NSObjectProtocol!
-    private(set) var enterForegroundObserver: NSObjectProtocol!
+    private(set) var enterBackgroundObserver: NSObjectProtocol?
+    private(set) var enterForegroundObserver: NSObjectProtocol?
     #endif
     #if !os(watchOS)
     private(set) var previousReachabilityStatus: NetworkReachabilityManager.NetworkReachabilityStatus = .unknown
@@ -415,8 +415,12 @@ class RTMConnection {
     
     deinit {
         #if os(iOS) || os(tvOS)
-        NotificationCenter.default.removeObserver(self.enterBackgroundObserver)
-        NotificationCenter.default.removeObserver(self.enterForegroundObserver)
+        if let observer = self.enterBackgroundObserver {
+            NotificationCenter.default.removeObserver(observer)
+        }
+        if let observer = self.enterForegroundObserver {
+            NotificationCenter.default.removeObserver(observer)
+        }
         #endif
         #if !os(watchOS)
         self.reachabilityManager?.stopListening()

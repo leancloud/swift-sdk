@@ -218,7 +218,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
         let className = String(validatingUTF8: class_getName(self))!
 
         /* Strip root namespace to cope with application package name's change. */
-        if let index = className.index(of: ".") {
+        if let index = className.firstIndex(of: ".") {
             let startIndex: String.Index = className.index(after: index)
             return String(className[startIndex...])
         } else {

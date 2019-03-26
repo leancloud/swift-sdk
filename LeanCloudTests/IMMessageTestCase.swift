@@ -490,18 +490,18 @@ class IMMessageTestCase: RTMBaseTestCase {
         {
             let messageA = IMMessage()
             try? messageA.set(content: .string("test"))
-            try? chatRoomA?.send(message: messageA, priority: messagePriority, completion: { (result) in
+            ((try? chatRoomA?.send(message: messageA, priority: messagePriority, completion: { (result) in
                 XCTAssertTrue(result.isSuccess)
                 XCTAssertNil(result.error)
                 sendExp.fulfill()
-            })
+            })) as ()??)
             let messageB = IMMessage()
             try? messageB.set(content: .string("test"))
-            try? chatRoomB?.send(message: messageB, priority: messagePriority, completion: { (result) in
+            ((try? chatRoomB?.send(message: messageB, priority: messagePriority, completion: { (result) in
                 XCTAssertTrue(result.isSuccess)
                 XCTAssertNil(result.error)
                 sendExp.fulfill()
-            })
+            })) as ()??)
         }
         wait(for: [sendExp], timeout: timeout)
         
@@ -559,11 +559,11 @@ class IMMessageTestCase: RTMBaseTestCase {
         delay(seconds: 5)
         
         let unsubscribeExp = expectation(description: "unsubscribe service conversation")
-        try? serviceConv?.unsubscribe(completion: { (result) in
+        ((try? serviceConv?.unsubscribe(completion: { (result) in
             XCTAssertTrue(result.isSuccess)
             XCTAssertNil(result.error)
             unsubscribeExp.fulfill()
-        })
+        })) as ()??)
         wait(for: [unsubscribeExp], timeout: timeout)
         
         let shouldNotReceiveExp = expectation(description: "should not receive message")
@@ -767,14 +767,14 @@ class IMMessageTestCase: RTMBaseTestCase {
                 break
             }
         }
-        try? sendingTuple?.conversation.update(oldMessage: oldMessage, to: newMessage, completion: { (result) in
+        ((try? sendingTuple?.conversation.update(oldMessage: oldMessage, to: newMessage, completion: { (result) in
             XCTAssertTrue(Thread.isMainThread)
             XCTAssertTrue(result.isSuccess)
             XCTAssertNil(result.error)
             XCTAssertTrue(newMessage === sendingTuple?.conversation.lastMessage)
             patchedMessageChecker(newMessage, oldMessage)
             exp.fulfill()
-        })
+        })) as ()??)
         wait(for: [exp], timeout: timeout)
         
         XCTAssertNotNil(receivingTuple?.client.lastPatchTime)
@@ -823,7 +823,7 @@ class IMMessageTestCase: RTMBaseTestCase {
                 break
             }
         }
-        try? sendingTuple?.conversation.recall(message: oldMessage, completion: { (result) in
+        ((try? sendingTuple?.conversation.recall(message: oldMessage, completion: { (result) in
             XCTAssertTrue(Thread.isMainThread)
             XCTAssertTrue(result.isSuccess)
             XCTAssertNil(result.error)
@@ -834,7 +834,7 @@ class IMMessageTestCase: RTMBaseTestCase {
                 XCTFail()
             }
             exp.fulfill()
-        })
+        })) as ()??)
         wait(for: [exp], timeout: timeout)
         
         XCTAssertNotNil(receivingTuple?.client.lastPatchTime)
@@ -1037,7 +1037,7 @@ class IMMessageTestCase: RTMBaseTestCase {
         delay()
         
         let getReadFlagExp = expectation(description: "get read flag timestamp")
-        try? sendingTuple?.conversation.getMessageReceiptFlag(completion: { (result) in
+        ((try? sendingTuple?.conversation.getMessageReceiptFlag(completion: { (result) in
             XCTAssertTrue(Thread.isMainThread)
             XCTAssertTrue(result.isSuccess)
             XCTAssertNil(result.error)
@@ -1047,7 +1047,7 @@ class IMMessageTestCase: RTMBaseTestCase {
             XCTAssertEqual(result.value?.readFlagDate, result.value?.deliveredFlagDate)
             XCTAssertGreaterThan(result.value?.readFlagTimestamp ?? 0, message.sentTimestamp ?? 0)
             getReadFlagExp.fulfill()
-        })
+        })) as ()??)
         wait(for: [getReadFlagExp], timeout: timeout)
         
         let sendNeedRCPMessageExp = expectation(description: "send need RCP message")
@@ -1074,17 +1074,17 @@ class IMMessageTestCase: RTMBaseTestCase {
         }
         let needRCPMessage = IMMessage()
         try? needRCPMessage.set(content: .string("test"))
-        try? sendingTuple?.conversation.send(message: needRCPMessage, options: [.needReceipt], completion: { (result) in
+        ((try? sendingTuple?.conversation.send(message: needRCPMessage, options: [.needReceipt], completion: { (result) in
             XCTAssertTrue(result.isSuccess)
             XCTAssertNil(result.error)
             sendNeedRCPMessageExp.fulfill()
-        })
+        })) as ()??)
         wait(for: [sendNeedRCPMessageExp], timeout: timeout)
         
         delay()
         
         let getDeliveredFlagExp = expectation(description: "get delivered flag timestamp")
-        try? sendingTuple?.conversation.getMessageReceiptFlag(completion: { (result) in
+        ((try? sendingTuple?.conversation.getMessageReceiptFlag(completion: { (result) in
             XCTAssertTrue(Thread.isMainThread)
             XCTAssertTrue(result.isSuccess)
             XCTAssertNil(result.error)
@@ -1094,7 +1094,7 @@ class IMMessageTestCase: RTMBaseTestCase {
             XCTAssertNotEqual(result.value?.deliveredFlagDate, result.value?.readFlagDate)
             XCTAssertGreaterThanOrEqual(result.value?.deliveredFlagTimestamp ?? 0, needRCPMessage.sentTimestamp ?? 0)
             getDeliveredFlagExp.fulfill()
-        })
+        })) as ()??)
         wait(for: [getDeliveredFlagExp], timeout: timeout)
         
         let client = try! IMClient(ID: uuid, options: [])
