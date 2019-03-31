@@ -23,10 +23,10 @@ public class IMConversationQuery: LCQuery {
         }
         
         /// the conversations in query result will not contain members info.
-        static let notContainMembers = Options(rawValue: 1 << 0)
+        public static let notContainMembers = Options(rawValue: 1 << 0)
         
         /// the conversations in query result will contain the last message if the last message exist.
-        static let containLastMessage = Options(rawValue: 1 << 1)
+        public static let containLastMessage = Options(rawValue: 1 << 1)
     }
     
     /// @see `Options`, default is nil.
