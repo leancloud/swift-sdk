@@ -945,6 +945,13 @@ extension IMConversation {
         
         /// Interval open or closed.
         public let isClosed: Bool?
+        
+        /// Initialization.
+        public init(messageID: String?, sentTimestamp: Int64?, isClosed: Bool?) {
+            self.messageID = messageID
+            self.sentTimestamp = sentTimestamp
+            self.isClosed = isClosed
+        }
     }
     
     /// The query direction.
