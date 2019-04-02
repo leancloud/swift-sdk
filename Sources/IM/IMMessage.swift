@@ -27,7 +27,7 @@ open class IMMessage {
     }
     
     /// @see `IOType`.
-    public final var ioType: IOType {
+    public var ioType: IOType {
         if
             let fromClientID: String = self.fromClientID,
             let currentClientID: String = self.currentClientID,
@@ -40,10 +40,10 @@ open class IMMessage {
     }
     
     /// The ID of the client which sent this message.
-    public final private(set) var fromClientID: String?
+    public private(set) var fromClientID: String?
     
     /// The ID of the current client.
-    public final private(set) var currentClientID: String?
+    public private(set) var currentClientID: String?
     
     /// Message Status.
     public enum Status {
@@ -56,7 +56,7 @@ open class IMMessage {
     }
     
     /// @see `Status`.
-    public final var status: Status {
+    public var status: Status {
         let currentStatus = self.underlyingStatus
         if currentStatus == .sent {
             if let _ = self.readTimestamp {
@@ -73,32 +73,32 @@ open class IMMessage {
     private var underlyingStatus: Status = .none
     
     /// The ID of this message.
-    public final private(set) var ID: String?
+    public private(set) var ID: String?
     
     /// The ID of the conversation which this message belong to.
-    public final private(set) var conversationID: String?
+    public private(set) var conversationID: String?
     
     /// The sent timestamp of this message.
-    public final private(set) var sentTimestamp: Int64?
+    public private(set) var sentTimestamp: Int64?
     
     /// The sent date of this message.
-    public final var sentDate: Date? {
+    public var sentDate: Date? {
         return IMClient.date(fromMillisecond: sentTimestamp)
     }
     
     /// The delivered timestamp of this message.
-    public final var deliveredTimestamp: Int64?
+    public var deliveredTimestamp: Int64?
     
     /// The delivered date of this message.
-    public final var deliveredDate: Date? {
+    public var deliveredDate: Date? {
         return IMClient.date(fromMillisecond: deliveredTimestamp)
     }
     
     /// The read timestamp of this message.
-    public final var readTimestamp: Int64?
+    public var readTimestamp: Int64?
     
     /// The read date of this message.
-    public final var readDate: Date? {
+    public var readDate: Date? {
         return IMClient.date(fromMillisecond: readTimestamp)
     }
     
@@ -109,21 +109,21 @@ open class IMMessage {
     }
     
     /// The patched timestamp of this message.
-    public final internal(set) var patchedTimestamp: Int64?
+    public internal(set) var patchedTimestamp: Int64?
     
     /// The patched date of this message.
-    public final var patchedDate: Date? {
+    public var patchedDate: Date? {
         return IMClient.date(fromMillisecond: patchedTimestamp)
     }
     
     /// Feature: @all.
-    public final var isAllMembersMentioned: Bool?
+    public var isAllMembersMentioned: Bool?
     
     /// Feature: @members.
-    public final var mentionedMembers: [String]?
+    public var mentionedMembers: [String]?
     
     /// Indicates whether the current client has been @.
-    public final var isCurrentClientMentioned: Bool {
+    public var isCurrentClientMentioned: Bool {
         if self.ioType == .out {
             return false
         } else {
@@ -170,13 +170,13 @@ open class IMMessage {
     }
     
     /// @see `Content`.
-    public final fileprivate(set) var content: Content?
+    public fileprivate(set) var content: Content?
     
     /// Set content for message.
     ///
     /// - Parameter content: @see `Content`.
     /// - Throws: `IMCategorizedMessage` not support this function.
-    public final func set(content: Content) throws {
+    public func set(content: Content) throws {
         if self is IMCategorizedMessage {
             throw LCError(
                 code: .inconsistency,
@@ -358,7 +358,7 @@ open class IMCategorizedMessage: IMMessage, IMMessageCategorizing {
     var rawData: [String: Any] = [:]
     
     /// Get and set value via subscript syntax.
-    public final subscript(key: String) -> Any? {
+    public subscript(key: String) -> Any? {
         set {
             self.rawData[key] = newValue
         }
@@ -368,18 +368,18 @@ open class IMCategorizedMessage: IMMessage, IMMessageCategorizing {
     }
     
     /// The text info.
-    public final var text: String?
+    public var text: String?
     
     /// The attributes info.
-    public final var attributes: [String: Any]?
+    public var attributes: [String: Any]?
     
     /// The file object.
-    public final var file: LCFile?
+    public var file: LCFile?
     
     internal private(set) var fileMetaData: [String: Any]?
     
     /// The location data.
-    public final var location: LCGeoPoint?
+    public var location: LCGeoPoint?
     
     fileprivate func decoding(with rawData: [String: Any]) {
         if let text: String = rawData[ReservedKey.text.rawValue] as? String {
@@ -571,7 +571,7 @@ open class IMCategorizedMessage: IMMessage, IMMessageCategorizing {
 }
 
 /// IM Text Message
-public final class IMTextMessage: IMCategorizedMessage {
+public class IMTextMessage: IMCategorizedMessage {
     
     public override var lcType: MessageType {
         return ReservedType.text.rawValue
@@ -580,34 +580,34 @@ public final class IMTextMessage: IMCategorizedMessage {
 }
 
 /// IM Image Message
-public final class IMImageMessage: IMCategorizedMessage {
+public class IMImageMessage: IMCategorizedMessage {
     
     public override var lcType: MessageType {
         return ReservedType.image.rawValue
     }
     
     /// The width of image.
-    public final var width: Double? {
+    public var width: Double? {
         return self.decodingFileMetaData(with: .width)
     }
     
     /// The height of image.
-    public final var height: Double? {
+    public var height: Double? {
         return self.decodingFileMetaData(with: .height)
     }
     
     /// The data size of image.
-    public final var size: Double? {
+    public var size: Double? {
         return self.decodingFileMetaData(with: .size)
     }
     
     /// The format of image.
-    public final var format: String? {
+    public var format: String? {
         return self.decodingFileMetaData(with: .format)
     }
     
     /// The URL of image.
-    public final var url: URL? {
+    public var url: URL? {
         if let urlString: String = self.file?.url?.value,
             let url: URL = URL(string: urlString) {
             return url
@@ -619,29 +619,29 @@ public final class IMImageMessage: IMCategorizedMessage {
 }
 
 /// IM Audio Message
-public final class IMAudioMessage: IMCategorizedMessage {
+public class IMAudioMessage: IMCategorizedMessage {
     
     public override var lcType: MessageType {
         return ReservedType.audio.rawValue
     }
     
     /// The duration of audio.
-    public final var duration: Double? {
+    public var duration: Double? {
         return self.decodingFileMetaData(with: .duration)
     }
     
     /// The data size of audio.
-    public final var size: Double? {
+    public var size: Double? {
         return self.decodingFileMetaData(with: .size)
     }
     
     /// The format of audio.
-    public final var format: String? {
+    public var format: String? {
         return self.decodingFileMetaData(with: .format)
     }
     
     /// The URL of audio.
-    public final var url: URL? {
+    public var url: URL? {
         if let urlString: String = self.file?.url?.value,
             let url: URL = URL(string: urlString) {
             return url
@@ -653,29 +653,29 @@ public final class IMAudioMessage: IMCategorizedMessage {
 }
 
 /// IM Video Message
-public final class IMVideoMessage: IMCategorizedMessage {
+public class IMVideoMessage: IMCategorizedMessage {
     
     public override var lcType: MessageType {
         return ReservedType.video.rawValue
     }
     
     /// The duration of video.
-    public final var duration: Double? {
+    public var duration: Double? {
         return self.decodingFileMetaData(with: .duration)
     }
     
     /// The data size of video.
-    public final var size: Double? {
+    public var size: Double? {
         return self.decodingFileMetaData(with: .size)
     }
     
     /// The format of video.
-    public final var format: String? {
+    public var format: String? {
         return self.decodingFileMetaData(with: .format)
     }
     
     /// The URL of video.
-    public final var url: URL? {
+    public var url: URL? {
         if let urlString: String = self.file?.url?.value,
             let url: URL = URL(string: urlString) {
             return url
@@ -687,24 +687,24 @@ public final class IMVideoMessage: IMCategorizedMessage {
 }
 
 /// IM File Message
-public final class IMFileMessage: IMCategorizedMessage {
+public class IMFileMessage: IMCategorizedMessage {
     
     public override var lcType: MessageType {
         return ReservedType.file.rawValue
     }
     
     /// The data size of file.
-    public final var size: Double? {
+    public var size: Double? {
         return self.decodingFileMetaData(with: .size)
     }
     
     /// The format of file.
-    public final var format: String? {
+    public var format: String? {
         return self.decodingFileMetaData(with: .format)
     }
     
     /// The URL of file.
-    public final var url: URL? {
+    public var url: URL? {
         if let urlString: String = self.file?.url?.value,
             let url: URL = URL(string: urlString) {
             return url
@@ -716,24 +716,24 @@ public final class IMFileMessage: IMCategorizedMessage {
 }
 
 /// IM Location Message
-public final class IMLocationMessage: IMCategorizedMessage {
+public class IMLocationMessage: IMCategorizedMessage {
     
     public override var lcType: MessageType {
         return ReservedType.location.rawValue
     }
     
-    public final var latitude: Double? {
+    public var latitude: Double? {
         return self.location?.latitude
     }
     
-    public final var longitude: Double? {
+    public var longitude: Double? {
         return self.location?.longitude
     }
     
 }
 
 /// IM Recalled Message
-public final class IMRecalledMessage: IMCategorizedMessage {
+public class IMRecalledMessage: IMCategorizedMessage {
     
     public override var lcType: MessageType {
         return ReservedType.recalled.rawValue
