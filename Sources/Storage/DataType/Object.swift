@@ -18,13 +18,13 @@ import Foundation
 @dynamicMemberLookup
 open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
     /// Access control lists.
-    @objc open dynamic var ACL: LCACL?
+    @objc dynamic public var ACL: LCACL?
 
     /// Object identifier.
-    @objc open private(set) dynamic var objectId: LCString?
+    @objc dynamic public private(set) var objectId: LCString?
 
-    @objc open private(set) dynamic var createdAt: LCDate?
-    @objc open private(set) dynamic var updatedAt: LCDate?
+    @objc dynamic public private(set) var createdAt: LCDate?
+    @objc dynamic public private(set) var updatedAt: LCDate?
 
     /**
      The table of properties.
@@ -688,7 +688,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
 
      - returns: The result of saving request.
      */
-    open func save() -> LCBooleanResult {
+    public func save() -> LCBooleanResult {
         return type(of: self).save([self])
     }
 
@@ -699,7 +699,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
 
      - returns: The request of saving.
      */
-    open func save(_ completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
+    public func save(_ completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
         return type(of: self).save([self], completion: completion)
     }
 
@@ -746,7 +746,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
 
      - returns: The result of deletion request.
      */
-    open func delete() -> LCBooleanResult {
+    public func delete() -> LCBooleanResult {
         return type(of: self).delete([self])
     }
 
@@ -757,7 +757,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
 
      - returns: The request of deletion.
      */
-    open func delete(_ completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
+    public func delete(_ completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
         return type(of: self).delete([self], completion: completion)
     }
 
@@ -804,7 +804,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
 
      - returns: The result of fetching request.
      */
-    open func fetch() -> LCBooleanResult {
+    public func fetch() -> LCBooleanResult {
         return type(of: self).fetch([self])
     }
 
@@ -813,7 +813,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
 
      - parameter completion: The completion callback closure.
      */
-    open func fetch(_ completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
+    public func fetch(_ completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
         return type(of: self).fetch([self], completion: completion)
     }
 }

@@ -11,74 +11,56 @@ import Foundation
 /**
  LeanCloud installation type.
  */
-public final class LCInstallation: LCObject {
+public class LCInstallation: LCObject {
 
     /// The badge of installation.
-    @objc public dynamic var badge: LCNumber?
+    @objc dynamic public var badge: LCNumber?
 
     /// The time zone of installtion.
-    @objc public dynamic var timeZone: LCString?
+    @objc dynamic public var timeZone: LCString?
 
     /// The channels of installation, which contains client ID of IM.
-    @objc public dynamic var channels: LCArray?
+    @objc dynamic public var channels: LCArray?
 
     /// The type of device.
-    @objc public dynamic var deviceType: LCString?
+    @objc dynamic public var deviceType: LCString?
 
     /// The device token used to push notification.
-    @objc public private(set) dynamic var deviceToken: LCString?
+    @objc dynamic public private(set) var deviceToken: LCString?
 
     /// The device profile. You can use this property to select one from mutiple push certificates or configurations.
-    @objc public private(set) dynamic var deviceProfile: LCString?
+    @objc dynamic public var deviceProfile: LCString?
 
     /// The installation ID of device, it's mainly for Android device.
-    @objc public dynamic var installationId: LCString?
+    @objc dynamic public var installationId: LCString?
 
     /// The APNs topic of installation.
-    @objc public dynamic var apnsTopic: LCString?
+    @objc dynamic public var apnsTopic: LCString?
 
     /// The APNs Team ID of installation.
-    @objc public private(set) dynamic var apnsTeamId: LCString?
+    @objc dynamic public private(set) var apnsTeamId: LCString?
 
-    public override class func objectClassName() -> String {
+    public final override class func objectClassName() -> String {
         return "_Installation"
     }
 
     public required init() {
         super.init()
 
-        initialize()
-    }
-
-    func initialize() {
-        timeZone = NSTimeZone.system.identifier.lcString
-
+        self.timeZone = NSTimeZone.system.identifier.lcString
+        
         if let bundleIdentifier = Bundle.main.bundleIdentifier {
-            apnsTopic = bundleIdentifier.lcString
+            self.apnsTopic = bundleIdentifier.lcString
         }
-
+        
         #if os(iOS)
-        deviceType = "ios"
+        self.deviceType = "ios"
         #elseif os(macOS)
-        deviceType = "macos"
+        self.deviceType = "macos"
         #elseif os(watchOS)
-        deviceType = "watchos"
+        self.deviceType = "watchos"
         #elseif os(tvOS)
-        deviceType = "tvos"
-        #elseif os(Linux)
-        deviceType = "linux"
-        #elseif os(FreeBSD)
-        deviceType = "freebsd"
-        #elseif os(Android)
-        deviceType = "android"
-        #elseif os(PS4)
-        deviceType = "ps4"
-        #elseif os(Windows)
-        deviceType = "windows"
-        #elseif os(Cygwin)
-        deviceType = "cygwin"
-        #elseif os(Haiku)
-        deviceType = "haiku"
+        self.deviceType = "tvos"
         #endif
     }
 
@@ -91,15 +73,9 @@ public final class LCInstallation: LCObject {
      */
     public func set(
         deviceToken: LCDeviceTokenConvertible,
-        deviceProfile: LCStringConvertible? = nil,
         apnsTeamId: LCStringConvertible)
     {
         self.deviceToken = deviceToken.lcDeviceToken
-
-        if let deviceProfile = deviceProfile {
-            self.deviceProfile = deviceProfile.lcString
-        }
-
         self.apnsTeamId = apnsTeamId.lcString
     }
 

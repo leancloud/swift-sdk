@@ -14,22 +14,22 @@ import Foundation
  A type to group user for access control.
  Conceptually, it is equivalent to UNIX user group.
  */
-public final class LCRole: LCObject {
+public class LCRole: LCObject {
     /**
      Name of role.
 
      The name must be unique throughout the application.
      It will be used as key in ACL to refer the role.
      */
-    @objc public dynamic var name: LCString?
+    @objc dynamic public var name: LCString?
 
     /// Relation of users.
-    @objc public dynamic var users: LCRelation?
+    @objc dynamic public var users: LCRelation?
 
     /// Relation of roles.
-    @objc public dynamic var roles: LCRelation?
+    @objc dynamic public var roles: LCRelation?
 
-    public override class func objectClassName() -> String {
+    public final override class func objectClassName() -> String {
         return "_Role"
     }
 
