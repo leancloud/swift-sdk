@@ -562,7 +562,6 @@
 		835F5D441D7E6808004D1A0E /* DataType */ = {
 			isa = PBXGroup;
 			children = (
-				835F5D451D7E6808004D1A0E /* ACL.swift */,
 				835F5D461D7E6808004D1A0E /* Array.swift */,
 				835F5D471D7E6808004D1A0E /* Bool.swift */,
 				835F5D481D7E6808004D1A0E /* Data.swift */,
@@ -571,10 +570,11 @@
 				835F5D4B1D7E6808004D1A0E /* GeoPoint.swift */,
 				835F5D4C1D7E6808004D1A0E /* Null.swift */,
 				835F5D4D1D7E6808004D1A0E /* Number.swift */,
+				835F5D511D7E6808004D1A0E /* String.swift */,
+				835F5D451D7E6808004D1A0E /* ACL.swift */,
 				835F5D4E1D7E6808004D1A0E /* Object.swift */,
 				835F5D4F1D7E6808004D1A0E /* Relation.swift */,
 				835F5D501D7E6808004D1A0E /* Role.swift */,
-				835F5D511D7E6808004D1A0E /* String.swift */,
 				835F5D521D7E6808004D1A0E /* User.swift */,
 				114E1E762151FFB600DA7DB0 /* File.swift */,
 				117A2D0B21704620007C509A /* Installation.swift */,
