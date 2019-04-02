@@ -7,22 +7,7 @@
 //
 
 import XCTest
-@testable import LeanCloud
-
-class TestObject: LCObject {
-    @objc dynamic var numberField: LCNumber?
-    @objc dynamic var booleanField: LCBool?
-    @objc dynamic var stringField: LCString?
-    @objc dynamic var arrayField: LCArray?
-    @objc dynamic var dictionaryField: LCDictionary?
-    @objc dynamic var objectField: LCObject?
-    @objc dynamic var relationField: LCRelation?
-    @objc dynamic var geoPointField: LCGeoPoint?
-    @objc dynamic var dataField: LCData?
-    @objc dynamic var dateField: LCDate?
-    @objc dynamic var nullField: LCNull?
-    @objc dynamic var fileField: LCFile?
-}
+import LeanCloud
 
 class BaseTestCase: XCTestCase {
     
