@@ -161,12 +161,12 @@ class OperationHub {
 
      - parameter operation: The operation which you want to reduce.
      */
-    func reduce(_ operation: Operation) {
+    func reduce(_ operation: Operation) throws {
         let key = operation.key
         let operationReducer = operationReducerTable[key]
 
         if let operationReducer = operationReducer {
-            try! operationReducer.reduce(operation)
+            try operationReducer.reduce(operation)
         } else if let operationReducerType = operationReducerType(operation) {
             let operationReducer = operationReducerType.init()
 
@@ -174,10 +174,10 @@ class OperationHub {
 
             if let unreducedOperation = unreducedOperationTable[key] {
                 unreducedOperationTable.removeValue(forKey: key)
-                try! operationReducer.reduce(unreducedOperation)
+                try operationReducer.reduce(unreducedOperation)
             }
 
-            try! operationReducer.reduce(operation)
+            try operationReducer.reduce(operation)
         } else {
             unreducedOperationTable[key] = operation
         }

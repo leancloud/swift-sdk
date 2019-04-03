@@ -396,7 +396,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
         let operation = Operation(name: name, key: key, value: value)
 
         try updateProperty(operation)
-        operationHub.reduce(operation)
+        try operationHub.reduce(operation)
     }
 
     /**
