@@ -107,8 +107,8 @@ class BatchRequestBuilder {
 
      - returns: A list of request.
      */
-    static func buildRequests(_ object: LCObject) -> [BatchRequest] {
-        return operationTableList(object).map { element in
+    static func buildRequests(_ object: LCObject) throws -> [BatchRequest] {
+        return try operationTableList(object).map { element in
             BatchRequest(object: object, operationTable: element)
         }
     }
@@ -120,19 +120,19 @@ class BatchRequestBuilder {
 
      - returns: The operation table list.
      */
-    private static func initialOperationTableList(_ object: LCObject) -> OperationTableList {
+    private static func initialOperationTableList(_ object: LCObject) throws -> OperationTableList {
         var operationTable: OperationTable = [:]
 
         /* Collect all non-null properties. */
-        object.forEach { (key, value) in
+        try object.forEach { (key, value) in
             switch value {
             case let relation as LCRelation:
                 /* If the property type is relation,
                    We should use "AddRelation" instead of "Set" as operation type.
                    Otherwise, the relations will added as an array. */
-                operationTable[key] = Operation(name: .addRelation, key: key, value: LCArray(relation.value))
+                operationTable[key] = try Operation(name: .addRelation, key: key, value: LCArray(relation.value))
             default:
-                operationTable[key] = Operation(name: .set, key: key, value: value)
+                operationTable[key] = try Operation(name: .set, key: key, value: value)
             }
         }
 
@@ -146,11 +146,11 @@ class BatchRequestBuilder {
 
      - returns: A list of operation tables.
      */
-    private static func operationTableList(_ object: LCObject) -> OperationTableList {
+    private static func operationTableList(_ object: LCObject) throws -> OperationTableList {
         if object.hasObjectId, let operationHub = object.operationHub {
             return operationHub.operationTableList()
         } else {
-            return initialOperationTableList(object)
+            return try initialOperationTableList(object)
         }
     }
 }

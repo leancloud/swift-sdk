@@ -398,7 +398,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
      - parameter value: The operation value.
      */
     func addOperation(_ name: Operation.Name, _ key: String, _ value: LCValue? = nil) throws {
-        let operation = Operation(name: name, key: key, value: value)
+        let operation = try Operation(name: name, key: key, value: value)
 
         try updateProperty(operation)
         try operationHub?.reduce(operation)
