@@ -25,13 +25,13 @@ class BaseTestCase: XCTestCase {
     override func setUp() {
         super.setUp()
 
-        TestObject.register()
-
         LCApplication.default.logLevel = .all
         LCApplication.default.set(
             id: "S5vDI3IeCk1NLLiM1aFg3262-gzGzoHsz",
             key: "7g5pPsI55piz2PRLPWK5MPz0"
         )
+        
+        TestObject.register()
     }
 
     func busywait(interval: TimeInterval = 0.1, untilTrue: () -> Bool) -> Void {
