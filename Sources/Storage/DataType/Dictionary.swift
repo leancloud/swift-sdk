@@ -135,6 +135,10 @@ public final class LCDictionary: NSObject, LCValue, LCValueExtension, Collection
     public func removeValue(forKey key: Key) -> Value? {
         return value.removeValue(forKey: key)
     }
+    
+    public func removeAll(keepingCapacity keepCapacity: Bool = false) {
+        return value.removeAll(keepingCapacity: keepCapacity)
+    }
 
     func set(_ key: String, _ value: LCValue?) {
         self.value[key] = value
