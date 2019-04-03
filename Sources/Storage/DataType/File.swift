@@ -65,6 +65,7 @@ public class LCFile: LCObject {
      - parameter url: The file URL.
      */
     public init(url: LCStringConvertible) {
+        super.init()
         self.url = url.lcString
     }
 
@@ -92,6 +93,7 @@ public class LCFile: LCObject {
      - parameter content: The file content.
      */
     public init(payload: Payload) {
+        super.init()
         self.payload = payload
     }
 
