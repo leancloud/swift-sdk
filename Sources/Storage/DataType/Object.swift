@@ -56,18 +56,25 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
 
     /// Operation hub.
     /// Used to manage update operations.
-    var operationHub: OperationHub!
+    var operationHub: OperationHub?
 
     /// Whether object has data to upload or not.
-    var hasDataToUpload: Bool {
-        return hasObjectId ? (!operationHub.isEmpty) : true
+    public var hasDataToUpload: Bool {
+        if self.hasObjectId {
+            if let operationHub = self.operationHub {
+                return !operationHub.isEmpty
+            } else {
+                return false
+            }
+        } else {
+            return true
+        }
     }
 
     public override required init() {
         super.init()
-        operationHub = OperationHub(self)
-
-        propertyTable.elementDidChange = { (key, value) in
+        self.operationHub = OperationHub(self)
+        self.propertyTable.elementDidChange = { (key, value) in
             Runtime.setInstanceVariable(self, key, value)
         }
     }
@@ -79,30 +86,27 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
 
     public convenience init(className: LCStringConvertible) {
         self.init()
-        propertyTable["className"] = className.lcString
+        self.propertyTable["className"] = className.lcString
     }
 
     public convenience init(className: LCStringConvertible, objectId: LCStringConvertible) {
         self.init()
-        propertyTable["className"] = className.lcString
+        self.propertyTable["className"] = className.lcString
         self.objectId = objectId.lcString
     }
 
     convenience init(dictionary: LCDictionaryConvertible) {
         self.init()
-        propertyTable = dictionary.lcDictionary
-
-        propertyTable.forEach { (key, value) in
-            Runtime.setInstanceVariable(self, key, value)
+        for (key, value) in dictionary.lcDictionary {
+            self.propertyTable[key] = value
         }
     }
 
     public required convenience init?(coder aDecoder: NSCoder) {
         self.init()
-        propertyTable = (aDecoder.decodeObject(forKey: "propertyTable") as? LCDictionary) ?? [:]
-
-        propertyTable.forEach { (key, value) in
-            Runtime.setInstanceVariable(self, key, value)
+        let dictionary = (aDecoder.decodeObject(forKey: "propertyTable") as? LCDictionary) ?? [:]
+        for (key, value) in dictionary {
+            self.propertyTable[key] = value
         }
     }
 
@@ -297,10 +301,8 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
 
         switch name {
         case .set:
-            Runtime.setInstanceVariable(self, key, value)
             propertyTable[key] = value
         case .delete:
-            Runtime.setInstanceVariable(self, key, nil)
             propertyTable[key] = nil
         case .increment:
             guard let number = value as? LCNumber else {
@@ -377,11 +379,14 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
      */
     func synchronizePropertyTable() {
         ObjectProfiler.shared.iterateProperties(self) { (key, _) in
-            if key == "propertyTable" { return }
-
-            if let value = Runtime.instanceVariableValue(self, key) as? LCValue {
-                propertyTable.set(key, value)
+            guard
+                let ivarValue: LCValue = Runtime.instanceVariableValue(self, key) as? LCValue,
+                ivarValue !== propertyTable[key]
+                else
+            {
+                return
             }
+            propertyTable[key] = ivarValue
         }
     }
 
@@ -396,7 +401,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
         let operation = Operation(name: name, key: key, value: value)
 
         try updateProperty(operation)
-        try operationHub.reduce(operation)
+        try operationHub?.reduce(operation)
     }
 
     /**
@@ -635,7 +640,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
      Discard changes by removing all change operations.
      */
     func discardChanges() {
-        operationHub.reset()
+        operationHub?.reset()
     }
 
     /**
