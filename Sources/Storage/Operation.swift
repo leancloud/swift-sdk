@@ -139,7 +139,7 @@ typealias OperationTableList = [OperationTable]
  Used to manage a batch of operations.
  */
 class OperationHub {
-    weak var object: LCObject!
+    weak var object: LCObject?
 
     /// The table of operation reducers indexed by operation key.
     var operationReducerTable: [String: OperationReducer] = [:]
@@ -167,7 +167,7 @@ class OperationHub {
 
         if let operationReducer = operationReducer {
             try operationReducer.reduce(operation)
-        } else if let operationReducerType = operationReducerType(operation) {
+        } else if let operationReducerType = try operationReducerType(operation) {
             let operationReducer = operationReducerType.init()
 
             operationReducerTable[key] = operationReducer
@@ -190,7 +190,11 @@ class OperationHub {
 
      - returns: Operation reducer type, or nil if not found.
      */
-    func operationReducerType(_ operation: Operation) -> OperationReducer.Type? {
+    func operationReducerType(_ operation: Operation) throws -> OperationReducer.Type? {
+        guard let object = self.object else {
+            throw LCError(code: .inconsistency, reason: "Object not exist.")
+        }
+        
         let propertyName = operation.key
         let propertyType = ObjectProfiler.shared.getLCValue(object, propertyName)
 
