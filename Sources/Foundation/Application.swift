@@ -130,6 +130,9 @@ public final class LCApplication: NSObject {
     public func set(id: String, key: String) {
         self.id = id
         self.key = key
+        
+        // register default LeanCloud object classes if needed.
+        _ = ObjectProfiler.shared
     }
 
 }
