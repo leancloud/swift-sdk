@@ -15,14 +15,14 @@
 		113D23D121901A71006B53EC /* RTMRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 113D23D021901A71006B53EC /* RTMRouter.swift */; };
 		114E1E772151FFB600DA7DB0 /* File.swift in Sources */ = {isa = PBXBuildFile; fileRef = 114E1E762151FFB600DA7DB0 /* File.swift */; };
 		114E1E812152500200DA7DB0 /* FileUploader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 114E1E802152500200DA7DB0 /* FileUploader.swift */; };
-		114E1E852153A3ED00DA7DB0 /* FileTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 114E1E842153A3ED00DA7DB0 /* FileTestCase.swift */; };
-		116A682621427442004141A5 /* RouterTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 116A682521427442004141A5 /* RouterTestCase.swift */; };
-		1178D10F213F7B9600429131 /* APITestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1178D10E213F7B9600429131 /* APITestCase.swift */; };
+		114E1E852153A3ED00DA7DB0 /* LCFileTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 114E1E842153A3ED00DA7DB0 /* LCFileTestCase.swift */; };
+		116A682621427442004141A5 /* LCRouterTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 116A682521427442004141A5 /* LCRouterTestCase.swift */; };
+		1178D10F213F7B9600429131 /* LCAPITestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1178D10E213F7B9600429131 /* LCAPITestCase.swift */; };
 		1178D132214019F800429131 /* HTTPRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1178D131214019F800429131 /* HTTPRouter.swift */; };
 		117A2D0C21704620007C509A /* Installation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 117A2D0B21704620007C509A /* Installation.swift */; };
 		118763AB2176DF110078645B /* StorageContext.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 118763A92176DF110078645B /* StorageContext.xcdatamodeld */; };
 		118763AD2176DF440078645B /* StorageContextCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 118763AC2176DF440078645B /* StorageContextCache.swift */; };
-		118763AF2176EA3A0078645B /* InstallationTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 118763AE2176EA3A0078645B /* InstallationTestCase.swift */; };
+		118763AF2176EA3A0078645B /* LCInstallationTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 118763AE2176EA3A0078645B /* LCInstallationTestCase.swift */; };
 		119D16AF219A7FCE0023BFEF /* IMClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 119D16AE219A7FCE0023BFEF /* IMClient.swift */; };
 		11A166CD214F57360094AF13 /* LocalStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A166CC214F57360094AF13 /* LocalStorage.swift */; };
 		11A166DE214F5E440094AF13 /* PersistentController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A166DD214F5E440094AF13 /* PersistentController.swift */; };
@@ -32,16 +32,16 @@
 		11D9C0FB216DF63B00A620B7 /* Application.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11D9C0F9216DF63B00A620B7 /* Application.swift */; };
 		11D9C0FF216DF91A00A620B7 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11D9C0FE216DF91A00A620B7 /* Logger.swift */; };
 		11D9C101216DFB2D00A620B7 /* MD5.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11D9C100216DFB2D00A620B7 /* MD5.swift */; };
-		11FBD1E5215BDDCA00370C61 /* CoreTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11FBD1E4215BDDCA00370C61 /* CoreTestCase.swift */; };
+		11FBD1E5215BDDCA00370C61 /* LCCoreTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11FBD1E4215BDDCA00370C61 /* LCCoreTestCase.swift */; };
 		11FBD1E8215BEEB400370C61 /* test.zip in Resources */ = {isa = PBXBuildFile; fileRef = 11FBD1E7215BEEB400370C61 /* test.zip */; };
 		11FD150E21742CCE008389D4 /* Polyfill.h in Headers */ = {isa = PBXBuildFile; fileRef = 11FD150D21742CCD008389D4 /* Polyfill.h */; };
 		11FD151021742CD3008389D4 /* Polyfill.m in Sources */ = {isa = PBXBuildFile; fileRef = 11FD150F21742CD3008389D4 /* Polyfill.m */; };
 		11FD151421743A09008389D4 /* Lazyload.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11FD151321743A09008389D4 /* Lazyload.swift */; };
-		8334561C1CE589E500D42725 /* EngineTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8334561B1CE589E500D42725 /* EngineTestCase.swift */; };
+		8334561C1CE589E500D42725 /* LCEngineTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8334561B1CE589E500D42725 /* LCEngineTestCase.swift */; };
 		8342FCC61C7B13A700C3CF15 /* LeanCloud.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8342FCBB1C7B13A700C3CF15 /* LeanCloud.framework */; };
 		8342FCCB1C7B13A700C3CF15 /* BaseTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8342FCCA1C7B13A700C3CF15 /* BaseTestCase.swift */; };
-		834EA7151D2A139A00108DDC /* UserTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 834EA7141D2A139A00108DDC /* UserTestCase.swift */; };
-		8352B5231D2BAAE600531785 /* RelationTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8352B5221D2BAAE600531785 /* RelationTestCase.swift */; };
+		834EA7151D2A139A00108DDC /* LCUserTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 834EA7141D2A139A00108DDC /* LCUserTestCase.swift */; };
+		8352B5231D2BAAE600531785 /* LCRelationTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8352B5221D2BAAE600531785 /* LCRelationTestCase.swift */; };
 		835F5D661D7E6808004D1A0E /* BatchRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D411D7E6808004D1A0E /* BatchRequest.swift */; };
 		835F5D681D7E6808004D1A0E /* CQLClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D431D7E6808004D1A0E /* CQLClient.swift */; };
 		835F5D691D7E6808004D1A0E /* ACL.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D451D7E6808004D1A0E /* ACL.swift */; };
@@ -74,11 +74,11 @@
 		835F5D861D7E6808004D1A0E /* SMSClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D631D7E6808004D1A0E /* SMSClient.swift */; };
 		835F5D871D7E6808004D1A0E /* Utility.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D641D7E6808004D1A0E /* Utility.swift */; };
 		835F5D881D7E6808004D1A0E /* Value.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D651D7E6808004D1A0E /* Value.swift */; };
-		8365CFA81D79849D006B856E /* TypeTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8365CFA71D79849D006B856E /* TypeTestCase.swift */; };
+		8365CFA81D79849D006B856E /* LCTypeTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8365CFA71D79849D006B856E /* LCTypeTestCase.swift */; };
 		837E04FB1CABA694008CC3FF /* Alamofire.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 837E04EE1CABA688008CC3FF /* Alamofire.framework */; };
-		83BC11D61CDD76E900D7E7A6 /* ACLTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83BC11D51CDD76E900D7E7A6 /* ACLTestCase.swift */; };
-		83D0DE6F1CC7B3FF00FC204E /* QueryTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83D0DE6E1CC7B3FF00FC204E /* QueryTestCase.swift */; };
-		83FAF0931CC4D1E400A84063 /* ObjectTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83FAF0921CC4D1E400A84063 /* ObjectTestCase.swift */; };
+		83BC11D61CDD76E900D7E7A6 /* LCACLTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83BC11D51CDD76E900D7E7A6 /* LCACLTestCase.swift */; };
+		83D0DE6F1CC7B3FF00FC204E /* LCQueryTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83D0DE6E1CC7B3FF00FC204E /* LCQueryTestCase.swift */; };
+		83FAF0931CC4D1E400A84063 /* LCObjectTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83FAF0921CC4D1E400A84063 /* LCObjectTestCase.swift */; };
 		D30A2F84224A08CB00C000D5 /* Starscream.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D30A2F81224A069100C000D5 /* Starscream.framework */; };
 		D314AFA4219540A700C9C146 /* LeanCloud.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8342FCBB1C7B13A700C3CF15 /* LeanCloud.framework */; };
 		D314AFA5219540A700C9C146 /* LeanCloud.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 8342FCBB1C7B13A700C3CF15 /* LeanCloud.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
@@ -275,14 +275,14 @@
 		113D23D021901A71006B53EC /* RTMRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RTMRouter.swift; sourceTree = "<group>"; };
 		114E1E762151FFB600DA7DB0 /* File.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = File.swift; sourceTree = "<group>"; };
 		114E1E802152500200DA7DB0 /* FileUploader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileUploader.swift; sourceTree = "<group>"; };
-		114E1E842153A3ED00DA7DB0 /* FileTestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileTestCase.swift; sourceTree = "<group>"; };
-		116A682521427442004141A5 /* RouterTestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RouterTestCase.swift; sourceTree = "<group>"; };
-		1178D10E213F7B9600429131 /* APITestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APITestCase.swift; sourceTree = "<group>"; };
+		114E1E842153A3ED00DA7DB0 /* LCFileTestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCFileTestCase.swift; sourceTree = "<group>"; };
+		116A682521427442004141A5 /* LCRouterTestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCRouterTestCase.swift; sourceTree = "<group>"; };
+		1178D10E213F7B9600429131 /* LCAPITestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCAPITestCase.swift; sourceTree = "<group>"; };
 		1178D131214019F800429131 /* HTTPRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HTTPRouter.swift; sourceTree = "<group>"; };
 		117A2D0B21704620007C509A /* Installation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Installation.swift; sourceTree = "<group>"; };
 		118763AA2176DF110078645B /* StorageContext.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = StorageContext.xcdatamodel; sourceTree = "<group>"; };
 		118763AC2176DF440078645B /* StorageContextCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StorageContextCache.swift; sourceTree = "<group>"; };
-		118763AE2176EA3A0078645B /* InstallationTestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InstallationTestCase.swift; sourceTree = "<group>"; };
+		118763AE2176EA3A0078645B /* LCInstallationTestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCInstallationTestCase.swift; sourceTree = "<group>"; };
 		119D16AE219A7FCE0023BFEF /* IMClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IMClient.swift; sourceTree = "<group>"; };
 		11A166CC214F57360094AF13 /* LocalStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalStorage.swift; sourceTree = "<group>"; };
 		11A166DD214F5E440094AF13 /* PersistentController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistentController.swift; sourceTree = "<group>"; };
@@ -292,19 +292,19 @@
 		11D9C0F9216DF63B00A620B7 /* Application.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Application.swift; sourceTree = "<group>"; };
 		11D9C0FE216DF91A00A620B7 /* Logger.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
 		11D9C100216DFB2D00A620B7 /* MD5.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MD5.swift; sourceTree = "<group>"; };
-		11FBD1E4215BDDCA00370C61 /* CoreTestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreTestCase.swift; sourceTree = "<group>"; };
+		11FBD1E4215BDDCA00370C61 /* LCCoreTestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCCoreTestCase.swift; sourceTree = "<group>"; };
 		11FBD1E7215BEEB400370C61 /* test.zip */ = {isa = PBXFileReference; lastKnownFileType = archive.zip; path = test.zip; sourceTree = "<group>"; };
 		11FD150D21742CCD008389D4 /* Polyfill.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Polyfill.h; sourceTree = "<group>"; };
 		11FD150F21742CD3008389D4 /* Polyfill.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Polyfill.m; sourceTree = "<group>"; };
 		11FD151321743A09008389D4 /* Lazyload.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Lazyload.swift; sourceTree = "<group>"; };
-		8334561B1CE589E500D42725 /* EngineTestCase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EngineTestCase.swift; sourceTree = "<group>"; };
+		8334561B1CE589E500D42725 /* LCEngineTestCase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LCEngineTestCase.swift; sourceTree = "<group>"; };
 		8342FCBB1C7B13A700C3CF15 /* LeanCloud.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = LeanCloud.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		8342FCC01C7B13A700C3CF15 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		8342FCC51C7B13A700C3CF15 /* LeanCloudTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LeanCloudTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		8342FCCA1C7B13A700C3CF15 /* BaseTestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BaseTestCase.swift; sourceTree = "<group>"; };
 		8342FCCC1C7B13A700C3CF15 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		834EA7141D2A139A00108DDC /* UserTestCase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UserTestCase.swift; sourceTree = "<group>"; };
-		8352B5221D2BAAE600531785 /* RelationTestCase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RelationTestCase.swift; sourceTree = "<group>"; };
+		834EA7141D2A139A00108DDC /* LCUserTestCase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LCUserTestCase.swift; sourceTree = "<group>"; };
+		8352B5221D2BAAE600531785 /* LCRelationTestCase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LCRelationTestCase.swift; sourceTree = "<group>"; };
 		835F5D411D7E6808004D1A0E /* BatchRequest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BatchRequest.swift; sourceTree = "<group>"; };
 		835F5D431D7E6808004D1A0E /* CQLClient.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CQLClient.swift; sourceTree = "<group>"; };
 		835F5D451D7E6808004D1A0E /* ACL.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ACL.swift; sourceTree = "<group>"; };
@@ -337,12 +337,12 @@
 		835F5D631D7E6808004D1A0E /* SMSClient.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SMSClient.swift; sourceTree = "<group>"; };
 		835F5D641D7E6808004D1A0E /* Utility.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Utility.swift; sourceTree = "<group>"; };
 		835F5D651D7E6808004D1A0E /* Value.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Value.swift; sourceTree = "<group>"; };
-		8365CFA71D79849D006B856E /* TypeTestCase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TypeTestCase.swift; sourceTree = "<group>"; };
+		8365CFA71D79849D006B856E /* LCTypeTestCase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LCTypeTestCase.swift; sourceTree = "<group>"; };
 		837E04E31CABA688008CC3FF /* Alamofire.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Alamofire.xcodeproj; path = Alamofire/Alamofire.xcodeproj; sourceTree = "<group>"; };
-		83BC11D51CDD76E900D7E7A6 /* ACLTestCase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ACLTestCase.swift; sourceTree = "<group>"; };
-		83D0DE6E1CC7B3FF00FC204E /* QueryTestCase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QueryTestCase.swift; sourceTree = "<group>"; };
+		83BC11D51CDD76E900D7E7A6 /* LCACLTestCase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LCACLTestCase.swift; sourceTree = "<group>"; };
+		83D0DE6E1CC7B3FF00FC204E /* LCQueryTestCase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LCQueryTestCase.swift; sourceTree = "<group>"; };
 		83D5923D1CD88846007177C5 /* BridgingHeader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BridgingHeader.h; sourceTree = "<group>"; };
-		83FAF0921CC4D1E400A84063 /* ObjectTestCase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ObjectTestCase.swift; sourceTree = "<group>"; };
+		83FAF0921CC4D1E400A84063 /* LCObjectTestCase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LCObjectTestCase.swift; sourceTree = "<group>"; };
 		D30A2F7B224A069100C000D5 /* Starscream.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Starscream.xcodeproj; path = Starscream/Starscream.xcodeproj; sourceTree = "<group>"; };
 		D30A2F85224A092300C000D5 /* LeanCloud.podspec */ = {isa = PBXFileReference; lastKnownFileType = text; path = LeanCloud.podspec; sourceTree = "<group>"; };
 		D31798382193DC860037DE57 /* RuntimeTests-iOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "RuntimeTests-iOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -496,18 +496,18 @@
 				8342FCCC1C7B13A700C3CF15 /* Info.plist */,
 				83D5923D1CD88846007177C5 /* BridgingHeader.h */,
 				8342FCCA1C7B13A700C3CF15 /* BaseTestCase.swift */,
-				11FBD1E4215BDDCA00370C61 /* CoreTestCase.swift */,
-				1178D10E213F7B9600429131 /* APITestCase.swift */,
-				116A682521427442004141A5 /* RouterTestCase.swift */,
-				8365CFA71D79849D006B856E /* TypeTestCase.swift */,
-				8334561B1CE589E500D42725 /* EngineTestCase.swift */,
-				83BC11D51CDD76E900D7E7A6 /* ACLTestCase.swift */,
-				83FAF0921CC4D1E400A84063 /* ObjectTestCase.swift */,
-				83D0DE6E1CC7B3FF00FC204E /* QueryTestCase.swift */,
-				8352B5221D2BAAE600531785 /* RelationTestCase.swift */,
-				834EA7141D2A139A00108DDC /* UserTestCase.swift */,
-				114E1E842153A3ED00DA7DB0 /* FileTestCase.swift */,
-				118763AE2176EA3A0078645B /* InstallationTestCase.swift */,
+				11FBD1E4215BDDCA00370C61 /* LCCoreTestCase.swift */,
+				1178D10E213F7B9600429131 /* LCAPITestCase.swift */,
+				116A682521427442004141A5 /* LCRouterTestCase.swift */,
+				8365CFA71D79849D006B856E /* LCTypeTestCase.swift */,
+				8334561B1CE589E500D42725 /* LCEngineTestCase.swift */,
+				83BC11D51CDD76E900D7E7A6 /* LCACLTestCase.swift */,
+				83FAF0921CC4D1E400A84063 /* LCObjectTestCase.swift */,
+				83D0DE6E1CC7B3FF00FC204E /* LCQueryTestCase.swift */,
+				8352B5221D2BAAE600531785 /* LCRelationTestCase.swift */,
+				834EA7141D2A139A00108DDC /* LCUserTestCase.swift */,
+				114E1E842153A3ED00DA7DB0 /* LCFileTestCase.swift */,
+				118763AE2176EA3A0078645B /* LCInstallationTestCase.swift */,
 				D33A8DA921F577F2005B84A9 /* RTMBaseTestCase.swift */,
 				1123922B2191669100ECCBCC /* RTMRouterTestCase.swift */,
 				D3DAD03B218DA402008BCD37 /* RTMConnectionTestCase.swift */,
@@ -1013,24 +1013,24 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				83FAF0931CC4D1E400A84063 /* ObjectTestCase.swift in Sources */,
-				834EA7151D2A139A00108DDC /* UserTestCase.swift in Sources */,
+				83FAF0931CC4D1E400A84063 /* LCObjectTestCase.swift in Sources */,
+				834EA7151D2A139A00108DDC /* LCUserTestCase.swift in Sources */,
 				D33A8DAA21F577F2005B84A9 /* RTMBaseTestCase.swift in Sources */,
-				11FBD1E5215BDDCA00370C61 /* CoreTestCase.swift in Sources */,
+				11FBD1E5215BDDCA00370C61 /* LCCoreTestCase.swift in Sources */,
 				8342FCCB1C7B13A700C3CF15 /* BaseTestCase.swift in Sources */,
 				D3783A1221F453C3006F6635 /* IMConversationTestCase.swift in Sources */,
-				8352B5231D2BAAE600531785 /* RelationTestCase.swift in Sources */,
+				8352B5231D2BAAE600531785 /* LCRelationTestCase.swift in Sources */,
 				D3665C3721FEAAC1005B44B0 /* IMMessageTestCase.swift in Sources */,
-				83D0DE6F1CC7B3FF00FC204E /* QueryTestCase.swift in Sources */,
-				114E1E852153A3ED00DA7DB0 /* FileTestCase.swift in Sources */,
-				83BC11D61CDD76E900D7E7A6 /* ACLTestCase.swift in Sources */,
-				1178D10F213F7B9600429131 /* APITestCase.swift in Sources */,
-				8334561C1CE589E500D42725 /* EngineTestCase.swift in Sources */,
+				83D0DE6F1CC7B3FF00FC204E /* LCQueryTestCase.swift in Sources */,
+				114E1E852153A3ED00DA7DB0 /* LCFileTestCase.swift in Sources */,
+				83BC11D61CDD76E900D7E7A6 /* LCACLTestCase.swift in Sources */,
+				1178D10F213F7B9600429131 /* LCAPITestCase.swift in Sources */,
+				8334561C1CE589E500D42725 /* LCEngineTestCase.swift in Sources */,
 				D3AC7BA821AE9C1A00C6C557 /* IMClientTestCase.swift in Sources */,
-				116A682621427442004141A5 /* RouterTestCase.swift in Sources */,
+				116A682621427442004141A5 /* LCRouterTestCase.swift in Sources */,
 				1123922C2191669100ECCBCC /* RTMRouterTestCase.swift in Sources */,
-				118763AF2176EA3A0078645B /* InstallationTestCase.swift in Sources */,
-				8365CFA81D79849D006B856E /* TypeTestCase.swift in Sources */,
+				118763AF2176EA3A0078645B /* LCInstallationTestCase.swift in Sources */,
+				8365CFA81D79849D006B856E /* LCTypeTestCase.swift in Sources */,
 				D3DAD03C218DA402008BCD37 /* RTMConnectionTestCase.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

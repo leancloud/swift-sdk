@@ -1,5 +1,5 @@
 //
-//  RouterTestCase.swift
+//  LCRouterTestCase.swift
 //  LeanCloudTests
 //
 //  Created by Tianyong Tang on 2018/9/7.
@@ -9,7 +9,7 @@
 import XCTest
 @testable import LeanCloud
 
-class RouterTestCase: BaseTestCase {
+class LCRouterTestCase: BaseTestCase {
 
     override func setUp() {
         super.setUp()

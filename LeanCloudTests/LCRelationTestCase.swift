@@ -1,5 +1,5 @@
 //
-//  RelationTestCase.swift
+//  LCRelationTestCase.swift
 //  LeanCloud
 //
 //  Created by Tang Tianyong on 7/5/16.
@@ -9,7 +9,7 @@
 import XCTest
 @testable import LeanCloud
 
-class RelationTestCase: BaseTestCase {
+class LCRelationTestCase: BaseTestCase {
 
     override func setUp() {
         super.setUp()
