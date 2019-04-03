@@ -916,8 +916,9 @@ class IMMessageTestCase: RTMBaseTestCase {
             }
         }
         receivingTuple.client.connection.disconnect()
+        delay(seconds: 5)
         receivingTuple.client.connection.connect()
-        wait(for: [reconnectExp, notGetPatchExp], timeout: 5)
+        wait(for: [reconnectExp, notGetPatchExp], timeout: 10)
         receivingTuple.delegator.clientEvent = nil
         
         receivingTuple.client.connection.disconnect()

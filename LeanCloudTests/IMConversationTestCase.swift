@@ -1060,11 +1060,11 @@ class IMConversationTestCase: RTMBaseTestCase {
         
         let generalQueryExp2 = expectation(description: "general query with custom conditon")
         let generalQuery1 = clientA.conversationQuery
-        try! generalQuery1.where(key: IMConversation.Key.transient.rawValue, .equalTo(true))
+        try! generalQuery1.where(IMConversation.Key.transient.rawValue, .equalTo(true))
         let generalQuery2 = clientA.conversationQuery
-        try! generalQuery2.where(key: IMConversation.Key.system.rawValue, .equalTo(true))
+        try! generalQuery2.where(IMConversation.Key.system.rawValue, .equalTo(true))
         let generalQuery3 = ((try? generalQuery1.or(generalQuery2)) as IMConversationQuery??)
-        try! generalQuery3??.where(key: IMConversation.Key.createdAt.rawValue, .ascending)
+        try! generalQuery3??.where(IMConversation.Key.createdAt.rawValue, .ascending)
         generalQuery3??.limit = 5
         ((try? generalQuery3??.findConversations(completion: { (result) in
             XCTAssertTrue(result.isSuccess)
@@ -1097,7 +1097,7 @@ class IMConversationTestCase: RTMBaseTestCase {
         {
             do {
                 let conversationQuery = clientA.conversationQuery
-                try conversationQuery.where(key: "key", constraint)
+                try conversationQuery.where("key", constraint)
                 XCTFail()
             } catch {
                 XCTAssertTrue(error is LCError)
