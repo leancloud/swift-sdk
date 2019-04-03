@@ -1,5 +1,5 @@
 //
-//  EngineTestCase.swift
+//  LCEngineTestCase.swift
 //  LeanCloud
 //
 //  Created by Tang Tianyong on 5/13/16.
@@ -9,7 +9,7 @@
 import XCTest
 import LeanCloud
 
-class EngineTestCase: BaseTestCase {
+class LCEngineTestCase: BaseTestCase {
 
     override func setUp() {
         super.setUp()

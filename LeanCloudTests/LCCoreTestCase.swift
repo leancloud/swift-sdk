@@ -1,5 +1,5 @@
 //
-//  CoreTestCase.swift
+//  LCCoreTestCase.swift
 //  LeanCloudTests
 //
 //  Created by Tianyong Tang on 2018/9/26.
@@ -9,7 +9,7 @@
 import XCTest
 @testable import LeanCloud
 
-class CoreTestCase: BaseTestCase {
+class LCCoreTestCase: BaseTestCase {
     
     override func setUp() {
         super.setUp()

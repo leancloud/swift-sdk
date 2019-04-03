@@ -1,5 +1,5 @@
 //
-//  ObjectTestCase.swift
+//  LCObjectTestCase.swift
 //  LeanCloud
 //
 //  Created by Tang Tianyong on 4/18/16.
@@ -9,7 +9,7 @@
 import XCTest
 @testable import LeanCloud
 
-class ObjectTestCase: BaseTestCase {
+class LCObjectTestCase: BaseTestCase {
 
     override func setUp() {
         super.setUp()
@@ -327,4 +327,19 @@ class ObjectTestCase: BaseTestCase {
         }
         """)
     }
+}
+
+class TestObject: LCObject {
+    @objc dynamic var numberField: LCNumber?
+    @objc dynamic var booleanField: LCBool?
+    @objc dynamic var stringField: LCString?
+    @objc dynamic var arrayField: LCArray?
+    @objc dynamic var dictionaryField: LCDictionary?
+    @objc dynamic var objectField: LCObject?
+    @objc dynamic var relationField: LCRelation?
+    @objc dynamic var geoPointField: LCGeoPoint?
+    @objc dynamic var dataField: LCData?
+    @objc dynamic var dateField: LCDate?
+    @objc dynamic var nullField: LCNull?
+    @objc dynamic var fileField: LCFile?
 }

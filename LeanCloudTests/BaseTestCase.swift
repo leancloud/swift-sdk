@@ -7,22 +7,7 @@
 //
 
 import XCTest
-@testable import LeanCloud
-
-class TestObject: LCObject {
-    @objc dynamic var numberField: LCNumber?
-    @objc dynamic var booleanField: LCBool?
-    @objc dynamic var stringField: LCString?
-    @objc dynamic var arrayField: LCArray?
-    @objc dynamic var dictionaryField: LCDictionary?
-    @objc dynamic var objectField: LCObject?
-    @objc dynamic var relationField: LCRelation?
-    @objc dynamic var geoPointField: LCGeoPoint?
-    @objc dynamic var dataField: LCData?
-    @objc dynamic var dateField: LCDate?
-    @objc dynamic var nullField: LCNull?
-    @objc dynamic var fileField: LCFile?
-}
+import LeanCloud
 
 class BaseTestCase: XCTestCase {
     
@@ -40,13 +25,13 @@ class BaseTestCase: XCTestCase {
     override func setUp() {
         super.setUp()
 
-        TestObject.register()
-
         LCApplication.default.logLevel = .all
         LCApplication.default.set(
             id: "S5vDI3IeCk1NLLiM1aFg3262-gzGzoHsz",
             key: "7g5pPsI55piz2PRLPWK5MPz0"
         )
+        
+        TestObject.register()
     }
 
     func busywait(interval: TimeInterval = 0.1, untilTrue: () -> Bool) -> Void {

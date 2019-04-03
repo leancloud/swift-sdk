@@ -51,8 +51,8 @@ class ObjectUpdater {
         var requests: [BatchRequest] = []
         let toposort = try ObjectProfiler.shared.toposort(objects)
 
-        toposort.forEach { object in
-            requests.append(contentsOf: BatchRequestBuilder.buildRequests(object))
+        try toposort.forEach { object in
+            requests.append(contentsOf: try BatchRequestBuilder.buildRequests(object))
         }
 
         let jsonRequests = try requests.map { request in

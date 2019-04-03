@@ -157,31 +157,28 @@ public class IMConversationQuery: LCQuery {
     /// - Parameters:
     ///   - key: The key.
     ///   - constraint: The constraint.
-    public override func `where`(key: String, _ constraint: Constraint) throws {
+    public override func `where`(_ key: String, _ constraint: Constraint) throws {
+        let typeChecker: (LCQuery) throws -> Void = { query in
+            guard let _ = query as? IMConversationQuery else {
+                throw LCError(code: .inconsistency, reason: "\(type(of: query)) not support")
+            }
+        }
         switch constraint {
         case .included, .selected:
             throw LCError(code: .inconsistency, reason: "\(constraint) not support")
             /* Query matching. */
         case let .matchedQuery(query):
-            guard let _ = query as? IMConversationQuery else {
-                throw LCError(code: .inconsistency, reason: "\(type(of: query)) not support")
-            }
+            try typeChecker(query)
         case let .notMatchedQuery(query):
-            guard let _ = query as? IMConversationQuery else {
-                throw LCError(code: .inconsistency, reason: "\(type(of: query)) not support")
-            }
+            try typeChecker(query)
         case let .matchedQueryAndKey(query, _):
-            guard let _ = query as? IMConversationQuery else {
-                throw LCError(code: .inconsistency, reason: "\(type(of: query)) not support")
-            }
+            try typeChecker(query)
         case let .notMatchedQueryAndKey(query, _):
-            guard let _ = query as? IMConversationQuery else {
-                throw LCError(code: .inconsistency, reason: "\(type(of: query)) not support")
-            }
+            try typeChecker(query)
         default:
             break
         }
-        try super.where(key: key, constraint)
+        try super.where(key, constraint)
     }
     
     /// Get Conversation by ID.
@@ -197,7 +194,7 @@ public class IMConversationQuery: LCQuery {
         if T.self == IMTemporaryConversation.self {
             throw LCError.conversationQueryTypeInvalid
         }
-        try self.where(key: IMConversation.Key.objectId.rawValue, .equalTo(ID))
+        try self.where(IMConversation.Key.objectId.rawValue, .equalTo(ID))
         let tuple = try self.whereAndSort()
         self.queryConversations(
             whereString: tuple.whereString,
@@ -234,7 +231,7 @@ public class IMConversationQuery: LCQuery {
         guard IMConversationQuery.limitRangeOfQueryResult.contains(IDs.count) else {
             throw LCError.conversationQueryLimitInvalid
         }
-        try self.where(key: IMConversation.Key.objectId.rawValue, .containedIn(Array(IDs)))
+        try self.where(IMConversation.Key.objectId.rawValue, .containedIn(Array(IDs)))
         let tuple = try self.whereAndSort()
         self.queryConversations(
             whereString: tuple.whereString,

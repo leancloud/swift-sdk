@@ -14,7 +14,7 @@ import IOKit
 #endif
 
 /// IM Client
-public final class IMClient {
+public class IMClient {
     
     #if DEBUG
     static let TestReportDeviceTokenNotification = Notification.Name.init("TestReportDeviceTokenNotification")

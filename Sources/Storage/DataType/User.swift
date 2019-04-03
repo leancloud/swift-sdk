@@ -17,14 +17,14 @@ import Foundation
  */
 open class LCUser: LCObject {
     /// Username of user.
-    @objc open dynamic var username: LCString?
+    @objc dynamic public var username: LCString?
 
     /**
      Password of user.
 
      - note: this property will not be filled in when fetched or logged in for security.
      */
-    @objc open dynamic var password: LCString?
+    @objc dynamic public var password: LCString?
 
     /**
      Email of user.
@@ -32,10 +32,10 @@ open class LCUser: LCObject {
      If the "Enable Email Verification" application option is enabled,
      a verification email will be sent to user when user registered with an email address.
      */
-    @objc open dynamic var email: LCString?
+    @objc dynamic public var email: LCString?
 
     /// A flag indicates whether email is verified or not.
-    @objc open private(set) dynamic var emailVerified: LCBool?
+    @objc dynamic public private(set) var emailVerified: LCBool?
 
     /**
      Mobile phone number.
@@ -43,13 +43,13 @@ open class LCUser: LCObject {
      If the "Enable Mobile Phone Number Verification" application option is enabled,
      an sms message will be sent to user's phone when user registered with a phone number.
      */
-    @objc open dynamic var mobilePhoneNumber: LCString?
+    @objc dynamic public var mobilePhoneNumber: LCString?
 
     /// A flag indicates whether mobile phone is verified or not.
-    @objc open private(set) dynamic var mobilePhoneVerified: LCBool?
+    @objc dynamic public private(set) var mobilePhoneVerified: LCBool?
 
     /// Session token of user authenticated by server.
-    @objc open private(set) dynamic var sessionToken: LCString?
+    @objc dynamic public private(set) var sessionToken: LCString?
 
     /// Current authenticated user.
     public static var current: LCUser? = nil
@@ -63,7 +63,7 @@ open class LCUser: LCObject {
 
      - returns: The result of signing up request.
      */
-    open func signUp() -> LCBooleanResult {
+    public func signUp() -> LCBooleanResult {
         return expect { fulfill in
             self.signUp(completionInBackground: { result in
                 fulfill(result)
@@ -76,7 +76,7 @@ open class LCUser: LCObject {
 
      - parameter completion: The completion callback closure.
      */
-    open func signUp(_ completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
+    public func signUp(_ completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
         return signUp(completionInBackground: { result in
             mainQueueAsync {
                 completion(result)
@@ -85,7 +85,7 @@ open class LCUser: LCObject {
     }
 
     @discardableResult
-    open func signUp(completionInBackground completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
+    public func signUp(completionInBackground completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
         return type(of: self).save([self], completionInBackground: completion)
     }
 
@@ -684,7 +684,7 @@ open class LCUser: LCObject {
 
      - returns: The result of update request.
      */
-    open func updatePassword(oldPassword: String, newPassword: String) -> LCBooleanResult {
+    public func updatePassword(oldPassword: String, newPassword: String) -> LCBooleanResult {
         return expect { fulfill in
             self.updatePassword(oldPassword: oldPassword, newPassword: newPassword, completionInBackground: { result in
                 fulfill(result)
@@ -699,7 +699,7 @@ open class LCUser: LCObject {
      - parameter newPassword: The new password.
      - parameter completion:  The completion callback closure.
      */
-    open func updatePassword(oldPassword: String, newPassword: String, completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
+    public func updatePassword(oldPassword: String, newPassword: String, completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
         return updatePassword(oldPassword: oldPassword, newPassword: newPassword, completionInBackground: { result in
             mainQueueAsync {
                 completion(result)

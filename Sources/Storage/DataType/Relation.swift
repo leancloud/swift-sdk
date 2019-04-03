@@ -32,19 +32,21 @@ public final class LCRelation: NSObject, LCValue, LCValueExtension, Sequence {
     var effectiveObjectClassName: String? {
         return objectClassName ?? value.first?.actualClassName
     }
-
-    internal override init() {
+    
+    override init() {
         super.init()
     }
 
-    internal convenience init(key: String, parent: LCObject) {
-        self.init()
+    init(key: String, parent: LCObject) {
+        super.init()
 
         self.key    = key
         self.parent = parent
     }
 
     init?(dictionary: [String: Any]) {
+        super.init()
+        
         guard let type = dictionary["__type"] as? String else {
             return nil
         }
@@ -59,6 +61,8 @@ public final class LCRelation: NSObject, LCValue, LCValueExtension, Sequence {
     }
 
     public required init?(coder aDecoder: NSCoder) {
+        super.init()
+        
         value = (aDecoder.decodeObject(forKey: "value") as? [Element]) ?? []
         objectClassName = aDecoder.decodeObject(forKey: "objectClassName") as? String
     }

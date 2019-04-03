@@ -1,5 +1,5 @@
 //
-//  UserTestCase.swift
+//  LCUserTestCase.swift
 //  LeanCloud
 //
 //  Created by Tang Tianyong on 7/4/16.
@@ -9,7 +9,7 @@
 import XCTest
 @testable import LeanCloud
 
-class UserTestCase: BaseTestCase {
+class LCUserTestCase: BaseTestCase {
     
     override func setUp() {
         super.setUp()

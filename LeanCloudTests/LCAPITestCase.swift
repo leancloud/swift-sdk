@@ -1,5 +1,5 @@
 //
-//  APITestCase.swift
+//  LCAPITestCase.swift
 //  LeanCloudTests
 //
 //  Created by Tianyong Tang on 2018/9/5.
@@ -9,7 +9,7 @@
 import XCTest
 @testable import LeanCloud
 
-class APITestCase: BaseTestCase {
+class LCAPITestCase: BaseTestCase {
 
     override func setUp() {
         super.setUp()

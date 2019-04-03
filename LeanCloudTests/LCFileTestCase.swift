@@ -1,5 +1,5 @@
 //
-//  FileTestCase.swift
+//  LCFileTestCase.swift
 //  LeanCloudTests
 //
 //  Created by Tianyong Tang on 2018/9/20.
@@ -9,7 +9,7 @@
 import XCTest
 @testable import LeanCloud
 
-class FileTestCase: BaseTestCase {
+class LCFileTestCase: BaseTestCase {
     
     override func setUp() {
         super.setUp()

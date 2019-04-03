@@ -11,10 +11,10 @@ import Foundation
 /**
  LeanCloud file type.
  */
-public final class LCFile: LCObject {
+public class LCFile: LCObject {
 
     /// The file URL.
-    @objc public dynamic var url: LCString?
+    @objc dynamic public var url: LCString?
 
     /**
      The file key.
@@ -22,19 +22,19 @@ public final class LCFile: LCObject {
      It's the resource key of third-party file hosting provider.
      It may be nil for some providers.
      */
-    @objc public dynamic var key: LCString?
+    @objc dynamic public var key: LCString?
 
     /// The file name.
-    @objc public dynamic var name: LCString?
+    @objc dynamic public var name: LCString?
 
     /// The file meta data.
-    @objc public dynamic var metaData: LCDictionary?
+    @objc dynamic public var metaData: LCDictionary?
 
     /// The file hosting provider.
-    @objc public dynamic var provider: LCString?
+    @objc dynamic public var provider: LCString?
 
     /// The file bucket.
-    @objc public dynamic var bucket: LCString?
+    @objc dynamic public var bucket: LCString?
 
     /**
      The MIME type of file.
@@ -65,6 +65,7 @@ public final class LCFile: LCObject {
      - parameter url: The file URL.
      */
     public init(url: LCStringConvertible) {
+        super.init()
         self.url = url.lcString
     }
 
@@ -92,14 +93,15 @@ public final class LCFile: LCObject {
      - parameter content: The file content.
      */
     public init(payload: Payload) {
+        super.init()
         self.payload = payload
     }
 
-    public override class func objectClassName() -> String {
+    public final override class func objectClassName() -> String {
         return "_File"
     }
 
-    override public func save() -> LCBooleanResult {
+    public override func save() -> LCBooleanResult {
         return expect { fulfill in
             self.save(
             progressInBackground: { _ in /* Nop */ },
@@ -109,7 +111,7 @@ public final class LCFile: LCObject {
         }
     }
 
-    override public func save(
+    public override func save(
         _ completion: @escaping (LCBooleanResult) -> Void) -> LCRequest
     {
         return save(

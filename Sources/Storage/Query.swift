@@ -193,14 +193,11 @@ public class LCQuery: NSObject, NSCopying, NSCoding {
      - parameter constraint: The constraint.
      */
     public func whereKey(_ key: String, _ constraint: Constraint) {
-        do {
-            try self.where(key: key, constraint)
-        } catch {
-            Logger.shared.error(error)
-        }
+        // because self.where will never throw error, so use try!
+        try! self.where(key, constraint)
     }
     
-    func `where`(key: String, _ constraint: Constraint) throws {
+    func `where`(_ key: String, _ constraint: Constraint) throws {
         var dictionary: [String: Any]?
 
         switch constraint {

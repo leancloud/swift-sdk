@@ -1,5 +1,5 @@
 //
-//  QueryTestCase.swift
+//  LCQueryTestCase.swift
 //  LeanCloud
 //
 //  Created by Tang Tianyong on 4/20/16.
@@ -48,7 +48,7 @@ let sharedChild: TestObject = {
     return object
 }()
 
-class QueryTestCase: BaseTestCase {
+class LCQueryTestCase: BaseTestCase {
     
     override func setUp() {
         super.setUp()
