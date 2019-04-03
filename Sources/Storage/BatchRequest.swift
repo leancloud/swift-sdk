@@ -147,8 +147,8 @@ class BatchRequestBuilder {
      - returns: A list of operation tables.
      */
     private static func operationTableList(_ object: LCObject) -> OperationTableList {
-        if object.hasObjectId {
-            return object.operationHub.operationTableList()
+        if object.hasObjectId, let operationHub = object.operationHub {
+            return operationHub.operationTableList()
         } else {
             return initialOperationTableList(object)
         }
