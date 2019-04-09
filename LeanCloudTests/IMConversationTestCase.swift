@@ -1230,9 +1230,10 @@ class IMConversationTestCase: RTMBaseTestCase {
         }
         wait(for: [createExp], timeout: timeout)
         
-        XCTAssertNotNil(clientA.serverTimestamp)
+        XCTAssertNotNil(clientA.localRecord.lastServerTimestamp)
         delay()
-        clientB.change(serverTimestamp: (clientA.serverTimestamp ?? 0) - 3600000)
+        clientB.test_change(serverTimestamp: (clientA.localRecord.lastServerTimestamp ?? 0) - 3600000)
+        delay()
         
         let getEventsExp = expectation(description: "get offline events")
         getEventsExp.expectedFulfillmentCount = 3
@@ -1258,7 +1259,7 @@ class IMConversationTestCase: RTMBaseTestCase {
         XCTAssertEqual(clientA.convCollection.count, 1)
         XCTAssertEqual(clientB.convCollection.count, 1)
         XCTAssertEqual(clientA.convCollection.first?.value.ID, clientB.convCollection.first?.value.ID)
-        XCTAssertEqual(clientA.serverTimestamp, clientB.serverTimestamp)
+        XCTAssertEqual(clientA.localRecord.lastServerTimestamp, clientB.localRecord.lastServerTimestamp)
     }
     
 }

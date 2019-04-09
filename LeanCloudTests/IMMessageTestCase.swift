@@ -777,7 +777,7 @@ class IMMessageTestCase: RTMBaseTestCase {
         })) as ()??)
         wait(for: [exp], timeout: timeout)
         
-        XCTAssertNotNil(receivingTuple?.client.lastPatchTime)
+        XCTAssertNotNil(receivingTuple?.client.localRecord.lastPatchTimestamp)
     }
     
     func testMessageRecalling() {
@@ -837,7 +837,7 @@ class IMMessageTestCase: RTMBaseTestCase {
         })) as ()??)
         wait(for: [exp], timeout: timeout)
         
-        XCTAssertNotNil(receivingTuple?.client.lastPatchTime)
+        XCTAssertNotNil(receivingTuple?.client.localRecord.lastPatchTimestamp)
     }
     
     func testMessagePatchNotification() {
@@ -891,7 +891,7 @@ class IMMessageTestCase: RTMBaseTestCase {
         wait(for: [patchMessageExp], timeout: timeout)
         
         delay()
-        let firstLastPatchTime = receivingTuple.client.lastPatchTime
+        let firstLastPatchTime = receivingTuple.client.localRecord.lastPatchTimestamp
         XCTAssertNotNil(firstLastPatchTime)
         
         let reconnectExp = expectation(description: "reconnect")
@@ -952,7 +952,7 @@ class IMMessageTestCase: RTMBaseTestCase {
         
         delay()
         if let first = firstLastPatchTime,
-            let second = receivingTuple.client.lastPatchTime {
+            let second = receivingTuple.client.localRecord.lastPatchTimestamp {
             XCTAssertGreaterThan(second, first)
         } else {
             XCTFail()
