@@ -99,7 +99,7 @@ public final class LCApplication: NSObject {
      */
     public static let `default` = LCApplication()
     
-    var localStorageContext: LocalStorageContext?
+    private(set) var localStorageContext: LocalStorageContext?
 
     /**
      Create an application.

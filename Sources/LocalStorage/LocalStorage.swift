@@ -369,7 +369,7 @@ class LocalStorageContext {
     }
     
     enum File: String {
-        case client = "client"
+        case clientRecord = "clientRecord"
         
         var name: String {
             return self.rawValue
@@ -427,9 +427,9 @@ class LocalStorageContext {
         return directoryURL.appendingPathComponent(file.name)
     }
     
-    func save(table: LocalStorageContext.Table, to fileURL: URL) throws {
+    func save<T: Codable>(table: T, to fileURL: URL, encoder: JSONEncoder = JSONEncoder()) throws {
         let filePath = fileURL.path
-        let data: Data = try table.data()
+        let data: Data = try encoder.encode(table)
         let tmpFileURL: URL = FileManager.default
             .temporaryDirectory
             .appendingPathComponent(UUID().uuidString)
@@ -449,7 +449,7 @@ class LocalStorageContext {
         }
     }
     
-    func get(table fileURL: URL) throws -> LocalStorageContext.Table? {
+    func table<T: Codable>(from fileURL: URL, decoder: JSONDecoder = JSONDecoder()) throws -> T? {
         let filePath = fileURL.path
         guard
             FileManager.default.fileExists(atPath: filePath),
@@ -458,43 +458,7 @@ class LocalStorageContext {
         {
             return nil
         }
-        return try LocalStorageContext.Table(data: data)
-    }
-    
-}
-
-extension LocalStorageContext {
-    
-    class Table {
-        let createdDate: Date
-        let json: [String: Any]
-        
-        init(jsonData: [String: Any]) {
-            assert(JSONSerialization.isValidJSONObject(jsonData))
-            self.createdDate = Date()
-            self.json = jsonData
-        }
-        
-        init(data: Data) throws {
-            guard
-                let jsonObject = try JSONSerialization.jsonObject(with: data) as? [String: Any],
-                let json = jsonObject["json"] as? [String: Any],
-                let timeIntervalSince1970 = jsonObject["createdDate"] as? Double
-                else
-            {
-                throw LCError(code: .inconsistency, reason: "Data invalid.")
-            }
-            self.createdDate = Date(timeIntervalSince1970: timeIntervalSince1970)
-            self.json = json
-        }
-        
-        func data() throws -> Data {
-            let dictionary: [String: Any] = [
-                "createdDate": self.createdDate.timeIntervalSince1970,
-                "json": self.json
-            ]
-            return try JSONSerialization.data(withJSONObject: dictionary)
-        }
+        return try decoder.decode(T.self, from: data)
     }
     
 }
