@@ -336,3 +336,165 @@ protocol LocalStorageProtocol {
     var type: LocalStorageType { get }
 
 }
+
+class LocalStorageContext {
+    
+    enum Place {
+        case systemCaches
+        case persistentData
+    }
+    
+    /*
+     This struct is used to record which domain has been deprecated.
+     
+     !!! Should Never Use Deprecated Domain !!!
+     */
+    private struct DeprecatedDomain {
+        /// due to need a tag to identify objc-sdk and swift-sdk.
+        static let domain1 = "LeanCloud"
+    }
+    
+    private static let domain: String = "com.leancloud.swift"
+    
+    enum Module {
+        case IM(clientID: String)
+        
+        var path: String {
+            switch self {
+            case .IM(clientID: let clientID):
+                let md5: String = clientID.md5.lowercased()
+                return ("IM" as NSString).appendingPathComponent(md5)
+            }
+        }
+    }
+    
+    enum File: String {
+        case client = "client"
+        
+        var name: String {
+            return self.rawValue
+        }
+    }
+    
+    let appID: String
+    let cachesDirectoryPath: URL
+    let applicationSupportDirectoryPath: URL
+    
+    init(applicationID: String) throws {
+        let directoryInUserDomain: (FileManager.SearchPathDirectory) throws -> URL = {
+            return try FileManager.default.url(
+                for: $0,
+                in: .userDomainMask,
+                appropriateFor: nil,
+                create: true
+            )
+        }
+        let systemCachesDirectory: URL = try directoryInUserDomain(.cachesDirectory)
+        let systemApplicationSupportDirectory: URL = try directoryInUserDomain(.applicationSupportDirectory)
+        
+        let appIDMD5: String = applicationID.md5.lowercased()
+        
+        let appDirectoryPath: (URL) throws -> URL = {
+            let pathURL: URL = $0
+                .appendingPathComponent(LocalStorageContext.domain, isDirectory: true)
+                .appendingPathComponent(appIDMD5, isDirectory: true)
+            try FileManager.default.createDirectory(
+                at: pathURL,
+                withIntermediateDirectories: true,
+                attributes: nil
+            )
+            return pathURL
+        }
+        self.appID = applicationID
+        self.cachesDirectoryPath = try appDirectoryPath(systemCachesDirectory)
+        self.applicationSupportDirectoryPath = try appDirectoryPath(systemApplicationSupportDirectory)
+    }
+    
+    func fileURL(place: Place, module: Module, file: File) throws -> URL {
+        var rootDirectory: URL
+        switch place {
+        case .systemCaches:
+            rootDirectory = self.cachesDirectoryPath
+        case .persistentData:
+            rootDirectory = self.applicationSupportDirectoryPath
+        }
+        let directoryURL = rootDirectory.appendingPathComponent(module.path, isDirectory: true)
+        try FileManager.default.createDirectory(
+            at: directoryURL,
+            withIntermediateDirectories: true,
+            attributes: nil
+        )
+        return directoryURL.appendingPathComponent(file.name)
+    }
+    
+    func save(table: LocalStorageContext.Table, to fileURL: URL) throws {
+        let filePath = fileURL.path
+        let data: Data = try table.data()
+        let tmpFileURL: URL = FileManager.default
+            .temporaryDirectory
+            .appendingPathComponent(UUID().uuidString)
+        try data.write(to: tmpFileURL)
+        if FileManager.default.fileExists(atPath: filePath) {
+            try FileManager.default.replaceItem(
+                at: fileURL,
+                withItemAt: tmpFileURL,
+                backupItemName: nil,
+                resultingItemURL: nil
+            )
+        } else {
+            try FileManager.default.moveItem(
+                atPath: tmpFileURL.path,
+                toPath: filePath
+            )
+        }
+    }
+    
+    func get(table fileURL: URL) throws -> LocalStorageContext.Table? {
+        let filePath = fileURL.path
+        guard
+            FileManager.default.fileExists(atPath: filePath),
+            let data = FileManager.default.contents(atPath: filePath)
+            else
+        {
+            return nil
+        }
+        return try LocalStorageContext.Table(data: data)
+    }
+    
+}
+
+extension LocalStorageContext {
+    
+    class Table {
+        let createdDate: Date
+        let json: [String: Any]
+        
+        init(jsonData: [String: Any]) {
+            assert(JSONSerialization.isValidJSONObject(jsonData))
+            self.createdDate = Date()
+            self.json = jsonData
+        }
+        
+        init(data: Data) throws {
+            guard
+                let jsonObject = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+                let json = jsonObject["json"] as? [String: Any],
+                let timeIntervalSince1970 = jsonObject["createdDate"] as? Double
+                else
+            {
+                throw LCError(code: .inconsistency, reason: "Data invalid.")
+            }
+            self.createdDate = Date(timeIntervalSince1970: timeIntervalSince1970)
+            self.json = json
+        }
+        
+        func data() throws -> Data {
+            let dictionary: [String: Any] = [
+                "createdDate": self.createdDate.timeIntervalSince1970,
+                "json": self.json
+            ]
+            return try JSONSerialization.data(withJSONObject: dictionary)
+        }
+    }
+    
+}
