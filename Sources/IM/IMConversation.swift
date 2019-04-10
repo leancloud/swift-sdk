@@ -1538,7 +1538,7 @@ public class IMChatRoom: IMConversation {
     /// Get count of online clients in this Chat Room.
     ///
     /// - Parameter completion: callback.
-    public func getOnlineMemberCount(completion: @escaping (LCCountResult) -> Void) {
+    public func getOnlineMembersCount(completion: @escaping (LCCountResult) -> Void) {
         self.client?.sendCommand(constructor: { () -> IMGenericCommand in
             var outCommand = IMGenericCommand()
             outCommand.cmd = .conv
@@ -1555,6 +1555,49 @@ public class IMChatRoom: IMConversation {
                     client.eventQueue.async {
                         let count = Int(inCommand.convMessage.count)
                         completion(.success(count: count))
+                    }
+                } else {
+                    client.eventQueue.async {
+                        completion(.failure(error: LCError(code: .commandInvalid)))
+                    }
+                }
+            case .error(let error):
+                client.eventQueue.async {
+                    completion(.failure(error: error))
+                }
+            }
+        })
+    }
+    
+    /// Get online clients in this Chat Room.
+    ///
+    /// - Parameters:
+    ///   - limit: Max and Default is 50 .
+    ///   - completion: callback, dispatch to client.eventQueue .
+    public func getOnlineMembers(limit: Int = 50, completion: @escaping (LCGenericResult<[String]>) -> Void) {
+        let trimmedLimit: Int = (limit > 50 ? 50 : (limit < 0 ? 0 : limit))
+        guard trimmedLimit > 0 else {
+            self.client?.eventQueue.async {
+                completion(.success(value: []))
+            }
+            return
+        }
+        self.client?.sendCommand(constructor: { () -> IMGenericCommand in
+            var outCommand = IMGenericCommand()
+            outCommand.cmd = .conv
+            outCommand.op = .members
+            var convCommand = IMConvCommand()
+            convCommand.cid = self.ID
+            convCommand.limit = Int32(trimmedLimit)
+            outCommand.convMessage = convCommand
+            return outCommand
+        }, completion: { (client, result) in
+            switch result {
+            case .inCommand(let inCommand):
+                assert(client.specificAssertion)
+                if let convMessage = (inCommand.hasConvMessage ? inCommand.convMessage : nil) {
+                    client.eventQueue.async {
+                        completion(.success(value: convMessage.m))
                     }
                 } else {
                     client.eventQueue.async {
@@ -1591,6 +1634,51 @@ public class IMServiceConversation: IMConversation {
     /// - Parameter completion: callback.
     public func unsubscribe(completion: @escaping (LCBooleanResult) -> Void) throws {
         try self.leave(completion: completion)
+    }
+    
+    /// Check whether subscribed this Service Conversation.
+    ///
+    /// - Parameter completion: callback, dispatch to client.eventQueue .
+    public func checkSubscription(completion: @escaping (LCGenericResult<Bool>) -> Void) {
+        self.client?.sendCommand(constructor: { () -> IMGenericCommand in
+            var outCommand = IMGenericCommand()
+            outCommand.cmd = .conv
+            outCommand.op = .isMember
+            var convCommand = IMConvCommand()
+            convCommand.cids = [self.ID]
+            outCommand.convMessage = convCommand
+            return outCommand
+        }, completion: { (client, result) in
+            switch result {
+            case .inCommand(let inCommand):
+                assert(client.specificAssertion)
+                do {
+                    if
+                        let convMessage = (inCommand.hasConvMessage ? inCommand.convMessage : nil),
+                        let jsonObject = (convMessage.hasResults ? convMessage.results : nil),
+                        let dataString = (jsonObject.hasData ? jsonObject.data : nil),
+                        let results: [String: Any] = try dataString.jsonObject(),
+                        let boolValue: Bool = results[self.ID] as? Bool
+                    {
+                        client.eventQueue.async {
+                            completion(.success(value: boolValue))
+                        }
+                    } else {
+                        client.eventQueue.async {
+                            completion(.failure(error: LCError(code: .commandInvalid)))
+                        }
+                    }
+                } catch {
+                    client.eventQueue.async {
+                        completion(.failure(error: LCError(underlyingError: error)))
+                    }
+                }
+            case .error(let error):
+                client.eventQueue.async {
+                    completion(.failure(error: error))
+                }
+            }
+        })
     }
     
 }
