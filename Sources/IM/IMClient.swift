@@ -19,7 +19,8 @@ public class IMClient {
     #if DEBUG
     static let TestReportDeviceTokenNotification = Notification.Name.init("TestReportDeviceTokenNotification")
     static let TestSessionTokenExpiredNotification = Notification.Name.init("TestSessionTokenExpiredNotification")
-    static let TestGetOfflineEventsNotification = Notification.Name.init("TestGetOfflineEventNotification")
+    static let TestGetOfflineEventsNotification = Notification.Name.init("TestGetOfflineEventsNotification")
+    static let TestSaveLocalRecordNotification = Notification.Name.init("TestSaveLocalRecordNotification")
     let specificKey = DispatchSpecificKey<Int>()
     let specificValue: Int = Int.random(in: 1...999)
     var specificAssertion: Bool {
@@ -170,9 +171,11 @@ public class IMClient {
         guard tag != IMClient.reservedValueOfTag else {
             throw LCError.clientTagInvalid
         }
+        
         #if DEBUG
         self.serialQueue.setSpecific(key: self.specificKey, value: self.specificValue)
         #endif
+        
         self.ID = ID
         self.tag = tag
         self.options = options
@@ -181,6 +184,19 @@ public class IMClient {
         self.customServerURL = customServerURL
         self.application = application
         self.installation = application.currentInstallation
+        
+        if let localStorageContext = application.localStorageContext {
+            let localRecordURL = try localStorageContext.fileURL(
+                place: .persistentData,
+                module: .IM(clientID: ID),
+                file: .clientRecord
+            )
+            self.localRecordURL = localRecordURL
+            if let localRecord: IMClient.LocalRecord = try application.localStorageContext?.table(from: localRecordURL) {
+                self.underlyingLocalRecord = localRecord
+            }
+        }
+        
         do {
             // directly init `connection` is better, lazy init is not a good choice.
             // because connection should get App State in main thread.
@@ -195,9 +211,14 @@ public class IMClient {
             let appID: String = application.id
             throw LCError(
                 code: .inconsistency,
-                reason: "The client instance which Application-ID is \(appID) and Client-ID is \(ID) already exists. you can not create multiple client instance with the same Application and Client ID."
+                reason:
+                """
+                The client instance which Application-ID is \(appID) and Client-ID is \(ID) already exists.
+                You can not create multiple client instance with the same Application-ID and Client-ID.
+                """
             )
         }
+        
         self.deviceTokenObservation = self.installation.observe(
             \.deviceToken,
             options: [.old, .new, .initial]
@@ -230,19 +251,35 @@ public class IMClient {
     
     let lock = NSLock()
     
+    private(set) var localRecordURL: URL?
+    private(set) var localRecord: IMClient.LocalRecord {
+        set {
+            self.underlyingLocalRecord = newValue
+            self.saveLocalRecord()
+        }
+        get {
+            return self.underlyingLocalRecord
+        }
+    }
+    private var underlyingLocalRecord = IMClient.LocalRecord(
+        lastPatchTimestamp: nil,
+        lastServerTimestamp: nil
+    )
+    
     private(set) var sessionToken: String?
     private(set) var sessionTokenExpiration: Date?
-    private(set) var serverTimestamp: Int64?
     private(set) var openingCompletion: ((LCBooleanResult) -> Void)?
     private(set) var openingOptions: SessionOpenOptions?
     
     #if DEBUG
-    func change(sessionToken token: String?, sessionTokenExpiration date: Date?) {
+    func test_change(sessionToken token: String?, sessionTokenExpiration date: Date?) {
         self.sessionToken = token
         self.sessionTokenExpiration = date
     }
-    func change(serverTimestamp timestamp: Int64?) {
-        self.serverTimestamp = timestamp
+    func test_change(serverTimestamp timestamp: Int64?) {
+        self.serialQueue.async {
+            self.localRecord.lastServerTimestamp = timestamp
+        }
     }
     #endif
     
@@ -277,8 +314,7 @@ public class IMClient {
     var convQueryCallbackCollection: [String: Array<(IMClient, LCGenericResult<IMConversation>) -> Void>] = [:]
     
     /// ref: `https://github.com/leancloud/avoscloud-push/blob/develop/push-server/doc/protocol.md#sessionopen`
-    private(set) var lastUnreadNotifTime: Int64? = nil
-    private(set) var lastPatchTime: Int64? = nil
+    private(set) var lastUnreadNotifTime: Int64?
     
 }
 
@@ -286,6 +322,71 @@ extension IMClient: InternalSynchronizing {
     
     var mutex: NSLock {
         return self.lock
+    }
+    
+}
+
+extension IMClient {
+    
+    struct LocalRecord: Codable {
+        var lastPatchTimestamp: Int64?
+        var lastServerTimestamp: Int64?
+        
+        private enum CodingKeys: String, CodingKey {
+            case lastPatchTimestamp = "last_patch_timestamp"
+            case lastServerTimestamp = "last_server_timestamp"
+        }
+        
+        mutating func update(lastPatchTimestamp newValue: Int64?) {
+            guard let newValue = newValue else {
+                return
+            }
+            if let oldValue = self.lastPatchTimestamp {
+                if newValue > oldValue {
+                    self.lastPatchTimestamp = newValue
+                }
+            } else {
+                self.lastPatchTimestamp = newValue
+            }
+        }
+        
+        mutating func update(lastServerTimestamp newValue: Int64?) {
+            guard let newValue = newValue else {
+                return
+            }
+            if let oldValue = self.lastServerTimestamp {
+                if newValue > oldValue {
+                    self.lastServerTimestamp = newValue
+                }
+            } else {
+                self.lastServerTimestamp = newValue
+            }
+        }
+    }
+    
+    func saveLocalRecord() {
+        assert(self.specificAssertion)
+        guard
+            let url = self.localRecordURL,
+            let localStorageContext = self.application.localStorageContext
+            else
+        {
+            return
+        }
+        var userInfo: [String: Any] = [:]
+        do {
+            try localStorageContext.save(table: self.localRecord, to: url)
+        } catch {
+            userInfo["error"] = error
+            Logger.shared.error(error)
+        }
+        #if DEBUG
+        NotificationCenter.default.post(
+            name: IMClient.TestSaveLocalRecordNotification,
+            object: self,
+            userInfo: userInfo
+        )
+        #endif
     }
     
 }
@@ -912,21 +1013,21 @@ extension IMClient {
                             }
                             let hasSuccess = groupFlags.contains(groupFlagSuccess)
                             let hasFailure = groupFlags.contains(groupFlagFailure)
-                            if hasSuccess, hasFailure {
-                                for conv in conversations {
-                                    conv.isOutdated = true
+                            if hasSuccess {
+                                ssClient.localRecord.update(lastServerTimestamp: serverTimestamp)
+                                if hasFailure {
+                                    for conv in conversations {
+                                        conv.isOutdated = true
+                                    }
+                                } else {
+                                    #if DEBUG
+                                    NotificationCenter.default.post(
+                                        name: IMClient.TestGetOfflineEventsNotification,
+                                        object: client,
+                                        userInfo: ["serverTimestamp": ssClient.localRecord.lastServerTimestamp ?? -1]
+                                    )
+                                    #endif
                                 }
-                            } else if hasSuccess {
-                                if serverTimestamp > (ssClient.serverTimestamp ?? -1) {
-                                    ssClient.serverTimestamp = serverTimestamp
-                                }
-                                #if DEBUG
-                                NotificationCenter.default.post(
-                                    name: IMClient.TestGetOfflineEventsNotification,
-                                    object: client,
-                                    userInfo: ["serverTimestamp": ssClient.serverTimestamp ?? -1]
-                                )
-                                #endif
                             }
                         })
                     } else {
@@ -970,7 +1071,7 @@ private extension IMClient {
             if let lastUnreadNotifTime: Int64 = self.lastUnreadNotifTime {
                 sessionCommand.lastUnreadNotifTime = lastUnreadNotifTime
             }
-            if let lastPatchTime: Int64 = self.lastPatchTime {
+            if let lastPatchTime: Int64 = self.localRecord.lastPatchTimestamp {
                 sessionCommand.lastPatchTime = lastPatchTime
             }
         }
@@ -1054,7 +1155,7 @@ private extension IMClient {
             }
             self.sessionState = .opened
             self.getOfflineEvents(
-                serverTimestamp: self.serverTimestamp,
+                serverTimestamp: self.localRecord.lastServerTimestamp,
                 conversations: Array(self.convCollection.values)
             )
             self.eventQueue.async {
@@ -1264,9 +1365,7 @@ private extension IMClient {
                 }
                 if let rawDataOperation = rawDataOperation {
                     conversation.safeChangingRawData(operation: rawDataOperation, client: client)
-                    if (serverTs ?? -1) > (client.serverTimestamp ?? -1) {
-                        client.serverTimestamp = serverTs
-                    }
+                    client.localRecord.update(lastServerTimestamp: serverTs)
                 }
                 if let event = event {
                     client.eventQueue.async {
@@ -1354,10 +1453,8 @@ private extension IMClient {
                         client.delegate?.client(client, conversation: conversation, event: unreadUpdatedEvent)
                     }
                     client.delegate?.client(client, conversation: conversation, event: .message(event: .received(message: message)))
-                    client.serialQueue.async {
-                        client.acknowledging(message: message, conversation: conversation)
-                    }
                 }
+                client.acknowledging(message: message, conversation: conversation)
             case .failure(error: let error):
                 Logger.shared.error(error)
             }
@@ -1466,13 +1563,7 @@ private extension IMClient {
         let updateLastPatchTime: () -> Void = { [weak self] in
             guard let client: IMClient = self else { return }
             if client.options.isProtobuf3, lastPatchTimestamp > 0 {
-                if let oldTime = client.lastPatchTime {
-                    if lastPatchTimestamp > oldTime {
-                        client.lastPatchTime = lastPatchTimestamp
-                    }
-                } else {
-                    client.lastPatchTime = lastPatchTimestamp
-                }
+                client.localRecord.update(lastPatchTimestamp: lastPatchTimestamp)
             }
         }
         if conversationIDMap.isEmpty, temporaryConversationIDMap.isEmpty {
@@ -1553,9 +1644,7 @@ private extension IMClient {
                 client.eventQueue.async {
                     client.delegate?.client(client, conversation: conversation, event: .message(event: event))
                 }
-                if (serverTs ?? -1) > (client.serverTimestamp ?? -1) {
-                    client.serverTimestamp = serverTs
-                }
+                client.localRecord.update(lastServerTimestamp: serverTs)
             case .failure(error: let error):
                 Logger.shared.error(error)
             }

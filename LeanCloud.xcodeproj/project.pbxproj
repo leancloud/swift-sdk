@@ -98,6 +98,7 @@
 		D3783A1221F453C3006F6635 /* IMConversationTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3783A1121F453C3006F6635 /* IMConversationTestCase.swift */; };
 		D393EDBE21D38206001CBB2B /* IMMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D393EDBD21D38206001CBB2B /* IMMessage.swift */; };
 		D3AC7BA821AE9C1A00C6C557 /* IMClientTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3AC7BA721AE9C1A00C6C557 /* IMClientTestCase.swift */; };
+		D3BBFB41225D944100B75BA1 /* LCLocalStorageTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3BBFB40225D944100B75BA1 /* LCLocalStorageTestCase.swift */; };
 		D3C3782F21E48D3C00EA9AC9 /* IMConversationQuery.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3C3782E21E48D3C00EA9AC9 /* IMConversationQuery.swift */; };
 		D3DAD03C218DA402008BCD37 /* RTMConnectionTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3DAD03B218DA402008BCD37 /* RTMConnectionTestCase.swift */; };
 		D3E1F48D2193EDF3007B6FFB /* ConnectionTestViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3E1F48C2193EDF3007B6FFB /* ConnectionTestViewController.swift */; };
@@ -364,6 +365,7 @@
 		D387262A217726B500DD8FBF /* SwiftProtobuf.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = SwiftProtobuf.xcodeproj; path = SwiftProtobuf/SwiftProtobuf.xcodeproj; sourceTree = "<group>"; };
 		D393EDBD21D38206001CBB2B /* IMMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IMMessage.swift; sourceTree = "<group>"; };
 		D3AC7BA721AE9C1A00C6C557 /* IMClientTestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IMClientTestCase.swift; sourceTree = "<group>"; };
+		D3BBFB40225D944100B75BA1 /* LCLocalStorageTestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCLocalStorageTestCase.swift; sourceTree = "<group>"; };
 		D3C3782E21E48D3C00EA9AC9 /* IMConversationQuery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IMConversationQuery.swift; sourceTree = "<group>"; };
 		D3DAD03B218DA402008BCD37 /* RTMConnectionTestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RTMConnectionTestCase.swift; sourceTree = "<group>"; };
 		D3E1F48C2193EDF3007B6FFB /* ConnectionTestViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionTestViewController.swift; sourceTree = "<group>"; };
@@ -508,6 +510,7 @@
 				834EA7141D2A139A00108DDC /* LCUserTestCase.swift */,
 				114E1E842153A3ED00DA7DB0 /* LCFileTestCase.swift */,
 				118763AE2176EA3A0078645B /* LCInstallationTestCase.swift */,
+				D3BBFB40225D944100B75BA1 /* LCLocalStorageTestCase.swift */,
 				D33A8DA921F577F2005B84A9 /* RTMBaseTestCase.swift */,
 				1123922B2191669100ECCBCC /* RTMRouterTestCase.swift */,
 				D3DAD03B218DA402008BCD37 /* RTMConnectionTestCase.swift */,
@@ -1015,6 +1018,7 @@
 			files = (
 				83FAF0931CC4D1E400A84063 /* LCObjectTestCase.swift in Sources */,
 				834EA7151D2A139A00108DDC /* LCUserTestCase.swift in Sources */,
+				D3BBFB41225D944100B75BA1 /* LCLocalStorageTestCase.swift in Sources */,
 				D33A8DAA21F577F2005B84A9 /* RTMBaseTestCase.swift in Sources */,
 				11FBD1E5215BDDCA00370C61 /* LCCoreTestCase.swift in Sources */,
 				8342FCCB1C7B13A700C3CF15 /* BaseTestCase.swift in Sources */,

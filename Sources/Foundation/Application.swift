@@ -98,6 +98,8 @@ public final class LCApplication: NSObject {
      You must call method `set(id:key:region:)` to initialize it when application did finish launch.
      */
     public static let `default` = LCApplication()
+    
+    private(set) var localStorageContext: LocalStorageContext?
 
     /**
      Create an application.
@@ -133,6 +135,12 @@ public final class LCApplication: NSObject {
         
         // register default LeanCloud object classes if needed.
         _ = ObjectProfiler.shared
+        
+        do {
+            self.localStorageContext = try LocalStorageContext(applicationID: id)
+        } catch {
+            Logger.shared.error(error)
+        }
     }
 
 }

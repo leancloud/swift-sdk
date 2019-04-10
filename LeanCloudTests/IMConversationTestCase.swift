@@ -1202,6 +1202,8 @@ class IMConversationTestCase: RTMBaseTestCase {
         
         RTMConnectionRefMap_protobuf1.removeAll()
         RTMConnectionRefMap_protobuf3.removeAll()
+        
+        delay()
         clientB.connection.disconnect()
         delay()
         
@@ -1230,9 +1232,21 @@ class IMConversationTestCase: RTMBaseTestCase {
         }
         wait(for: [createExp], timeout: timeout)
         
-        XCTAssertNotNil(clientA.serverTimestamp)
-        delay()
-        clientB.change(serverTimestamp: (clientA.serverTimestamp ?? 0) - 3600000)
+        XCTAssertNotNil(clientA.localRecord.lastServerTimestamp)
+        
+        let saveLocalRecordExp = expectation(description: "save local record")
+        let serverTimestamp = (clientA.localRecord.lastServerTimestamp ?? 0) - (60 * 1000)
+        let observer = NotificationCenter.default.addObserver(forName: IMClient.TestSaveLocalRecordNotification, object: clientB, queue: .main) { (notification) in
+            XCTAssertNotNil(notification.userInfo)
+            XCTAssertNil(notification.userInfo?["error"])
+            let table: IMClient.LocalRecord? = try! clientB.application.localStorageContext?.table(from: clientB.localRecordURL!)
+            XCTAssertNotNil(table)
+            XCTAssertEqual(table?.lastServerTimestamp, serverTimestamp)
+            saveLocalRecordExp.fulfill()
+        }
+        clientB.test_change(serverTimestamp: serverTimestamp)
+        wait(for: [saveLocalRecordExp], timeout: timeout)
+        NotificationCenter.default.removeObserver(observer)
         
         let getEventsExp = expectation(description: "get offline events")
         getEventsExp.expectedFulfillmentCount = 3
@@ -1258,7 +1272,7 @@ class IMConversationTestCase: RTMBaseTestCase {
         XCTAssertEqual(clientA.convCollection.count, 1)
         XCTAssertEqual(clientB.convCollection.count, 1)
         XCTAssertEqual(clientA.convCollection.first?.value.ID, clientB.convCollection.first?.value.ID)
-        XCTAssertEqual(clientA.serverTimestamp, clientB.serverTimestamp)
+        XCTAssertEqual(clientA.localRecord.lastServerTimestamp, clientB.localRecord.lastServerTimestamp)
     }
     
 }
