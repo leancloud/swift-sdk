@@ -1453,10 +1453,8 @@ private extension IMClient {
                         client.delegate?.client(client, conversation: conversation, event: unreadUpdatedEvent)
                     }
                     client.delegate?.client(client, conversation: conversation, event: .message(event: .received(message: message)))
-                    client.serialQueue.async {
-                        client.acknowledging(message: message, conversation: conversation)
-                    }
                 }
+                client.acknowledging(message: message, conversation: conversation)
             case .failure(error: let error):
                 Logger.shared.error(error)
             }
