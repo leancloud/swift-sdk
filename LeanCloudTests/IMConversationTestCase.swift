@@ -321,6 +321,51 @@ class IMConversationTestCase: RTMBaseTestCase {
         )
     }
     
+    func testServiceConversationSubscription() {
+        guard
+            let client = newOpenedClient(),
+            let serviceConversationID = IMConversationTestCase.newServiceConversation()
+            else
+        {
+            XCTFail()
+            return
+        }
+        
+        delay()
+        
+        var serviceConversation: IMServiceConversation?
+        
+        let queryExp = expectation(description: "conv query")
+        try! client.conversationQuery.getConversation(by: serviceConversationID) { (result) in
+            XCTAssertTrue(result.isSuccess)
+            XCTAssertNil(result.error)
+            serviceConversation = (result.value as? IMServiceConversation)
+            queryExp.fulfill()
+        }
+        wait(for: [queryExp], timeout: timeout)
+        
+        let checkExp = expectation(description: "check subscription")
+        checkExp.expectedFulfillmentCount = 3
+        serviceConversation?.checkSubscription(completion: { (result) in
+            XCTAssertTrue(result.isSuccess)
+            XCTAssertNil(result.error)
+            XCTAssertEqual(result.value, false)
+            checkExp.fulfill()
+            try! serviceConversation?.subscribe(completion: { (result) in
+                XCTAssertTrue(result.isSuccess)
+                XCTAssertNil(result.error)
+                checkExp.fulfill()
+                serviceConversation?.checkSubscription(completion: { (result) in
+                    XCTAssertTrue(result.isSuccess)
+                    XCTAssertNil(result.error)
+                    XCTAssertEqual(result.value, true)
+                    checkExp.fulfill()
+                })
+            })
+        })
+        wait(for: [checkExp], timeout: timeout)
+    }
+    
     func testNormalConversationUnreadEvent() {
         guard let clientA = newOpenedClient() else {
             XCTFail()
@@ -790,7 +835,7 @@ class IMConversationTestCase: RTMBaseTestCase {
         wait(for: [removeAndAddExp], timeout: timeout)
     }
     
-    func testGetChatRoomOnlineCount() {
+    func testGetChatRoomOnlineMembers() {
         guard
             let clientA = newOpenedClient(),
             let clientB = newOpenedClient()
@@ -825,34 +870,42 @@ class IMConversationTestCase: RTMBaseTestCase {
         wait(for: [queryExp], timeout: timeout)
         
         let countExp = expectation(description: "get online count")
-        countExp.expectedFulfillmentCount = 5
-        chatRoomA?.getOnlineMemberCount(completion: { (result) in
+        countExp.expectedFulfillmentCount = 6
+        chatRoomA?.getOnlineMembersCount(completion: { (result) in
             XCTAssertTrue(result.isSuccess)
             XCTAssertNil(result.error)
             XCTAssertEqual(result.intValue, 1)
             countExp.fulfill()
-            ((try? chatRoomB?.join(completion: { (result) in
+            try? chatRoomB?.join(completion: { (result) in
                 XCTAssertTrue(result.isSuccess)
                 XCTAssertNil(result.error)
                 countExp.fulfill()
-                chatRoomA?.getOnlineMemberCount(completion: { (result) in
+                chatRoomA?.getOnlineMembersCount(completion: { (result) in
                     XCTAssertTrue(result.isSuccess)
                     XCTAssertNil(result.error)
                     XCTAssertEqual(result.intValue, 2)
                     countExp.fulfill()
-                    try? chatRoomB?.leave(completion: { (result) in
+                    chatRoomA?.getOnlineMembers(completion: { (result) in
                         XCTAssertTrue(result.isSuccess)
                         XCTAssertNil(result.error)
+                        XCTAssertEqual(result.value?.count, 2)
+                        XCTAssertEqual(result.value?.contains(clientA.ID), true)
+                        XCTAssertEqual(result.value?.contains(clientB.ID), true)
                         countExp.fulfill()
-                        chatRoomA?.getOnlineMemberCount(completion: { (result) in
+                        try? chatRoomB?.leave(completion: { (result) in
                             XCTAssertTrue(result.isSuccess)
                             XCTAssertNil(result.error)
-                            XCTAssertEqual(result.intValue, 1)
                             countExp.fulfill()
+                            chatRoomA?.getOnlineMembersCount(completion: { (result) in
+                                XCTAssertTrue(result.isSuccess)
+                                XCTAssertNil(result.error)
+                                XCTAssertEqual(result.intValue, 1)
+                                countExp.fulfill()
+                            })
                         })
                     })
                 })
-            })) as ()??)
+            })
         })
         wait(for: [countExp], timeout: timeout)
     }
