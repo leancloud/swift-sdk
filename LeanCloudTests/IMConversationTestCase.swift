@@ -1202,6 +1202,8 @@ class IMConversationTestCase: RTMBaseTestCase {
         
         RTMConnectionRefMap_protobuf1.removeAll()
         RTMConnectionRefMap_protobuf3.removeAll()
+        
+        delay()
         clientB.connection.disconnect()
         delay()
         
@@ -1231,9 +1233,20 @@ class IMConversationTestCase: RTMBaseTestCase {
         wait(for: [createExp], timeout: timeout)
         
         XCTAssertNotNil(clientA.localRecord.lastServerTimestamp)
-        delay()
-        clientB.test_change(serverTimestamp: (clientA.localRecord.lastServerTimestamp ?? 0) - 3600000)
-        delay()
+        
+        let saveLocalRecordExp = expectation(description: "save local record")
+        let serverTimestamp = (clientA.localRecord.lastServerTimestamp ?? 0) - (60 * 1000)
+        let observer = NotificationCenter.default.addObserver(forName: IMClient.TestSaveLocalRecordNotification, object: clientB, queue: .main) { (notification) in
+            XCTAssertNotNil(notification.userInfo)
+            XCTAssertNil(notification.userInfo?["error"])
+            let table: IMClient.LocalRecord? = try! clientB.application.localStorageContext?.table(from: clientB.localRecordURL!)
+            XCTAssertNotNil(table)
+            XCTAssertEqual(table?.lastServerTimestamp, serverTimestamp)
+            saveLocalRecordExp.fulfill()
+        }
+        clientB.test_change(serverTimestamp: serverTimestamp)
+        wait(for: [saveLocalRecordExp], timeout: timeout)
+        NotificationCenter.default.removeObserver(observer)
         
         let getEventsExp = expectation(description: "get offline events")
         getEventsExp.expectedFulfillmentCount = 3

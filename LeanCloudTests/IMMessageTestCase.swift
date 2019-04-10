@@ -863,8 +863,18 @@ class IMMessageTestCase: RTMBaseTestCase {
         
         delay()
         
+        var firstLastPatchTime: Int64?
+        
         let patchMessageExp = expectation(description: "patch message")
-        patchMessageExp.expectedFulfillmentCount = 2
+        patchMessageExp.expectedFulfillmentCount = 3
+        let observer1 = NotificationCenter.default.addObserver(forName: IMClient.TestSaveLocalRecordNotification, object: receivingTuple.client, queue: .main) { (notification) in
+            XCTAssertNotNil(notification.userInfo)
+            XCTAssertNil(notification.userInfo?["error"])
+            XCTAssertNotNil(receivingTuple.client.localRecord.lastPatchTimestamp)
+            firstLastPatchTime = receivingTuple.client.localRecord.lastPatchTimestamp
+            XCTAssertEqual(receivingTuple.client.localRecord.lastPatchTimestamp,(try! receivingTuple.client.application.localStorageContext?.table(from: receivingTuple.client.localRecordURL!) as IMClient.LocalRecord?)?.lastPatchTimestamp)
+            patchMessageExp.fulfill()
+        }
         receivingTuple.delegator.messageEvent = { client, conv, event in
             if conv.ID == receivingTuple.conversation.ID {
                 switch event {
@@ -889,10 +899,9 @@ class IMMessageTestCase: RTMBaseTestCase {
             patchMessageExp.fulfill()
         })
         wait(for: [patchMessageExp], timeout: timeout)
+        NotificationCenter.default.removeObserver(observer1)
         
         delay()
-        let firstLastPatchTime = receivingTuple.client.localRecord.lastPatchTimestamp
-        XCTAssertNotNil(firstLastPatchTime)
         
         let reconnectExp = expectation(description: "reconnect")
         let notGetPatchExp = expectation(description: "not get patch")
@@ -916,12 +925,15 @@ class IMMessageTestCase: RTMBaseTestCase {
             }
         }
         receivingTuple.client.connection.disconnect()
-        delay(seconds: 5)
+        delay()
         receivingTuple.client.connection.connect()
         wait(for: [reconnectExp, notGetPatchExp], timeout: 10)
         receivingTuple.delegator.clientEvent = nil
         
+        delay()
+        
         receivingTuple.client.connection.disconnect()
+        
         delay()
         
         let patchMessageWhenOfflineExp = expectation(description: "patch message when offline")
@@ -934,7 +946,22 @@ class IMMessageTestCase: RTMBaseTestCase {
         }
         wait(for: [patchMessageWhenOfflineExp], timeout: timeout)
         
+        delay()
+        
         let getPatchExp = expectation(description: "get patch when online")
+        getPatchExp.expectedFulfillmentCount = 3
+        let observer2 = NotificationCenter.default.addObserver(forName: IMClient.TestSaveLocalRecordNotification, object: receivingTuple.client, queue: .main) { (notification) in
+            XCTAssertNotNil(notification.userInfo)
+            XCTAssertNil(notification.userInfo?["error"])
+            XCTAssertNotNil(receivingTuple.client.localRecord.lastPatchTimestamp)
+            if let secondLastPatchTime = receivingTuple.client.localRecord.lastPatchTimestamp,
+                let firstLastPatchTime = firstLastPatchTime,
+                secondLastPatchTime != firstLastPatchTime {
+                XCTAssertGreaterThan(secondLastPatchTime, firstLastPatchTime)
+                XCTAssertEqual(receivingTuple.client.localRecord.lastPatchTimestamp,(try! receivingTuple.client.application.localStorageContext?.table(from: receivingTuple.client.localRecordURL!) as IMClient.LocalRecord?)?.lastPatchTimestamp)
+            }
+            getPatchExp.fulfill()
+        }
         receivingTuple.delegator.messageEvent = { client, conv, event in
             if conv.ID == receivingTuple.conversation.ID {
                 switch event {
@@ -949,14 +976,7 @@ class IMMessageTestCase: RTMBaseTestCase {
         }
         receivingTuple.client.connection.connect()
         wait(for: [getPatchExp], timeout: timeout)
-        
-        delay()
-        if let first = firstLastPatchTime,
-            let second = receivingTuple.client.localRecord.lastPatchTimestamp {
-            XCTAssertGreaterThan(second, first)
-        } else {
-            XCTFail()
-        }
+        NotificationCenter.default.removeObserver(observer2)
     }
     
     func testMessagePatchError() {
