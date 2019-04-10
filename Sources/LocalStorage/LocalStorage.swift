@@ -354,13 +354,16 @@ class LocalStorageContext {
         static let domain1 = "LeanCloud"
     }
     
-    private static let domain: String = "com.leancloud.swift"
+    static let domain: String = "com.leancloud.swift"
     
     enum Module {
+        case push
         case IM(clientID: String)
         
         var path: String {
             switch self {
+            case .push:
+                return "push"
             case .IM(clientID: let clientID):
                 let md5: String = clientID.md5.lowercased()
                 return ("IM" as NSString).appendingPathComponent(md5)
@@ -369,6 +372,7 @@ class LocalStorageContext {
     }
     
     enum File: String {
+        case installation = "installation"
         case clientRecord = "clientRecord"
         
         var name: String {
