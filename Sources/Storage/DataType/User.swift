@@ -133,6 +133,49 @@ open class LCUser: LCObject {
 
         return request
     }
+    
+    // MARK: Log in with email and password
+    
+    /// Log in with email and password.
+    ///
+    /// - Parameters:
+    ///   - email: The email.
+    ///   - password: The password.
+    /// - Returns: The result of login request.
+    public static func logIn<User: LCUser>(email: String, password: String) -> LCValueResult<User> {
+        return expect { fulfill in
+            logIn(email: email, password: password, completionInBackground: { result in
+                fulfill(result)
+            })
+        }
+    }
+    
+    /// Log in with email and password.
+    ///
+    /// - Parameters:
+    ///   - email: The email.
+    ///   - password: The password.
+    ///   - completion: The completion callback closure.
+    /// - Returns: The result of login request.
+    public static func logIn<User: LCUser>(email: String, password: String, completion: @escaping (LCValueResult<User>) -> Void) -> LCRequest {
+        return logIn(email: email, password: password, completionInBackground: { (result) in
+            mainQueueAsync {
+                completion(result)
+            }
+        })
+    }
+    
+    @discardableResult
+    private static func logIn<User: LCUser>(email: String, password: String, completionInBackground completion: @escaping (LCValueResult<User>) -> Void) -> LCRequest {
+        let parameters = [
+            "email": email,
+            "password": password
+        ]
+        
+        let request = logIn(parameters: parameters, completionInBackground: completion)
+        
+        return request
+    }
 
     // MARK: Log in with phone number and password
 
