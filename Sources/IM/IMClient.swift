@@ -386,6 +386,8 @@ extension IMClient {
             object: self,
             userInfo: userInfo
         )
+        #else
+        _ = userInfo
         #endif
     }
     
