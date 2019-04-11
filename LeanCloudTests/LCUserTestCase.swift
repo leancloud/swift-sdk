@@ -33,6 +33,11 @@ class LCUserTestCase: BaseTestCase {
         XCTAssertTrue(user.signUp().isSuccess)
         XCTAssertTrue(LCUser.logIn(username: username, password: password).isSuccess)
         XCTAssertNotNil(LCUser.current)
+        
+        let email = "\(UUID().uuidString.replacingOccurrences(of: "-", with: ""))@qq.com"
+        user.email = LCString(email)
+        XCTAssertTrue(user.save().isSuccess)
+        XCTAssertTrue(LCUser.logIn(email: email, password: password).isSuccess)
 
         let current = LCUser.current!
         let sessionToken = current.sessionToken!.value
