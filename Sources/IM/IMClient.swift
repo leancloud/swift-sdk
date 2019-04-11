@@ -740,6 +740,7 @@ extension IMClient {
             }
             if convMessage.hasCdate {
                 json[IMConversation.Key.createdAt.rawValue] = convMessage.cdate
+                json[IMConversation.Key.updatedAt.rawValue] = convMessage.cdate
             }
             if convMessage.hasUniqueID {
                 json[IMConversation.Key.uniqueId.rawValue] = convMessage.uniqueID
@@ -1154,10 +1155,16 @@ private extension IMClient {
                 self.sessionTokenExpiration = Date(timeIntervalSinceNow: TimeInterval(sessionMessage.stTtl))
             }
             self.sessionState = .opened
-            self.getOfflineEvents(
-                serverTimestamp: self.localRecord.lastServerTimestamp,
-                conversations: Array(self.convCollection.values)
-            )
+            if let lastServerTimestamp = self.localRecord.lastServerTimestamp {
+                self.getOfflineEvents(
+                    serverTimestamp: lastServerTimestamp,
+                    conversations: Array(self.convCollection.values)
+                )
+            } else {
+                let initialServerTimestamp = (command.hasServerTs ? command.serverTs : nil)
+                self.localRecord.update(lastServerTimestamp: initialServerTimestamp)
+                self.localRecord.update(lastPatchTimestamp: initialServerTimestamp)
+            }
             self.eventQueue.async {
                 if let completion = completion {
                     completion(.success)
@@ -1319,20 +1326,21 @@ private extension IMClient {
                 switch op {
                 case .joined, .left, .membersJoined, .membersLeft:
                     let byClientID: String? = (command.hasInitBy ? command.initBy : nil)
-                    let members: [String] = command.m
+                    let udate: String? = (command.hasUdate ? command.udate : nil)
+                    let atDate: Date? = (command.hasUdate ? LCDate.dateFromString(command.udate) : nil)
                     switch op {
                     case .joined:
-                        rawDataOperation = .append(members: [client.ID])
-                        event = .joined(byClientID: byClientID)
+                        rawDataOperation = .append(members: [client.ID], udate: udate)
+                        event = .joined(byClientID: byClientID, at: atDate)
                     case .left:
-                        rawDataOperation = .remove(members: [client.ID])
-                        event = .left(byClientID: byClientID)
+                        rawDataOperation = .remove(members: [client.ID], udate: udate)
+                        event = .left(byClientID: byClientID, at: atDate)
                     case .membersJoined:
-                        rawDataOperation = .append(members: Set(members))
-                        event = .membersJoined(members: members, byClientID: byClientID)
+                        rawDataOperation = .append(members: command.m, udate: udate)
+                        event = .membersJoined(members: command.m, byClientID: byClientID, at: atDate)
                     case .membersLeft:
-                        rawDataOperation = .remove(members: Set(members))
-                        event = .membersLeft(members: members, byClientID: byClientID)
+                        rawDataOperation = .remove(members: command.m, udate: udate)
+                        event = .membersLeft(members: command.m, byClientID: byClientID, at: atDate)
                     default:
                         break
                     }
@@ -1344,18 +1352,21 @@ private extension IMClient {
                             let attr: [String: Any] = try command.attr.data.jsonObject(),
                             command.hasAttrModified,
                             command.attrModified.hasData,
-                            let attrModified: [String: Any] = try command.attrModified.data.jsonObject(),
-                            let udate: String = (command.hasUdate ? command.udate : nil)
+                            let attrModified: [String: Any] = try command.attrModified.data.jsonObject()
                         {
-                            rawDataOperation = .updated(attr: attr, attrModified: attrModified, udate: udate)
+                            rawDataOperation = .updated(
+                                attr: attr,
+                                attrModified: attrModified,
+                                udate: (command.hasUdate ? command.udate : nil)
+                            )
                             event = IMConversationEvent.dataUpdated(
+                                updatingData: attr,
                                 updatedData: attrModified,
                                 byClientID: (command.hasInitBy ? command.initBy : nil),
-                                at: LCDate(isoString: udate)?.value,
-                                updatingData: attr
+                                at: (command.hasUdate ? LCDate.dateFromString(command.udate) : nil)
                             )
                         } else {
-                            Logger.shared.verbose("invalid command \(command)")
+                            Logger.shared.error("invalid command \(command)")
                         }
                     } catch {
                         Logger.shared.error(error)
@@ -1397,7 +1408,7 @@ private extension IMClient {
              why not use the `timestamp` ?
              becase server just use ack to handle unread-message-queue(max limit is 100),
              so use `conversationID` and `messageID` can find the message,
-             of course there is a very little probability that multiple messageID is same in the unread-message-queue,
+             of course there is a very little probability that multiple messages have the same ID in the unread-message-queue,
              but it's nearly ZERO, so just do it, take it easy, it's fine.
              */
             outCommand.ackMessage = ackMessage
@@ -1921,15 +1932,15 @@ public enum IMClientEvent {
 /// - message: Events about message in the conversation.
 public enum IMConversationEvent {
     
-    case joined(byClientID: String?)
+    case joined(byClientID: String?, at: Date?)
     
-    case left(byClientID: String?)
+    case left(byClientID: String?, at: Date?)
     
-    case membersJoined(members: [String], byClientID: String?)
+    case membersJoined(members: [String], byClientID: String?, at: Date?)
     
-    case membersLeft(members: [String], byClientID: String?)
+    case membersLeft(members: [String], byClientID: String?, at: Date?)
     
-    case dataUpdated(updatedData: [String: Any]?, byClientID: String?, at: Date?, updatingData: [String: Any]?)
+    case dataUpdated(updatingData: [String: Any]?, updatedData: [String: Any]?, byClientID: String?, at: Date?)
     
     case lastMessageUpdated
     
