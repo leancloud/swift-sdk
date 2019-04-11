@@ -178,8 +178,8 @@ class IMConversationTestCase: RTMBaseTestCase {
     
     func testCreateNormalAndUniqueConversation() {
         guard
-            let clientA = newOpenedClient(customRTMURL: testableRTMURL),
-            let clientB = newOpenedClient(customRTMURL: testableRTMURL)
+            let clientA = newOpenedClient(),
+            let clientB = newOpenedClient()
             else
         {
             XCTFail()

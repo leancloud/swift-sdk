@@ -842,7 +842,7 @@ class IMMessageTestCase: RTMBaseTestCase {
     
     func testMessagePatchNotification() {
         guard
-            let tuples = convenienceInit(RTMServerURL: testableRTMURL, shouldConnectionShared: false),
+            let tuples = convenienceInit(shouldConnectionShared: false),
             let sendingTuple = tuples.first,
             let receivingTuple = tuples.last
             else
@@ -981,7 +981,7 @@ class IMMessageTestCase: RTMBaseTestCase {
     
     func testMessagePatchError() {
         guard
-            let tuples = convenienceInit(clientCount: 3, RTMServerURL: testableRTMURL),
+            let tuples = convenienceInit(clientCount: 3),
             let sendingTuple = tuples.first,
             let receivingTuple = tuples.last
             else
