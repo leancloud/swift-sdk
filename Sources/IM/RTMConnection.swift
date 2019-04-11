@@ -309,6 +309,24 @@ class RTMConnection {
         }
     }
     
+    enum DelayInterval: Int {
+        case second1 = 1
+        case second2 = 2
+        case second4 = 4
+        case second8 = 8
+        case second16 = 16
+        case secondMax = 30
+        
+        init(doubling delay: DelayInterval) {
+            let doubledSecond = (delay.rawValue * 2)
+            if let value = DelayInterval(rawValue: doubledSecond) {
+                self = value
+            } else {
+                self = .secondMax
+            }
+        }
+    }
+    
     let application: LCApplication
     let lcimProtocol: LCIMProtocol
     var customRTMServerURL: URL? = nil
@@ -319,6 +337,7 @@ class RTMConnection {
     private(set) var socket: WebSocket? = nil
     private(set) var timer: Timer? = nil
     private(set) var useSecondaryServer: Bool = false
+    private(set) var reconnectingDelay: DelayInterval = .second1
     var isAutoReconnectionEnabled: Bool {
         return !self.delegatorMap.isEmpty
     }
@@ -449,10 +468,14 @@ class RTMConnection {
                 }
             } else if self.socket == nil, self.timer == nil {
                 if let error: LCError = self.checkIfCanDoConnecting() {
-                    self.tryClearConnection(with: error)
+                    delegator?.queue.async {
+                        delegator?.delegate?.connection(self, didDisconnect: error)
+                    }
                 } else {
                     self.tryConnecting(forcing: true)
                 }
+            } else {
+                // means in connecting, just wait.
             }
         }
     }
@@ -527,6 +550,7 @@ extension RTMConnection {
             self.tryConnecting()
         case (.foreground, .background):
             self.tryClearConnection(with: LCError.appInBackground)
+            self.reconnectingDelay = .second1
         default:
             break
         }
@@ -540,8 +564,10 @@ extension RTMConnection {
         self.previousReachabilityStatus = newStatus
         if oldStatus != .notReachable && newStatus == .notReachable {
             self.tryClearConnection(with: LCError.networkUnavailable)
+            self.reconnectingDelay = .second1
         } else if oldStatus != newStatus && newStatus != .notReachable {
             self.tryClearConnection(with: LCError.networkChanged)
+            self.reconnectingDelay = .second1
             self.tryConnecting()
         }
     }
@@ -562,46 +588,27 @@ extension RTMConnection {
         return nil
     }
     
-    private func tryConnecting(forcing: Bool = false, delay: Int = 0) {
+    private func tryConnecting(forcing: Bool = false, delay: DelayInterval? = nil) {
         assert(self.specificAssertion)
-        let canConnecting: () -> Bool = {
-            if
-                (self.isAutoReconnectionEnabled || forcing),
-                self.checkIfCanDoConnecting() == nil
-            {
-                return true
-            } else {
-                return false
-            }
+        let canDoConnecting: (RTMConnection) -> Bool = { connection in
+            (connection.socket == nil)
+                && (connection.isAutoReconnectionEnabled || forcing)
+                && (connection.checkIfCanDoConnecting() == nil)
         }
-        let tryNotifyingInConnecting: () -> Void = {
-            if self.socket == nil {
-                for item in self.delegatorMap.values {
-                    item.queue.async {
-                        item.delegate?.connection(inConnecting: self)
-                    }
-                }
-            }
-        }
-        guard canConnecting() else {
+        guard canDoConnecting(self) else {
             return
         }
-        let workItem = DispatchWorkItem {
-            assert(self.specificAssertion)
-            guard canConnecting() else {
-                return
-            }
-            tryNotifyingInConnecting()
-            self.getRTMServer { (result: LCGenericResult<URL>) in
+        let workItem = DispatchWorkItem { [weak self] in
+            self?.getRTMServer { (result: LCGenericResult<URL>) in
+                guard let self = self else {
+                    return
+                }
                 assert(self.specificAssertion)
-                guard
-                    canConnecting(),
-                    self.socket == nil
-                    else
-                { return }
+                guard canDoConnecting(self) else {
+                    return
+                }
                 switch result {
                 case .success(value: let url):
-                    tryNotifyingInConnecting()
                     var request = URLRequest(url: url)
                     request.timeoutInterval = RTMConnectingTimeoutInterval
                     let socket = WebSocket(request: request, protocols: [self.lcimProtocol.rawValue])
@@ -612,23 +619,39 @@ extension RTMConnection {
                     self.socket = socket
                     Logger.shared.verbose("\(socket) connecting URL<\"\(url)\"> with protocol<\"\(self.lcimProtocol.rawValue)\">")
                 case .failure(error: let error):
-                    Logger.shared.verbose("Get RTM server URL failed: \(error)")
-                    self.tryClearConnection(with: error)
-                    if let nsError: NSError = error.underlyingError as NSError?,
-                        nsError.domain == NSURLErrorDomain {
-                        self.tryConnecting(delay: 1)
+                    for item in self.delegatorMap.values {
+                        item.queue.async {
+                            item.delegate?.connection(self, didDisconnect: error)
+                        }
                     }
+                    let routerError = LCError.malformedRTMRouterResponse
+                    if
+                        error.code == routerError.code,
+                        error.reason == routerError.reason,
+                        (error.userInfo?["stop"] as? Bool) == true
+                    {
+                        // stop reconnecting.
+                        self.delegatorMap.removeAll()
+                    } else {
+                        self.tryConnecting(delay: self.reconnectingDelay)
+                    }
+                    Logger.shared.verbose("Get RTM server URL failed: \(error)")
                 }
             }
         }
-        if delay <= 0 {
-            workItem.perform()
-        } else {
-            tryNotifyingInConnecting()
+        for item in self.delegatorMap.values {
+            item.queue.async {
+                item.delegate?.connection(inConnecting: self)
+            }
+        }
+        if let delay: DelayInterval = delay {
             self.serialQueue.asyncAfter(
-                deadline: .now() + .seconds(delay),
+                deadline: .now() + .seconds(delay.rawValue),
                 execute: workItem
             )
+            self.reconnectingDelay = DelayInterval(doubling: delay)
+        } else {
+            workItem.perform()
         }
     }
     
@@ -639,10 +662,10 @@ extension RTMConnection {
             socket.pongDelegate = nil
             socket.disconnect()
             self.socket = nil
-        }
-        for item in self.delegatorMap.values {
-            item.queue.async {
-                item.delegate?.connection(self, didDisconnect: error)
+            for item in self.delegatorMap.values {
+                item.queue.async {
+                    item.delegate?.connection(self, didDisconnect: error)
+                }
             }
         }
         self.timer = nil
@@ -653,7 +676,10 @@ extension RTMConnection {
         if let serverURL: URL = self.customRTMServerURL {
             callback(.success(value: serverURL))
         } else {
-            self.rtmRouter.route { (result: LCGenericResult<RTMRoutingTable>) in
+            self.rtmRouter.route { [weak self] (result: LCGenericResult<RTMRoutingTable>) in
+                guard let self = self else {
+                    return
+                }
                 self.serialQueue.async {
                     switch result {
                     case .success(value: let table):
@@ -702,6 +728,7 @@ extension RTMConnection: WebSocketDelegate, WebSocketPongDelegate {
         assert(self.specificAssertion)
         assert(self.socket === socket && self.timer == nil)
         Logger.shared.verbose("\(socket) connect success")
+        self.reconnectingDelay = .second1
         self.timer = Timer(connection: self, socket: socket)
         for item in self.delegatorMap.values {
             item.queue.async {
@@ -714,11 +741,9 @@ extension RTMConnection: WebSocketDelegate, WebSocketPongDelegate {
         assert(self.specificAssertion)
         assert(self.socket === socket)
         Logger.shared.verbose("\(socket) disconnect with error: \(String(describing: error))")
-        let isFailedInConnecting: Bool = (self.timer == nil)
-        let delay: Int = (isFailedInConnecting ? 1 : 0)
         self.tryClearConnection(with: LCError(error: error ?? LCError.closedByRemote))
         self.useSecondaryServer.toggle()
-        self.tryConnecting(delay: delay)
+        self.tryConnecting(delay: self.reconnectingDelay)
     }
     
     func websocketDidReceiveData(socket: WebSocketClient, data: Data) {
