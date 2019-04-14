@@ -204,14 +204,14 @@ extension LCError {
     static var RTMRouterURLNotFound: LCError {
         return LCError(
             code: .inconsistency,
-            reason: "\(#file): RTM router URL not found."
+            reason: "\((#file as NSString).lastPathComponent): RTM router URL not found."
         )
     }
 
     static var RTMRouterResponseDataMalformed: LCError {
         return LCError(
             code: .malformedData,
-            reason: "\(#file): RTM router response data malformed."
+            reason: "\((#file as NSString).lastPathComponent): RTM router response data malformed."
         )
     }
 

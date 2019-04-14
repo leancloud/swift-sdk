@@ -91,6 +91,9 @@
 		D33D36D822017DAC008C9BDA /* test.jpg in Resources */ = {isa = PBXBuildFile; fileRef = D33D36C922017DAC008C9BDA /* test.jpg */; };
 		D33D36D922017DAC008C9BDA /* test.png in Resources */ = {isa = PBXBuildFile; fileRef = D33D36D722017DAC008C9BDA /* test.png */; };
 		D33D36DC22019197008C9BDA /* test.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = D33D36DA22019197008C9BDA /* test.mp4 */; };
+		D357B46522632A210002D14C /* Starscream.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D30A2F81224A069100C000D5 /* Starscream.framework */; };
+		D357B46622632A510002D14C /* Starscream.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D30A2F81224A069100C000D5 /* Starscream.framework */; };
+		D357B46722632A510002D14C /* Starscream.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = D30A2F81224A069100C000D5 /* Starscream.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		D3662F9222019B590046A390 /* test.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = D3662F9122019B590046A390 /* test.mp3 */; };
 		D3665C3721FEAAC1005B44B0 /* IMMessageTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3665C3621FEAAC1005B44B0 /* IMMessageTestCase.swift */; };
 		D3783A1221F453C3006F6635 /* IMConversationTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3783A1121F453C3006F6635 /* IMConversationTestCase.swift */; };
@@ -185,6 +188,13 @@
 			remoteGlobalIDString = 8342FCBA1C7B13A700C3CF15;
 			remoteInfo = LeanCloud;
 		};
+		D357B46822632A510002D14C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D30A2F7B224A069100C000D5 /* Starscream.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 33CCF0841F5DDC030099B092;
+			remoteInfo = Starscream;
+		};
 		D387263C217726B500DD8FBF /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = D387262A217726B500DD8FBF /* SwiftProtobuf.xcodeproj */;
@@ -258,6 +268,7 @@
 			dstSubfolderSpec = 10;
 			files = (
 				D3E1F4AF21940E8E007B6FFB /* SwiftProtobuf.framework in Embed Frameworks */,
+				D357B46722632A510002D14C /* Starscream.framework in Embed Frameworks */,
 				D3E1F4B421940E95007B6FFB /* Alamofire.framework in Embed Frameworks */,
 				D314AFA5219540A700C9C146 /* LeanCloud.framework in Embed Frameworks */,
 			);
@@ -392,8 +403,10 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D357B46522632A210002D14C /* Starscream.framework in Frameworks */,
 				D3E1F4AE21940E8E007B6FFB /* SwiftProtobuf.framework in Frameworks */,
 				D3E1F4B321940E95007B6FFB /* Alamofire.framework in Frameworks */,
+				D357B46622632A510002D14C /* Starscream.framework in Frameworks */,
 				D314AFA4219540A700C9C146 /* LeanCloud.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -722,6 +735,7 @@
 				D3E1F4B121940E8E007B6FFB /* PBXTargetDependency */,
 				D3E1F4B621940E95007B6FFB /* PBXTargetDependency */,
 				D314AFA7219540A700C9C146 /* PBXTargetDependency */,
+				D357B46922632A510002D14C /* PBXTargetDependency */,
 			);
 			name = "RuntimeTests-iOS";
 			productName = "RuntimeTests-iOS";
@@ -752,6 +766,7 @@
 					D31798372193DC860037DE57 = {
 						CreatedOnToolsVersion = 10.1;
 						DevelopmentTeam = 7J5XFNL99Q;
+						LastSwiftMigration = 1020;
 						ProvisioningStyle = Automatic;
 						SystemCapabilities = {
 							com.apple.Push = {
@@ -1055,6 +1070,11 @@
 			target = 8342FCBA1C7B13A700C3CF15 /* LeanCloud */;
 			targetProxy = D314AFA6219540A700C9C146 /* PBXContainerItemProxy */;
 		};
+		D357B46922632A510002D14C /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = Starscream;
+			targetProxy = D357B46822632A510002D14C /* PBXContainerItemProxy */;
+		};
 		D3E1F4B121940E8E007B6FFB /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = SwiftProtobuf_iOS;
@@ -1313,7 +1333,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_INCLUDE_PATHS = "\"$(SRCROOT)\"/**";
-				SWIFT_VERSION = 4.2;
+				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
@@ -1342,7 +1362,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_INCLUDE_PATHS = "\"$(SRCROOT)\"/**";
-				SWIFT_VERSION = 4.2;
+				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;

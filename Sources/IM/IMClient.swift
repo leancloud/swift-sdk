@@ -381,7 +381,7 @@ extension IMClient {
     
 }
 
-// MARK: - Open & Close
+// MARK: Open & Close
 
 extension IMClient {
     
@@ -482,7 +482,7 @@ extension IMClient {
     
 }
 
-// MARK: - Create Conversation
+// MARK: Create Conversation
 
 extension IMClient {
     
@@ -757,7 +757,7 @@ extension IMClient {
     
 }
 
-// MARK: - Conversation Query
+// MARK: Conversation Query
 
 extension IMClient {
     
@@ -768,7 +768,7 @@ extension IMClient {
     
 }
 
-// MARK: - Conversation Memory Cache
+// MARK: Conversation Memory Cache
 
 extension IMClient {
     
@@ -810,7 +810,7 @@ extension IMClient {
     
 }
 
-// MARK: - Session Query
+// MARK: Session Query
 
 extension IMClient {
     
@@ -1031,13 +1031,7 @@ extension IMClient {
         }
     }
     
-}
-
-// MARK: - Private
-
-private extension IMClient {
-    
-    func newSessionCommand(op: IMOpType, token: String? = nil, isReopen: Bool? = nil) -> IMGenericCommand {
+    private func newSessionCommand(op: IMOpType, token: String? = nil, isReopen: Bool? = nil) -> IMGenericCommand {
         assert(self.specificAssertion)
         assert(op == .open || op == .refresh)
         var outCommand = IMGenericCommand()
@@ -1101,7 +1095,7 @@ private extension IMClient {
         }
     }
     
-    func report(deviceToken token: String?, openCommand: IMGenericCommand? = nil) {
+    private func report(deviceToken token: String?, openCommand: IMGenericCommand? = nil) {
         assert(self.specificAssertion)
         guard let token: String = token else {
             return
@@ -1135,7 +1129,7 @@ private extension IMClient {
         }
     }
     
-    func handle(openCommandCallback command: IMGenericCommand, completion: ((LCBooleanResult) -> Void)? = nil) {
+    private func handle(openCommandCallback command: IMGenericCommand, completion: ((LCBooleanResult) -> Void)? = nil) {
         assert(self.specificAssertion)
         switch (command.cmd, command.op) {
         case (.session, .opened):
@@ -1189,7 +1183,7 @@ private extension IMClient {
         }
     }
     
-    func getConversation(by ID: String, completion: @escaping (IMClient, LCGenericResult<IMConversation>) -> Void) {
+    private func getConversation(by ID: String, completion: @escaping (IMClient, LCGenericResult<IMConversation>) -> Void) {
         assert(self.specificAssertion)
         if let existConversation: IMConversation = self.convCollection[ID] {
             completion(self, .success(value: existConversation))
@@ -1241,7 +1235,7 @@ private extension IMClient {
         }
     }
     
-    func getConversations(by IDs: Set<String>, completion: @escaping (IMClient, LCGenericResult<[IMConversation]>) -> Void) {
+    private func getConversations(by IDs: Set<String>, completion: @escaping (IMClient, LCGenericResult<[IMConversation]>) -> Void) {
         assert(self.specificAssertion)
         if IDs.count == 1, let ID: String = IDs.first {
             self.getConversation(by: ID) { (client, result) in
@@ -1269,7 +1263,7 @@ private extension IMClient {
         }
     }
     
-    func getTemporaryConversations(by IDs: Set<String>, completion: @escaping (IMClient, LCGenericResult<[IMConversation]>) -> Void) {
+    private func getTemporaryConversations(by IDs: Set<String>, completion: @escaping (IMClient, LCGenericResult<[IMConversation]>) -> Void) {
         assert(self.specificAssertion)
         if IDs.count == 1, let ID: String = IDs.first {
             self.getConversation(by: ID) { (client, result) in
@@ -1302,7 +1296,7 @@ private extension IMClient {
         }
     }
     
-    func process(convCommand command: IMConvCommand, op: IMOpType, serverTs: Int64? = nil) {
+    private func process(convCommand command: IMConvCommand, op: IMOpType, serverTs: Int64? = nil) {
         assert(self.specificAssertion)
         guard let conversationID: String = (command.hasCid ? command.cid : nil) else {
             return
@@ -1379,7 +1373,7 @@ private extension IMClient {
         }
     }
     
-    func acknowledging(message: IMMessage, conversation: IMConversation) {
+    private func acknowledging(message: IMMessage, conversation: IMConversation) {
         assert(self.specificAssertion)
         guard
             message.notTransientMessage,
@@ -1406,7 +1400,7 @@ private extension IMClient {
         })
     }
     
-    func process(directCommand command: IMDirectCommand) {
+    private func process(directCommand command: IMDirectCommand) {
         assert(self.specificAssertion)
         guard let conversationID: String = (command.hasCid ? command.cid : nil) else {
             return
@@ -1462,7 +1456,7 @@ private extension IMClient {
         }
     }
     
-    func process(unreadCommand: IMUnreadCommand) {
+    private func process(unreadCommand: IMUnreadCommand) {
         assert(self.specificAssertion)
         var conversationIDMap: [String: IMUnreadTuple] = [:]
         var temporaryConversationIDMap: [String: IMUnreadTuple] = [:]
@@ -1538,11 +1532,11 @@ private extension IMClient {
         }
     }
     
-    func process(patchCommand: IMPatchCommand) {
+    private func process(patchCommand: IMPatchCommand) {
         assert(self.specificAssertion)
         var lastPatchTimestamp: Int64 = -1
-        var conversationIDMap: [String: IMPatchItem] = [:]
-        var temporaryConversationIDMap: [String: IMPatchItem] = [:]
+        var conversationIDMap: [String: [IMPatchItem]] = [:]
+        var temporaryConversationIDMap: [String: [IMPatchItem]] = [:]
         for item in patchCommand.patches {
             guard let conversationID: String = (item.hasCid ? item.cid : nil) else {
                 continue
@@ -1555,9 +1549,19 @@ private extension IMClient {
                 existingConversation.process(patchItem: item, client: self)
             } else {
                 if conversationID.hasPrefix(IMTemporaryConversation.prefixOfID) {
-                    temporaryConversationIDMap[conversationID] = item
+                    if var items = temporaryConversationIDMap[conversationID] {
+                        items.append(item)
+                        temporaryConversationIDMap[conversationID] = items
+                    } else {
+                        temporaryConversationIDMap[conversationID] = [item]
+                    }
                 } else {
-                    conversationIDMap[conversationID] = item
+                    if var items = conversationIDMap[conversationID] {
+                        items.append(item)
+                        conversationIDMap[conversationID] = items
+                    } else {
+                        conversationIDMap[conversationID] = [item]
+                    }
                 }
             }
         }
@@ -1572,13 +1576,15 @@ private extension IMClient {
         } else {
             let group = DispatchGroup()
             var groupFlags: [Bool] = []
-            let handleResult: (IMClient, LCGenericResult<[IMConversation]>, [String: IMPatchItem]) -> Void = { (client, result, map) in
+            let handleResult: (IMClient, LCGenericResult<[IMConversation]>, [String: [IMPatchItem]]) -> Void = { (client, result, map) in
                 switch result {
                 case .success(value: let conversations):
                     groupFlags.append(true)
                     for conversation in conversations {
-                        if let patchItem: IMPatchItem = map[conversation.ID] {
-                            conversation.process(patchItem: patchItem, client: client)
+                        if let patchItems: [IMPatchItem] = map[conversation.ID] {
+                            for patchItem in patchItems {
+                                conversation.process(patchItem: patchItem, client: client)
+                            }
                         }
                     }
                 case .failure(error: let error):
@@ -1613,7 +1619,7 @@ private extension IMClient {
         }
     }
     
-    func process(rcpCommand: IMRcpCommand, serverTs: Int64? = nil) {
+    private func process(rcpCommand: IMRcpCommand, serverTs: Int64? = nil) {
         assert(self.specificAssertion)
         guard let conversationID: String = (rcpCommand.hasCid ? rcpCommand.cid : nil) else {
             return
@@ -1700,7 +1706,7 @@ private extension IMClient {
     }
     
     // for compatibility, should regard some unknown condition or unsupport message as success and callback with timestamp -1.
-    func process(notification: [String: Any], completion: @escaping (LCGenericResult<Int64>) -> Void) {
+    private func process(notification: [String: Any], completion: @escaping (LCGenericResult<Int64>) -> Void) {
         assert(self.specificAssertion)
         guard
             let cid: String = notification[NotificationKey.cid.rawValue] as? String,
@@ -1726,7 +1732,8 @@ private extension IMClient {
                 case .conv:
                     guard
                         let opValue = notification[NotificationKey.op.rawValue] as? String,
-                        let op = NotificationOperation(rawValue: opValue)
+                        let op = NotificationOperation(rawValue: opValue),
+                        let udate = notification[NotificationKey.udate.rawValue] as? String
                         else
                     {
                         completion(.success(value: -1))
@@ -1734,11 +1741,12 @@ private extension IMClient {
                     }
                     var convCommand = IMConvCommand()
                     convCommand.cid = cid
+                    convCommand.udate = udate
+                    if let initBy = notification[NotificationKey.initBy.rawValue] as? String {
+                        convCommand.initBy = initBy
+                    }
                     switch op {
                     case .joined, .left, .membersJoined, .membersLeft:
-                        if let initBy = notification[NotificationKey.initBy.rawValue] as? String {
-                            convCommand.initBy = initBy
-                        }
                         if let m = notification[NotificationKey.m.rawValue] as? [String] {
                             convCommand.m = m
                         }
@@ -1752,9 +1760,6 @@ private extension IMClient {
                             var jsonObject = IMJsonObjectMessage()
                             jsonObject.data = attrModified
                             convCommand.attrModified = jsonObject
-                        }
-                        if let udate = notification[NotificationKey.udate.rawValue] as? String {
-                            convCommand.udate = udate
                         }
                     }
                     client.process(convCommand: convCommand, op: op.opType)

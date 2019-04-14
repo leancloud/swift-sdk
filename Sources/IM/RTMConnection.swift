@@ -48,7 +48,7 @@ func RTMConnectionRegistering(
                 code: .inconsistency,
                 reason:
                 """
-                \(#file): duplicate registered.
+                \((#file as NSString).lastPathComponent): duplicate registered.
                 
                 The RTM Connection which use \(lcimProtocol.rawValue) has been referred by one exist instance,
                 That instance's Application-ID is \(appID) and Peer-ID is \(peerID).
@@ -925,35 +925,35 @@ extension LCError {
     static var RTMConnectionAppInBackground: LCError {
         return LCError(
             code: .connectionLost,
-            reason: "\(#file): Due to application did enter background, connection lost."
+            reason: "\((#file as NSString).lastPathComponent): Due to application did enter background, connection lost."
         )
     }
     
     static var RTMConnectionNetworkUnavailable: LCError {
         return LCError(
             code: .connectionLost,
-            reason: "\(#file): Due to network unavailable, connection lost."
+            reason: "\((#file as NSString).lastPathComponent): Due to network unavailable, connection lost."
         )
     }
     
     static var RTMConnectionNetworkChanged: LCError {
         return LCError(
             code: .connectionLost,
-            reason: "\(#file): Due to network interface changed, connection lost."
+            reason: "\((#file as NSString).lastPathComponent): Due to network interface changed, connection lost."
         )
     }
     
     static var RTMConnectionClosedByLocal: LCError {
         return LCError(
             code: .connectionLost,
-            reason: "\(#file): Connection did close by local peer."
+            reason: "\((#file as NSString).lastPathComponent): Connection did close by local peer."
         )
     }
     
     static var RTMConnectionClosedByRemote: LCError {
         return LCError(
             code: .connectionLost,
-            reason: "\(#file): Connection did close by remote peer."
+            reason: "\((#file as NSString).lastPathComponent): Connection did close by remote peer."
         )
     }
     
