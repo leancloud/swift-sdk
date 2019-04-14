@@ -17,10 +17,10 @@ import IOKit
 public class IMClient {
     
     #if DEBUG
-    static let TestReportDeviceTokenNotification = Notification.Name.init("TestReportDeviceTokenNotification")
-    static let TestSessionTokenExpiredNotification = Notification.Name.init("TestSessionTokenExpiredNotification")
-    static let TestGetOfflineEventsNotification = Notification.Name.init("TestGetOfflineEventsNotification")
-    static let TestSaveLocalRecordNotification = Notification.Name.init("TestSaveLocalRecordNotification")
+    static let TestReportDeviceTokenNotification = Notification.Name("\(IMClient.self).TestReportDeviceTokenNotification")
+    static let TestSessionTokenExpiredNotification = Notification.Name("\(IMClient.self).TestSessionTokenExpiredNotification")
+    static let TestGetOfflineEventsNotification = Notification.Name("\(IMClient.self).TestGetOfflineEventsNotification")
+    static let TestSaveLocalRecordNotification = Notification.Name("\(IMClient.self).TestSaveLocalRecordNotification")
     let specificKey = DispatchSpecificKey<Int>()
     let specificValue: Int = Int.random(in: 1...999)
     var specificAssertion: Bool {
@@ -197,27 +197,15 @@ public class IMClient {
             }
         }
         
-        do {
-            // directly init `connection` is better, lazy init is not a good choice.
-            // because connection should get App State in main thread.
-            self.connection = try RTMConnectionRefering(
-                application: application,
-                peerID: ID,
-                lcimProtocol: options.lcimProtocol,
-                customServerURL: customServerURL
-            )
-            self.rtmDelegator = RTMConnection.Delegator(queue: self.serialQueue)
-        } catch {
-            let appID: String = application.id
-            throw LCError(
-                code: .inconsistency,
-                reason:
-                """
-                The client instance which Application-ID is \(appID) and Client-ID is \(ID) already exists.
-                You can not create multiple client instance with the same Application-ID and Client-ID.
-                """
-            )
-        }
+        // directly init `connection` is better, lazy init is not a good choice.
+        // because connection should get App State in main thread.
+        self.connection = try RTMConnectionRegistering(
+            application: application,
+            peerID: ID,
+            lcimProtocol: options.lcimProtocol,
+            customServerURL: customServerURL
+        )
+        self.rtmDelegator = RTMConnection.Delegator(queue: self.serialQueue)
         
         self.deviceTokenObservation = self.installation.observe(
             \.deviceToken,
@@ -332,7 +320,7 @@ extension IMClient {
         var lastPatchTimestamp: Int64?
         var lastServerTimestamp: Int64?
         
-        private enum CodingKeys: String, CodingKey {
+        enum CodingKeys: String, CodingKey {
             case lastPatchTimestamp = "last_patch_timestamp"
             case lastServerTimestamp = "last_server_timestamp"
         }
@@ -1849,11 +1837,10 @@ extension IMClient: RTMConnectionDelegate {
     func connection(_ connection: RTMConnection, didDisconnect error: LCError) {
         assert(self.specificAssertion)
         
-        let routerError = LCError.malformedRTMRouterResponse
+        let routerError = LCError.RTMRouterResponseDataMalformed
         if
             error.code == routerError.code,
-            error.reason == routerError.reason,
-            (error.userInfo?["stop"] as? Bool) == true
+            error.reason == routerError.reason
         {
             self.sessionClosed(with: .failure(error: error), completion: self.openingCompletion)
             return
