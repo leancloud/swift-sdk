@@ -357,11 +357,14 @@ class LocalStorageContext {
     static let domain: String = "com.leancloud.swift"
     
     enum Module {
+        case router
         case push
         case IM(clientID: String)
         
         var path: String {
             switch self {
+            case .router:
+                return "router"
             case .push:
                 return "push"
             case .IM(clientID: let clientID):
@@ -372,8 +375,10 @@ class LocalStorageContext {
     }
     
     enum File: String {
+        case appServer = "app_server"
+        case rtmServer = "rtm_server"
         case installation = "installation"
-        case clientRecord = "clientRecord"
+        case clientRecord = "client_record"
         
         var name: String {
             return self.rawValue
@@ -463,6 +468,13 @@ class LocalStorageContext {
             return nil
         }
         return try decoder.decode(T.self, from: data)
+    }
+    
+    func clear(file fileURL: URL) throws {
+        let filePath = fileURL.path
+        if FileManager.default.fileExists(atPath: filePath) {
+            try FileManager.default.removeItem(atPath: filePath)
+        }
     }
     
 }
