@@ -79,6 +79,8 @@ class IMConversationTestCase: RTMBaseTestCase {
             XCTAssertNil(conv.uniqueID)
             XCTAssertEqual(conv.creator, clientA.ID)
             XCTAssertNotNil(conv.createdAt)
+            XCTAssertNotNil(conv.updatedAt)
+            XCTAssertEqual(conv.createdAt, conv.updatedAt)
             XCTAssertFalse(conv.isMuted)
             XCTAssertFalse(conv.isOutdated)
             XCTAssertNil(conv.lastMessage)
@@ -122,12 +124,11 @@ class IMConversationTestCase: RTMBaseTestCase {
             XCTAssertTrue(Thread.isMainThread)
             if client === clientA {
                 convAssertion(conv, client)
-                XCTAssertNil(conv.updatedAt)
                 switch event {
-                case .joined(byClientID: let cID):
+                case .joined(byClientID: let cID, at: _):
                     XCTAssertEqual(cID, clientA.ID)
                     exp.fulfill()
-                case .membersJoined(members: let members, byClientID: let byClientID):
+                case .membersJoined(members: let members, byClientID: let byClientID, at: _):
                     XCTAssertEqual(byClientID, clientA.ID)
                     XCTAssertEqual(Set(members), Set([clientA.ID, clientB.ID]))
                     exp.fulfill()
@@ -142,10 +143,10 @@ class IMConversationTestCase: RTMBaseTestCase {
                 convAssertion(conv, client)
                 XCTAssertNotNil(conv.updatedAt)
                 switch event {
-                case .joined(byClientID: let cID):
+                case .joined(byClientID: let cID, at: _):
                     XCTAssertEqual(cID, clientA.ID)
                     exp.fulfill()
-                case .membersJoined(members: let members, byClientID: let byClientID):
+                case .membersJoined(members: let members, byClientID: let byClientID, at: _):
                     XCTAssertEqual(byClientID, clientA.ID)
                     XCTAssertEqual(Set(members), Set([clientA.ID, clientB.ID]))
                     exp.fulfill()
@@ -158,7 +159,6 @@ class IMConversationTestCase: RTMBaseTestCase {
             XCTAssertTrue(Thread.isMainThread)
             if let conv: IMConversation = result.value {
                 convAssertion(conv, clientA)
-                XCTAssertNil(conv.updatedAt)
             } else {
                 XCTFail()
             }
@@ -178,8 +178,8 @@ class IMConversationTestCase: RTMBaseTestCase {
     
     func testCreateNormalAndUniqueConversation() {
         guard
-            let clientA = newOpenedClient(customRTMURL: testableRTMURL),
-            let clientB = newOpenedClient(customRTMURL: testableRTMURL)
+            let clientA = newOpenedClient(),
+            let clientB = newOpenedClient()
             else
         {
             XCTFail()
@@ -269,10 +269,10 @@ class IMConversationTestCase: RTMBaseTestCase {
                 XCTAssertEqual(conv.lcType, .temporary)
                 XCTAssertEqual((conv as? IMTemporaryConversation)?.timeToLive, Int(ttl))
                 switch event {
-                case .joined(byClientID: let cID):
+                case .joined(byClientID: let cID, at: _):
                     XCTAssertEqual(cID, clientA.ID)
                     exp.fulfill()
-                case .membersJoined(members: let members, byClientID: let byClientID):
+                case .membersJoined(members: let members, byClientID: let byClientID, at: _):
                     XCTAssertEqual(byClientID, clientA.ID)
                     XCTAssertEqual(Set(members), Set([clientA.ID, clientB.ID]))
                     exp.fulfill()
@@ -287,10 +287,10 @@ class IMConversationTestCase: RTMBaseTestCase {
                 XCTAssertEqual(conv.lcType, .temporary)
                 XCTAssertEqual((conv as? IMTemporaryConversation)?.timeToLive, Int(ttl))
                 switch event {
-                case .joined(byClientID: let cID):
+                case .joined(byClientID: let cID, at: _):
                     XCTAssertEqual(cID, clientA.ID)
                     exp.fulfill()
-                case .membersJoined(members: let members, byClientID: let byClientID):
+                case .membersJoined(members: let members, byClientID: let byClientID, at: _):
                     XCTAssertEqual(byClientID, clientA.ID)
                     XCTAssertEqual(Set(members), Set([clientA.ID, clientB.ID]))
                     exp.fulfill()
@@ -678,10 +678,10 @@ class IMConversationTestCase: RTMBaseTestCase {
         createConvExp.expectedFulfillmentCount = 5
         delegatorA.conversationEvent = { client, conv, event in
             switch event {
-            case .joined(byClientID: let byClientID):
+            case .joined(byClientID: let byClientID, at: _):
                 XCTAssertEqual(byClientID, clientA.ID)
                 createConvExp.fulfill()
-            case .membersJoined(members: let members, byClientID: let byClientID):
+            case .membersJoined(members: let members, byClientID: let byClientID, at: _):
                 XCTAssertEqual(byClientID, clientA.ID)
                 XCTAssertEqual(Set(members), Set([clientA.ID, clientB.ID]))
                 createConvExp.fulfill()
@@ -691,10 +691,10 @@ class IMConversationTestCase: RTMBaseTestCase {
         }
         delegatorB.conversationEvent = { client, conv, event in
             switch event {
-            case .joined(byClientID: let byClientID):
+            case .joined(byClientID: let byClientID, at: _):
                 XCTAssertEqual(byClientID, clientA.ID)
                 createConvExp.fulfill()
-            case .membersJoined(members: let members, byClientID: let byClientID):
+            case .membersJoined(members: let members, byClientID: let byClientID, at: _):
                 XCTAssertEqual(byClientID, clientA.ID)
                 XCTAssertEqual(Set(members), Set([clientA.ID, clientB.ID]))
                 createConvExp.fulfill()
@@ -717,20 +717,31 @@ class IMConversationTestCase: RTMBaseTestCase {
         delegatorA.conversationEvent = { client, conv, event in
             if conv === convA {
                 switch event {
-                case .membersJoined(members: let members, byClientID: let byClientID):
+                case let .membersJoined(members: members, byClientID: byClientID, at: at):
                     XCTAssertEqual(byClientID, clientB.ID)
                     XCTAssertEqual(members.count, 1)
                     XCTAssertEqual(members.first, clientB.ID)
                     XCTAssertEqual(conv.members?.count, 2)
                     XCTAssertEqual(conv.members?.contains(clientA.ID), true)
                     XCTAssertEqual(conv.members?.contains(clientB.ID), true)
+                    if let updatedAt = conv.updatedAt, let at = at {
+                        XCTAssertGreaterThanOrEqual(updatedAt, at)
+                    } else {
+                        XCTFail()
+                    }
                     leaveAndJoinExp.fulfill()
-                case .membersLeft(members: let members, byClientID: let byClientID):
+                case let .membersLeft(members: members, byClientID: byClientID, at: at):
                     XCTAssertEqual(byClientID, clientB.ID)
                     XCTAssertEqual(members.count, 1)
                     XCTAssertEqual(members.first, clientB.ID)
                     XCTAssertEqual(conv.members?.count, 1)
                     XCTAssertEqual(conv.members?.first, clientA.ID)
+                    XCTAssertNotNil(at)
+                    if let updatedAt = conv.updatedAt, let at = at {
+                        XCTAssertGreaterThanOrEqual(updatedAt, at)
+                    } else {
+                        XCTFail()
+                    }
                     leaveAndJoinExp.fulfill()
                 default:
                     break
@@ -740,16 +751,26 @@ class IMConversationTestCase: RTMBaseTestCase {
         delegatorB.conversationEvent = { client, conv, event in
             if conv === convB {
                 switch event {
-                case .joined(byClientID: let byClientID):
+                case let .joined(byClientID: byClientID, at: at):
                     XCTAssertEqual(byClientID, clientB.ID)
                     XCTAssertEqual(conv.members?.count, 2)
                     XCTAssertEqual(conv.members?.contains(clientA.ID), true)
                     XCTAssertEqual(conv.members?.contains(clientB.ID), true)
+                    if let updatedAt = conv.updatedAt, let at = at {
+                        XCTAssertGreaterThanOrEqual(updatedAt, at)
+                    } else {
+                        XCTFail()
+                    }
                     leaveAndJoinExp.fulfill()
-                case .left(byClientID: let byClientID):
+                case let .left(byClientID: byClientID, at: at):
                     XCTAssertEqual(byClientID, clientB.ID)
                     XCTAssertEqual(conv.members?.count, 1)
                     XCTAssertEqual(conv.members?.first, clientA.ID)
+                    if let updatedAt = conv.updatedAt, let at = at {
+                        XCTAssertGreaterThanOrEqual(updatedAt, at)
+                    } else {
+                        XCTFail()
+                    }
                     leaveAndJoinExp.fulfill()
                 default:
                     break
@@ -778,20 +799,30 @@ class IMConversationTestCase: RTMBaseTestCase {
         delegatorA.conversationEvent = { client, conv, event in
             if conv === convA {
                 switch event {
-                case .membersJoined(members: let members, byClientID: let byClientID):
+                case let .membersJoined(members: members, byClientID: byClientID, at: at):
                     XCTAssertEqual(byClientID, clientA.ID)
                     XCTAssertEqual(members.count, 1)
                     XCTAssertEqual(members.first, clientB.ID)
                     XCTAssertEqual(conv.members?.count, 2)
                     XCTAssertEqual(conv.members?.contains(clientA.ID), true)
                     XCTAssertEqual(conv.members?.contains(clientB.ID), true)
+                    if let updatedAt = conv.updatedAt, let at = at {
+                        XCTAssertGreaterThanOrEqual(updatedAt, at)
+                    } else {
+                        XCTFail()
+                    }
                     removeAndAddExp.fulfill()
-                case .membersLeft(members: let members, byClientID: let byClientID):
+                case let .membersLeft(members: members, byClientID: byClientID, at: at):
                     XCTAssertEqual(byClientID, clientA.ID)
                     XCTAssertEqual(members.count, 1)
                     XCTAssertEqual(members.first, clientB.ID)
                     XCTAssertEqual(conv.members?.count, 1)
                     XCTAssertEqual(conv.members?.first, clientA.ID)
+                    if let updatedAt = conv.updatedAt, let at = at {
+                        XCTAssertGreaterThanOrEqual(updatedAt, at)
+                    } else {
+                        XCTFail()
+                    }
                     removeAndAddExp.fulfill()
                 default:
                     break
@@ -801,16 +832,26 @@ class IMConversationTestCase: RTMBaseTestCase {
         delegatorB.conversationEvent = { client, conv, event in
             if conv === convB {
                 switch event {
-                case .joined(byClientID: let byClientID):
+                case let .joined(byClientID: byClientID, at: at):
                     XCTAssertEqual(byClientID, clientA.ID)
                     XCTAssertEqual(conv.members?.count, 2)
                     XCTAssertEqual(conv.members?.contains(clientA.ID), true)
                     XCTAssertEqual(conv.members?.contains(clientB.ID), true)
+                    if let updatedAt = conv.updatedAt, let at = at {
+                        XCTAssertGreaterThanOrEqual(updatedAt, at)
+                    } else {
+                        XCTFail()
+                    }
                     removeAndAddExp.fulfill()
-                case .left(byClientID: let byClientID):
+                case let .left(byClientID: byClientID, at: at):
                     XCTAssertEqual(byClientID, clientA.ID)
                     XCTAssertEqual(conv.members?.count, 1)
                     XCTAssertEqual(conv.members?.first, clientA.ID)
+                    if let updatedAt = conv.updatedAt, let at = at {
+                        XCTAssertGreaterThanOrEqual(updatedAt, at)
+                    } else {
+                        XCTFail()
+                    }
                     removeAndAddExp.fulfill()
                 default:
                     break
@@ -917,12 +958,14 @@ class IMConversationTestCase: RTMBaseTestCase {
         }
         
         var conversation: IMConversation? = nil
+        var previousUpdatedAt: Date?
         
         let createExp = expectation(description: "create conversation")
         try? client.createConversation(clientIDs: [uuid, uuid], isUnique: false) { (result) in
             XCTAssertTrue(result.isSuccess)
             XCTAssertNil(result.error)
             conversation = result.value
+            previousUpdatedAt = result.value?.updatedAt
             createExp.fulfill()
         }
         wait(for: [createExp], timeout: timeout)
@@ -936,9 +979,17 @@ class IMConversationTestCase: RTMBaseTestCase {
             let mutedMembers = conversation?[IMConversation.Key.mutedMembers.rawValue] as? [String]
             XCTAssertEqual(mutedMembers?.count, 1)
             XCTAssertEqual(mutedMembers?.contains(client.ID), true)
+            if let updatedAt = conversation?.updatedAt, let preUpdatedAt = previousUpdatedAt {
+                XCTAssertGreaterThan(updatedAt, preUpdatedAt)
+                previousUpdatedAt = updatedAt
+            } else {
+                XCTFail()
+            }
             muteExp.fulfill()
         })
         wait(for: [muteExp], timeout: timeout)
+        
+        delay()
         
         let unmuteExp = expectation(description: "unmute")
         conversation?.unmute(completion: { (result) in
@@ -948,6 +999,12 @@ class IMConversationTestCase: RTMBaseTestCase {
             XCTAssertEqual(conversation?.isMuted, false)
             let mutedMembers = conversation?[IMConversation.Key.mutedMembers.rawValue] as? [String]
             XCTAssertEqual(mutedMembers?.count, 0)
+            if let updatedAt = conversation?.updatedAt, let preUpdatedAt = previousUpdatedAt {
+                XCTAssertGreaterThan(updatedAt, preUpdatedAt)
+                previousUpdatedAt = updatedAt
+            } else {
+                XCTFail()
+            }
             unmuteExp.fulfill()
         })
         wait(for: [unmuteExp], timeout: timeout)
@@ -1158,7 +1215,7 @@ class IMConversationTestCase: RTMBaseTestCase {
         }
     }
     
-    func testUpdating() {
+    func testUpdateAttribution() {
         guard let clientA = newOpenedClient() else {
             XCTFail()
             return
@@ -1186,8 +1243,10 @@ class IMConversationTestCase: RTMBaseTestCase {
         let deleteKey = "delete"
         let arrayKey = "array"
         
+        var previousUpdatedAt: Date?
+        
         let createConvExp = expectation(description: "create conversation")
-        try? clientA.createConversation(
+        try! clientA.createConversation(
             clientIDs: [clientA.ID, clientB.ID],
             name: uuid,
             attributes: [
@@ -1199,6 +1258,7 @@ class IMConversationTestCase: RTMBaseTestCase {
             XCTAssertTrue(result.isSuccess)
             XCTAssertNil(result.error)
             convA = result.value
+            previousUpdatedAt = result.value?.updatedAt
             createConvExp.fulfill()
         }
         wait(for: [createConvExp], timeout: timeout)
@@ -1217,11 +1277,16 @@ class IMConversationTestCase: RTMBaseTestCase {
         delegatorB.conversationEvent = { client, conv, event in
             if conv.ID == convA?.ID {
                 switch event {
-                case let .dataUpdated(updatedData: updatedData, byClientID: byClientID, at: at, updatingData: updatingData):
+                case let .dataUpdated(updatingData: updatingData, updatedData: updatedData, byClientID: byClientID, at: at):
                     XCTAssertNotNil(updatedData)
                     XCTAssertNotNil(updatingData)
                     XCTAssertNotNil(at)
                     XCTAssertEqual(byClientID, clientA.ID)
+                    if let updatedAt = at, let preUpdatedAt = previousUpdatedAt {
+                        XCTAssertGreaterThan(updatedAt, preUpdatedAt)
+                    } else {
+                        XCTFail()
+                    }
                     convB = conv
                     updateExp.fulfill()
                 default:
@@ -1229,12 +1294,17 @@ class IMConversationTestCase: RTMBaseTestCase {
                 }
             }
         }
-        ((try? convA?.update(with: data, completion: { (result) in
+        try! convA?.update(attribution: data, completion: { (result) in
             XCTAssertTrue(Thread.isMainThread)
             XCTAssertTrue(result.isSuccess)
             XCTAssertNil(result.error)
+            if let updatedAt = convA?.updatedAt, let preUpdatedAt = previousUpdatedAt {
+                XCTAssertGreaterThan(updatedAt, preUpdatedAt)
+            } else {
+                XCTFail()
+            }
             updateExp.fulfill()
-        })) as ()??)
+        })
         wait(for: [updateExp], timeout: timeout)
         
         let check = { (conv: IMConversation?) in
@@ -1272,7 +1342,7 @@ class IMConversationTestCase: RTMBaseTestCase {
             switch event {
             case .joined(byClientID: _):
                 createExp.fulfill()
-            case .membersJoined(members: _, byClientID: _):
+            case .membersJoined(members: _, byClientID: _, at: _):
                 createExp.fulfill()
             default:
                 break
@@ -1309,7 +1379,7 @@ class IMConversationTestCase: RTMBaseTestCase {
             switch event {
             case .joined(byClientID: _):
                 getEventsExp.fulfill()
-            case .membersJoined(members: _, byClientID: _):
+            case .membersJoined(members: _, byClientID: _, at: _):
                 getEventsExp.fulfill()
             default:
                 break

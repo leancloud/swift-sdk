@@ -51,5 +51,20 @@ class BaseTestCase: XCTestCase {
         let bundle = Bundle(for: type(of: self))
         return bundle.url(forResource: name, withExtension: ext)!
     }
+    
+    func expecting(
+        timeout: TimeInterval = 60.0,
+        expectations: (() -> [XCTestExpectation])? = nil,
+        closure: ([XCTestExpectation]) -> Void)
+    {
+        if let exps = expectations?() {
+            closure(exps)
+            wait(for: exps, timeout: timeout)
+        } else {
+            let exp = expectation(description: "default expectation")
+            closure([exp])
+            wait(for: [exp], timeout: timeout)
+        }
+    }
 
 }

@@ -62,18 +62,38 @@ class LCRouterTestCase: BaseTestCase {
     }
 
     func testFallbackUrl() {
-        XCTAssertEqual(
-            cnRouter.fallbackUrl(path: "1.1/foo", module: .api),
-            URL(string: "https://s5vdi3ie.api.lncld.net/1.1/foo"))
-        XCTAssertEqual(
-            ceRouter.fallbackUrl(path: "1.1/foo", module: .api),
-            URL(string: "https://uwwkfsse.api.lncldapi.com/1.1/foo"))
-        XCTAssertEqual(
-            usRouter.fallbackUrl(path: "1.1/foo", module: .api),
-            URL(string: "https://ex7urcuf.api.lncldglobal.com/1.1/foo"))
-        XCTAssertEqual(
-            earlyCnRouter.fallbackUrl(path: "1.1/foo", module: .api),
-            URL(string: "https://uay57kig.api.lncld.net/1.1/foo"))
+        for item in
+            [HTTPRouter.Module.api,
+             HTTPRouter.Module.engine,
+             HTTPRouter.Module.push,
+             HTTPRouter.Module.rtm,
+             HTTPRouter.Module.stats]
+        {
+            switch item {
+            case .api:
+                XCTAssertEqual("\(item)", "api")
+            case .engine:
+                XCTAssertEqual("\(item)", "engine")
+            case .push:
+                XCTAssertEqual("\(item)", "push")
+            case .rtm:
+                XCTAssertEqual("\(item)", "rtm")
+            case .stats:
+                XCTAssertEqual("\(item)", "stats")
+            }
+            XCTAssertEqual(
+                cnRouter.fallbackUrl(path: "1.1/foo", module: item),
+                URL(string: "https://s5vdi3ie.\(item).lncld.net/1.1/foo"))
+            XCTAssertEqual(
+                ceRouter.fallbackUrl(path: "1.1/foo", module: item),
+                URL(string: "https://uwwkfsse.\(item).lncldapi.com/1.1/foo"))
+            XCTAssertEqual(
+                usRouter.fallbackUrl(path: "1.1/foo", module: item),
+                URL(string: "https://ex7urcuf.\(item).lncldglobal.com/1.1/foo"))
+            XCTAssertEqual(
+                earlyCnRouter.fallbackUrl(path: "1.1/foo", module: item),
+                URL(string: "https://uay57kig.\(item).lncld.net/1.1/foo"))
+        }
     }
 
     func testCacheExpiration() {

@@ -40,20 +40,20 @@ class RTMConnectionTestCase: RTMBaseTestCase {
             let peerID1 = "peerID1"
             let peerID2 = "peerID2"
             do {
-                _ = try RTMConnectionRefering(application: application, peerID: peerID1, lcimProtocol: imProtocol)
+                _ = try RTMConnectionRegistering(application: application, peerID: peerID1, lcimProtocol: imProtocol)
                 XCTAssertNotNil(connectionMap()[application.id]?[peerID1])
                 XCTAssertEqual(connectionMap()[application.id]?.count, 1)
             } catch {
                 XCTFail("\(error)")
             }
             do {
-                _ = try RTMConnectionRefering(application: application, peerID: peerID1, lcimProtocol: imProtocol)
+                _ = try RTMConnectionRegistering(application: application, peerID: peerID1, lcimProtocol: imProtocol)
                 XCTFail()
             } catch {
                 XCTAssertTrue(error is LCError)
             }
             
-            _ = try! RTMConnectionRefering(application: application, peerID: peerID2, lcimProtocol: imProtocol)
+            _ = try! RTMConnectionRegistering(application: application, peerID: peerID2, lcimProtocol: imProtocol)
             XCTAssertTrue(connectionMap()[application.id]?[peerID1] === connectionMap()[application.id]?[peerID2])
             XCTAssertEqual(connectionMap()[application.id]?.count, 2)
             
@@ -61,7 +61,7 @@ class RTMConnectionTestCase: RTMBaseTestCase {
             RTMConnectionReleasing(application: application, peerID: peerID2, lcimProtocol: imProtocol)
             XCTAssertEqual(connectionMap()[application.id]?.count, 0)
             
-            _ = try! RTMConnectionRefering(application: application, peerID: peerID1, lcimProtocol: imProtocol)
+            _ = try! RTMConnectionRegistering(application: application, peerID: peerID1, lcimProtocol: imProtocol)
             XCTAssertNotNil(connectionMap()[application.id]?[peerID1])
             XCTAssertEqual(connectionMap()[application.id]?.count, 1)
         }
@@ -237,20 +237,24 @@ class RTMConnectionTestCase: RTMBaseTestCase {
     }
     
     func testGoaway() {
-        let tuple = connectedConnection(customServerURL: testableRTMURL)
+        let tuple = connectedConnection()
         let connection = tuple.0
         let delegator = tuple.1
-        connection.customRTMServerURL = nil
-        do {
-            let exp = expectation(description: "get goaway")
+        
+        let oldDate = Date().timeIntervalSince1970
+        
+        expecting(expectations: { () -> [XCTestExpectation] in
+            let exp = self.expectation(description: "goaway")
             exp.expectedFulfillmentCount = 3
-            let table1 = try connection.rtmRouter.cache.getRoutingTable()
+            return [exp]
+        }) { (exps) in
+            let exp = exps[0]
+            
             NotificationCenter.default.addObserver(
                 forName: RTMConnection.TestGoawayCommandReceivedNotification,
                 object: connection,
                 queue: OperationQueue.main)
-            { (notification) in
-                XCTAssertNil(notification.userInfo?["error"])
+            { _ in
                 exp.fulfill()
             }
             delegator.didDisconnect = { _, error in
@@ -260,14 +264,18 @@ class RTMConnectionTestCase: RTMBaseTestCase {
             delegator.didConnect = { _ in
                 exp.fulfill()
             }
-            wait(for: [exp], timeout: 120)
-            let table2 = try connection.rtmRouter.cache.getRoutingTable()
-            XCTAssertNotNil(table2)
-            XCTAssertNotNil(table2?.createdAt)
-            XCTAssertNotEqual(table2?.createdAt, table1?.createdAt)
-        } catch {
-            XCTFail("\(error)")
+            
+            connection.serialQueue.async {
+                connection.websocketDidReceiveData(socket: connection.socket!, data: {
+                    var goaway = IMGenericCommand()
+                    goaway.cmd = .goaway
+                    return try! goaway.serializedData()
+                }())
+            }
         }
+        
+        XCTAssertNotNil(connection.rtmRouter?.table)
+        XCTAssertGreaterThan(connection.rtmRouter!.table!.createdTimestamp, oldDate)
     }
 
 }
@@ -280,7 +288,7 @@ extension RTMConnectionTestCase {
         customServerURL: URL? = nil)
         -> (RTMConnection, Delegator)
     {
-        let connection = try! RTMConnectionRefering(
+        let connection = try! RTMConnectionRegistering(
             application: application,
             peerID: peerID,
             lcimProtocol: .protobuf1,
