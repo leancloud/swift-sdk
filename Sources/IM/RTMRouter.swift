@@ -8,172 +8,210 @@
 
 import Foundation
 
-/**
- RTM routing table.
- */
-struct RTMRoutingTable {
-
-    /// Primary URL.
-    let primary: URL
-
-    /// Secondary URL.
-    let secondary: URL?
-
-    /// Expiration date, it's a local date.
-    let expiration: Date
-
-    /// Creation date, it's a local date.
-    let createdAt: Date
+class RTMRouter {
     
-}
-
-/**
- RTM (Real Time Message) router for application.
- */
-final class RTMRouter {
-
-    /// The application to route.
     let application: LCApplication
-
-    /// The HTTP router for application.
-    private(set) lazy var httpRouter = HTTPRouter(application: application, configuration: .default)
-
-    /// The HTTP client for application.
-    private(set) lazy var httpClient = HTTPClient(application: application, configuration: .default)
-
-    /// RTM router cache.
-    private(set) lazy var cache = RTMRouterCache(application: application)
-
-    /**
-     Initialize RTM router with application.
-
-     - parameter application: The application to route.
-     */
-    init(application: LCApplication) {
+    
+    let httpRouter: HTTPRouter
+    
+    let httpClient: HTTPClient
+    
+    let tableCacheURL: URL?
+    
+    private(set) var table: RTMRouter.Table?
+    
+    init(application: LCApplication) throws {
+        
         self.application = application
+        self.httpRouter = HTTPRouter(application: application, configuration: .default)
+        self.httpClient = HTTPClient(application: application, configuration: .default)
+        
+        if let storageContext = application.localStorageContext {
+            let fileURL = try storageContext.fileURL(place: .systemCaches, module: .router, file: .rtmServer)
+            self.tableCacheURL = fileURL
+            self.table = try storageContext.table(from: fileURL)
+        } else {
+            self.tableCacheURL = nil
+        }
     }
-
-    /**
-     Get result of routing table response.
-
-     - parameter reponse: The response of routing table request.
-
-     - returns: Result of routing table response.
-     */
-    private func result(response: LCResponse) -> LCGenericResult<RTMRoutingTable> {
+    
+    private func result(response: LCResponse) -> LCGenericResult<RTMRouter.Table> {
         if let error = LCError(response: response) {
             return .failure(error: error)
         }
 
         guard
             let object = response.value as? [String: Any],
-            let primaryURLString = object["server"] as? String,
-            let primaryURL = URL(string: primaryURLString),
-            let ttl = object["ttl"] as? TimeInterval
-        else {
-            return .failure(error: LCError.malformedRTMRouterResponse)
+            let primaryServer = object[RTMRouter.Table.CodingKeys.primary.rawValue] as? String,
+            let ttl = object[RTMRouter.Table.CodingKeys.ttl.rawValue] as? TimeInterval
+            else
+        {
+            return .failure(error: LCError.RTMRouterResponseDataMalformed)
         }
 
-        var secondaryURL: URL?
+        let secondaryServer = object[RTMRouter.Table.CodingKeys.secondary.rawValue] as? String
 
-        if let secondaryURLString = object["secondary"] as? String {
-            secondaryURL = URL(string: secondaryURLString)
-        }
+        let table = RTMRouter.Table(
+            primary: primaryServer,
+            secondary: secondaryServer,
+            ttl: ttl,
+            createdTimestamp: Date().timeIntervalSince1970,
+            continuousFailureCount: 0
+        )
 
-        let expirationDate = Date(timeIntervalSinceNow: ttl)
-
-        let routingTable = RTMRoutingTable(primary: primaryURL, secondary: secondaryURL, expiration: expirationDate, createdAt: Date())
-
-        return .success(value: routingTable)
+        return .success(value: table)
     }
 
-    /**
-     Handle response of routing table request.
-
-     - parameter response: The response of routing table request.
-     - parameter completion: The completion handler.
-     */
-    private func handle(response: LCResponse, completion: (LCGenericResult<RTMRoutingTable>) -> Void) {
+    private func handle(response: LCResponse, completion: (LCGenericResult<RTMRouter.Table>) -> Void) {
         let result = self.result(response: response)
-
-        completion(result)
-
-        switch result {
-        case .success(let routingTable):
-            do {
-                try cache.setRoutingTable(routingTable)
-            } catch let error {
-                Logger.shared.error(error)
+        
+        if let table = result.value {
+            self.table = table
+            if
+                let cacheURL = self.tableCacheURL,
+                let storageContext = self.application.localStorageContext
+            {
+                do {
+                    try storageContext.save(table: table, to: cacheURL)
+                } catch {
+                    Logger.shared.error(error)
+                }
             }
-        case .failure:
-            break
         }
+        
+        completion(result)
     }
-
-    /**
-     Request routing table.
-
-     - parameter completion: The completion handler.
-
-     - returns: Routing table request.
-     */
+    
     @discardableResult
-    private func request(completion: @escaping (LCGenericResult<RTMRoutingTable>) -> Void) -> LCRequest {
-        guard let appId = application.id else {
-            return httpClient.request(
-                error: LCError.applicationNotInitialized,
-                completionHandler: completion)
-        }
-
+    private func request(completion: @escaping (LCGenericResult<RTMRouter.Table>) -> Void) -> LCRequest {
         guard let routerURL = httpRouter.route(path: "v1/route") else {
             return httpClient.request(
-                error: LCError.rtmRouterURLNotFound,
-                completionHandler: completion)
+                error: LCError.RTMRouterURLNotFound,
+                completionHandler: completion
+            )
         }
-
-        let parameters: [String: Any] = ["appId": appId, "secure": 1]
-
+        
+        let parameters: [String: Any] = [
+            "appId": self.application.id!,
+            "secure": 1
+        ]
+        
         return httpClient.request(url: routerURL, method: .get, parameters: parameters) { response in
             self.handle(response: response, completion: completion)
         }
     }
-
-    /**
-     Get routing table.
-
-     It will request and cache routing table, and return cached routing table if possible.
-
-     - parameter completion: The completion handler.
-     */
-    func route(completion: @escaping (LCGenericResult<RTMRoutingTable>) -> Void) {
-        do {
-            if let routingTable = try cache.getRoutingTable() {
-                completion(.success(value: routingTable))
+    
+    func route(completion: @escaping (_ direct: Bool, _ result: LCGenericResult<RTMRouter.Table>) -> Void) {
+        if let table = self.table {
+            if table.shouldClear {
+                self.clearTableCache()
+                self.request { (result) in
+                    completion(false, result)
+                }
             } else {
-                request(completion: completion)
+                completion(true, .success(value: table))
             }
-        } catch let error {
-            request(completion: completion)
+        } else {
+            self.request { (result) in
+                completion(false, result)
+            }
+        }
+    }
+    
+    func updateFailureCount(reset: Bool = false) {
+        if reset {
+            if self.table?.continuousFailureCount == 0 {
+                return
+            }
+            self.table?.continuousFailureCount = 0
+        } else {
+            self.table?.continuousFailureCount += 1
+        }
+        if
+            let table = self.table,
+            let cacheURL = self.tableCacheURL,
+            let storageContext = self.application.localStorageContext
+        {
+            do {
+                try storageContext.save(table: table, to: cacheURL)
+            } catch {
+                Logger.shared.error(error)
+            }
+        }
+    }
+    
+    func clearTableCache() {
+        self.table = nil
+        guard
+            let cacheURL = self.tableCacheURL,
+            let storageContext = self.application.localStorageContext
+            else
+        {
+            return
+        }
+        do {
+            try storageContext.clear(file: cacheURL)
+        } catch {
             Logger.shared.error(error)
         }
     }
+    
+}
 
+extension RTMRouter {
+    
+    struct Table: Codable {
+        
+        let primary: String
+        let secondary: String?
+        let ttl: TimeInterval
+        let createdTimestamp: TimeInterval
+        var continuousFailureCount: Int
+        
+        enum CodingKeys: String, CodingKey {
+            case primary = "server"
+            case secondary
+            case ttl
+            case createdTimestamp = "created_timestamp"
+            case continuousFailureCount = "continuous_failure_count"
+        }
+        
+        var primaryURL: URL? {
+            return URL(string: self.primary)
+        }
+        
+        var secondaryURL: URL? {
+            if let secondary = self.secondary {
+                return URL(string: secondary)
+            } else {
+                return nil
+            }
+        }
+        
+        var isExpired: Bool {
+            return Date().timeIntervalSince1970 > self.ttl + self.createdTimestamp
+        }
+        
+        var shouldClear: Bool {
+            return (self.continuousFailureCount >= 10) || self.isExpired
+        }
+    }
+    
 }
 
 extension LCError {
 
-    static var rtmRouterURLNotFound: LCError {
+    static var RTMRouterURLNotFound: LCError {
         return LCError(
             code: .inconsistency,
-            reason: "RTM router URL not found."
+            reason: "\(#file): RTM router URL not found."
         )
     }
 
-    static var malformedRTMRouterResponse: LCError {
+    static var RTMRouterResponseDataMalformed: LCError {
         return LCError(
             code: .malformedData,
-            reason: "Malformed RTM router response.",
-            userInfo: ["stop": true]
+            reason: "\(#file): RTM router response data malformed."
         )
     }
 
