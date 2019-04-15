@@ -837,28 +837,22 @@ extension IMErrorCommand {
     var lcError: LCError {
         let code: Int = Int(self.code)
         let reason: String? = (self.hasReason ? self.reason : nil)
-        var userInfo: LCError.UserInfo? = [:]
+        var userInfo: LCError.UserInfo = [:]
         if self.hasAppCode {
-            userInfo?["appCode"] = self.appCode
+            userInfo["appCode"] = self.appCode
         }
         if self.hasAppMsg {
-            userInfo?["appMsg"] = self.appMsg
+            userInfo["appMsg"] = self.appMsg
         }
         if self.hasDetail {
-            userInfo?["detail"] = self.detail
+            userInfo["detail"] = self.detail
         }
-        if let ui = userInfo, ui.isEmpty {
-            userInfo = nil
-        } else {
-            do {
-                userInfo = try userInfo?.jsonObject()
-            } catch {
-                Logger.shared.error(error)
-                userInfo = nil
-            }
+        do {
+            userInfo = try userInfo.jsonObject() ?? userInfo
+        } catch {
+            Logger.shared.error(error)
         }
-        let error = LCError(code: code, reason: reason, userInfo: userInfo)
-        return error
+        return LCError(code: code, reason: reason, userInfo: userInfo)
     }
     
 }
@@ -868,22 +862,16 @@ extension IMSessionCommand {
     var lcError: LCError {
         let code: Int = Int(self.code)
         let reason: String? = (self.hasReason ? self.reason : nil)
-        var userInfo: LCError.UserInfo? = [:]
+        var userInfo: LCError.UserInfo = [:]
         if self.hasDetail {
-            userInfo?["detail"] = self.detail
+            userInfo["detail"] = self.detail
         }
-        if let ui = userInfo, ui.isEmpty {
-            userInfo = nil
-        } else {
-            do {
-                userInfo = try userInfo?.jsonObject()
-            } catch {
-                Logger.shared.error(error)
-                userInfo = nil
-            }
+        do {
+            userInfo = try userInfo.jsonObject() ?? userInfo
+        } catch {
+            Logger.shared.error(error)
         }
-        let error = LCError(code: code, reason: reason, userInfo: userInfo)
-        return error
+        return LCError(code: code, reason: reason, userInfo: userInfo)
     }
     
 }
@@ -894,25 +882,19 @@ extension IMAckCommand {
         if self.hasCode || self.hasAppCode {
             let code: Int = Int(self.code)
             let reason: String? = (self.hasReason ? self.reason : nil)
-            var userInfo: LCError.UserInfo? = [:]
+            var userInfo: LCError.UserInfo = [:]
             if self.hasAppCode {
-                userInfo?["appCode"] = self.appCode
+                userInfo["appCode"] = self.appCode
             }
             if self.hasAppMsg {
-                userInfo?["appMsg"] = self.appMsg
+                userInfo["appMsg"] = self.appMsg
             }
-            if let ui = userInfo, ui.isEmpty {
-                userInfo = nil
-            } else {
-                do {
-                    userInfo = try userInfo?.jsonObject()
-                } catch {
-                    Logger.shared.error(error)
-                    userInfo = nil
-                }
+            do {
+                userInfo = try userInfo.jsonObject() ?? userInfo
+            } catch {
+                Logger.shared.error(error)
             }
-            let error = LCError(code: code, reason: reason, userInfo: userInfo)
-            return error
+            return LCError(code: code, reason: reason, userInfo: userInfo)
         } else {
             return nil
         }
