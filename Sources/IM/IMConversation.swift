@@ -1380,12 +1380,14 @@ internal extension IMConversation {
             return false
         }
         if
-            let string: String = updatedDateString,
-            let newUpdatedDate: Date = LCDate.dateFromString(string),
-            let originUpdatedDate: Date = self.updatedAt,
-            newUpdatedDate >= originUpdatedDate
+            let dateString: String = updatedDateString,
+            let newUpdatedDate: Date = LCDate.dateFromString(dateString)
         {
-            return true
+            if let originUpdatedDate: Date = self.updatedAt {
+                return (newUpdatedDate >= originUpdatedDate)
+            } else {
+                return true
+            }
         } else {
             return false
         }
