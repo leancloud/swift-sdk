@@ -1322,6 +1322,8 @@ class IMConversationTestCase: RTMBaseTestCase {
         guard let clientB = newOpenedClient() else {
             return
         }
+        let delegatorB = IMClientTestCase.Delegator()
+        clientB.delegate = delegatorB
         
         RTMConnectionRefMap_protobuf1.removeAll()
         RTMConnectionRefMap_protobuf3.removeAll()
@@ -1336,65 +1338,112 @@ class IMConversationTestCase: RTMBaseTestCase {
         let delegatorA = IMClientTestCase.Delegator()
         clientA.delegate = delegatorA
         
-        let createExp = expectation(description: "create conversation")
-        createExp.expectedFulfillmentCount = 3
-        delegatorA.conversationEvent = { client, conv, event in
-            switch event {
-            case .joined(byClientID: _):
-                createExp.fulfill()
-            case .membersJoined(members: _, byClientID: _, at: _):
-                createExp.fulfill()
-            default:
-                break
+        expecting(expectation: { () -> XCTestExpectation in
+            let exp = self.expectation(description: "create normal conv")
+            exp.expectedFulfillmentCount = 3
+            return exp
+        }) { exp in
+            delegatorA.conversationEvent = { client, conv, event in
+                switch event {
+                case .joined:
+                    exp.fulfill()
+                case .membersJoined:
+                    exp.fulfill()
+                default:
+                    break
+                }
+            }
+            try! clientA.createConversation(clientIDs: [clientB.ID], isUnique: false) { (result) in
+                XCTAssertTrue(result.isSuccess)
+                XCTAssertNil(result.error)
+                exp.fulfill()
             }
         }
-        try? clientA.createConversation(clientIDs: [clientB.ID], isUnique: false) { (result) in
-            XCTAssertTrue(result.isSuccess)
-            XCTAssertNil(result.error)
-            createExp.fulfill()
+        delegatorA.conversationEvent = nil
+        
+        expecting(expectation: { () -> XCTestExpectation in
+            let exp = self.expectation(description: "create normal conv")
+            exp.expectedFulfillmentCount = 3
+            return exp
+        }) { exp in
+            delegatorA.conversationEvent = { client, conv, event in
+                switch event {
+                case .joined:
+                    exp.fulfill()
+                case .membersJoined:
+                    exp.fulfill()
+                default:
+                    break
+                }
+            }
+            try! clientA.createTemporaryConversation(clientIDs: [clientB.ID], timeToLive: 3600, completion: { (result) in
+                XCTAssertTrue(result.isSuccess)
+                XCTAssertNil(result.error)
+                exp.fulfill()
+            })
         }
-        wait(for: [createExp], timeout: timeout)
+        delegatorA.conversationEvent = nil
         
         XCTAssertNotNil(clientA.localRecord.lastServerTimestamp)
         
-        let saveLocalRecordExp = expectation(description: "save local record")
-        let serverTimestamp = (clientA.localRecord.lastServerTimestamp ?? 0) - (60 * 1000)
-        let observer = NotificationCenter.default.addObserver(forName: IMClient.TestSaveLocalRecordNotification, object: clientB, queue: .main) { (notification) in
-            XCTAssertNotNil(notification.userInfo)
-            XCTAssertNil(notification.userInfo?["error"])
-            let table: IMClient.LocalRecord? = try! clientB.application.localStorageContext?.table(from: clientB.localRecordURL!)
-            XCTAssertNotNil(table)
-            XCTAssertEqual(table?.lastServerTimestamp, serverTimestamp)
-            saveLocalRecordExp.fulfill()
-        }
-        clientB.test_change(serverTimestamp: serverTimestamp)
-        wait(for: [saveLocalRecordExp], timeout: timeout)
-        NotificationCenter.default.removeObserver(observer)
-        
-        let getEventsExp = expectation(description: "get offline events")
-        getEventsExp.expectedFulfillmentCount = 3
-        let delegatorB = IMClientTestCase.Delegator()
-        clientB.delegate = delegatorB
-        delegatorB.conversationEvent = { client, conv, event in
-            switch event {
-            case .joined(byClientID: _):
-                getEventsExp.fulfill()
-            case .membersJoined(members: _, byClientID: _, at: _):
-                getEventsExp.fulfill()
-            default:
-                break
+        var observer: NSObjectProtocol!
+        expecting(description: "change serverTS") { (exp) in
+            let serverTimestamp = (clientA.localRecord.lastServerTimestamp ?? 0) - (60 * 1000)
+            observer = NotificationCenter.default.addObserver(forName: IMClient.TestSaveLocalRecordNotification, object: clientB, queue: .main) { (notification) in
+                XCTAssertNotNil(notification.userInfo)
+                XCTAssertNil(notification.userInfo?["error"])
+                XCTAssertEqual(serverTimestamp, clientB.localRecord.lastServerTimestamp)
+                let table: IMClient.LocalRecord? = try! clientB.application.localStorageContext?.table(
+                    from: clientB.localRecordURL!
+                )
+                XCTAssertEqual(serverTimestamp, table?.lastServerTimestamp)
+                exp.fulfill()
             }
+            clientB.test_change(serverTimestamp: serverTimestamp)
         }
-        NotificationCenter.default.addObserver(forName: IMClient.TestGetOfflineEventsNotification, object: clientB, queue: OperationQueue.main) { (notification) in
-            XCTAssertTrue(((notification.userInfo?["serverTimestamp"] as? Int64) ?? -1) > 0)
-            getEventsExp.fulfill()
-        }
-        clientB.connection.connect()
-        wait(for: [getEventsExp], timeout: timeout)
+        NotificationCenter.default.removeObserver(observer!)
         
-        XCTAssertEqual(clientA.convCollection.count, 1)
-        XCTAssertEqual(clientB.convCollection.count, 1)
-        XCTAssertEqual(clientA.convCollection.first?.value.ID, clientB.convCollection.first?.value.ID)
+        delay()
+        
+        expecting(expectation: { () -> XCTestExpectation in
+            let exp = self.expectation(description: "get offline events")
+            exp.expectedFulfillmentCount = 4
+            return exp
+        }) { (exp) in
+            delegatorB.conversationEvent = { client, conv, event in
+                switch event {
+                case .joined(byClientID: _):
+                    if conv is IMTemporaryConversation {
+                        exp.fulfill()
+                    } else {
+                        exp.fulfill()
+                    }
+                case .membersJoined(members: _, byClientID: _, at: _):
+                    if conv is IMTemporaryConversation {
+                        exp.fulfill()
+                    } else {
+                        exp.fulfill()
+                    }
+                default:
+                    break
+                }
+            }
+            clientB.connection.connect()
+        }
+        delegatorB.conversationEvent = nil
+        
+        XCTAssertEqual(clientA.convCollection.count, 2)
+        XCTAssertEqual(clientB.convCollection.count, 2)
+        for (convID, convA) in clientA.convCollection {
+            let convB = clientB.convCollection[convID]
+            XCTAssertEqual(convA.ID, convB?.ID)
+            XCTAssertEqual(convA.members?.count, 2)
+            XCTAssertEqual(convA.members?.contains(clientA.ID), true)
+            XCTAssertEqual(convA.members?.contains(clientB.ID), true)
+            XCTAssertEqual(convB?.members?.count, 2)
+            XCTAssertEqual(convB?.members?.contains(clientA.ID), true)
+            XCTAssertEqual(convB?.members?.contains(clientB.ID), true)
+        }
         XCTAssertEqual(clientA.localRecord.lastServerTimestamp, clientB.localRecord.lastServerTimestamp)
     }
     

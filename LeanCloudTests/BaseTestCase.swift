@@ -11,6 +11,8 @@ import LeanCloud
 
 class BaseTestCase: XCTestCase {
     
+    static let timeout: TimeInterval = 60.0
+    
     let timeout: TimeInterval = 60.0
     
     static var masterKey: String {
@@ -53,18 +55,39 @@ class BaseTestCase: XCTestCase {
     }
     
     func expecting(
-        timeout: TimeInterval = 60.0,
-        expectations: (() -> [XCTestExpectation])? = nil,
+        description: String,
+        expectation: (() -> XCTestExpectation)? = nil,
+        closure: (XCTestExpectation) -> Void)
+    {
+        self.expecting(
+            description: description,
+            timeout: BaseTestCase.timeout,
+            expectation: expectation,
+            closure: closure
+        )
+    }
+    
+    func expecting(
+        description: String? = nil,
+        timeout: TimeInterval = BaseTestCase.timeout,
+        expectation: (() -> XCTestExpectation)? = nil,
+        closure: (XCTestExpectation) -> Void)
+    {
+        self.multiExpecting(timeout: timeout, expectations: {
+            return [expectation?() ?? self.expectation(description: description ?? "default expectation")]
+        }) {
+            closure($0[0])
+        }
+    }
+    
+    func multiExpecting(
+        timeout: TimeInterval = BaseTestCase.timeout,
+        expectations: (() -> [XCTestExpectation]),
         closure: ([XCTestExpectation]) -> Void)
     {
-        if let exps = expectations?() {
-            closure(exps)
-            wait(for: exps, timeout: timeout)
-        } else {
-            let exp = expectation(description: "default expectation")
-            closure([exp])
-            wait(for: [exp], timeout: timeout)
-        }
+        let exps = expectations()
+        closure(exps)
+        wait(for: exps, timeout: timeout)
     }
 
 }
