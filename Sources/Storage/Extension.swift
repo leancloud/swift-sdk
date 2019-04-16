@@ -165,6 +165,11 @@ extension Dictionary {
             return nil
         }
     }
+    
+    func jsonString(using encoding: String.Encoding = .utf8, options: JSONSerialization.WritingOptions = []) throws -> String? {
+        let data = try JSONSerialization.data(withJSONObject: self, options: options)
+        return String(data: data, encoding: encoding)
+    }
 }
 
 extension String {
