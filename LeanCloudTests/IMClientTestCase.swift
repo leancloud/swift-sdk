@@ -341,19 +341,32 @@ class IMClientTestCase: RTMBaseTestCase {
 extension IMClientTestCase {
     
     class Delegator: IMClientDelegate {
+        
         var clientEvent: ((_ client: IMClient, _ event: IMClientEvent) -> Void)? = nil
+        
         func client(_ client: IMClient, event: IMClientEvent) {
-            clientEvent?(client, event)
+            self.clientEvent?(client, event)
         }
+        
         var conversationEvent: ((_ client: IMClient, _ conversation: IMConversation, _ event: IMConversationEvent) -> Void)? = nil
+        
         var messageEvent: ((_ client: IMClient, _ conversation: IMConversation, _ event: IMMessageEvent) -> Void)? = nil
+        
         func client(_ client: IMClient, conversation: IMConversation, event: IMConversationEvent) {
-            if case let .message(event: mEvent) = event,
-                let messageEventClosure = messageEvent {
+            if
+                case let .message(event: mEvent) = event,
+                let messageEventClosure = self.messageEvent
+            {
                 messageEventClosure(client, conversation, mEvent)
             } else {
-                conversationEvent?(client, conversation, event)
+                self.conversationEvent?(client, conversation, event)
             }
+        }
+        
+        func reset() {
+            self.clientEvent = nil
+            self.conversationEvent = nil
+            self.messageEvent = nil
         }
     }
     

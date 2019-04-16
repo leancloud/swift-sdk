@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name         = 'LeanCloud'
-  s.version      = '16.0.0-beta.4'
+  s.version      = '16.0.0-beta.5'
   s.license      = { :type => 'Apache License, Version 2.0', :file => 'LICENSE' }
   s.summary      = 'LeanCloud Swift SDK'
   s.homepage     = 'https://leancloud.cn/'
@@ -37,7 +37,7 @@ Pod::Spec.new do |s|
   end
 
   s.subspec 'IM' do |ss|
-    ss.dependency 'SwiftProtobuf', '~> 1.4.0'
+    ss.dependency 'SwiftProtobuf', '~> 1.5.0'
     ss.dependency 'Starscream', '~> 3.1.0'
 
     ss.dependency 'LeanCloud/Storage'

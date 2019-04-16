@@ -243,13 +243,11 @@ class RTMConnectionTestCase: RTMBaseTestCase {
         
         let oldDate = Date().timeIntervalSince1970
         
-        expecting(expectations: { () -> [XCTestExpectation] in
+        expecting(expectation: {
             let exp = self.expectation(description: "goaway")
             exp.expectedFulfillmentCount = 3
-            return [exp]
-        }) { (exps) in
-            let exp = exps[0]
-            
+            return exp
+        }) { exp in
             NotificationCenter.default.addObserver(
                 forName: RTMConnection.TestGoawayCommandReceivedNotification,
                 object: connection,
@@ -264,7 +262,6 @@ class RTMConnectionTestCase: RTMBaseTestCase {
             delegator.didConnect = { _ in
                 exp.fulfill()
             }
-            
             connection.serialQueue.async {
                 connection.websocketDidReceiveData(socket: connection.socket!, data: {
                     var goaway = IMGenericCommand()

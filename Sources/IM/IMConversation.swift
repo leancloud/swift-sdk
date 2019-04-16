@@ -1285,7 +1285,11 @@ internal extension IMConversation {
             }
             let newMembers: [String]
             if var originMembers: [String] = self.members {
-                originMembers.append(contentsOf: joinedMembers)
+                for member in joinedMembers {
+                    if !originMembers.contains(member) {
+                        originMembers.append(member)
+                    }
+                }
                 newMembers = originMembers
             } else {
                 newMembers = joinedMembers
@@ -1302,8 +1306,8 @@ internal extension IMConversation {
                 self.isOutdated = true
             }
             if var originMembers: [String] = self.members {
-                for item in leftMembers {
-                    if let index = originMembers.firstIndex(of: item) {
+                for member in leftMembers {
+                    if let index = originMembers.firstIndex(of: member) {
                         originMembers.remove(at: index)
                     }
                 }
@@ -1376,12 +1380,14 @@ internal extension IMConversation {
             return false
         }
         if
-            let string: String = updatedDateString,
-            let newUpdatedDate: Date = LCDate.dateFromString(string),
-            let originUpdatedDate: Date = self.updatedAt,
-            newUpdatedDate > originUpdatedDate
+            let dateString: String = updatedDateString,
+            let newUpdatedDate: Date = LCDate.dateFromString(dateString)
         {
-            return true
+            if let originUpdatedDate: Date = self.updatedAt {
+                return (newUpdatedDate >= originUpdatedDate)
+            } else {
+                return true
+            }
         } else {
             return false
         }

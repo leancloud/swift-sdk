@@ -19,7 +19,6 @@ public class IMClient {
     #if DEBUG
     static let TestReportDeviceTokenNotification = Notification.Name("\(IMClient.self).TestReportDeviceTokenNotification")
     static let TestSessionTokenExpiredNotification = Notification.Name("\(IMClient.self).TestSessionTokenExpiredNotification")
-    static let TestGetOfflineEventsNotification = Notification.Name("\(IMClient.self).TestGetOfflineEventsNotification")
     static let TestSaveLocalRecordNotification = Notification.Name("\(IMClient.self).TestSaveLocalRecordNotification")
     let specificKey = DispatchSpecificKey<Int>()
     let specificValue: Int = Int.random(in: 1...999)
@@ -91,8 +90,8 @@ public class IMClient {
             return value
         }
     }
-    private var underlyingSessionState: SessionState = .closed
-    private var isSessionOpened: Bool {
+    private(set) var underlyingSessionState: SessionState = .closed
+    var isSessionOpened: Bool {
         return self.sessionState == .opened
     }
     
@@ -125,7 +124,7 @@ public class IMClient {
     }
     
     /// ref: `https://github.com/leancloud/avoscloud-push/blob/develop/push-server/doc/protocol.md`
-    private struct SessionConfigs: OptionSet {
+    struct SessionConfigs: OptionSet {
         let rawValue: Int64
         
         static let patchMessage = SessionConfigs(rawValue: 1 << 0)
@@ -249,7 +248,7 @@ public class IMClient {
             return self.underlyingLocalRecord
         }
     }
-    private var underlyingLocalRecord = IMClient.LocalRecord(
+    private(set) var underlyingLocalRecord = IMClient.LocalRecord(
         lastPatchTimestamp: nil,
         lastServerTimestamp: nil
     )
@@ -298,12 +297,11 @@ public class IMClient {
     }()
     
     var convCollection: [String: IMConversation] = [:]
-    
-    var convQueryCallbackCollection: [String: Array<(IMClient, LCGenericResult<IMConversation>) -> Void>] = [:]
+    private(set) var cachedConvMapSnapshot: [String: IMConversation]?
+    private(set) var convQueryCallbackCollection: [String: Array<(IMClient, LCGenericResult<IMConversation>) -> Void>] = [:]
     
     /// ref: `https://github.com/leancloud/avoscloud-push/blob/develop/push-server/doc/protocol.md#sessionopen`
     private(set) var lastUnreadNotifTime: Int64?
-    
 }
 
 extension IMClient: InternalSynchronizing {
@@ -330,7 +328,7 @@ extension IMClient {
                 return
             }
             if let oldValue = self.lastPatchTimestamp {
-                if newValue > oldValue {
+                if newValue >= oldValue {
                     self.lastPatchTimestamp = newValue
                 }
             } else {
@@ -338,16 +336,21 @@ extension IMClient {
             }
         }
         
-        mutating func update(lastServerTimestamp newValue: Int64?) {
+        @discardableResult
+        mutating func update(lastServerTimestamp newValue: Int64?) -> Bool {
             guard let newValue = newValue else {
-                return
+                return false
             }
             if let oldValue = self.lastServerTimestamp {
-                if newValue > oldValue {
+                if newValue >= oldValue {
                     self.lastServerTimestamp = newValue
+                    return true
+                } else {
+                    return false
                 }
             } else {
                 self.lastServerTimestamp = newValue
+                return true
             }
         }
     }
@@ -551,7 +554,7 @@ extension IMClient {
         )
     }
     
-    private enum ConversationCreationOption {
+    enum ConversationCreationOption {
         case normal
         case normalAndUnique
         case transient
@@ -572,7 +575,7 @@ extension IMClient {
         }
     }
     
-    private func createConversation<T: IMConversation>(
+    func createConversation<T: IMConversation>(
         clientIDs: Set<String>,
         name: String? = nil,
         attributes: [String: Any]? = nil,
@@ -663,7 +666,7 @@ extension IMClient {
         }
     }
     
-    private func preprocessConversationCreation(
+    func preprocessConversationCreation(
         clientIDs: Set<String>,
         name: String?,
         attributes: [String: Any]?,
@@ -701,7 +704,7 @@ extension IMClient {
         return (members, attrJSON, attrString)
     }
     
-    private func conversationInstance<T: IMConversation>(
+    func conversationInstance<T: IMConversation>(
         convMessage: IMConvCommand,
         members: [String],
         attrJSON: [String: Any],
@@ -730,7 +733,9 @@ extension IMClient {
             }
             if convMessage.hasCdate {
                 json[IMConversation.Key.createdAt.rawValue] = convMessage.cdate
-                json[IMConversation.Key.updatedAt.rawValue] = convMessage.cdate
+                if !option.isUnique {
+                    json[IMConversation.Key.updatedAt.rawValue] = convMessage.cdate
+                }
             }
             if convMessage.hasUniqueID {
                 json[IMConversation.Key.uniqueId.rawValue] = convMessage.uniqueID
@@ -853,7 +858,7 @@ extension IMClient {
     
 }
 
-// MARK: - Internal
+// MARK: Internal
 
 extension IMClient {
     
@@ -864,6 +869,8 @@ extension IMClient {
         let second = TimeInterval(timestamp) / 1000.0
         return Date(timeIntervalSince1970: second)
     }
+    
+    // MARK: Command Sending
     
     func sendCommand(
         constructor: () -> IMGenericCommand,
@@ -888,6 +895,8 @@ extension IMClient {
         }
     }
     
+    // MARK: Session Token
+    
     func refresh(sessionToken oldToken: String, completion: @escaping (IMClient, LCGenericResult<String>) -> Void) {
         assert(self.specificAssertion)
         self.sendCommand(constructor: { () -> IMGenericCommand in
@@ -897,20 +906,18 @@ extension IMClient {
             switch result {
             case .inCommand(let inCommand):
                 guard
-                    inCommand.hasSessionMessage,
-                    inCommand.sessionMessage.hasSt,
-                    inCommand.sessionMessage.hasStTtl
+                    let sessionMessage = (inCommand.hasSessionMessage ? inCommand.sessionMessage : nil),
+                    let token = (sessionMessage.hasSt ? sessionMessage.st : nil),
+                    let ttl = (sessionMessage.hasStTtl ? sessionMessage.stTtl : nil)
                     else
                 {
                     let error = LCError(code: .commandInvalid)
                     completion(client, .failure(error: error))
                     return
                 }
-                let newToken = inCommand.sessionMessage.st
-                let newTTL = TimeInterval(inCommand.sessionMessage.stTtl)
-                client.sessionToken = newToken
-                client.sessionTokenExpiration = Date(timeIntervalSinceNow: newTTL)
-                completion(client, .success(value: newToken))
+                client.sessionToken = token
+                client.sessionTokenExpiration = Date(timeIntervalSinceNow: TimeInterval(ttl))
+                completion(client, .success(value: token))
             case .error(let error):
                 completion(client, .failure(error: error))
             }
@@ -932,15 +939,21 @@ extension IMClient {
         }
     }
     
-    func getOfflineEvents(serverTimestamp: Int64?, conversations: [IMConversation]) {
+    // MARK: Offline Notification
+    
+    func getOfflineEvents(serverTimestamp: Int64?, currentConvCollection: [String: IMConversation]) {
         assert(self.specificAssertion)
+        guard let serverTimestamp: Int64 = serverTimestamp else {
+            return
+        }
+        self.cachedConvMapSnapshot = currentConvCollection
         self.getSessionToken { (client, result) in
             assert(client.specificAssertion)
             switch result {
+            case .failure(error: let error):
+                client.cachedConvMapSnapshot = nil
+                Logger.shared.error(error)
             case .success(value: let token):
-                guard var serverTimestamp: Int64 = serverTimestamp else {
-                    return
-                }
                 let parameters: [String: Any] = [
                     "client_id": client.ID,
                     "start_ts": serverTimestamp
@@ -957,81 +970,147 @@ extension IMClient {
                         return
                     }
                     assert(sClient.specificAssertion)
+                    sClient.cachedConvMapSnapshot = nil
                     if let error = response.error {
                         Logger.shared.error(error)
                     } else if let responseValue: [String: Any] = response.value as? [String: Any] {
-                        let group = DispatchGroup()
-                        var groupFlags: Set<String> = []
-                        let groupFlagSuccess: String = "success"
-                        let groupFlagFailure: String = "failure"
-                        let handleNotifications: ([[String: Any]]) -> Void = { notifications in
-                            for item in notifications {
-                                group.enter()
-                                sClient.process(notification: item, completion: { (result) in
-                                    if let serverTs: Int64 = result.value {
-                                        if serverTs > serverTimestamp {
-                                            serverTimestamp = serverTs
-                                        }
-                                        groupFlags.insert(groupFlagSuccess)
-                                    } else {
-                                        groupFlags.insert(groupFlagFailure)
-                                        if let error = result.error {
-                                            Logger.shared.error(error)
-                                        }
-                                    }
-                                    group.leave()
-                                })
-                            }
-                        }
-                        if let droppable = responseValue["droppable"] as? [String: Any],
-                            let droppables = droppable["notifications"] as? [[String: Any]] {
-                            if let invalidLocalConvCache = droppable["invalidLocalConvCache"] as? Bool,
-                                invalidLocalConvCache {
-                                for conv in conversations {
-                                    conv.isOutdated = true
-                                }
-                            } else {
-                                handleNotifications(droppables)
-                            }
-                        }
-                        if let permanent = responseValue["permanent"] as? [String: Any],
-                            let permanents =  permanent["notifications"] as? [[String: Any]] {
-                            handleNotifications(permanents)
-                        }
-                        group.notify(queue: sClient.serialQueue, execute: { [weak sClient] in
-                            guard let ssClient: IMClient = sClient, !groupFlags.isEmpty else {
-                                return
-                            }
-                            let hasSuccess = groupFlags.contains(groupFlagSuccess)
-                            let hasFailure = groupFlags.contains(groupFlagFailure)
-                            if hasSuccess {
-                                ssClient.localRecord.update(lastServerTimestamp: serverTimestamp)
-                                if hasFailure {
-                                    for conv in conversations {
-                                        conv.isOutdated = true
-                                    }
-                                } else {
-                                    #if DEBUG
-                                    NotificationCenter.default.post(
-                                        name: IMClient.TestGetOfflineEventsNotification,
-                                        object: client,
-                                        userInfo: ["serverTimestamp": ssClient.localRecord.lastServerTimestamp ?? -1]
-                                    )
-                                    #endif
-                                }
-                            }
-                        })
+                        sClient.handleOfflineEvents(
+                            response: responseValue,
+                            convsSnapshot: Array(currentConvCollection.values)
+                        )
                     } else {
-                        Logger.shared.verbose(response.response)
+                        Logger.shared.error("unknown response value: \(String(describing: response.value))")
                     }
                 }
-            case .failure(error: let error):
-                Logger.shared.error(error)
             }
         }
     }
     
-    private func newSessionCommand(op: IMOpType, token: String? = nil, isReopen: Bool? = nil) -> IMGenericCommand {
+    func handleOfflineEvents(response: [String: Any], convsSnapshot: [IMConversation]) {
+        assert(self.specificAssertion)
+        
+        let tuple = self.mapReduceNotifications(response: response, convsSnapshot: convsSnapshot)
+        
+        let processNotification: (IMClient, String) -> Void = { client, conversationID in
+            guard let notificationTuples = tuple.sortedNotificationTuplesMap[conversationID] else {
+                return
+            }
+            for (serverTimestamp, notification) in notificationTuples {
+                client.process(
+                    notification: notification,
+                    conversationID: conversationID,
+                    serverTimestamp: serverTimestamp
+                )
+            }
+        }
+        
+        for conversationID in tuple.existIDs {
+            processNotification(self, conversationID)
+        }
+        
+        let queryIDs: Set<String> = tuple.2
+        if !queryIDs.isEmpty {
+            self.getConversations(by: queryIDs) { (client, result) in
+                switch result {
+                case .success:
+                    for conversationID in queryIDs {
+                        processNotification(client, conversationID)
+                    }
+                case .failure(error: let error):
+                    Logger.shared.error(error)
+                }
+            }
+        }
+        
+        let queryTempIDs: Set<String> = tuple.3
+        if !queryTempIDs.isEmpty {
+            self.getTemporaryConversations(by: queryTempIDs) { (client, result) in
+                switch result {
+                case .success:
+                    for conversationID in queryTempIDs {
+                        processNotification(client, conversationID)
+                    }
+                case .failure(error: let error):
+                    Logger.shared.error(error)
+                }
+            }
+        }
+    }
+    
+    func mapReduceNotifications(
+        response: [String: Any],
+        convsSnapshot: [IMConversation])
+        ->
+        (sortedNotificationTuplesMap: [String: [(Int64, [String: Any])]],
+        existIDs: Set<String>,
+        queryIDs: Set<String>,
+        queryTempIDs: Set<String>)
+    {
+        assert(self.specificAssertion)
+        
+        var sortedNotificationTuplesMap: [String: [(Int64, [String: Any])]] = [:]
+        var existIDs: Set<String> = []
+        var queryIDs: Set<String> = []
+        var queryTempIDs: Set<String> = []
+        
+        let mapReduce: ([[String: Any]]) -> Void = { notifications in
+            for notification in notifications {
+                guard
+                    let cid: String = notification[NotificationKey.cid.rawValue] as? String,
+                    let serverTs: Int64 = notification[NotificationKey.serverTs.rawValue] as? Int64
+                    else
+                {
+                    continue
+                }
+                if let _ = self.convCollection[cid] {
+                    existIDs.insert(cid)
+                } else {
+                    if cid.hasPrefix(IMTemporaryConversation.prefixOfID) {
+                        queryTempIDs.insert(cid)
+                    } else {
+                        queryIDs.insert(cid)
+                    }
+                }
+                if var sortedTuples = sortedNotificationTuplesMap[cid] {
+                    if let lastTS = sortedTuples.last?.0, serverTs >= lastTS {
+                        sortedTuples.append((serverTs, notification))
+                    } else {
+                        for (index, item) in sortedTuples.enumerated() {
+                            if serverTs <= item.0 {
+                                sortedTuples.insert((serverTs, notification), at: index)
+                                break
+                            }
+                        }
+                    }
+                    sortedNotificationTuplesMap[cid] = sortedTuples
+                } else {
+                    sortedNotificationTuplesMap[cid] = [(serverTs, notification)]
+                }
+            }
+        }
+        
+        if
+            let permanent = response["permanent"] as? [String: Any],
+            let notifications = permanent["notifications"] as? [[String: Any]]
+        {
+            mapReduce(notifications)
+        }
+        if let droppable = response["droppable"] as? [String: Any] {
+            if let invalidLocalConvCache = droppable["invalidLocalConvCache"] as? Bool, invalidLocalConvCache {
+                for conv in convsSnapshot {
+                    conv.isOutdated = true
+                }
+            } else if let notifications = droppable["notifications"] as? [[String: Any]] {
+                mapReduce(notifications)
+            }
+        }
+        
+        return (sortedNotificationTuplesMap, existIDs, queryIDs, queryTempIDs)
+    }
+    
+    // MARK: Session Command
+    
+    func newSessionCommand(op: IMOpType, token: String? = nil, isReopen: Bool? = nil) -> IMGenericCommand {
         assert(self.specificAssertion)
         assert(op == .open || op == .refresh)
         var outCommand = IMGenericCommand()
@@ -1095,7 +1174,7 @@ extension IMClient {
         }
     }
     
-    private func report(deviceToken token: String?, openCommand: IMGenericCommand? = nil) {
+    func report(deviceToken token: String?, openCommand: IMGenericCommand? = nil) {
         assert(self.specificAssertion)
         guard let token: String = token else {
             return
@@ -1129,7 +1208,7 @@ extension IMClient {
         }
     }
     
-    private func handle(openCommandCallback command: IMGenericCommand, completion: ((LCBooleanResult) -> Void)? = nil) {
+    func handle(openCommandCallback command: IMGenericCommand, completion: ((LCBooleanResult) -> Void)? = nil) {
         assert(self.specificAssertion)
         switch (command.cmd, command.op) {
         case (.session, .opened):
@@ -1142,12 +1221,13 @@ extension IMClient {
             if let lastServerTimestamp = self.localRecord.lastServerTimestamp {
                 self.getOfflineEvents(
                     serverTimestamp: lastServerTimestamp,
-                    conversations: Array(self.convCollection.values)
+                    currentConvCollection: self.convCollection
                 )
-            } else {
-                let initialServerTimestamp = (command.hasServerTs ? command.serverTs : nil)
-                self.localRecord.update(lastServerTimestamp: initialServerTimestamp)
-                self.localRecord.update(lastPatchTimestamp: initialServerTimestamp)
+            }
+            if self.localRecord.lastPatchTimestamp == nil {
+                self.localRecord.update(
+                    lastPatchTimestamp: (command.hasServerTs ? command.serverTs : nil)
+                )
             }
             self.eventQueue.async {
                 if let completion = completion {
@@ -1183,7 +1263,9 @@ extension IMClient {
         }
     }
     
-    private func getConversation(by ID: String, completion: @escaping (IMClient, LCGenericResult<IMConversation>) -> Void) {
+    // MARK: Conversation Query
+    
+    func getConversation(by ID: String, completion: @escaping (IMClient, LCGenericResult<IMConversation>) -> Void) {
         assert(self.specificAssertion)
         if let existConversation: IMConversation = self.convCollection[ID] {
             completion(self, .success(value: existConversation))
@@ -1204,7 +1286,6 @@ extension IMClient {
                 closure(client, result)
             }
         }
-        /// for internal, no need to set event queue.
         let query = IMConversationQuery(client: self)
         do {
             if ID.hasPrefix(IMTemporaryConversation.prefixOfID) {
@@ -1235,7 +1316,7 @@ extension IMClient {
         }
     }
     
-    private func getConversations(by IDs: Set<String>, completion: @escaping (IMClient, LCGenericResult<[IMConversation]>) -> Void) {
+    func getConversations(by IDs: Set<String>, completion: @escaping (IMClient, LCGenericResult<[IMConversation]>) -> Void) {
         assert(self.specificAssertion)
         if IDs.count == 1, let ID: String = IDs.first {
             self.getConversation(by: ID) { (client, result) in
@@ -1248,7 +1329,6 @@ extension IMClient {
                 }
             }
         } else {
-            /// for internal, no need to set event queue.
             let query = IMConversationQuery(client: self)
             do {
                 try query.getConversations(by: IDs, completion: { [weak self] (result) in
@@ -1263,7 +1343,7 @@ extension IMClient {
         }
     }
     
-    private func getTemporaryConversations(by IDs: Set<String>, completion: @escaping (IMClient, LCGenericResult<[IMConversation]>) -> Void) {
+    func getTemporaryConversations(by IDs: Set<String>, completion: @escaping (IMClient, LCGenericResult<[IMConversation]>) -> Void) {
         assert(self.specificAssertion)
         if IDs.count == 1, let ID: String = IDs.first {
             self.getConversation(by: ID) { (client, result) in
@@ -1276,7 +1356,6 @@ extension IMClient {
                 }
             }
         } else {
-            /// for internal, no need to set event queue.
             let query = IMConversationQuery(client: self)
             do {
                 try query.getTemporaryConversations(by: IDs, completion: { [weak self] (result) in
@@ -1296,7 +1375,9 @@ extension IMClient {
         }
     }
     
-    private func process(convCommand command: IMConvCommand, op: IMOpType, serverTs: Int64? = nil) {
+    // MARK: Command Processing
+    
+    func process(convCommand command: IMConvCommand, op: IMOpType, serverTimestamp: Int64?) {
         assert(self.specificAssertion)
         guard let conversationID: String = (command.hasCid ? command.cid : nil) else {
             return
@@ -1360,7 +1441,13 @@ extension IMClient {
                 }
                 if let rawDataOperation = rawDataOperation {
                     conversation.safeChangingRawData(operation: rawDataOperation, client: client)
-                    client.localRecord.update(lastServerTimestamp: serverTs)
+                    let lastServerTimestampUpdated: Bool = client.localRecord.update(lastServerTimestamp: serverTimestamp)
+                    if
+                        lastServerTimestampUpdated,
+                        let _ = self.cachedConvMapSnapshot?[conversationID]
+                    {
+                        conversation.isOutdated = true
+                    }
                 }
                 if let event = event {
                     client.eventQueue.async {
@@ -1373,7 +1460,7 @@ extension IMClient {
         }
     }
     
-    private func acknowledging(message: IMMessage, conversation: IMConversation) {
+    func acknowledging(message: IMMessage, conversation: IMConversation) {
         assert(self.specificAssertion)
         guard
             message.notTransientMessage,
@@ -1400,7 +1487,7 @@ extension IMClient {
         })
     }
     
-    private func process(directCommand command: IMDirectCommand) {
+    func process(directCommand command: IMDirectCommand) {
         assert(self.specificAssertion)
         guard let conversationID: String = (command.hasCid ? command.cid : nil) else {
             return
@@ -1443,20 +1530,20 @@ extension IMClient {
                     conversation.unreadMessageCount += 1
                     unreadEvent = .unreadMessageCountUpdated
                 }
+                client.acknowledging(message: message, conversation: conversation)
                 client.eventQueue.async {
                     if let unreadUpdatedEvent = unreadEvent {
                         client.delegate?.client(client, conversation: conversation, event: unreadUpdatedEvent)
                     }
                     client.delegate?.client(client, conversation: conversation, event: .message(event: .received(message: message)))
                 }
-                client.acknowledging(message: message, conversation: conversation)
             case .failure(error: let error):
                 Logger.shared.error(error)
             }
         }
     }
     
-    private func process(unreadCommand: IMUnreadCommand) {
+    func process(unreadCommand: IMUnreadCommand) {
         assert(self.specificAssertion)
         var conversationIDMap: [String: IMUnreadTuple] = [:]
         var temporaryConversationIDMap: [String: IMUnreadTuple] = [:]
@@ -1474,8 +1561,7 @@ extension IMClient {
                 }
             }
         }
-        let updateLastUnreadNotifTime: () -> Void = { [weak self] in
-            guard let client: IMClient = self else { return }
+        let updateLastUnreadNotifTime: (IMClient) -> Void = { client in
             if client.options.isProtobuf3, unreadCommand.hasNotifTime {
                 if let oldTime: Int64 = client.lastUnreadNotifTime {
                     if unreadCommand.notifTime > oldTime {
@@ -1487,7 +1573,7 @@ extension IMClient {
             }
         }
         if conversationIDMap.isEmpty, temporaryConversationIDMap.isEmpty {
-            updateLastUnreadNotifTime()
+            updateLastUnreadNotifTime(self)
         } else {
             let group = DispatchGroup()
             var groupFlags: [Bool] = []
@@ -1507,8 +1593,7 @@ extension IMClient {
             }
             if !conversationIDMap.isEmpty {
                 group.enter()
-                let IDs = Set<String>(conversationIDMap.keys)
-                self.getConversations(by: IDs) { (client, result) in
+                self.getConversations(by: Set(conversationIDMap.keys)) { (client, result) in
                     assert(client.specificAssertion)
                     handleResult(client, result, conversationIDMap)
                     group.leave()
@@ -1516,23 +1601,22 @@ extension IMClient {
             }
             if !temporaryConversationIDMap.isEmpty {
                 group.enter()
-                let IDs = Set<String>(temporaryConversationIDMap.keys)
-                self.getTemporaryConversations(by: IDs) { (client, result) in
+                self.getTemporaryConversations(by: Set(temporaryConversationIDMap.keys)) { (client, result) in
                     assert(client.specificAssertion)
                     handleResult(client, result, temporaryConversationIDMap)
                     group.leave()
                 }
             }
-            group.notify(queue: self.serialQueue) {
-                guard !groupFlags.contains(false) else {
+            group.notify(queue: self.serialQueue) { [weak self] in
+                guard let client = self, !groupFlags.contains(false) else {
                     return
                 }
-                updateLastUnreadNotifTime()
+                updateLastUnreadNotifTime(client)
             }
         }
     }
     
-    private func process(patchCommand: IMPatchCommand) {
+    func process(patchCommand: IMPatchCommand) {
         assert(self.specificAssertion)
         var lastPatchTimestamp: Int64 = -1
         var conversationIDMap: [String: [IMPatchItem]] = [:]
@@ -1565,14 +1649,13 @@ extension IMClient {
                 }
             }
         }
-        let updateLastPatchTime: () -> Void = { [weak self] in
-            guard let client: IMClient = self else { return }
+        let updateLastPatchTime: (IMClient) -> Void = { client in
             if client.options.isProtobuf3, lastPatchTimestamp > 0 {
                 client.localRecord.update(lastPatchTimestamp: lastPatchTimestamp)
             }
         }
         if conversationIDMap.isEmpty, temporaryConversationIDMap.isEmpty {
-            updateLastPatchTime()
+            updateLastPatchTime(self)
         } else {
             let group = DispatchGroup()
             var groupFlags: [Bool] = []
@@ -1594,8 +1677,7 @@ extension IMClient {
             }
             if !conversationIDMap.isEmpty {
                 group.enter()
-                let IDs = Set<String>(conversationIDMap.keys)
-                self.getConversations(by: IDs) { (client, result) in
+                self.getConversations(by: Set(conversationIDMap.keys)) { (client, result) in
                     assert(client.specificAssertion)
                     handleResult(client, result, conversationIDMap)
                     group.leave()
@@ -1603,23 +1685,22 @@ extension IMClient {
             }
             if !temporaryConversationIDMap.isEmpty {
                 group.enter()
-                let IDs = Set<String>(temporaryConversationIDMap.keys)
-                self.getTemporaryConversations(by: IDs) { (client, result) in
+                self.getTemporaryConversations(by: Set(temporaryConversationIDMap.keys)) { (client, result) in
                     assert(client.specificAssertion)
                     handleResult(client, result, temporaryConversationIDMap)
                     group.leave()
                 }
             }
-            group.notify(queue: self.serialQueue) {
-                guard !groupFlags.contains(false) else {
+            group.notify(queue: self.serialQueue) { [weak self] in
+                guard let client = self, !groupFlags.contains(false) else {
                     return
                 }
-                updateLastPatchTime()
+                updateLastPatchTime(client)
             }
         }
     }
     
-    private func process(rcpCommand: IMRcpCommand, serverTs: Int64? = nil) {
+    func process(rcpCommand: IMRcpCommand, serverTimestamp: Int64?) {
         assert(self.specificAssertion)
         guard let conversationID: String = (rcpCommand.hasCid ? rcpCommand.cid : nil) else {
             return
@@ -1648,17 +1729,17 @@ extension IMClient {
                         deliveredTimestamp: timestamp
                     )
                 }
+                client.localRecord.update(lastServerTimestamp: serverTimestamp)
                 client.eventQueue.async {
                     client.delegate?.client(client, conversation: conversation, event: .message(event: event))
                 }
-                client.localRecord.update(lastServerTimestamp: serverTs)
             case .failure(error: let error):
                 Logger.shared.error(error)
             }
         }
     }
     
-    private enum NotificationKey: String {
+    enum NotificationKey: String {
         // general
         case cmd = "cmd"
         case op = "op"
@@ -1677,12 +1758,12 @@ extension IMClient {
         case from = "from"
     }
     
-    private enum NotificationCommand: String {
+    enum NotificationCommand: String {
         case conv = "conv"
         case rcp = "rcp"
     }
     
-    private enum NotificationOperation: String {
+    enum NotificationOperation: String {
         case joined = "joined"
         case left = "left"
         case membersJoined = "members-joined"
@@ -1706,86 +1787,81 @@ extension IMClient {
     }
     
     // for compatibility, should regard some unknown condition or unsupport message as success and callback with timestamp -1.
-    private func process(notification: [String: Any], completion: @escaping (LCGenericResult<Int64>) -> Void) {
+    func process(notification: [String: Any], conversationID: String, serverTimestamp: Int64) {
         assert(self.specificAssertion)
         guard
-            let cid: String = notification[NotificationKey.cid.rawValue] as? String,
-            let serverTs: Int64 = notification[NotificationKey.serverTs.rawValue] as? Int64
+            let cmdValue = notification[NotificationKey.cmd.rawValue] as? String,
+            let cmd = NotificationCommand(rawValue: cmdValue)
             else
         {
-            completion(.success(value: -1))
             return
         }
-        self.getConversation(by: cid, completion: { (client, result) in
-            assert(client.specificAssertion)
-            switch result {
-            case .success(value: _):
-                guard
-                    let cmdValue = notification[NotificationKey.cmd.rawValue] as? String,
-                    let cmd = NotificationCommand(rawValue: cmdValue)
-                    else
-                {
-                    completion(.success(value: -1))
-                    return
-                }
-                switch cmd {
-                case .conv:
-                    guard
-                        let opValue = notification[NotificationKey.op.rawValue] as? String,
-                        let op = NotificationOperation(rawValue: opValue),
-                        let udate = notification[NotificationKey.udate.rawValue] as? String
-                        else
-                    {
-                        completion(.success(value: -1))
-                        return
-                    }
-                    var convCommand = IMConvCommand()
-                    convCommand.cid = cid
-                    convCommand.udate = udate
-                    if let initBy = notification[NotificationKey.initBy.rawValue] as? String {
-                        convCommand.initBy = initBy
-                    }
-                    switch op {
-                    case .joined, .left, .membersJoined, .membersLeft:
-                        if let m = notification[NotificationKey.m.rawValue] as? [String] {
-                            convCommand.m = m
-                        }
-                    case .updated:
-                        if let attr = notification[NotificationKey.attr.rawValue] as? String {
-                            var jsonObject = IMJsonObjectMessage()
-                            jsonObject.data = attr
-                            convCommand.attr = jsonObject
-                        }
-                        if let attrModified = notification[NotificationKey.attrModified.rawValue] as? String {
-                            var jsonObject = IMJsonObjectMessage()
-                            jsonObject.data = attrModified
-                            convCommand.attrModified = jsonObject
-                        }
-                    }
-                    client.process(convCommand: convCommand, op: op.opType)
-                    completion(.success(value: serverTs))
-                case .rcp:
-                    var rcpCommand = IMRcpCommand()
-                    rcpCommand.cid = cid
-                    if let mid = notification[NotificationKey.id.rawValue] as? String {
-                        rcpCommand.id = mid
-                    }
-                    if let timestamp = notification[NotificationKey.t.rawValue] as? Int64 {
-                        rcpCommand.t = timestamp
-                    }
-                    if let isRead = notification[NotificationKey.read.rawValue] as? Bool {
-                        rcpCommand.read = isRead
-                    }
-                    if let fromPeerID = notification[NotificationKey.from.rawValue] as? String {
-                        rcpCommand.from = fromPeerID
-                    }
-                    client.process(rcpCommand: rcpCommand)
-                    completion(.success(value: serverTs))
-                }
-            case .failure(error: let error):
-                completion(.failure(error: error))
+        switch cmd {
+        case .conv:
+            guard
+                let opValue = notification[NotificationKey.op.rawValue] as? String,
+                let op = NotificationOperation(rawValue: opValue)
+                else
+            {
+                return
             }
-        })
+            var convCommand = IMConvCommand()
+            convCommand.cid = conversationID
+            if let udate = notification[NotificationKey.udate.rawValue] as? String {
+                convCommand.udate = udate
+            }
+            if let initBy = notification[NotificationKey.initBy.rawValue] as? String {
+                convCommand.initBy = initBy
+            }
+            switch op {
+            case .joined, .left, .membersJoined, .membersLeft:
+                if let m = notification[NotificationKey.m.rawValue] as? [String] {
+                    convCommand.m = m
+                }
+            case .updated:
+                do {
+                    if
+                        let attr = notification[NotificationKey.attr.rawValue] as? [String: Any],
+                        let data = try attr.jsonString()
+                    {
+                        var jsonObject = IMJsonObjectMessage()
+                        jsonObject.data = data
+                        convCommand.attr = jsonObject
+                    }
+                } catch {
+                    Logger.shared.error(error)
+                }
+                do {
+                    if
+                        let attrModified = notification[NotificationKey.attrModified.rawValue] as? [String: Any],
+                        let data = try attrModified.jsonString()
+                    {
+                        var jsonObject = IMJsonObjectMessage()
+                        jsonObject.data = data
+                        convCommand.attrModified = jsonObject
+                    }
+                } catch {
+                    Logger.shared.error(error)
+                }
+            }
+            self.process(convCommand: convCommand, op: op.opType, serverTimestamp: serverTimestamp)
+        case .rcp:
+            var rcpCommand = IMRcpCommand()
+            rcpCommand.cid = conversationID
+            if let mid = notification[NotificationKey.id.rawValue] as? String {
+                rcpCommand.id = mid
+            }
+            if let timestamp = notification[NotificationKey.t.rawValue] as? Int64 {
+                rcpCommand.t = timestamp
+            }
+            if let isRead = notification[NotificationKey.read.rawValue] as? Bool {
+                rcpCommand.read = isRead
+            }
+            if let fromPeerID = notification[NotificationKey.from.rawValue] as? String {
+                rcpCommand.from = fromPeerID
+            }
+            self.process(rcpCommand: rcpCommand, serverTimestamp: serverTimestamp)
+        }
     }
     
 }
@@ -1863,7 +1939,7 @@ extension IMClient: RTMConnectionDelegate {
     
     func connection(_ connection: RTMConnection, didReceiveCommand inCommand: IMGenericCommand) {
         assert(self.specificAssertion)
-        let serverTs: Int64? = (inCommand.hasServerTs ? inCommand.serverTs : nil)
+        let serverTimestamp: Int64? = (inCommand.hasServerTs ? inCommand.serverTs : nil)
         switch inCommand.cmd {
         case .session:
             switch inCommand.op {
@@ -1877,7 +1953,7 @@ extension IMClient: RTMConnectionDelegate {
         case .unread:
             self.process(unreadCommand: inCommand.unreadMessage)
         case .conv:
-            self.process(convCommand: inCommand.convMessage, op: inCommand.op, serverTs: serverTs)
+            self.process(convCommand: inCommand.convMessage, op: inCommand.op, serverTimestamp: serverTimestamp)
         case .patch:
             switch inCommand.op {
             case .modify:
@@ -1886,7 +1962,7 @@ extension IMClient: RTMConnectionDelegate {
                 break
             }
         case .rcp:
-            self.process(rcpCommand: inCommand.rcpMessage, serverTs: serverTs)
+            self.process(rcpCommand: inCommand.rcpMessage, serverTimestamp: serverTimestamp)
         default:
             break
         }
