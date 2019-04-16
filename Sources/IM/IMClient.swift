@@ -297,12 +297,11 @@ public class IMClient {
     }()
     
     var convCollection: [String: IMConversation] = [:]
-    
-    var convQueryCallbackCollection: [String: Array<(IMClient, LCGenericResult<IMConversation>) -> Void>] = [:]
+    private(set) var cachedConvMapSnapshot: [String: IMConversation]?
+    private(set) var convQueryCallbackCollection: [String: Array<(IMClient, LCGenericResult<IMConversation>) -> Void>] = [:]
     
     /// ref: `https://github.com/leancloud/avoscloud-push/blob/develop/push-server/doc/protocol.md#sessionopen`
     private(set) var lastUnreadNotifTime: Int64?
-    
 }
 
 extension IMClient: InternalSynchronizing {
@@ -329,7 +328,7 @@ extension IMClient {
                 return
             }
             if let oldValue = self.lastPatchTimestamp {
-                if newValue > oldValue {
+                if newValue >= oldValue {
                     self.lastPatchTimestamp = newValue
                 }
             } else {
@@ -337,16 +336,21 @@ extension IMClient {
             }
         }
         
-        mutating func update(lastServerTimestamp newValue: Int64?) {
+        @discardableResult
+        mutating func update(lastServerTimestamp newValue: Int64?) -> Bool {
             guard let newValue = newValue else {
-                return
+                return false
             }
             if let oldValue = self.lastServerTimestamp {
-                if newValue > oldValue {
+                if newValue >= oldValue {
                     self.lastServerTimestamp = newValue
+                    return true
+                } else {
+                    return false
                 }
             } else {
                 self.lastServerTimestamp = newValue
+                return true
             }
         }
     }
@@ -937,15 +941,19 @@ extension IMClient {
     
     // MARK: Offline Notification
     
-    func getOfflineEvents(serverTimestamp: Int64?, convsSnapshot: [IMConversation]) {
+    func getOfflineEvents(serverTimestamp: Int64?, currentConvCollection: [String: IMConversation]) {
         assert(self.specificAssertion)
+        guard let serverTimestamp: Int64 = serverTimestamp else {
+            return
+        }
+        self.cachedConvMapSnapshot = currentConvCollection
         self.getSessionToken { (client, result) in
             assert(client.specificAssertion)
             switch result {
+            case .failure(error: let error):
+                client.cachedConvMapSnapshot = nil
+                Logger.shared.error(error)
             case .success(value: let token):
-                guard let serverTimestamp: Int64 = serverTimestamp else {
-                    return
-                }
                 let parameters: [String: Any] = [
                     "client_id": client.ID,
                     "start_ts": serverTimestamp
@@ -962,16 +970,18 @@ extension IMClient {
                         return
                     }
                     assert(sClient.specificAssertion)
+                    sClient.cachedConvMapSnapshot = nil
                     if let error = response.error {
                         Logger.shared.error(error)
                     } else if let responseValue: [String: Any] = response.value as? [String: Any] {
-                        sClient.handleOfflineEvents(response: responseValue, convsSnapshot: convsSnapshot)
+                        sClient.handleOfflineEvents(
+                            response: responseValue,
+                            convsSnapshot: Array(currentConvCollection.values)
+                        )
                     } else {
                         Logger.shared.error("unknown response value: \(String(describing: response.value))")
                     }
                 }
-            case .failure(error: let error):
-                Logger.shared.error(error)
             }
         }
     }
@@ -1211,7 +1221,7 @@ extension IMClient {
             if let lastServerTimestamp = self.localRecord.lastServerTimestamp {
                 self.getOfflineEvents(
                     serverTimestamp: lastServerTimestamp,
-                    convsSnapshot: Array(self.convCollection.values)
+                    currentConvCollection: self.convCollection
                 )
             }
             if self.localRecord.lastPatchTimestamp == nil {
@@ -1431,7 +1441,13 @@ extension IMClient {
                 }
                 if let rawDataOperation = rawDataOperation {
                     conversation.safeChangingRawData(operation: rawDataOperation, client: client)
-                    client.localRecord.update(lastServerTimestamp: serverTimestamp)
+                    let lastServerTimestampUpdated: Bool = client.localRecord.update(lastServerTimestamp: serverTimestamp)
+                    if
+                        lastServerTimestampUpdated,
+                        let _ = self.cachedConvMapSnapshot?[conversationID]
+                    {
+                        conversation.isOutdated = true
+                    }
                 }
                 if let event = event {
                     client.eventQueue.async {
@@ -1514,13 +1530,13 @@ extension IMClient {
                     conversation.unreadMessageCount += 1
                     unreadEvent = .unreadMessageCountUpdated
                 }
+                client.acknowledging(message: message, conversation: conversation)
                 client.eventQueue.async {
                     if let unreadUpdatedEvent = unreadEvent {
                         client.delegate?.client(client, conversation: conversation, event: unreadUpdatedEvent)
                     }
                     client.delegate?.client(client, conversation: conversation, event: .message(event: .received(message: message)))
                 }
-                client.acknowledging(message: message, conversation: conversation)
             case .failure(error: let error):
                 Logger.shared.error(error)
             }
@@ -1545,8 +1561,7 @@ extension IMClient {
                 }
             }
         }
-        let updateLastUnreadNotifTime: () -> Void = { [weak self] in
-            guard let client: IMClient = self else { return }
+        let updateLastUnreadNotifTime: (IMClient) -> Void = { client in
             if client.options.isProtobuf3, unreadCommand.hasNotifTime {
                 if let oldTime: Int64 = client.lastUnreadNotifTime {
                     if unreadCommand.notifTime > oldTime {
@@ -1558,7 +1573,7 @@ extension IMClient {
             }
         }
         if conversationIDMap.isEmpty, temporaryConversationIDMap.isEmpty {
-            updateLastUnreadNotifTime()
+            updateLastUnreadNotifTime(self)
         } else {
             let group = DispatchGroup()
             var groupFlags: [Bool] = []
@@ -1578,8 +1593,7 @@ extension IMClient {
             }
             if !conversationIDMap.isEmpty {
                 group.enter()
-                let IDs = Set<String>(conversationIDMap.keys)
-                self.getConversations(by: IDs) { (client, result) in
+                self.getConversations(by: Set(conversationIDMap.keys)) { (client, result) in
                     assert(client.specificAssertion)
                     handleResult(client, result, conversationIDMap)
                     group.leave()
@@ -1587,18 +1601,17 @@ extension IMClient {
             }
             if !temporaryConversationIDMap.isEmpty {
                 group.enter()
-                let IDs = Set<String>(temporaryConversationIDMap.keys)
-                self.getTemporaryConversations(by: IDs) { (client, result) in
+                self.getTemporaryConversations(by: Set(temporaryConversationIDMap.keys)) { (client, result) in
                     assert(client.specificAssertion)
                     handleResult(client, result, temporaryConversationIDMap)
                     group.leave()
                 }
             }
-            group.notify(queue: self.serialQueue) {
-                guard !groupFlags.contains(false) else {
+            group.notify(queue: self.serialQueue) { [weak self] in
+                guard let client = self, !groupFlags.contains(false) else {
                     return
                 }
-                updateLastUnreadNotifTime()
+                updateLastUnreadNotifTime(client)
             }
         }
     }
@@ -1636,14 +1649,13 @@ extension IMClient {
                 }
             }
         }
-        let updateLastPatchTime: () -> Void = { [weak self] in
-            guard let client: IMClient = self else { return }
+        let updateLastPatchTime: (IMClient) -> Void = { client in
             if client.options.isProtobuf3, lastPatchTimestamp > 0 {
                 client.localRecord.update(lastPatchTimestamp: lastPatchTimestamp)
             }
         }
         if conversationIDMap.isEmpty, temporaryConversationIDMap.isEmpty {
-            updateLastPatchTime()
+            updateLastPatchTime(self)
         } else {
             let group = DispatchGroup()
             var groupFlags: [Bool] = []
@@ -1665,8 +1677,7 @@ extension IMClient {
             }
             if !conversationIDMap.isEmpty {
                 group.enter()
-                let IDs = Set<String>(conversationIDMap.keys)
-                self.getConversations(by: IDs) { (client, result) in
+                self.getConversations(by: Set(conversationIDMap.keys)) { (client, result) in
                     assert(client.specificAssertion)
                     handleResult(client, result, conversationIDMap)
                     group.leave()
@@ -1674,18 +1685,17 @@ extension IMClient {
             }
             if !temporaryConversationIDMap.isEmpty {
                 group.enter()
-                let IDs = Set<String>(temporaryConversationIDMap.keys)
-                self.getTemporaryConversations(by: IDs) { (client, result) in
+                self.getTemporaryConversations(by: Set(temporaryConversationIDMap.keys)) { (client, result) in
                     assert(client.specificAssertion)
                     handleResult(client, result, temporaryConversationIDMap)
                     group.leave()
                 }
             }
-            group.notify(queue: self.serialQueue) {
-                guard !groupFlags.contains(false) else {
+            group.notify(queue: self.serialQueue) { [weak self] in
+                guard let client = self, !groupFlags.contains(false) else {
                     return
                 }
-                updateLastPatchTime()
+                updateLastPatchTime(client)
             }
         }
     }
@@ -1719,10 +1729,10 @@ extension IMClient {
                         deliveredTimestamp: timestamp
                     )
                 }
+                client.localRecord.update(lastServerTimestamp: serverTimestamp)
                 client.eventQueue.async {
                     client.delegate?.client(client, conversation: conversation, event: .message(event: event))
                 }
-                client.localRecord.update(lastServerTimestamp: serverTimestamp)
             case .failure(error: let error):
                 Logger.shared.error(error)
             }
