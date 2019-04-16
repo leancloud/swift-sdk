@@ -1809,15 +1809,29 @@ extension IMClient {
                     convCommand.m = m
                 }
             case .updated:
-                if let attr = notification[NotificationKey.attr.rawValue] as? String {
-                    var jsonObject = IMJsonObjectMessage()
-                    jsonObject.data = attr
-                    convCommand.attr = jsonObject
+                do {
+                    if
+                        let attr = notification[NotificationKey.attr.rawValue] as? [String: Any],
+                        let data = try attr.jsonString()
+                    {
+                        var jsonObject = IMJsonObjectMessage()
+                        jsonObject.data = data
+                        convCommand.attr = jsonObject
+                    }
+                } catch {
+                    Logger.shared.error(error)
                 }
-                if let attrModified = notification[NotificationKey.attrModified.rawValue] as? String {
-                    var jsonObject = IMJsonObjectMessage()
-                    jsonObject.data = attrModified
-                    convCommand.attrModified = jsonObject
+                do {
+                    if
+                        let attrModified = notification[NotificationKey.attrModified.rawValue] as? [String: Any],
+                        let data = try attrModified.jsonString()
+                    {
+                        var jsonObject = IMJsonObjectMessage()
+                        jsonObject.data = data
+                        convCommand.attrModified = jsonObject
+                    }
+                } catch {
+                    Logger.shared.error(error)
                 }
             }
             self.process(convCommand: convCommand, op: op.opType, serverTimestamp: serverTimestamp)
