@@ -970,6 +970,8 @@ class IMConversationTestCase: RTMBaseTestCase {
         }
         wait(for: [createExp], timeout: timeout)
         
+        delay()
+        
         let muteExp = expectation(description: "mute")
         conversation?.mute(completion: { (result) in
             XCTAssertTrue(Thread.isMainThread)
