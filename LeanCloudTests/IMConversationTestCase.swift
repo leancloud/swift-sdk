@@ -1318,28 +1318,100 @@ class IMConversationTestCase: RTMBaseTestCase {
         XCTAssertEqual(convA?.attributes?[arrayKey] as? [String], convB?.attributes?[arrayKey] as? [String])
     }
     
-    func testGetOfflineEvents() {
-        guard let clientB = newOpenedClient() else {
-            return
-        }
-        let delegatorB = IMClientTestCase.Delegator()
-        clientB.delegate = delegatorB
-        
-        RTMConnectionRefMap_protobuf1.removeAll()
-        RTMConnectionRefMap_protobuf3.removeAll()
-        
-        delay()
-        clientB.connection.disconnect()
-        delay()
-        
+    func testOfflineEvents() {
         guard let clientA = newOpenedClient() else {
             return
         }
         let delegatorA = IMClientTestCase.Delegator()
         clientA.delegate = delegatorA
         
+        RTMConnectionRefMap_protobuf1.removeAll()
+        RTMConnectionRefMap_protobuf3.removeAll()
+        
+        guard let clientB = newOpenedClient() else {
+            return
+        }
+        let delegatorB = IMClientTestCase.Delegator()
+        clientB.delegate = delegatorB
+        
         expecting(expectation: { () -> XCTestExpectation in
-            let exp = self.expectation(description: "create normal conv")
+            let exp = self.expectation(description: "create conv and send msg with rcp")
+            exp.expectedFulfillmentCount = 5
+            return exp
+        }) { (exp) in
+            delegatorA.messageEvent = { client, conv, event in
+                switch event {
+                case .received:
+                    exp.fulfill()
+                default:
+                    break
+                }
+            }
+            delegatorB.conversationEvent = { client, conv, event in
+                switch event {
+                case .joined:
+                    exp.fulfill()
+                    let message = IMTextMessage()
+                    message.text = "text"
+                    try! conv.send(message: message, options: [.needReceipt], completion: { (result) in
+                        XCTAssertTrue(result.isSuccess)
+                        XCTAssertNil(result.error)
+                        exp.fulfill()
+                    })
+                case .message(event: let msgEvent):
+                    switch msgEvent {
+                    case .delivered:
+                        exp.fulfill()
+                    default:
+                        break
+                    }
+                default:
+                    break
+                }
+            }
+            try! clientA.createConversation(clientIDs: [clientB.ID], completion: { (result) in
+                XCTAssertTrue(result.isSuccess)
+                XCTAssertNil(result.error)
+                exp.fulfill()
+            })
+        }
+        delegatorA.reset()
+        delegatorB.reset()
+        
+        XCTAssertNotNil(clientB.localRecord.lastServerTimestamp)
+        
+        delay()
+        clientB.connection.disconnect()
+        delay()
+        
+        expecting(expectation: { () -> XCTestExpectation in
+            let exp = self.expectation(description: "conv read and leave")
+            exp.expectedFulfillmentCount = 3
+            return exp
+        }) { (exp) in
+            let conv = clientA.convCollection.first?.value
+            delegatorA.conversationEvent = { client, conv, event in
+                switch event {
+                case .unreadMessageCountUpdated:
+                    try! conv.leave(completion: { (result) in
+                        XCTAssertTrue(result.isSuccess)
+                        XCTAssertNil(result.error)
+                        exp.fulfill()
+                    })
+                    exp.fulfill()
+                case .left:
+                    clientA.convCollection.removeAll()
+                    exp.fulfill()
+                default:
+                    break
+                }
+            }
+            conv?.read()
+        }
+        delegatorA.reset()
+        
+        expecting(expectation: { () -> XCTestExpectation in
+            let exp = self.expectation(description: "create another normal conv")
             exp.expectedFulfillmentCount = 3
             return exp
         }) { exp in
@@ -1359,10 +1431,30 @@ class IMConversationTestCase: RTMBaseTestCase {
                 exp.fulfill()
             }
         }
-        delegatorA.conversationEvent = nil
+        delegatorA.reset()
+        
+        expecting(description: "update normal conv attr") { (exp) in
+            let conv = clientA.convCollection.first?.value
+            let name = self.uuid
+            delegatorA.conversationEvent = { client, conv, event in
+                switch event {
+                case .dataUpdated:
+                    XCTAssertEqual(conv.name, name)
+                    exp.fulfill()
+                default:
+                    break
+                }
+            }
+            try! conv?.update(attribution: ["name": name], completion: { (result) in
+                XCTAssertTrue(result.isSuccess)
+                XCTAssertNil(result.error)
+                exp.fulfill()
+            })
+        }
+        delegatorA.reset()
         
         expecting(expectation: { () -> XCTestExpectation in
-            let exp = self.expectation(description: "create normal conv")
+            let exp = self.expectation(description: "create temp conv")
             exp.expectedFulfillmentCount = 3
             return exp
         }) { exp in
@@ -1382,47 +1474,39 @@ class IMConversationTestCase: RTMBaseTestCase {
                 exp.fulfill()
             })
         }
-        delegatorA.conversationEvent = nil
-        
-        XCTAssertNotNil(clientA.localRecord.lastServerTimestamp)
-        
-        var observer: NSObjectProtocol!
-        expecting(description: "change serverTS") { (exp) in
-            let serverTimestamp = (clientA.localRecord.lastServerTimestamp ?? 0) - (60 * 1000)
-            observer = NotificationCenter.default.addObserver(forName: IMClient.TestSaveLocalRecordNotification, object: clientB, queue: .main) { (notification) in
-                XCTAssertNotNil(notification.userInfo)
-                XCTAssertNil(notification.userInfo?["error"])
-                XCTAssertEqual(serverTimestamp, clientB.localRecord.lastServerTimestamp)
-                let table: IMClient.LocalRecord? = try! clientB.application.localStorageContext?.table(
-                    from: clientB.localRecordURL!
-                )
-                XCTAssertEqual(serverTimestamp, table?.lastServerTimestamp)
-                exp.fulfill()
-            }
-            clientB.test_change(serverTimestamp: serverTimestamp)
-        }
-        NotificationCenter.default.removeObserver(observer!)
+        delegatorA.reset()
         
         delay()
         
         expecting(expectation: { () -> XCTestExpectation in
             let exp = self.expectation(description: "get offline events")
-            exp.expectedFulfillmentCount = 4
+            exp.expectedFulfillmentCount = 7
             return exp
         }) { (exp) in
             delegatorB.conversationEvent = { client, conv, event in
                 switch event {
-                case .joined(byClientID: _):
+                case .membersLeft:
+                    exp.fulfill()
+                case .joined:
                     if conv is IMTemporaryConversation {
                         exp.fulfill()
                     } else {
                         exp.fulfill()
                     }
-                case .membersJoined(members: _, byClientID: _, at: _):
+                case .membersJoined:
                     if conv is IMTemporaryConversation {
                         exp.fulfill()
                     } else {
                         exp.fulfill()
+                    }
+                case .dataUpdated:
+                    exp.fulfill()
+                case .message(event: let msgEvent):
+                    switch msgEvent {
+                    case .read:
+                        exp.fulfill()
+                    default:
+                        break
                     }
                 default:
                     break
@@ -1430,21 +1514,7 @@ class IMConversationTestCase: RTMBaseTestCase {
             }
             clientB.connection.connect()
         }
-        delegatorB.conversationEvent = nil
-        
-        XCTAssertEqual(clientA.convCollection.count, 2)
-        XCTAssertEqual(clientB.convCollection.count, 2)
-        for (convID, convA) in clientA.convCollection {
-            let convB = clientB.convCollection[convID]
-            XCTAssertEqual(convA.ID, convB?.ID)
-            XCTAssertEqual(convA.members?.count, 2)
-            XCTAssertEqual(convA.members?.contains(clientA.ID), true)
-            XCTAssertEqual(convA.members?.contains(clientB.ID), true)
-            XCTAssertEqual(convB?.members?.count, 2)
-            XCTAssertEqual(convB?.members?.contains(clientA.ID), true)
-            XCTAssertEqual(convB?.members?.contains(clientB.ID), true)
-        }
-        XCTAssertEqual(clientA.localRecord.lastServerTimestamp, clientB.localRecord.lastServerTimestamp)
+        delegatorB.reset()
     }
     
 }

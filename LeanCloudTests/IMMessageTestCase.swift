@@ -851,132 +851,103 @@ class IMMessageTestCase: RTMBaseTestCase {
             return
         }
         
-        let sendMessageExp = expectation(description: "send message")
-        let oldMessage = IMMessage()
-        try? oldMessage.set(content: .string("old"))
-        try? sendingTuple.conversation.send(message: oldMessage) { (result) in
-            XCTAssertTrue(result.isSuccess)
-            XCTAssertNil(result.error)
-            sendMessageExp.fulfill()
-        }
-        wait(for: [sendMessageExp], timeout: timeout)
+        let conversationA = sendingTuple.conversation
         
-        delay()
+        let clientB = receivingTuple.client
+        let delegatorB = receivingTuple.delegator
         
-        var firstLastPatchTime: Int64?
+        var oldMessage = IMTextMessage()
+        oldMessage.text = "old"
         
-        let patchMessageExp = expectation(description: "patch message")
-        patchMessageExp.expectedFulfillmentCount = 3
-        let observer1 = NotificationCenter.default.addObserver(forName: IMClient.TestSaveLocalRecordNotification, object: receivingTuple.client, queue: .main) { (notification) in
-            XCTAssertNotNil(notification.userInfo)
-            XCTAssertNil(notification.userInfo?["error"])
-            XCTAssertNotNil(receivingTuple.client.localRecord.lastPatchTimestamp)
-            firstLastPatchTime = receivingTuple.client.localRecord.lastPatchTimestamp
-            XCTAssertEqual(receivingTuple.client.localRecord.lastPatchTimestamp,(try! receivingTuple.client.application.localStorageContext?.table(from: receivingTuple.client.localRecordURL!) as IMClient.LocalRecord?)?.lastPatchTimestamp)
-            patchMessageExp.fulfill()
-        }
-        receivingTuple.delegator.messageEvent = { client, conv, event in
-            if conv.ID == receivingTuple.conversation.ID {
+        expecting(expectation: { () -> XCTestExpectation in
+            let exp = self.expectation(description: "send msg")
+            exp.expectedFulfillmentCount = 2
+            return exp
+        }) { (exp) in
+            delegatorB.messageEvent = { client, conversation, event in
                 switch event {
-                case .updated(updatedMessage: let message, reason: let reason):
-                    XCTAssertTrue(message is IMFileMessage)
-                    XCTAssertNil(reason)
-                    patchMessageExp.fulfill()
+                case .received:
+                    exp.fulfill()
                 default:
                     break
                 }
             }
+            try! conversationA.send(message: oldMessage, completion: { (result) in
+                XCTAssertTrue(result.isSuccess)
+                XCTAssertNil(result.error)
+                exp.fulfill()
+            })
         }
-        let newMessage = IMFileMessage()
-        newMessage.file = LCFile(payload: .fileURL(fileURL: resourceURL(name: "test", ext: "zip")))
-        try? sendingTuple.conversation.update(oldMessage: oldMessage, to: newMessage, completion: { (result) in
-            XCTAssertTrue(result.isSuccess)
-            XCTAssertNil(result.error)
-            XCTAssertNotNil(oldMessage.ID)
-            XCTAssertNotNil(oldMessage.sentTimestamp)
-            XCTAssertEqual(oldMessage.ID, newMessage.ID)
-            XCTAssertEqual(oldMessage.sentTimestamp, newMessage.sentTimestamp)
-            patchMessageExp.fulfill()
-        })
-        wait(for: [patchMessageExp], timeout: timeout)
-        NotificationCenter.default.removeObserver(observer1)
+        delegatorB.reset()
         
         delay()
         
-        let reconnectExp = expectation(description: "reconnect")
-        let notGetPatchExp = expectation(description: "not get patch")
-        notGetPatchExp.isInverted = true
-        receivingTuple.delegator.clientEvent = { client, event in
-            switch event {
-            case .sessionDidOpen:
-                reconnectExp.fulfill()
-            default:
-                break
-            }
-        }
-        receivingTuple.delegator.messageEvent = { client, conv, event in
-            if conv.ID == receivingTuple.conversation.ID {
+        expecting(expectation: { () -> XCTestExpectation in
+            let exp = self.expectation(description: "update msg")
+            exp.expectedFulfillmentCount = 2
+            return exp
+        }) { (exp) in
+            delegatorB.messageEvent = { client, conv, event in
                 switch event {
-                case .updated(updatedMessage: _):
-                    notGetPatchExp.fulfill()
+                case .updated:
+                    exp.fulfill()
                 default:
                     break
                 }
             }
+            let newMessage = IMTextMessage()
+            newMessage.text = "new"
+            try! conversationA.update(oldMessage: oldMessage, to: newMessage, completion: { (result) in
+                XCTAssertTrue(result.isSuccess)
+                XCTAssertNil(result.error)
+                exp.fulfill()
+            })
         }
-        receivingTuple.client.connection.disconnect()
-        delay()
-        receivingTuple.client.connection.connect()
-        wait(for: [reconnectExp, notGetPatchExp], timeout: 10)
-        receivingTuple.delegator.clientEvent = nil
+        delegatorB.reset()
         
         delay()
-        
-        receivingTuple.client.connection.disconnect()
-        
+        clientB.connection.disconnect()
         delay()
         
-        let patchMessageWhenOfflineExp = expectation(description: "patch message when offline")
-        let newerMessage = IMTextMessage()
-        newerMessage.text = "newer"
-        try? sendingTuple.conversation.update(oldMessage: newMessage, to: newerMessage) { (result) in
-            XCTAssertTrue(result.isSuccess)
-            XCTAssertNil(result.error)
-            patchMessageWhenOfflineExp.fulfill()
-        }
-        wait(for: [patchMessageWhenOfflineExp], timeout: timeout)
-        
-        delay()
-        
-        let getPatchExp = expectation(description: "get patch when online")
-        getPatchExp.expectedFulfillmentCount = 3
-        let observer2 = NotificationCenter.default.addObserver(forName: IMClient.TestSaveLocalRecordNotification, object: receivingTuple.client, queue: .main) { (notification) in
-            XCTAssertNotNil(notification.userInfo)
-            XCTAssertNil(notification.userInfo?["error"])
-            XCTAssertNotNil(receivingTuple.client.localRecord.lastPatchTimestamp)
-            if let secondLastPatchTime = receivingTuple.client.localRecord.lastPatchTimestamp,
-                let firstLastPatchTime = firstLastPatchTime,
-                secondLastPatchTime != firstLastPatchTime {
-                XCTAssertGreaterThan(secondLastPatchTime, firstLastPatchTime)
-                XCTAssertEqual(receivingTuple.client.localRecord.lastPatchTimestamp,(try! receivingTuple.client.application.localStorageContext?.table(from: receivingTuple.client.localRecordURL!) as IMClient.LocalRecord?)?.lastPatchTimestamp)
+        for i in 0...1 {
+            oldMessage = IMTextMessage()
+            oldMessage.text = "old\(i)"
+            expecting(description: "send msg") { (exp) in
+                try! conversationA.send(message: oldMessage, completion: { (result) in
+                    XCTAssertTrue(result.isSuccess)
+                    XCTAssertNil(result.error)
+                    exp.fulfill()
+                })
             }
-            getPatchExp.fulfill()
+            delay()
+            expecting(description: "update msg") { (exp) in
+                let newMessage = IMTextMessage()
+                newMessage.text = "new\(i)"
+                try! conversationA.update(oldMessage: oldMessage, to: newMessage, completion: { (result) in
+                    XCTAssertTrue(result.isSuccess)
+                    XCTAssertNil(result.error)
+                    exp.fulfill()
+                })
+            }
         }
-        receivingTuple.delegator.messageEvent = { client, conv, event in
-            if conv.ID == receivingTuple.conversation.ID {
+        
+        delay()
+        
+        expecting(expectation: { () -> XCTestExpectation in
+            let exp = self.expectation(description: "receive offline patch")
+            exp.expectedFulfillmentCount = 2
+            return exp
+        }) { (exp) in
+            delegatorB.messageEvent = { client, conv, event in
                 switch event {
-                case .updated(updatedMessage: let message, reason: let reason):
-                    XCTAssertTrue(message is IMTextMessage)
-                    XCTAssertNil(reason)
-                    getPatchExp.fulfill()
+                case .updated:
+                    exp.fulfill()
                 default:
                     break
                 }
             }
+            clientB.connection.connect()
         }
-        receivingTuple.client.connection.connect()
-        wait(for: [getPatchExp], timeout: timeout)
-        NotificationCenter.default.removeObserver(observer2)
     }
     
     func testMessagePatchError() {
