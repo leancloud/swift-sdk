@@ -729,9 +729,9 @@ extension IMClient {
             }
             if convMessage.hasCdate {
                 json[IMConversation.Key.createdAt.rawValue] = convMessage.cdate
-            }
-            if convMessage.hasUdate {
-                json[IMConversation.Key.updatedAt.rawValue] = convMessage.udate
+                if !option.isUnique {
+                    json[IMConversation.Key.updatedAt.rawValue] = convMessage.cdate
+                }
             }
             if convMessage.hasUniqueID {
                 json[IMConversation.Key.uniqueId.rawValue] = convMessage.uniqueID
