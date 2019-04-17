@@ -13,27 +13,14 @@ Pod::Spec.new do |s|
   s.tvos.deployment_target    = '10.0'
   s.watchos.deployment_target = '3.0'
 
-  s.subspec 'Foundation' do |ss|
-    ss.source_files = 'Sources/Foundation/**/*.{h,m,swift}'
-    ss.private_header_files = 'Sources/Foundation/Polyfill/Polyfill.h'
-    ss.pod_target_xcconfig = { 'SWIFT_INCLUDE_PATHS' => '"$(PODS_TARGET_SRCROOT)"/**' }
-    ss.preserve_paths = 'Sources/Foundation/**/*.{modulemap}'
-  end
-
-  s.subspec 'LocalStorage' do |ss|
-    ss.dependency 'LeanCloud/Foundation'
-
-    ss.source_files = 'Sources/LocalStorage/**/*.swift'
-  end
-
   s.subspec 'Storage' do |ss|
     ss.dependency 'Alamofire', '~> 4.8.0'
 
-    ss.dependency 'LeanCloud/Foundation'
-    ss.dependency 'LeanCloud/LocalStorage'
-
-    ss.source_files = 'Sources/Storage/**/*.swift'
+    ss.source_files = 'Sources/Storage/**/*.{h,m,swift}'
     ss.resources = 'Sources/Storage/**/*.{xcdatamodeld}'
+    ss.private_header_files = 'Sources/Storage/Foundation/Polyfill/Polyfill.h'
+    ss.preserve_paths = 'Sources/Storage/Foundation/**/*.{modulemap}'
+    ss.pod_target_xcconfig = { 'SWIFT_INCLUDE_PATHS' => '"$(PODS_TARGET_SRCROOT)"/**' }
   end
 
   s.subspec 'IM' do |ss|
