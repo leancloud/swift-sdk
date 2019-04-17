@@ -533,8 +533,6 @@
 		835F5D3F1D7E6808004D1A0E /* Sources */ = {
 			isa = PBXGroup;
 			children = (
-				11D9C0F7216DF63B00A620B7 /* Foundation */,
-				11A166CB214F56F00094AF13 /* LocalStorage */,
 				835F5D401D7E6808004D1A0E /* Storage */,
 				D3CA1116216DD77400629343 /* IM */,
 			);
@@ -544,6 +542,8 @@
 		835F5D401D7E6808004D1A0E /* Storage */ = {
 			isa = PBXGroup;
 			children = (
+				11D9C0F7216DF63B00A620B7 /* Foundation */,
+				11A166CB214F56F00094AF13 /* LocalStorage */,
 				835F5D441D7E6808004D1A0E /* DataType */,
 				835F5D651D7E6808004D1A0E /* Value.swift */,
 				835F5D551D7E6808004D1A0E /* Extension.swift */,
@@ -1235,7 +1235,7 @@
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
 				INFOPLIST_FILE = LeanCloud/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
-				IPHONEOS_DEPLOYMENT_TARGET = 10;
+				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = LeanCloud.SDK.Swift;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1262,7 +1262,7 @@
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
 				INFOPLIST_FILE = LeanCloud/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
-				IPHONEOS_DEPLOYMENT_TARGET = 10;
+				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = LeanCloud.SDK.Swift;
 				PRODUCT_NAME = "$(TARGET_NAME)";
