@@ -93,6 +93,7 @@
 		D33D36DC22019197008C9BDA /* test.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = D33D36DA22019197008C9BDA /* test.mp4 */; };
 		D34F1BB42268242300251BC8 /* FMDB.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D3AF1CA422681EF500A97566 /* FMDB.framework */; };
 		D34F1BB52268242300251BC8 /* FMDB.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = D3AF1CA422681EF500A97566 /* FMDB.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		D34F1BB92268263000251BC8 /* IMLocalStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D34F1BB82268263000251BC8 /* IMLocalStorage.swift */; };
 		D357B46522632A210002D14C /* Starscream.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D30A2F81224A069100C000D5 /* Starscream.framework */; };
 		D357B46722632A510002D14C /* Starscream.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = D30A2F81224A069100C000D5 /* Starscream.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		D3662F9222019B590046A390 /* test.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = D3662F9122019B590046A390 /* test.mp3 */; };
@@ -425,6 +426,7 @@
 		D33D36C922017DAC008C9BDA /* test.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = test.jpg; sourceTree = "<group>"; };
 		D33D36D722017DAC008C9BDA /* test.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = test.png; sourceTree = "<group>"; };
 		D33D36DA22019197008C9BDA /* test.mp4 */ = {isa = PBXFileReference; lastKnownFileType = file; path = test.mp4; sourceTree = "<group>"; };
+		D34F1BB82268263000251BC8 /* IMLocalStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IMLocalStorage.swift; sourceTree = "<group>"; };
 		D3662F9122019B590046A390 /* test.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = test.mp3; sourceTree = "<group>"; };
 		D3665C3621FEAAC1005B44B0 /* IMMessageTestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IMMessageTestCase.swift; sourceTree = "<group>"; };
 		D3783A1121F453C3006F6635 /* IMConversationTestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IMConversationTestCase.swift; sourceTree = "<group>"; };
@@ -733,6 +735,7 @@
 				1113D80321AB963B000677BD /* IMConversation.swift */,
 				D393EDBD21D38206001CBB2B /* IMMessage.swift */,
 				D3C3782E21E48D3C00EA9AC9 /* IMConversationQuery.swift */,
+				D34F1BB82268263000251BC8 /* IMLocalStorage.swift */,
 			);
 			path = IM;
 			sourceTree = "<group>";
@@ -1104,6 +1107,7 @@
 				835F5D841D7E6808004D1A0E /* Result.swift in Sources */,
 				835F5D771D7E6808004D1A0E /* Engine.swift in Sources */,
 				835F5D761D7E6808004D1A0E /* User.swift in Sources */,
+				D34F1BB92268263000251BC8 /* IMLocalStorage.swift in Sources */,
 				D393EDBE21D38206001CBB2B /* IMMessage.swift in Sources */,
 				114E1E772151FFB600DA7DB0 /* File.swift in Sources */,
 				11D9C0FA216DF63B00A620B7 /* Error.swift in Sources */,
