@@ -37,6 +37,9 @@ class LCUserTestCase: BaseTestCase {
         let email = "\(UUID().uuidString.replacingOccurrences(of: "-", with: ""))@qq.com"
         user.email = LCString(email)
         XCTAssertTrue(user.save().isSuccess)
+        
+        LCUser.logOut()
+        
         XCTAssertTrue(LCUser.logIn(email: email, password: password).isSuccess)
 
         let current = LCUser.current!
