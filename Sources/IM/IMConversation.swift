@@ -211,7 +211,6 @@ public class IMConversation {
         self.ID = ID
         self.client = client
         self.rawData = rawData
-        self.lock = client.lock
         self.clientID = client.ID
         self.lcType = lcType
         self.isUnique = (rawData[Key.unique.rawValue] as? Bool) ?? false
@@ -223,7 +222,7 @@ public class IMConversation {
     
     private(set) var rawData: RawData
     
-    let lock: NSLock
+    let lock: NSLock = NSLock()
     
     var notTransientConversation: Bool {
         return self.lcType != .transient
@@ -968,6 +967,15 @@ extension IMConversation {
                 return .old
             case .oldToNew:
                 return .new
+            }
+        }
+        
+        internal var SQLOrder: String {
+            switch self {
+            case .newToOld:
+                return "desc"
+            case .oldToNew:
+                return "asc"
             }
         }
     }

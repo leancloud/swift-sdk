@@ -46,13 +46,13 @@ open class IMMessage {
     public private(set) var currentClientID: String?
     
     /// Message Status.
-    public enum Status {
-        case none
-        case sending
-        case sent
-        case delivered
-        case read
-        case failed
+    public enum Status: Int {
+        case failed     = -1
+        case none       = 0
+        case sending    = 1
+        case sent       = 2
+        case delivered  = 3
+        case read       = 4
     }
     
     /// @see `Status`.
@@ -70,7 +70,7 @@ open class IMMessage {
             return currentStatus
         }
     }
-    private var underlyingStatus: Status = .none
+    private(set) var underlyingStatus: Status = .none
     
     /// The ID of this message.
     public private(set) var ID: String?
@@ -199,7 +199,8 @@ open class IMMessage {
         messageID: String,
         content: Content?,
         isAllMembersMentioned: Bool?,
-        mentionedMembers: [String]?)
+        mentionedMembers: [String]?,
+        status: Status = .sent)
         -> IMMessage
     {
         var message = IMMessage()
@@ -228,7 +229,7 @@ open class IMMessage {
         message.mentionedMembers = mentionedMembers
         message.fromClientID = fromClientID
         message.currentClientID = currentClientID
-        message.underlyingStatus = .sent
+        message.underlyingStatus = status
         return message
     }
     
@@ -248,6 +249,8 @@ open class IMMessage {
     
     var sendingTimestamp: Int64? = nil
     
+    var breakpoint: Bool = false
+    
     func setup(clientID: String, conversationID: String) {
         self.fromClientID = clientID
         self.currentClientID = clientID
@@ -255,6 +258,7 @@ open class IMMessage {
     }
     
     func update(status newStatus: IMMessage.Status, ID: String? = nil, timestamp: Int64? = nil) {
+        assert(newStatus != .delivered && newStatus != .read)
         self.underlyingStatus = newStatus
         if newStatus == .sent {
             self.ID = ID
