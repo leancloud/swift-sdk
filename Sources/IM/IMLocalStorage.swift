@@ -27,7 +27,6 @@ class IMLocalStorage {
             case rawData(Data)
             case updatedTimestamp(Int64)
             case createdTimestamp(Int64)
-            case lastMessageSentTimestamp(Int64)
             case outdated(Bool)
             
             enum CodingKeys: String {
@@ -35,7 +34,6 @@ class IMLocalStorage {
                 case raw_data
                 case updated_timestamp
                 case created_timestamp
-                case last_message_sent_timestamp
                 case outdated
             }
             
@@ -49,8 +47,6 @@ class IMLocalStorage {
                     return CodingKeys.updated_timestamp.rawValue
                 case .createdTimestamp:
                     return CodingKeys.created_timestamp.rawValue
-                case .lastMessageSentTimestamp:
-                    return CodingKeys.last_message_sent_timestamp.rawValue
                 case .outdated:
                     return CodingKeys.outdated.rawValue
                 }
@@ -66,8 +62,6 @@ class IMLocalStorage {
                     return v
                 case let .createdTimestamp(v):
                     return v
-                case let .lastMessageSentTimestamp(v):
-                    return v
                 case let .outdated(v):
                     return v
                 }
@@ -78,10 +72,12 @@ class IMLocalStorage {
         enum LastMessage {
             case conversationID(String)
             case rawData(Data)
+            case sentTimestamp(Int64)
             
             enum CodingKeys: String {
                 case conversation_id
                 case raw_data
+                case sent_timestamp
             }
             
             var key: String {
@@ -90,6 +86,8 @@ class IMLocalStorage {
                     return CodingKeys.conversation_id.rawValue
                 case .rawData:
                     return CodingKeys.raw_data.rawValue
+                case .sentTimestamp:
+                    return CodingKeys.sent_timestamp.rawValue
                 }
             }
             
@@ -98,6 +96,8 @@ class IMLocalStorage {
                 case let .conversationID(v):
                     return v
                 case let .rawData(v):
+                    return v
+                case let .sentTimestamp(v):
                     return v
                 }
             }
@@ -109,7 +109,7 @@ class IMLocalStorage {
             let sentTimestamp: Int64
             let messageID: String
             let fromPeerID: String?
-            let content: String
+            let content: String?
             let binary: Bool
             let deliveredTimestamp: Int64?
             let readTimestamp: Int64?
@@ -185,19 +185,19 @@ class IMLocalStorage {
     
     weak var client: IMClient?
     
-    init?(url: URL, client: IMClient) {
+    private(set) var isOpened: Bool = false
+    
+    init?(url: URL) {
         if let dbQueue = FMDatabaseQueue(url: url) {
             self.dbQueue = dbQueue
-            self.client = client
         } else {
             return nil
         }
     }
     
-    init?(path: String, client: IMClient) {
+    init?(path: String) {
         if let dbQueue = FMDatabaseQueue(path: path) {
             self.dbQueue = dbQueue
-            self.client = client
         } else {
             return nil
         }
@@ -220,7 +220,6 @@ class IMLocalStorage {
                 self.client?.serialQueue.async {
                     completion(.failure(error: error))
                 }
-                Logger.shared.error(error)
             }
             
             guard db.open() else {
@@ -229,8 +228,6 @@ class IMLocalStorage {
             }
             
             let convKey = Table.Conversation.CodingKeys.self
-            let msgKey = Table.Message.CodingKeys.self
-            
             let creatingConverstionTableSQL: String =
             """
             create table if not exists \(Table.conversation)
@@ -239,15 +236,12 @@ class IMLocalStorage {
             \(convKey.raw_data.rawValue) blob,
             \(convKey.updated_timestamp.rawValue) integer,
             \(convKey.created_timestamp.rawValue) integer,
-            \(convKey.last_message_sent_timestamp.rawValue) integer
             \(convKey.outdated.rawValue) integer,
             );
             create index if not exists \(Table.conversation)_\(convKey.updated_timestamp.rawValue)
             on \(Table.conversation)(\(convKey.updated_timestamp.rawValue));
             create index if not exists \(Table.conversation)_\(convKey.created_timestamp.rawValue)
             on \(Table.conversation)(\(convKey.created_timestamp.rawValue));
-            create index if not exists \(Table.conversation)_\(convKey.last_message_sent_timestamp.rawValue)
-            on \(Table.conversation)(\(convKey.last_message_sent_timestamp.rawValue));
             """
             IMLocalStorage.verboseLogging(database: db, SQL: creatingConverstionTableSQL)
             guard db.executeStatements( creatingConverstionTableSQL) else {
@@ -260,8 +254,11 @@ class IMLocalStorage {
             create table if not exists \(Table.lastMessage)
             (
             \(Table.LastMessage.CodingKeys.conversation_id.rawValue) text primary key,
-            \(Table.LastMessage.CodingKeys.raw_data.rawValue) integer
+            \(Table.LastMessage.CodingKeys.raw_data.rawValue) blob,
+            \(Table.LastMessage.CodingKeys.sent_timestamp.rawValue) integer
             );
+            create index if not exists \(Table.lastMessage)_\(Table.LastMessage.CodingKeys.sent_timestamp.rawValue)
+            on \(Table.lastMessage)(\(Table.LastMessage.CodingKeys.sent_timestamp.rawValue));
             """
             IMLocalStorage.verboseLogging(database: db, SQL: creatingLastMessageTableSQL)
             guard db.executeStatements(creatingLastMessageTableSQL)
@@ -271,6 +268,7 @@ class IMLocalStorage {
                 return
             }
             
+            let msgKey = Table.Message.CodingKeys.self
             let creatingMessageTableSQL: String =
             """
             create table if not exists \(Table.message)
@@ -305,19 +303,27 @@ class IMLocalStorage {
             if db.userVersion < Version.current.rawValue {
                 db.userVersion = Version.current.rawValue
             }
+            self.isOpened = true
             self.client?.serialQueue.async {
                 completion(.success)
             }
         }
     }
     
-    func insertOrReplace(conversation ID: String, rawData: IMConversation.RawData, lastMessageSentTimestamp: Int64) {
+    func insertOrReplace(conversationID: String, rawData: IMConversation.RawData, convType: IMConversation.ConvType) {
+        guard convType != .temporary, convType != .transient else {
+            return
+        }
         self.dbQueue.inDatabase { (db) in
+            guard self.isOpened else {
+                return
+            }
             db.shouldCacheStatements = true
             defer {
                 db.shouldCacheStatements = false
             }
             do {
+                let jsonData: Data = try JSONSerialization.data(withJSONObject: rawData)
                 let millisecondFromKey: (IMConversation.Key) -> Int64 = { key in
                     if let dateString: String = rawData[key.rawValue] as? String,
                         let date: Date = LCDate(isoString: dateString)?.value {
@@ -334,17 +340,15 @@ class IMLocalStorage {
                 \(Table.Conversation.CodingKeys.raw_data.rawValue),
                 \(Table.Conversation.CodingKeys.updated_timestamp.rawValue),
                 \(Table.Conversation.CodingKeys.created_timestamp.rawValue),
-                \(Table.Conversation.CodingKeys.last_message_sent_timestamp.rawValue),
                 \(Table.Conversation.CodingKeys.outdated.rawValue)
                 )
-                values(?,?,?,?,?,?)
+                values(?,?,?,?,?)
                 """
                 let values: [Any] = [
-                    ID,
-                    rawData,
+                    conversationID,
+                    jsonData,
                     millisecondFromKey(.updatedAt),
                     millisecondFromKey(.createdAt),
-                    lastMessageSentTimestamp,
                     false
                 ]
                 IMLocalStorage.verboseLogging(database: db, SQL: sql, values: values)
@@ -355,11 +359,14 @@ class IMLocalStorage {
         }
     }
     
-    func updateOrIgnore(conversation ID: String, sets: [Table.Conversation]) {
+    func updateOrIgnore(conversationID: String, sets: [Table.Conversation]) {
         guard !sets.isEmpty else {
             return
         }
         self.dbQueue.inDatabase { (db) in
+            guard self.isOpened else {
+                return
+            }
             db.shouldCacheStatements = true
             defer {
                 db.shouldCacheStatements = false
@@ -374,7 +381,7 @@ class IMLocalStorage {
                     bindingSymbols.append("?")
                     values.append(item.value)
                 }
-                values.append(ID)
+                values.append(conversationID)
                 let sql =
                 """
                 update or ignore \(Table.conversation)
@@ -389,48 +396,18 @@ class IMLocalStorage {
         }
     }
     
-    enum ConversationSelectOrder {
-        case updatedTimestamp(descending: Bool)
-        case createdTimestamp(descending: Bool)
-        case lastMessageSentTimestamp(descending: Bool)
-        
-        var key: String {
-            switch self {
-            case .updatedTimestamp:
-                return Table.Conversation.CodingKeys.updated_timestamp.rawValue
-            case .createdTimestamp:
-                return Table.Conversation.CodingKeys.created_timestamp.rawValue
-            case .lastMessageSentTimestamp:
-                return Table.Conversation.CodingKeys.last_message_sent_timestamp.rawValue
-            }
-        }
-        
-        var value: Bool {
-            switch self {
-            case let .updatedTimestamp(v):
-                return v
-            case let .createdTimestamp(v):
-                return v
-            case let .lastMessageSentTimestamp(v):
-                return v
-            }
-        }
-        
-        var sqlOrder: String {
-            if self.value {
-                return "desc"
-            } else {
-                return "asc"
-            }
-        }
-    }
-    
     func selectConversations(
-        order: ConversationSelectOrder = .lastMessageSentTimestamp(descending: true),
+        order: IMClient.StoredConversationOrder = .lastMessageSentTimestamp(descending: true),
         IDSet: Set<String>? = nil,
         completion: @escaping (LCGenericResult<(conversationResult: FMResultSet, lastMessageResult: FMResultSet)>) -> Void)
     {
         self.dbQueue.inDatabase { (db) in
+            guard self.isOpened else {
+                self.client?.serialQueue.async {
+                    completion(.failure(error: LCError.localStorageNotOpen))
+                }
+                return
+            }
             do {
                 var conversationIDJoinedString: String? = nil
                 
@@ -440,13 +417,24 @@ class IMLocalStorage {
                     conversationIDJoinedString = joinedString
                     selectConversationSQL += " where \(Table.Conversation.CodingKeys.id.rawValue) in (\(joinedString))"
                 }
-                selectConversationSQL += " order by \(order.key) \(order.sqlOrder)"
+                switch order {
+                case .createdTimestamp, .updatedTimestamp:
+                    selectConversationSQL += " order by \(order.key) \(order.sqlOrder)"
+                default:
+                    break
+                }
                 IMLocalStorage.verboseLogging(database: db, SQL: selectConversationSQL)
                 let conversationResult = try db.executeQuery(selectConversationSQL, values: nil)
                 
                 var selectLastMessageSQL: String = "select * from \(Table.lastMessage)"
                 if let joinedString: String = conversationIDJoinedString {
                     selectLastMessageSQL += " where \(Table.LastMessage.CodingKeys.conversation_id.rawValue) in (\(joinedString))"
+                }
+                switch order {
+                case .lastMessageSentTimestamp:
+                    selectLastMessageSQL += " order by \(order.key) \(order.sqlOrder)"
+                default:
+                    break
                 }
                 IMLocalStorage.verboseLogging(database: db, SQL: selectLastMessageSQL)
                 let lastMessageResult = try db.executeQuery(selectLastMessageSQL, values: nil)
@@ -463,11 +451,23 @@ class IMLocalStorage {
         }
     }
     
-    func deleteConversationAndMessages(IDs: Set<String>) {
+    func deleteConversationAndMessages(
+        IDs: Set<String>,
+        completion: @escaping (LCBooleanResult) -> Void)
+    {
         guard !IDs.isEmpty else {
+            self.client?.serialQueue.async {
+                completion(.success)
+            }
             return
         }
         self.dbQueue.inDatabase { (db) in
+            guard self.isOpened else {
+                self.client?.serialQueue.async {
+                    completion(.failure(error: LCError.localStorageNotOpen))
+                }
+                return
+            }
             do {
                 let joinedString = ("\"" + IDs.joined(separator: "\",\"") + "\"")
                 
@@ -482,6 +482,43 @@ class IMLocalStorage {
                 let deleteMessageSQL = "delete from \(Table.message) where \(Table.Message.CodingKeys.conversationID.rawValue) in (\(joinedString))"
                 IMLocalStorage.verboseLogging(database: db, SQL: deleteMessageSQL)
                 try db.executeUpdate(deleteMessageSQL, values: nil)
+                
+                self.client?.serialQueue.async {
+                    completion(.success)
+                }
+            } catch {
+                Logger.shared.error(error)
+                self.client?.serialQueue.async {
+                    completion(.failure(error: LCError(error: error)))
+                }
+            }
+        }
+    }
+    
+    func insertOrReplace(conversationID: String, lastMessage message: IMMessage) {
+        self.dbQueue.inDatabase { (db) in
+            guard self.isOpened else {
+                return
+            }
+            db.shouldCacheStatements = true
+            defer {
+                db.shouldCacheStatements = false
+            }
+            do {
+                let table = try Table.Message(message: message)
+                let rawData: Data = try JSONEncoder().encode(table)
+                let sql: String =
+                """
+                insert or replace into \(Table.lastMessage)
+                (
+                \(Table.LastMessage.CodingKeys.conversation_id.rawValue),
+                \(Table.LastMessage.CodingKeys.raw_data.rawValue)
+                )
+                values(?,?)
+                """
+                let values: [Any] = [table.conversationID, rawData]
+                IMLocalStorage.verboseLogging(database: db, SQL: sql)
+                try db.executeUpdate(sql, values: values)
             } catch {
                 Logger.shared.error(error)
             }
@@ -576,6 +613,9 @@ class IMLocalStorage {
         let newestMessage = messageTuple.newest
         let oldestMessage = messageTuple.oldest
         self.dbQueue.inImmediateTransaction { (db, rollback) in
+            guard self.isOpened else {
+                return
+            }
             db.shouldCacheStatements = true
             defer {
                 db.shouldCacheStatements = false
@@ -611,7 +651,7 @@ class IMLocalStorage {
                         table.sentTimestamp,
                         table.messageID,
                         table.fromPeerID as Any,
-                        table.content,
+                        table.content as Any,
                         table.binary,
                         table.deliveredTimestamp as Any,
                         table.readTimestamp as Any,
@@ -634,6 +674,9 @@ class IMLocalStorage {
     func updateOrIgnore(message: IMMessage) throws {
         let table = try Table.Message(message: message)
         self.dbQueue.inDatabase { (db) in
+            guard self.isOpened else {
+                return
+            }
             db.shouldCacheStatements = true
             defer {
                 db.shouldCacheStatements = false
@@ -657,7 +700,7 @@ class IMLocalStorage {
                 """
                 let values: [Any] = [
                     table.fromPeerID as Any,
-                    table.content,
+                    table.content as Any,
                     table.binary,
                     table.patchedTimestamp as Any,
                     table.allMentioned as Any,
@@ -777,10 +820,16 @@ class IMLocalStorage {
         end: IMConversation.MessageQueryEndpoint? = nil,
         direction: IMConversation.MessageQueryDirection? = nil,
         limit: Int? = nil,
-        completion: @escaping (LCGenericResult<[IMMessage]>) -> Void)
+        completion: @escaping (IMClient, LCGenericResult<[IMMessage]>, Bool) -> Void)
     {
         self.dbQueue.inDatabase { (db) in
             guard let client = self.client else {
+                return
+            }
+            guard self.isOpened else {
+                client.serialQueue.async {
+                    completion(client, .failure(error: LCError.localStorageNotOpen), false)
+                }
                 return
             }
             do {
@@ -796,6 +845,7 @@ class IMLocalStorage {
                 IMLocalStorage.verboseLogging(database: db, SQL: sql)
                 let result = try db.executeQuery(sql, values: nil)
                 var messages: [IMMessage] = []
+                var breakpointSet: Set<Bool> = []
                 while result.next() {
                     let sentTimestamp: Int64 = result.longLongInt(forColumn: key.sentTimestamp.rawValue)
                     guard
@@ -847,18 +897,31 @@ class IMLocalStorage {
                     if readTimestamp != 0 {
                         message.readTimestamp = readTimestamp
                     }
-                    message.breakpoint = result.bool(forColumn: key.breakpoint.rawValue)
+                    let breakpoint = result.bool(forColumn: key.breakpoint.rawValue)
+                    message.breakpoint = breakpoint
+                    breakpointSet.insert(breakpoint)
                     messages.append(message)
                 }
                 client.serialQueue.async {
-                    completion(.success(value: messages))
+                    completion(client, .success(value: messages), breakpointSet.contains(true))
                 }
             } catch {
                 Logger.shared.error(error)
                 client.serialQueue.async {
-                    completion(.failure(error: LCError(error: error)))
+                    completion(client, .failure(error: LCError(error: error)), false)
                 }
             }
         }
     }
+}
+
+extension LCError {
+    
+    static var localStorageNotOpen: LCError {
+        return LCError(
+            code: .inconsistency,
+            reason: "Local Storage not open."
+        )
+    }
+    
 }

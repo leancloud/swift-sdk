@@ -12,6 +12,7 @@ import UIKit
 #elseif os(macOS)
 import IOKit
 #endif
+import FMDB
 
 /// IM Client
 public class IMClient {
@@ -54,6 +55,8 @@ public class IMClient {
     let connection: RTMConnection
     
     let rtmDelegator: RTMConnection.Delegator
+    
+    private(set) var localStorage: IMLocalStorage?
     
     /// The client delegate.
     public weak var delegate: IMClientDelegate?
@@ -105,10 +108,16 @@ public class IMClient {
         }
         
         /// Default option is `receiveUnreadMessageCountAfterSessionDidOpen`.
-        public static let `default`: Options = [.receiveUnreadMessageCountAfterSessionDidOpen]
+        public static let `default`: Options = [
+            .receiveUnreadMessageCountAfterSessionDidOpen,
+            .usingLocalStorage
+        ]
         
         /// Receive unread message count after session did open.
         public static let receiveUnreadMessageCountAfterSessionDidOpen = Options(rawValue: 1 << 0)
+        
+        /// Use local storage.
+        public static let usingLocalStorage = Options(rawValue: 1 << 1)
         
         var lcimProtocol: RTMConnection.LCIMProtocol {
             if contains(.receiveUnreadMessageCountAfterSessionDidOpen) {
@@ -194,6 +203,15 @@ public class IMClient {
             if let localRecord: IMClient.LocalRecord = try application.localStorageContext?.table(from: localRecordURL) {
                 self.underlyingLocalRecord = localRecord
             }
+            
+            if options.contains(.usingLocalStorage) {
+                let databaseURL = try localStorageContext.fileURL(
+                    place: .persistentData,
+                    module: .IM(clientID: ID),
+                    file: .database
+                )
+                self.localStorage = IMLocalStorage(url: databaseURL)
+            }
         }
         
         // directly init `connection` is better, lazy init is not a good choice.
@@ -223,6 +241,8 @@ public class IMClient {
                 self.report(deviceToken: token)
             }
         }
+        
+        self.localStorage?.client = self
     }
     
     deinit {
@@ -744,7 +764,7 @@ extension IMClient {
                 json[IMConversation.Key.temporaryTTL.rawValue] = convMessage.tempConvTtl
             }
             if let rawData: IMConversation.RawData = try json.jsonObject() {
-                conversation = IMConversation.instance(ID: id, rawData: rawData, client: self)
+                conversation = IMConversation.instance(ID: id, rawData: rawData, client: self, caching: true)
                 self.convCollection[id] = conversation
             } else {
                 throw LCError(code: .malformedData)
@@ -782,7 +802,7 @@ extension IMClient {
     /// - Parameters:
     ///   - ID: The ID of the conversation.
     ///   - completion: callback.
-    public func get(cachedConversation ID: String, completion: @escaping (LCGenericResult<IMConversation>) -> Void) {
+    public func getCachedConversation(ID: String, completion: @escaping (LCGenericResult<IMConversation>) -> Void) {
         self.serialQueue.async {
             if let conv = self.convCollection[ID] {
                 self.eventQueue.async {
@@ -802,7 +822,7 @@ extension IMClient {
     /// - Parameters:
     ///   - IDs: The set of the conversation ID.
     ///   - completion: callback.
-    public func remove(cachedConversation IDs: Set<String>, completion: @escaping (LCBooleanResult) -> Void) {
+    public func removeCachedConversation(IDs: Set<String>, completion: @escaping (LCBooleanResult) -> Void) {
         self.serialQueue.async {
             for key in IDs {
                 self.convCollection.removeValue(forKey: key)
@@ -854,6 +874,189 @@ extension IMClient {
                 }
             }
         }
+    }
+    
+}
+
+// MARK: Local Storage
+
+extension IMClient {
+    
+    public func prepareLocalStorage(completion: @escaping (LCBooleanResult) -> Void) throws {
+        guard let localStorage = self.localStorage else {
+            throw LCError.clientLocalStorageNotFound
+        }
+        localStorage.open(completion: completion)
+    }
+    
+    public enum StoredConversationOrder {
+        case updatedTimestamp(descending: Bool)
+        case createdTimestamp(descending: Bool)
+        case lastMessageSentTimestamp(descending: Bool)
+        
+        var key: String {
+            switch self {
+            case .updatedTimestamp:
+                return IMLocalStorage.Table.Conversation.CodingKeys.updated_timestamp.rawValue
+            case .createdTimestamp:
+                return IMLocalStorage.Table.Conversation.CodingKeys.created_timestamp.rawValue
+            case .lastMessageSentTimestamp:
+                return IMLocalStorage.Table.LastMessage.CodingKeys.sent_timestamp.rawValue
+            }
+        }
+        
+        var value: Bool {
+            switch self {
+            case let .updatedTimestamp(v):
+                return v
+            case let .createdTimestamp(v):
+                return v
+            case let .lastMessageSentTimestamp(v):
+                return v
+            }
+        }
+        
+        var sqlOrder: String {
+            if self.value {
+                return "desc"
+            } else {
+                return "asc"
+            }
+        }
+    }
+    
+    @discardableResult
+    private func handleStoredConversation(result: FMResultSet, needResult: Bool = false) -> [IMConversation] {
+        assert(self.specificAssertion)
+        let convKey = IMLocalStorage.Table.Conversation.CodingKeys.self
+        var conversations: [IMConversation] = []
+        while result.next() {
+            guard
+                let conversationID: String = result.string(forColumn: convKey.id.rawValue),
+                let jsonData: Data = result.data(forColumn: convKey.raw_data.rawValue)
+                else
+            {
+                continue
+            }
+            do {
+                if let rawData = try JSONSerialization.jsonObject(with: jsonData) as? IMConversation.RawData {
+                    let outdated: Bool = result.bool(forColumn: convKey.outdated.rawValue)
+                    let conversation = IMConversation.instance(ID: conversationID, rawData: rawData, client: self, caching: false)
+                    conversation.isOutdated = outdated
+                    if needResult {
+                        conversations.append(conversation)
+                    }
+                    self.convCollection[conversationID] = conversation
+                }
+            } catch {
+                Logger.shared.error(error)
+            }
+        }
+        return conversations
+    }
+    
+    @discardableResult
+    private func handleStoredLastMessage(result: FMResultSet, needResult: Bool = false) -> [IMConversation] {
+        assert(self.specificAssertion)
+        let lastMsgKey = IMLocalStorage.Table.LastMessage.CodingKeys.self
+        var conversations: [IMConversation] = []
+        while result.next() {
+            guard let data: Data = result.data(forColumn: lastMsgKey.raw_data.rawValue) else {
+                continue
+            }
+            do {
+                let table = try JSONDecoder().decode(IMLocalStorage.Table.Message.self, from: data)
+                if let conversation = self.convCollection[table.conversationID] {
+                    var content: IMMessage.Content?
+                    if let tableContent = table.content {
+                        if table.binary, let data = tableContent.data(using: .utf8) {
+                            content = .data(data)
+                        } else {
+                            content = .string(tableContent)
+                        }
+                    }
+                    var mentionedMembers: [String]?
+                    if let mentionedList = table.mentionedList, let data = mentionedList.data(using: .utf8) {
+                        mentionedMembers = try JSONSerialization.jsonObject(with: data) as? [String]
+                    }
+                    let message = IMMessage.instance(
+                        isTransient: false,
+                        conversationID: table.conversationID,
+                        currentClientID: self.ID,
+                        fromClientID: table.fromPeerID,
+                        timestamp: table.sentTimestamp,
+                        patchedTimestamp: table.patchedTimestamp,
+                        messageID: table.messageID,
+                        content: content,
+                        isAllMembersMentioned: table.allMentioned,
+                        mentionedMembers: mentionedMembers
+                    )
+                    message.deliveredTimestamp = table.deliveredTimestamp
+                    message.readTimestamp = table.readTimestamp
+                    conversation.safeUpdatingLastMessage(newMessage: message, client: self, caching: false)
+                    if needResult {
+                        conversations.append(conversation)
+                    }
+                }
+            } catch {
+                Logger.shared.error(error)
+            }
+        }
+        return conversations
+    }
+    
+    public func getAndLoadStoredConversations(
+        IDs: Set<String>? = nil,
+        order: IMClient.StoredConversationOrder = .lastMessageSentTimestamp(descending: true),
+        completion: @escaping (LCGenericResult<[IMConversation]>) -> Void)
+        throws
+    {
+        guard let localStorage = self.localStorage else {
+            throw LCError.clientLocalStorageNotFound
+        }
+        guard self.convCollection.isEmpty else {
+            throw LCError(code: .inconsistency, reason: "conversation instance container is not empty.")
+        }
+        localStorage.selectConversations(order: order, IDSet: IDs) { [weak self] (result) in
+            guard let client = self else {
+                return
+            }
+            assert(client.specificAssertion)
+            switch result {
+            case .success(value: let tuple):
+                let conversationResult = tuple.conversationResult
+                let lastMessageResult = tuple.lastMessageResult
+                let conversations: [IMConversation]
+                switch order {
+                case .createdTimestamp, .updatedTimestamp:
+                    conversations = client.handleStoredConversation(
+                        result: conversationResult,
+                        needResult: true
+                    )
+                    client.handleStoredLastMessage(result: lastMessageResult)
+                case .lastMessageSentTimestamp:
+                    client.handleStoredConversation(result: conversationResult)
+                    conversations = client.handleStoredLastMessage(
+                        result: lastMessageResult,
+                        needResult: true
+                    )
+                }
+                client.eventQueue.async {
+                    completion(.success(value: conversations))
+                }
+            case .failure(error: let error):
+                client.eventQueue.async {
+                    completion(.failure(error: error))
+                }
+            }
+        }
+    }
+    
+    public func deleteStoredConversationAndMessages(IDs: Set<String>, completion: @escaping (LCBooleanResult) -> Void) throws {
+        guard let localStorage = self.localStorage else {
+            throw LCError.clientLocalStorageNotFound
+        }
+        localStorage.deleteConversationAndMessages(IDs: IDs, completion: completion)
     }
     
 }
@@ -1099,6 +1302,7 @@ extension IMClient {
             if let invalidLocalConvCache = droppable["invalidLocalConvCache"] as? Bool, invalidLocalConvCache {
                 for conv in convsSnapshot {
                     conv.isOutdated = true
+                    conv.tryUpdateLocalStorageData(client: self, outdated: true)
                 }
             } else if let notifications = droppable["notifications"] as? [[String: Any]] {
                 mapReduce(notifications)
@@ -1447,6 +1651,7 @@ extension IMClient {
                         let _ = self.cachedConvMapSnapshot?[conversationID]
                     {
                         conversation.isOutdated = true
+                        conversation.tryUpdateLocalStorageData(client: client, outdated: true)
                     }
                 }
                 if let event = event {
@@ -1525,7 +1730,7 @@ extension IMClient {
                     mentionedMembers: (command.mentionPids.isEmpty ? nil : command.mentionPids)
                 )
                 var unreadEvent: IMConversationEvent?
-                let isUnreadMessageIncreased: Bool = conversation.safeUpdatingLastMessage(newMessage: message, client: client)
+                let isUnreadMessageIncreased: Bool = conversation.safeUpdatingLastMessage(newMessage: message, client: client, caching: true)
                 if client.options.isProtobuf3, isUnreadMessageIncreased {
                     conversation.unreadMessageCount += 1
                     unreadEvent = .unreadMessageCountUpdated
@@ -2071,6 +2276,13 @@ extension LCError {
         return LCError(
             code: .inconsistency,
             reason: "\"\(IMClient.reservedValueOfTag)\" string should not be used on tag"
+        )
+    }
+    
+    static var clientLocalStorageNotFound: LCError {
+        return LCError(
+            code: .inconsistency,
+            reason: "Local Storage not found."
         )
     }
     

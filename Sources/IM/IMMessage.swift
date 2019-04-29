@@ -304,7 +304,7 @@ public protocol IMMessageCategorizing {
 /// IM Categorized Message
 open class IMCategorizedMessage: IMMessage, IMMessageCategorizing {
     
-    enum ReservedType: MessageType {
+    public enum ReservedType: MessageType {
         case none = 0
         case text = -1
         case image = -2
