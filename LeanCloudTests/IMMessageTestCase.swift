@@ -1090,7 +1090,7 @@ class IMMessageTestCase: RTMBaseTestCase {
         wait(for: [getDeliveredFlagExp], timeout: timeout)
         
         let client = try! IMClient(ID: uuid, options: [])
-        let conversation = IMConversation(ID: uuid, rawData: [:], lcType: .normal, client: client)
+        let conversation = IMConversation(ID: uuid, rawData: [:], convType: .normal, client: client, caching: false)
         do {
             try conversation.getMessageReceiptFlag(completion: { (_) in })
             XCTFail()
