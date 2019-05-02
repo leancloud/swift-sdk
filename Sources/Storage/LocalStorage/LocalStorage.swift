@@ -379,6 +379,7 @@ class LocalStorageContext {
         case rtmServer = "rtm_server"
         case installation = "installation"
         case clientRecord = "client_record"
+        case database = "database.sqlite"
         
         var name: String {
             return self.rawValue

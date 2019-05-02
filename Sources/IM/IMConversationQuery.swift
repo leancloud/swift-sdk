@@ -392,7 +392,7 @@ private extension IMConversationQuery {
                 existConversation.safeChangingRawData(operation: .rawDataReplaced(by: rawData), client: client)
                 instance = existConversation
             } else {
-                instance = IMConversation.instance(ID: objectId, rawData: rawData, client: client)
+                instance = IMConversation.instance(ID: objectId, rawData: rawData, client: client, caching: true)
                 client.convCollection[objectId] = instance
             }
             guard let conversation: T = instance as? T else {

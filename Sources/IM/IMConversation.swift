@@ -46,8 +46,7 @@ public class IMConversation {
         case temporary = 4
     }
     
-    /// add `lc` prefix to avoid conflict
-    let lcType: ConvType
+    let convType: ConvType
     
     /// The client which this conversation belong to.
     public private(set) weak var client: IMClient?
@@ -176,7 +175,7 @@ public class IMConversation {
         get { return safeDecodingRawData(with: key) }
     }
     
-    static func instance(ID: String, rawData: RawData, client: IMClient) -> IMConversation {
+    static func instance(ID: String, rawData: RawData, client: IMClient, caching: Bool) -> IMConversation {
         var convType: ConvType = .normal
         if let typeRawValue: Int = rawData[Key.convType.rawValue] as? Int,
             let validType = ConvType(rawValue: typeRawValue) {
@@ -197,44 +196,46 @@ public class IMConversation {
         }
         switch convType {
         case .normal:
-            return IMConversation(ID: ID, rawData: rawData, lcType: convType, client: client)
+            return IMConversation(ID: ID, rawData: rawData, convType: convType, client: client, caching: caching)
         case .transient:
-            return IMChatRoom(ID: ID, rawData: rawData, lcType: convType, client: client)
+            return IMChatRoom(ID: ID, rawData: rawData, convType: convType, client: client, caching: caching)
         case .system:
-            return IMServiceConversation(ID: ID, rawData: rawData, lcType: convType, client: client)
+            return IMServiceConversation(ID: ID, rawData: rawData, convType: convType, client: client, caching: caching)
         case .temporary:
-            return IMTemporaryConversation(ID: ID, rawData: rawData, lcType: convType, client: client)
+            return IMTemporaryConversation(ID: ID, rawData: rawData, convType: convType, client: client, caching: caching)
         }
     }
 
-    init(ID: String, rawData: RawData, lcType: ConvType, client: IMClient) {
+    init(ID: String, rawData: RawData, convType: ConvType, client: IMClient, caching: Bool) {
         self.ID = ID
         self.client = client
         self.rawData = rawData
-        self.lock = client.lock
         self.clientID = client.ID
-        self.lcType = lcType
+        self.convType = convType
         self.isUnique = (rawData[Key.unique.rawValue] as? Bool) ?? false
         self.uniqueID = (rawData[Key.uniqueId.rawValue] as? String)
-        if let message = self.decodingLastMessage(from: rawData) {
-            self.safeUpdatingLastMessage(newMessage: message, client: client)
+        if let message = self.decodingLastMessage(data: rawData) {
+            self.safeUpdatingLastMessage(newMessage: message, client: client, caching: caching, notifying: false)
+        }
+        if caching {
+            client.localStorage?.insertOrReplace(conversationID: ID, rawData: rawData, convType: convType)
         }
     }
     
     private(set) var rawData: RawData
     
-    let lock: NSLock
+    let lock: NSLock = NSLock()
     
     var notTransientConversation: Bool {
-        return self.lcType != .transient
+        return self.convType != .transient
     }
     
     var notServiceConversation: Bool {
-        return self.lcType != .system
+        return self.convType != .system
     }
     
     var notTemporaryConversation: Bool {
-        return self.lcType != .temporary
+        return self.convType != .temporary
     }
     
     /* Due to IMTemporaryConversation should override these functions, so they can't define in extension. */
@@ -842,6 +843,13 @@ extension IMConversation {
             mentionedMembers: (patchItem.mentionPids.count > 0 ? patchItem.mentionPids : nil)
         )
         self.safeUpdatingLastMessage(newMessage: patchedMessage, client: client)
+        if let localStorage = client.localStorage {
+            do {
+                try localStorage.updateOrIgnore(message: patchedMessage)
+            } catch {
+                Logger.shared.error(error)
+            }
+        }
         var reason: IMMessage.PatchedReason? = nil
         if patchItem.hasPatchCode || patchItem.hasPatchReason {
             reason = IMMessage.PatchedReason(
@@ -970,6 +978,22 @@ extension IMConversation {
                 return .new
             }
         }
+        
+        internal var SQLOrder: String {
+            switch self {
+            case .newToOld:
+                return "desc"
+            case .oldToNew:
+                return "asc"
+            }
+        }
+    }
+    
+    public enum MessageQueryPolicy {
+        case `default`
+        case onlyNetwork
+        case onlyCache
+        case cacheThenNetwork
     }
     
     /// Message Query.
@@ -977,127 +1001,254 @@ extension IMConversation {
     /// - Parameters:
     ///   - start: start endpoint, @see `MessageQueryEndpoint`.
     ///   - end: end endpoint, @see `MessageQueryEndpoint`.
-    ///   - direction: @see `MessageQueryDirection`.
-    ///   - limit: The limit of the query result, should in range `limitRangeOfMessageQuery`.
-    ///   - type: @see `IMMessageCategorizing.MessageType`.
+    ///   - direction: @see `MessageQueryDirection`. default is `MessageQueryDirection.newToOld`.
+    ///   - limit: The limit of the query result, should in range `limitRangeOfMessageQuery`. default is 20.
+    ///   - type: @see `IMMessageCategorizing.MessageType`. if this parameter did set, `policy` will always be `.onlyNetwork`.
+    ///   - policy: @see `IMConversation.MessageQueryPolicy`. if `client.options` contains `.usingLocalStorage`, then default is `.cacheThenNetwork`, else default is `.onlyNetwork`.
     ///   - completion: callback.
     public func queryMessage(
         start: MessageQueryEndpoint? = nil,
         end: MessageQueryEndpoint? = nil,
         direction: MessageQueryDirection? = nil,
-        limit: Int? = nil,
+        limit: Int = 20,
         type: IMMessageCategorizing.MessageType? = nil,
+        policy: MessageQueryPolicy = .default,
         completion: @escaping (LCGenericResult<[IMMessage]>) -> Void)
         throws
     {
-        if let limit: Int = limit {
-            guard IMConversation.limitRangeOfMessageQuery.contains(limit) else {
-                throw LCError(
-                    code: .inconsistency,
-                    reason: "limit should in range \(IMConversation.limitRangeOfMessageQuery)"
-                )
+        guard IMConversation.limitRangeOfMessageQuery.contains(limit) else {
+            throw LCError(
+                code: .inconsistency,
+                reason: "limit should in range \(IMConversation.limitRangeOfMessageQuery)"
+            )
+        }
+        var underlyingPolicy: MessageQueryPolicy = policy
+        if let _ = type {
+            underlyingPolicy = .onlyNetwork
+        } else {
+            if underlyingPolicy == .default {
+                if let client = self.client, client.options.contains(.usingLocalStorage) {
+                    underlyingPolicy = .cacheThenNetwork
+                } else {
+                    underlyingPolicy = .onlyNetwork
+                }
             }
         }
+        switch underlyingPolicy {
+        case .default:
+            fatalError("never happen")
+        case .onlyNetwork:
+            self.queryMessageOnlyNetwork(
+                start: start,
+                end: end,
+                direction: direction,
+                limit: limit,
+                type: type)
+            { (client, result) in
+                assert(client.specificAssertion)
+                client.eventQueue.async {
+                    completion(result)
+                }
+            }
+        case .onlyCache:
+            guard let localStorage = self.client?.localStorage else {
+                throw LCError.clientLocalStorageNotFound
+            }
+            self.queryMessageOnlyCache(
+                localStorage: localStorage,
+                start: start,
+                end: end,
+                direction: direction,
+                limit: limit)
+            { (client, result, _) in
+                assert(client.specificAssertion)
+                client.eventQueue.async {
+                    completion(result)
+                }
+            }
+        case .cacheThenNetwork:
+            guard let localStorage = self.client?.localStorage else {
+                throw LCError.clientLocalStorageNotFound
+            }
+            self.queryMessageOnlyCache(
+                localStorage: localStorage,
+                start: start,
+                end: end,
+                direction: direction,
+                limit: limit)
+            { (client, result, hasBreakpointInTheInterval) in
+                var shouldUseNetwork: Bool = (hasBreakpointInTheInterval || result.isFailure)
+                if !shouldUseNetwork, let value = result.value {
+                    shouldUseNetwork = (value.count != limit)
+                }
+                if shouldUseNetwork {
+                    self.queryMessageOnlyNetwork(
+                        start: start,
+                        end: end,
+                        direction: direction,
+                        limit: limit,
+                        type: nil)
+                    { (client, result) in
+                        client.eventQueue.async {
+                            completion(result)
+                        }
+                    }
+                } else {
+                    client.eventQueue.async {
+                        completion(result)
+                    }
+                }
+            }
+        }
+    }
+    
+    private func queryMessageOnlyNetwork(
+        start: MessageQueryEndpoint?,
+        end: MessageQueryEndpoint?,
+        direction: MessageQueryDirection?,
+        limit: Int?,
+        type: IMMessageCategorizing.MessageType?,
+        completion: @escaping (IMClient, LCGenericResult<[IMMessage]>) -> Void)
+    {
         self.client?.sendCommand(constructor: { () -> IMGenericCommand in
-            var outCommand = IMGenericCommand()
-            outCommand.cmd = .logs
-            var logCommand = IMLogsCommand()
-            logCommand.cid = self.ID
-            if let endpoint = start {
-                if let mid = endpoint.messageID {
-                    logCommand.mid = mid
-                }
-                if let t = endpoint.sentTimestamp {
-                    logCommand.t = t
-                }
-                if let tIncluded = endpoint.isClosed {
-                    logCommand.tIncluded = tIncluded
-                }
-            }
-            if let endpoint = end {
-                if let tmid = endpoint.messageID {
-                    logCommand.tmid = tmid
-                }
-                if let tt = endpoint.sentTimestamp {
-                    logCommand.tt = tt
-                }
-                if let ttIncluded = endpoint.isClosed {
-                    logCommand.ttIncluded = ttIncluded
-                }
-            }
-            if let direction = direction {
-                logCommand.direction = direction.protobufEnum
-            }
-            if let limit = limit {
-                logCommand.limit = Int32(limit)
-            }
-            if let type = type {
-                logCommand.lctype = Int32(type)
-            }
-            outCommand.logsMessage = logCommand
-            return outCommand
+            return self.messageQueryCommand(
+                start: start,
+                end: end,
+                direction: direction,
+                limit: limit,
+                type: type
+            )
         }, completion: { (client, result) in
             switch result {
             case .inCommand(let inCommand):
                 assert(client.specificAssertion)
-                if inCommand.hasLogsMessage {
-                    var messages: [IMMessage] = []
-                    for item in inCommand.logsMessage.logs {
-                        guard
-                            let messageID = (item.hasMsgID ? item.msgID : nil),
-                            let timestamp = (item.hasTimestamp ? item.timestamp : nil)
-                            else
-                        { continue }
-                        var content: IMMessage.Content? = nil
-                        if item.hasData {
-                            /*
-                             For Compatibility,
-                             Should check `binaryMsg` at first.
-                             Then check `msg`.
-                             */
-                            if item.hasBin {
-                                /* should use base64 for decoding stored binary data string */
-                                if let decodedData = Data(base64Encoded: item.data) {                                
-                                    content = .data(decodedData)
-                                }
-                            } else {
-                                content = .string(item.data)
-                            }
-                        }
-                        let message = IMMessage.instance(
-                            isTransient: false,
-                            conversationID: self.ID,
-                            currentClientID: client.ID,
-                            fromClientID: (item.hasFrom ? item.from : nil),
-                            timestamp: timestamp,
-                            patchedTimestamp: (item.hasPatchTimestamp ? item.patchTimestamp : nil),
-                            messageID: messageID,
-                            content: content,
-                            isAllMembersMentioned: (item.hasMentionAll ? item.mentionAll : nil),
-                            mentionedMembers: (item.mentionPids.isEmpty ? nil : item.mentionPids)
-                        )
-                        message.deliveredTimestamp = (item.hasAckAt ? item.ackAt : nil)
-                        message.readTimestamp = (item.hasReadAt ? item.readAt : nil)
-                        messages.append(message)
+                do {
+                    let messages = try self.handleMessageQueryResult(command: inCommand, client: client)
+                    if let localStorage = client.localStorage {
+                        localStorage.insertOrReplace(messages: messages)
                     }
-                    if let newestMessage = messages.last {
-                        self.safeUpdatingLastMessage(newMessage: newestMessage, client: client)
-                    }
-                    client.eventQueue.async {
-                        completion(.success(value: messages))
-                    }
-                } else {
-                    client.eventQueue.async {
-                        let error = LCError(code: .commandInvalid)
-                        completion(.failure(error: error))
-                    }
+                    completion(client, .success(value: messages))
+                } catch {
+                    completion(client, .failure(error: LCError(error: error)))
                 }
             case .error(let error):
-                client.eventQueue.async {
-                    completion(.failure(error: error))
-                }
+                completion(client, .failure(error: error))
             }
         })
+    }
+    
+    private func queryMessageOnlyCache(
+        localStorage: IMLocalStorage,
+        start: MessageQueryEndpoint?,
+        end: MessageQueryEndpoint?,
+        direction: MessageQueryDirection?,
+        limit: Int,
+        completion: @escaping (IMClient, LCGenericResult<[IMMessage]>, Bool) -> Void)
+    {
+        localStorage.selectMessages(
+            conversationID: self.ID,
+            start: start,
+            end: end,
+            direction: direction,
+            limit: limit,
+            completion: completion
+        )
+    }
+    
+    private func messageQueryCommand(
+        start: MessageQueryEndpoint?,
+        end: MessageQueryEndpoint?,
+        direction: MessageQueryDirection?,
+        limit: Int?,
+        type: IMMessageCategorizing.MessageType?)
+        -> IMGenericCommand
+    {
+        var outCommand = IMGenericCommand()
+        outCommand.cmd = .logs
+        var logCommand = IMLogsCommand()
+        logCommand.cid = self.ID
+        if let endpoint = start {
+            if let mid = endpoint.messageID {
+                logCommand.mid = mid
+            }
+            if let t = endpoint.sentTimestamp {
+                logCommand.t = t
+            }
+            if let tIncluded = endpoint.isClosed {
+                logCommand.tIncluded = tIncluded
+            }
+        }
+        if let endpoint = end {
+            if let tmid = endpoint.messageID {
+                logCommand.tmid = tmid
+            }
+            if let tt = endpoint.sentTimestamp {
+                logCommand.tt = tt
+            }
+            if let ttIncluded = endpoint.isClosed {
+                logCommand.ttIncluded = ttIncluded
+            }
+        }
+        if let direction = direction {
+            logCommand.direction = direction.protobufEnum
+        }
+        if let limit = limit {
+            logCommand.limit = Int32(limit)
+        }
+        if let type = type {
+            logCommand.lctype = Int32(type)
+        }
+        outCommand.logsMessage = logCommand
+        return outCommand
+    }
+    
+    private func handleMessageQueryResult(command: IMGenericCommand, client: IMClient) throws -> [IMMessage] {
+        guard command.hasLogsMessage else {
+            throw LCError(code: .commandInvalid)
+        }
+        var messages: [IMMessage] = []
+        for item in command.logsMessage.logs {
+            guard
+                let messageID = (item.hasMsgID ? item.msgID : nil),
+                let timestamp = (item.hasTimestamp ? item.timestamp : nil)
+                else
+            { continue }
+            var content: IMMessage.Content? = nil
+            if item.hasData {
+                /*
+                 For Compatibility,
+                 Should check `binaryMsg` at first.
+                 Then check `msg`.
+                 */
+                if item.hasBin {
+                    /* should use base64 for decoding stored binary data string */
+                    if let decodedData = Data(base64Encoded: item.data) {
+                        content = .data(decodedData)
+                    }
+                } else {
+                    content = .string(item.data)
+                }
+            }
+            let message = IMMessage.instance(
+                isTransient: false,
+                conversationID: self.ID,
+                currentClientID: client.ID,
+                fromClientID: (item.hasFrom ? item.from : nil),
+                timestamp: timestamp,
+                patchedTimestamp: (item.hasPatchTimestamp ? item.patchTimestamp : nil),
+                messageID: messageID,
+                content: content,
+                isAllMembersMentioned: (item.hasMentionAll ? item.mentionAll : nil),
+                mentionedMembers: (item.mentionPids.isEmpty ? nil : item.mentionPids)
+            )
+            message.deliveredTimestamp = (item.hasAckAt ? item.ackAt : nil)
+            message.readTimestamp = (item.hasReadAt ? item.readAt : nil)
+            messages.append(message)
+        }
+        if let newestMessage = messages.last {
+            self.safeUpdatingLastMessage(newMessage: newestMessage, client: client)
+        }
+        return messages
     }
     
 }
@@ -1227,7 +1378,11 @@ extension IMConversation {
                 assert(client.specificAssertion)
                 if inCommand.hasConvMessage {
                     let convMessage = inCommand.convMessage
-                    self.safeUpdateMutedMembers(op: op, udate: (convMessage.hasUdate ? convMessage.udate : nil))
+                    self.safeUpdateMutedMembers(
+                        op: op,
+                        udate: (convMessage.hasUdate ? convMessage.udate : nil),
+                        client: client
+                    )
                     client.eventQueue.async {
                         completion(.success)
                     }
@@ -1251,123 +1406,24 @@ extension IMConversation {
 
 internal extension IMConversation {
     
-    enum RawDataChangeOperation {
-        case rawDataMerging(data: RawData)
-        case rawDataReplaced(by: RawData)
-        case append(members: [String], udate: String?)
-        case remove(members: [String], udate: String?)
-        case updated(attr: [String: Any], attrModified: [String: Any], udate: String?)
+    private func rawDataChangeOperationMerging(data: RawData, client: IMClient) {
+        var rawData: RawData?
+        sync {
+            self.rawData.merge(data) { (_, new) in new }
+            rawData = self.rawData
+        }
+        self.tryUpdateLocalStorageData(client: client, rawData: rawData)
     }
     
-    private class KeyAndDictionary {
-        let key: String
-        var dictionary: [String: Any]
-        init(key: String, dictionary: [String: Any]) {
-            self.key = key
-            self.dictionary = dictionary
+    private func rawDataChangeOperationReplaced(data: RawData, client: IMClient) {
+        sync {
+            self.rawData = data
+            self.underlyingOutdated = false
         }
-    }
-    
-    func safeChangingRawData(operation: RawDataChangeOperation, client: IMClient) {
-        assert(client.specificAssertion)
-        switch operation {
-        case .rawDataMerging(data: let data):
-            sync(self.rawData = self.rawData.merging(data) { (_, new) in new })
-        case .rawDataReplaced(by: let data):
-            sync(self.rawData = data)
-            if let message = self.decodingLastMessage(from: data) {
-                self.safeUpdatingLastMessage(newMessage: message, client: client)
-            }
-            self.isOutdated = false
-        case .append(members: let joinedMembers, udate: let udate):
-            guard self.needUpdateMembers(members: joinedMembers, updatedDateString: udate) else {
-                break
-            }
-            let newMembers: [String]
-            if var originMembers: [String] = self.members {
-                for member in joinedMembers {
-                    if !originMembers.contains(member) {
-                        originMembers.append(member)
-                    }
-                }
-                newMembers = originMembers
-            } else {
-                newMembers = joinedMembers
-            }
-            self.safeUpdatingRawData(key: .members, value: newMembers)
-            if let udateString: String = udate {
-                self.safeUpdatingRawData(key: .updatedAt, value: udateString)
-            }
-        case .remove(members: let leftMembers, udate: let udate):
-            guard self.needUpdateMembers(members: leftMembers, updatedDateString: udate) else {
-                break
-            }
-            if leftMembers.contains(self.clientID) {
-                self.isOutdated = true
-            }
-            if var originMembers: [String] = self.members {
-                for member in leftMembers {
-                    if let index = originMembers.firstIndex(of: member) {
-                        originMembers.remove(at: index)
-                    }
-                }
-                self.safeUpdatingRawData(key: .members, value: originMembers)
-            }
-            if let udateString: String = udate {
-                self.safeUpdatingRawData(key: .updatedAt, value: udateString)
-            }
-        case .updated(attr: let attr, attrModified: let attrModified, let udate):
-            guard
-                let udateString: String = udate,
-                let newUpdatedDate: Date = LCDate.dateFromString(udateString),
-                let originUpdateDate = self.updatedAt,
-                newUpdatedDate > originUpdateDate
-                else
-            {
-                return
-            }
-            var rawDataCopy: RawData! = nil
-            sync(rawDataCopy = self.rawData)
-            for keyPath in attr.keys {
-                var stack: [KeyAndDictionary] = []
-                var modifiedValue: Any? = nil
-                for key in keyPath.components(separatedBy: ".") {
-                    if stack.isEmpty {
-                        stack.insert(KeyAndDictionary(
-                            key: key,
-                            dictionary: rawDataCopy
-                        ), at: 0)
-                        modifiedValue = attrModified[key]
-                    } else {
-                        let first: KeyAndDictionary = stack[0]
-                        stack.insert(KeyAndDictionary(
-                            key: key,
-                            dictionary: (first.dictionary[first.key] as? [String: Any]) ?? [:]
-                        ), at: 0)
-                        if let modifiedDic = modifiedValue as? [String: Any] {
-                            modifiedValue = modifiedDic[key]
-                        }
-                    }
-                }
-                for (index, item) in stack.enumerated() {
-                    if index == 0 {
-                        if let value = modifiedValue {
-                            item.dictionary[item.key] = value
-                        } else {
-                            item.dictionary.removeValue(forKey: item.key)
-                        }
-                    } else {
-                        let leafItem = stack[index - 1]
-                        item.dictionary[item.key] = leafItem.dictionary
-                    }
-                }
-                if let newRawData = stack.last?.dictionary {
-                    rawDataCopy = newRawData
-                }
-            }
-            rawDataCopy[Key.updatedAt.rawValue] = udateString
-            sync(self.rawData = rawDataCopy)
+        if let message = self.decodingLastMessage(data: data) {
+            self.safeUpdatingLastMessage(newMessage: message, client: client)
         }
+        client.localStorage?.insertOrReplace(conversationID: self.ID, rawData: data, convType: self.convType)
     }
     
     private func needUpdateMembers(members: [String], updatedDateString: String?) -> Bool {
@@ -1393,7 +1449,149 @@ internal extension IMConversation {
         }
     }
     
-    private func safeUpdateMutedMembers(op: IMOpType, udate: String?) {
+    private func rawDataChangeOperationAppend(members joinedMembers: [String], udate: String?, client: IMClient) {
+        guard self.needUpdateMembers(members: joinedMembers, updatedDateString: udate) else {
+            return
+        }
+        let newMembers: [String]
+        if var originMembers: [String] = self.members {
+            for member in joinedMembers {
+                if !originMembers.contains(member) {
+                    originMembers.append(member)
+                }
+            }
+            newMembers = originMembers
+        } else {
+            newMembers = joinedMembers
+        }
+        self.safeUpdatingRawData(key: .members, value: newMembers)
+        if let udateString: String = udate {
+            self.safeUpdatingRawData(key: .updatedAt, value: udateString)
+        }
+        if let _ = client.localStorage {
+            var rawData: RawData?
+            sync(rawData = self.rawData)
+            self.tryUpdateLocalStorageData(client: client, rawData: rawData)
+        }
+    }
+    
+    private func rawDataChangeOperationRemove(members leftMembers: [String], udate: String?, client: IMClient) {
+        guard self.needUpdateMembers(members: leftMembers, updatedDateString: udate) else {
+            return
+        }
+        if leftMembers.contains(self.clientID) {
+            self.isOutdated = true
+        }
+        if var originMembers: [String] = self.members {
+            for member in leftMembers {
+                if let index = originMembers.firstIndex(of: member) {
+                    originMembers.remove(at: index)
+                }
+            }
+            self.safeUpdatingRawData(key: .members, value: originMembers)
+        }
+        if let udateString: String = udate {
+            self.safeUpdatingRawData(key: .updatedAt, value: udateString)
+        }
+        if let _ = client.localStorage {
+            var rawData: RawData?
+            var outdated: Bool?
+            sync {
+                rawData = self.rawData
+                outdated = self.underlyingOutdated
+            }
+            self.tryUpdateLocalStorageData(client: client, rawData: rawData, outdated: outdated)
+        }
+    }
+    
+    private class KeyAndDictionary {
+        let key: String
+        var dictionary: [String: Any]
+        init(key: String, dictionary: [String: Any]) {
+            self.key = key
+            self.dictionary = dictionary
+        }
+    }
+    
+    private func rawDataChangeOperationUpdated(attr: [String: Any], attrModified: [String: Any], udate: String?, client: IMClient) {
+        guard
+            let udateString: String = udate,
+            let newUpdatedDate: Date = LCDate.dateFromString(udateString),
+            let originUpdateDate = self.updatedAt,
+            newUpdatedDate > originUpdateDate
+            else
+        {
+            return
+        }
+        var rawDataCopy: RawData! = nil
+        sync(rawDataCopy = self.rawData)
+        for keyPath in attr.keys {
+            var stack: [KeyAndDictionary] = []
+            var modifiedValue: Any? = nil
+            for key in keyPath.components(separatedBy: ".") {
+                if stack.isEmpty {
+                    stack.insert(KeyAndDictionary(
+                        key: key,
+                        dictionary: rawDataCopy
+                    ), at: 0)
+                    modifiedValue = attrModified[key]
+                } else {
+                    let first: KeyAndDictionary = stack[0]
+                    stack.insert(KeyAndDictionary(
+                        key: key,
+                        dictionary: (first.dictionary[first.key] as? [String: Any]) ?? [:]
+                    ), at: 0)
+                    if let modifiedDic = modifiedValue as? [String: Any] {
+                        modifiedValue = modifiedDic[key]
+                    }
+                }
+            }
+            for (index, item) in stack.enumerated() {
+                if index == 0 {
+                    if let value = modifiedValue {
+                        item.dictionary[item.key] = value
+                    } else {
+                        item.dictionary.removeValue(forKey: item.key)
+                    }
+                } else {
+                    let leafItem = stack[index - 1]
+                    item.dictionary[item.key] = leafItem.dictionary
+                }
+            }
+            if let newRawData = stack.last?.dictionary {
+                rawDataCopy = newRawData
+            }
+        }
+        rawDataCopy[Key.updatedAt.rawValue] = udateString
+        sync(self.rawData = rawDataCopy)
+        self.tryUpdateLocalStorageData(client: client, rawData: rawDataCopy)
+    }
+    
+    enum RawDataChangeOperation {
+        case rawDataMerging(data: RawData)
+        case rawDataReplaced(by: RawData)
+        case append(members: [String], udate: String?)
+        case remove(members: [String], udate: String?)
+        case updated(attr: [String: Any], attrModified: [String: Any], udate: String?)
+    }
+    
+    func safeChangingRawData(operation: RawDataChangeOperation, client: IMClient) {
+        assert(client.specificAssertion)
+        switch operation {
+        case let .rawDataMerging(data: data):
+            self.rawDataChangeOperationMerging(data: data, client: client)
+        case let .rawDataReplaced(by: data):
+            self.rawDataChangeOperationReplaced(data: data, client: client)
+        case let .append(members: joinedMembers, udate: udate):
+            self.rawDataChangeOperationAppend(members: joinedMembers, udate: udate, client: client)
+        case let .remove(members: leftMembers, udate: udate):
+            self.rawDataChangeOperationRemove(members: leftMembers, udate: udate, client: client)
+        case let .updated(attr: attr, attrModified: attrModified, udate):
+            self.rawDataChangeOperationUpdated(attr: attr, attrModified: attrModified, udate: udate, client: client)
+        }
+    }
+    
+    private func safeUpdateMutedMembers(op: IMOpType, udate: String?, client: IMClient) {
         guard
             self.notTransientConversation,
             let udateString: String = udate
@@ -1423,47 +1621,56 @@ internal extension IMConversation {
         default:
             return
         }
-        self.safeUpdatingRawData(key: key, value: newMutedMembers)
-        self.safeUpdatingRawData(key: .updatedAt, value: udateString)
+        var rawData: RawData?
+        sync {
+            self.updatingRawData(key: key, value: newMutedMembers)
+            self.updatingRawData(key: .updatedAt, value: udateString)
+            rawData = self.rawData
+        }
+        self.tryUpdateLocalStorageData(client: client, rawData: rawData)
     }
     
     @discardableResult
-    func safeUpdatingLastMessage(newMessage: IMMessage, client: IMClient) -> Bool {
-        assert(client.specificAssertion)
+    func safeUpdatingLastMessage(
+        newMessage: IMMessage,
+        client: IMClient,
+        caching: Bool = true,
+        notifying: Bool = true)
+        -> Bool
+    {
         var isUnreadMessageIncreased: Bool = false
         guard
             newMessage.notTransientMessage,
             newMessage.notWillMessage,
             self.notTransientConversation
             else
-        { return isUnreadMessageIncreased }
-        var messageEvent: IMConversationEvent?
-        let updatingLastMessageClosure: (Bool) -> Void = { oldMessageReplacedByAnother in
+        {
+            return isUnreadMessageIncreased
+        }
+        var messageEvent: IMConversationEvent? = nil
+        let updatingLastMessageClosure: (Bool) -> Void = { shouldIncreased in
             self.lastMessage = newMessage
-            messageEvent = .lastMessageUpdated
-            if oldMessageReplacedByAnother && newMessage.ioType == .in {
+            if caching, self.notTemporaryConversation {
+                client.localStorage?.insertOrReplace(conversationID: self.ID, lastMessage: newMessage)
+            }
+            if notifying {
+                messageEvent = .lastMessageUpdated
+            }
+            if shouldIncreased && newMessage.ioType == .in {
                 isUnreadMessageIncreased = true
             }
         }
-        if let oldMessage = self.lastMessage,
-            let newTimestamp: Int64 = newMessage.sentTimestamp,
-            let oldTimestamp: Int64 = oldMessage.sentTimestamp,
-            let newMessageID: String = newMessage.ID,
-            let oldMessageID: String = oldMessage.ID {
-            if newTimestamp > oldTimestamp {
-                updatingLastMessageClosure(true)
-            } else if newTimestamp == oldTimestamp {
-                let messageIDCompareResult: ComparisonResult = newMessageID.compare(oldMessageID)
-                if messageIDCompareResult == .orderedDescending {
+        if let oldMessage = self.lastMessage {
+            if let newTimestamp: Int64 = newMessage.sentTimestamp,
+                let newMessageID: String = newMessage.ID,
+                let oldTimestamp: Int64 = oldMessage.sentTimestamp,
+                let oldMessageID: String = oldMessage.ID {
+                if newTimestamp > oldTimestamp {
                     updatingLastMessageClosure(true)
-                } else if messageIDCompareResult == .orderedSame {
-                    let newPatchTimestamp: Int64? = newMessage.patchedTimestamp
-                    let oldPatchTimestamp: Int64? = oldMessage.patchedTimestamp
-                    if let newValue: Int64 = newPatchTimestamp,
-                        let oldValue: Int64 = oldPatchTimestamp,
-                        newValue > oldValue {
-                        updatingLastMessageClosure(false)
-                    } else if let _ = newPatchTimestamp, oldPatchTimestamp == nil {
+                } else if newTimestamp == oldTimestamp {
+                    if newMessageID > oldMessageID {
+                        updatingLastMessageClosure(true)
+                    } else if newMessageID == oldMessageID {
                         updatingLastMessageClosure(false)
                     }
                 }
@@ -1479,11 +1686,11 @@ internal extension IMConversation {
         return isUnreadMessageIncreased
     }
     
-    private func decodingLastMessage(from data: RawData) -> IMMessage? {
+    private func decodingLastMessage(data: RawData) -> IMMessage? {
         guard
             self.notTransientConversation,
-            let timestamp: Int64 = self.decoding(key: .lastMessageTimestamp, from: data),
-            let messageID: String = self.decoding(key: .lastMessageId, from: data)
+            let timestamp: Int64 = IMConversation.decoding(key: .lastMessageTimestamp, from: data),
+            let messageID: String = IMConversation.decoding(key: .lastMessageId, from: data)
             else
         {
             return nil
@@ -1494,24 +1701,50 @@ internal extension IMConversation {
          Should check `lastMessageBinary` at first.
          Then check `lastMessageString`.
          */
-        if let data: Data = self.decoding(key: .lastMessageBinary, from: data) {
+        if let data: Data = IMConversation.decoding(key: .lastMessageBinary, from: data) {
             content = .data(data)
-        } else if let string: String = self.decoding(key: .lastMessageString, from: data) {
+        } else if let string: String = IMConversation.decoding(key: .lastMessageString, from: data) {
             content = .string(string)
         }
         let message = IMMessage.instance(
             isTransient: false,
             conversationID: self.ID,
             currentClientID: self.clientID,
-            fromClientID: self.decoding(key: .lastMessageFrom, from: data),
+            fromClientID: IMConversation.decoding(key: .lastMessageFrom, from: data),
             timestamp: timestamp,
-            patchedTimestamp: self.decoding(key: .lastMessagePatchTimestamp, from: data),
+            patchedTimestamp: IMConversation.decoding(key: .lastMessagePatchTimestamp, from: data),
             messageID: messageID,
             content: content,
-            isAllMembersMentioned: self.decoding(key: .lastMessageMentionAll, from: data),
-            mentionedMembers: self.decoding(key: .lastMessageMentionPids, from: data)
+            isAllMembersMentioned: IMConversation.decoding(key: .lastMessageMentionAll, from: data),
+            mentionedMembers: IMConversation.decoding(key: .lastMessageMentionPids, from: data)
         )
         return message
+    }
+    
+    func tryUpdateLocalStorageData(client: IMClient, rawData: RawData? = nil, outdated: Bool? = nil) {
+        guard let localStorage = client.localStorage else {
+            return
+        }
+        var sets: [IMLocalStorage.Table.Conversation] = []
+        if let rawData = rawData {
+            do {
+                let data = try JSONSerialization.data(withJSONObject: rawData)
+                sets.append(.rawData(data))
+                if
+                    let updatedAt: String = IMConversation.decoding(key: .updatedAt, from: rawData),
+                    let date: Date = LCDate.dateFromString(updatedAt)
+                {
+                    let updatedTimestamp = Int64(date.timeIntervalSince1970 * 1000.0)
+                    sets.append(.updatedTimestamp(updatedTimestamp))
+                }
+            } catch {
+                Logger.shared.error(error)
+            }
+        }
+        if let outdated = outdated {
+            sets.append(.outdated(outdated))
+        }
+        localStorage.updateOrIgnore(conversationID: self.ID, sets: sets)
     }
     
 }
@@ -1535,14 +1768,14 @@ private extension IMConversation {
     }
     
     func decodingRawData<T>(with string: String) -> T? {
-        return self.decoding(string: string, from: self.rawData)
+        return IMConversation.decoding(string: string, from: self.rawData)
     }
     
-    func decoding<T>(key: Key, from data: RawData) -> T? {
-        return self.decoding(string: key.rawValue, from: data)
+    static func decoding<T>(key: Key, from data: RawData) -> T? {
+        return IMConversation.decoding(string: key.rawValue, from: data)
     }
     
-    func decoding<T>(string: String, from data: RawData) -> T? {
+    static func decoding<T>(string: String, from data: RawData) -> T? {
         return data[string] as? T
     }
     
