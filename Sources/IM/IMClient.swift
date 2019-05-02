@@ -211,6 +211,7 @@ public class IMClient {
                     file: .database
                 )
                 self.localStorage = IMLocalStorage(url: databaseURL)
+                Logger.shared.verbose("\(IMClient.self)<ID: \"\(ID)\"> initialize database<URL: \"\(databaseURL)\"> success.")
             }
         }
         
@@ -821,11 +822,20 @@ extension IMClient {
     ///
     /// - Parameters:
     ///   - IDs: The set of the conversation ID.
+    ///   - all: If this parameter set to `true`, then will remove all conversation instance from memory cache.
     ///   - completion: callback.
-    public func removeCachedConversation(IDs: Set<String>, completion: @escaping (LCBooleanResult) -> Void) {
+    public func removeCachedConversation(
+        IDs: Set<String>? = nil,
+        all: Bool? = nil,
+        completion: @escaping (LCBooleanResult) -> Void)
+    {
         self.serialQueue.async {
-            for key in IDs {
-                self.convCollection.removeValue(forKey: key)
+            if let all = all, all {
+                self.convCollection.removeAll()
+            } else if let IDs = IDs {
+                for key in IDs {
+                    self.convCollection.removeValue(forKey: key)
+                }
             }
             self.eventQueue.async {
                 completion(.success)
@@ -925,86 +935,6 @@ extension IMClient {
         }
     }
     
-    @discardableResult
-    private func handleStoredConversation(result: FMResultSet, needResult: Bool = false) -> [IMConversation] {
-        assert(self.specificAssertion)
-        let convKey = IMLocalStorage.Table.Conversation.CodingKeys.self
-        var conversations: [IMConversation] = []
-        while result.next() {
-            guard
-                let conversationID: String = result.string(forColumn: convKey.id.rawValue),
-                let jsonData: Data = result.data(forColumn: convKey.raw_data.rawValue)
-                else
-            {
-                continue
-            }
-            do {
-                if let rawData = try JSONSerialization.jsonObject(with: jsonData) as? IMConversation.RawData {
-                    let outdated: Bool = result.bool(forColumn: convKey.outdated.rawValue)
-                    let conversation = IMConversation.instance(ID: conversationID, rawData: rawData, client: self, caching: false)
-                    conversation.isOutdated = outdated
-                    if needResult {
-                        conversations.append(conversation)
-                    }
-                    self.convCollection[conversationID] = conversation
-                }
-            } catch {
-                Logger.shared.error(error)
-            }
-        }
-        return conversations
-    }
-    
-    @discardableResult
-    private func handleStoredLastMessage(result: FMResultSet, needResult: Bool = false) -> [IMConversation] {
-        assert(self.specificAssertion)
-        let lastMsgKey = IMLocalStorage.Table.LastMessage.CodingKeys.self
-        var conversations: [IMConversation] = []
-        while result.next() {
-            guard let data: Data = result.data(forColumn: lastMsgKey.raw_data.rawValue) else {
-                continue
-            }
-            do {
-                let table = try JSONDecoder().decode(IMLocalStorage.Table.Message.self, from: data)
-                if let conversation = self.convCollection[table.conversationID] {
-                    var content: IMMessage.Content?
-                    if let tableContent = table.content {
-                        if table.binary, let data = tableContent.data(using: .utf8) {
-                            content = .data(data)
-                        } else {
-                            content = .string(tableContent)
-                        }
-                    }
-                    var mentionedMembers: [String]?
-                    if let mentionedList = table.mentionedList, let data = mentionedList.data(using: .utf8) {
-                        mentionedMembers = try JSONSerialization.jsonObject(with: data) as? [String]
-                    }
-                    let message = IMMessage.instance(
-                        isTransient: false,
-                        conversationID: table.conversationID,
-                        currentClientID: self.ID,
-                        fromClientID: table.fromPeerID,
-                        timestamp: table.sentTimestamp,
-                        patchedTimestamp: table.patchedTimestamp,
-                        messageID: table.messageID,
-                        content: content,
-                        isAllMembersMentioned: table.allMentioned,
-                        mentionedMembers: mentionedMembers
-                    )
-                    message.deliveredTimestamp = table.deliveredTimestamp
-                    message.readTimestamp = table.readTimestamp
-                    conversation.safeUpdatingLastMessage(newMessage: message, client: self, caching: false)
-                    if needResult {
-                        conversations.append(conversation)
-                    }
-                }
-            } catch {
-                Logger.shared.error(error)
-            }
-        }
-        return conversations
-    }
-    
     public func getAndLoadStoredConversations(
         IDs: Set<String>? = nil,
         order: IMClient.StoredConversationOrder = .lastMessageSentTimestamp(descending: true),
@@ -1014,35 +944,13 @@ extension IMClient {
         guard let localStorage = self.localStorage else {
             throw LCError.clientLocalStorageNotFound
         }
-        guard self.convCollection.isEmpty else {
-            throw LCError(code: .inconsistency, reason: "conversation instance container is not empty.")
-        }
-        localStorage.selectConversations(order: order, IDSet: IDs) { [weak self] (result) in
-            guard let client = self else {
-                return
-            }
+        localStorage.selectConversations(order: order, IDSet: IDs) { (client, result) in
             assert(client.specificAssertion)
             switch result {
             case .success(value: let tuple):
-                let conversationResult = tuple.conversationResult
-                let lastMessageResult = tuple.lastMessageResult
-                let conversations: [IMConversation]
-                switch order {
-                case .createdTimestamp, .updatedTimestamp:
-                    conversations = client.handleStoredConversation(
-                        result: conversationResult,
-                        needResult: true
-                    )
-                    client.handleStoredLastMessage(result: lastMessageResult)
-                case .lastMessageSentTimestamp:
-                    client.handleStoredConversation(result: conversationResult)
-                    conversations = client.handleStoredLastMessage(
-                        result: lastMessageResult,
-                        needResult: true
-                    )
-                }
+                client.convCollection.merge(tuple.conversationMap) { (old, new) in old }
                 client.eventQueue.async {
-                    completion(.success(value: conversations))
+                    completion(.success(value: tuple.conversations))
                 }
             case .failure(error: let error):
                 client.eventQueue.async {
@@ -1730,7 +1638,7 @@ extension IMClient {
                     mentionedMembers: (command.mentionPids.isEmpty ? nil : command.mentionPids)
                 )
                 var unreadEvent: IMConversationEvent?
-                let isUnreadMessageIncreased: Bool = conversation.safeUpdatingLastMessage(newMessage: message, client: client, caching: true)
+                let isUnreadMessageIncreased: Bool = conversation.safeUpdatingLastMessage(newMessage: message, client: client)
                 if client.options.isProtobuf3, isUnreadMessageIncreased {
                     conversation.unreadMessageCount += 1
                     unreadEvent = .unreadMessageCountUpdated

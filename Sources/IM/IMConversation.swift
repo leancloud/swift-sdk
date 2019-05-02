@@ -215,7 +215,7 @@ public class IMConversation {
         self.isUnique = (rawData[Key.unique.rawValue] as? Bool) ?? false
         self.uniqueID = (rawData[Key.uniqueId.rawValue] as? String)
         if let message = self.decodingLastMessage(data: rawData) {
-            self.safeUpdatingLastMessage(newMessage: message, client: client, caching: caching)
+            self.safeUpdatingLastMessage(newMessage: message, client: client, caching: caching, notifying: false)
         }
         if caching {
             client.localStorage?.insertOrReplace(conversationID: ID, rawData: rawData, convType: convType)
@@ -516,7 +516,7 @@ extension IMConversation {
                         let timestamp: Int64 = (ack.hasT ? ack.t : nil)
                     {
                         message.update(status: .sent, ID: messageID, timestamp: timestamp)
-                        self.safeUpdatingLastMessage(newMessage: message, client: client, caching: true)
+                        self.safeUpdatingLastMessage(newMessage: message, client: client)
                         client.eventQueue.async {
                             completion(.success)
                         }
@@ -669,7 +669,7 @@ extension IMConversation {
             return message
         }()
         if let message: IMMessage = newLastMessage {
-            self.safeUpdatingLastMessage(newMessage: message, client: client, caching: true)
+            self.safeUpdatingLastMessage(newMessage: message, client: client)
         }
         if self.unreadMessageCount != newUnreadCount {
             self.unreadMessageCount = newUnreadCount
@@ -774,7 +774,7 @@ extension IMConversation {
                         )
                         newMessage.deliveredTimestamp = oldMessage.deliveredTimestamp
                         newMessage.readTimestamp = oldMessage.readTimestamp
-                        self.safeUpdatingLastMessage(newMessage: newMessage, client: client, caching: true)
+                        self.safeUpdatingLastMessage(newMessage: newMessage, client: client)
                         client.eventQueue.async {
                             completion(.success)
                         }
@@ -842,7 +842,14 @@ extension IMConversation {
             isAllMembersMentioned: (patchItem.hasMentionAll ? patchItem.mentionAll : nil),
             mentionedMembers: (patchItem.mentionPids.count > 0 ? patchItem.mentionPids : nil)
         )
-        self.safeUpdatingLastMessage(newMessage: patchedMessage, client: client, caching: true)
+        self.safeUpdatingLastMessage(newMessage: patchedMessage, client: client)
+        if let localStorage = client.localStorage {
+            do {
+                try localStorage.updateOrIgnore(message: patchedMessage)
+            } catch {
+                Logger.shared.error(error)
+            }
+        }
         var reason: IMMessage.PatchedReason? = nil
         if patchItem.hasPatchCode || patchItem.hasPatchReason {
             reason = IMMessage.PatchedReason(
@@ -1003,19 +1010,17 @@ extension IMConversation {
         start: MessageQueryEndpoint? = nil,
         end: MessageQueryEndpoint? = nil,
         direction: MessageQueryDirection? = nil,
-        limit: Int? = nil,
+        limit: Int = 20,
         type: IMMessageCategorizing.MessageType? = nil,
         policy: MessageQueryPolicy = .default,
         completion: @escaping (LCGenericResult<[IMMessage]>) -> Void)
         throws
     {
-        if let limit: Int = limit {
-            guard IMConversation.limitRangeOfMessageQuery.contains(limit) else {
-                throw LCError(
-                    code: .inconsistency,
-                    reason: "limit should in range \(IMConversation.limitRangeOfMessageQuery)"
-                )
-            }
+        guard IMConversation.limitRangeOfMessageQuery.contains(limit) else {
+            throw LCError(
+                code: .inconsistency,
+                reason: "limit should in range \(IMConversation.limitRangeOfMessageQuery)"
+            )
         }
         var underlyingPolicy: MessageQueryPolicy = policy
         if let _ = type {
@@ -1071,8 +1076,11 @@ extension IMConversation {
                 end: end,
                 direction: direction,
                 limit: limit)
-            { (client, result, hasBreakpoint) in
-                let shouldUseNetwork: Bool = (hasBreakpoint || result.isFailure || (result.value?.isEmpty ?? false))
+            { (client, result, hasBreakpointInTheInterval) in
+                var shouldUseNetwork: Bool = (hasBreakpointInTheInterval || result.isFailure)
+                if !shouldUseNetwork, let value = result.value {
+                    shouldUseNetwork = (value.count != limit)
+                }
                 if shouldUseNetwork {
                     self.queryMessageOnlyNetwork(
                         start: start,
@@ -1134,7 +1142,7 @@ extension IMConversation {
         start: MessageQueryEndpoint?,
         end: MessageQueryEndpoint?,
         direction: MessageQueryDirection?,
-        limit: Int?,
+        limit: Int,
         completion: @escaping (IMClient, LCGenericResult<[IMMessage]>, Bool) -> Void)
     {
         localStorage.selectMessages(
@@ -1238,7 +1246,7 @@ extension IMConversation {
             messages.append(message)
         }
         if let newestMessage = messages.last {
-            self.safeUpdatingLastMessage(newMessage: newestMessage, client: client, caching: true)
+            self.safeUpdatingLastMessage(newMessage: newestMessage, client: client)
         }
         return messages
     }
@@ -1401,7 +1409,7 @@ internal extension IMConversation {
     private func rawDataChangeOperationMerging(data: RawData, client: IMClient) {
         var rawData: RawData?
         sync {
-            self.rawData = self.rawData.merging(data) { (_, new) in new }
+            self.rawData.merge(data) { (_, new) in new }
             rawData = self.rawData
         }
         self.tryUpdateLocalStorageData(client: client, rawData: rawData)
@@ -1413,7 +1421,7 @@ internal extension IMConversation {
             self.underlyingOutdated = false
         }
         if let message = self.decodingLastMessage(data: data) {
-            self.safeUpdatingLastMessage(newMessage: message, client: client, caching: true)
+            self.safeUpdatingLastMessage(newMessage: message, client: client)
         }
         client.localStorage?.insertOrReplace(conversationID: self.ID, rawData: data, convType: self.convType)
     }
@@ -1623,8 +1631,13 @@ internal extension IMConversation {
     }
     
     @discardableResult
-    func safeUpdatingLastMessage(newMessage: IMMessage, client: IMClient, caching: Bool) -> Bool {
-        assert(client.specificAssertion)
+    func safeUpdatingLastMessage(
+        newMessage: IMMessage,
+        client: IMClient,
+        caching: Bool = true,
+        notifying: Bool = true)
+        -> Bool
+    {
         var isUnreadMessageIncreased: Bool = false
         guard
             newMessage.notTransientMessage,
@@ -1634,13 +1647,15 @@ internal extension IMConversation {
         {
             return isUnreadMessageIncreased
         }
-        var messageEvent: IMConversationEvent?
+        var messageEvent: IMConversationEvent? = nil
         let updatingLastMessageClosure: (Bool) -> Void = { shouldIncreased in
             self.lastMessage = newMessage
             if caching, self.notTemporaryConversation {
                 client.localStorage?.insertOrReplace(conversationID: self.ID, lastMessage: newMessage)
             }
-            messageEvent = .lastMessageUpdated
+            if notifying {
+                messageEvent = .lastMessageUpdated
+            }
             if shouldIncreased && newMessage.ioType == .in {
                 isUnreadMessageIncreased = true
             }
