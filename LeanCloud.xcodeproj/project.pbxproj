@@ -111,6 +111,7 @@
 		D3E1F4B321940E95007B6FFB /* Alamofire.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 837E04EE1CABA688008CC3FF /* Alamofire.framework */; };
 		D3E1F4B421940E95007B6FFB /* Alamofire.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 837E04EE1CABA688008CC3FF /* Alamofire.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		D3F030E4222FB31F009F6C67 /* MessagePushTestViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3F030E3222FB31F009F6C67 /* MessagePushTestViewController.swift */; };
+		D3FE04522277EA6C0008C88A /* IMLocalStorageTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FE04512277EA6C0008C88A /* IMLocalStorageTestCase.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -440,6 +441,7 @@
 		D3E1F48C2193EDF3007B6FFB /* ConnectionTestViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionTestViewController.swift; sourceTree = "<group>"; };
 		D3F030E3222FB31F009F6C67 /* MessagePushTestViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessagePushTestViewController.swift; sourceTree = "<group>"; };
 		D3F030F2222FB411009F6C67 /* RuntimeTests-iOS.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "RuntimeTests-iOS.entitlements"; sourceTree = "<group>"; };
+		D3FE04512277EA6C0008C88A /* IMLocalStorageTestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IMLocalStorageTestCase.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -590,6 +592,7 @@
 				D3AC7BA721AE9C1A00C6C557 /* IMClientTestCase.swift */,
 				D3783A1121F453C3006F6635 /* IMConversationTestCase.swift */,
 				D3665C3621FEAAC1005B44B0 /* IMMessageTestCase.swift */,
+				D3FE04512277EA6C0008C88A /* IMLocalStorageTestCase.swift */,
 			);
 			path = LeanCloudTests;
 			sourceTree = "<group>";
@@ -1172,6 +1175,7 @@
 				1178D10F213F7B9600429131 /* LCAPITestCase.swift in Sources */,
 				8334561C1CE589E500D42725 /* LCEngineTestCase.swift in Sources */,
 				D3AC7BA821AE9C1A00C6C557 /* IMClientTestCase.swift in Sources */,
+				D3FE04522277EA6C0008C88A /* IMLocalStorageTestCase.swift in Sources */,
 				116A682621427442004141A5 /* LCRouterTestCase.swift in Sources */,
 				1123922C2191669100ECCBCC /* RTMRouterTestCase.swift in Sources */,
 				118763AF2176EA3A0078645B /* LCInstallationTestCase.swift in Sources */,
