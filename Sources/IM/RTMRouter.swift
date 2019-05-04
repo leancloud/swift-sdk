@@ -12,10 +12,6 @@ class RTMRouter {
     
     let application: LCApplication
     
-    let httpRouter: HTTPRouter
-    
-    let httpClient: HTTPClient
-    
     let tableCacheURL: URL?
     
     private(set) var table: RTMRouter.Table?
@@ -23,8 +19,6 @@ class RTMRouter {
     init(application: LCApplication) throws {
         
         self.application = application
-        self.httpRouter = HTTPRouter(application: application, configuration: .default)
-        self.httpClient = HTTPClient(application: application, configuration: .default)
         
         if let storageContext = application.localStorageContext {
             let fileURL = try storageContext.fileURL(place: .systemCaches, module: .router, file: .rtmServer)
@@ -84,8 +78,8 @@ class RTMRouter {
     
     @discardableResult
     private func request(completion: @escaping (LCGenericResult<RTMRouter.Table>) -> Void) -> LCRequest {
-        guard let routerURL = httpRouter.route(path: "v1/route") else {
-            return httpClient.request(
+        guard let routerURL = self.application.httpRouter.route(path: "v1/route") else {
+            return self.application.httpClient.request(
                 error: LCError.RTMRouterURLNotFound,
                 completionHandler: completion
             )
@@ -96,7 +90,7 @@ class RTMRouter {
             "secure": 1
         ]
         
-        return httpClient.request(url: routerURL, method: .get, parameters: parameters) { response in
+        return self.application.httpClient.request(url: routerURL, method: .get, parameters: parameters) { response in
             self.handle(response: response, completion: completion)
         }
     }

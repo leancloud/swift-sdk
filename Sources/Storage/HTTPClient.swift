@@ -74,13 +74,11 @@ class HTTPClient {
 
     let application: LCApplication
     let configuration: Configuration
-    let router: HTTPRouter
     let sessionManager: SessionManager
 
     init(application: LCApplication, configuration: Configuration) {
         self.application = application
         self.configuration = configuration
-        self.router = HTTPRouter(application: application, configuration: .default)
         self.sessionManager = {
             let sessionConfiguration = URLSessionConfiguration.default
             if let defaultTimeoutInterval = configuration.defaultTimeoutInterval {
@@ -187,7 +185,7 @@ class HTTPClient {
             path = getClassEndpoint(object: object)
         }
 
-        return router.batchRequestPath(for: path)
+        return self.application.httpRouter.batchRequestPath(for: path)
     }
 
     /**
@@ -232,7 +230,7 @@ class HTTPClient {
             completionDispatchQueue ??
             defaultCompletionDispatchQueue)
 
-        guard let url = router.route(path: path) else {
+        guard let url = self.application.httpRouter.route(path: path) else {
             let error = LCError(code: .notFound, reason: "URL not found.")
 
             let response = LCResponse(
