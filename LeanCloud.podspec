@@ -8,7 +8,7 @@ Pod::Spec.new do |s|
   s.source       = { :git => 'https://github.com/leancloud/swift-sdk.git', :tag => s.version }
   s.swift_version = '5.0'
 
-  s.ios.deployment_target     = '10.0'
+  s.ios.deployment_target     = '8.0'
   s.osx.deployment_target     = '10.12'
   s.tvos.deployment_target    = '10.0'
   s.watchos.deployment_target = '3.0'
@@ -16,11 +16,7 @@ Pod::Spec.new do |s|
   s.subspec 'Storage' do |ss|
     ss.dependency 'Alamofire', '~> 4.8.0'
 
-    ss.source_files = 'Sources/Storage/**/*.{h,m,swift}'
-    ss.resources = 'Sources/Storage/**/*.{xcdatamodeld}'
-    ss.private_header_files = 'Sources/Storage/Foundation/Polyfill/Polyfill.h'
-    ss.preserve_paths = 'Sources/Storage/Foundation/**/*.{modulemap}'
-    ss.pod_target_xcconfig = { 'SWIFT_INCLUDE_PATHS' => '"$(PODS_TARGET_SRCROOT)"/**' }
+    ss.source_files = 'Sources/Storage/**/*.{swift}'
   end
 
   s.subspec 'IM' do |ss|
@@ -29,7 +25,6 @@ Pod::Spec.new do |s|
 
     ss.dependency 'LeanCloud/Storage'
 
-    ss.source_files = 'Sources/IM/**/*.swift'
-    ss.resources = 'Sources/IM/**/*.{xcdatamodeld}'
+    ss.source_files = 'Sources/IM/**/*.{swift}'
   end
 end

@@ -17,7 +17,7 @@ var applicationRegistry: [String: LCApplication] = [:]
 
  It is a context of application-specific settings and objects.
  */
-public final class LCApplication: NSObject {
+public final class LCApplication {
     
     /// log level.
     public static var logLevel: LogLevel = .off
@@ -144,9 +144,7 @@ public final class LCApplication: NSObject {
 
      - note: We make initializer internal before multi-applicaiton is supported.
      */
-    override init() {
-        super.init()
-    }
+    init() {}
 
     /**
      Create an application with id and key.
@@ -157,8 +155,6 @@ public final class LCApplication: NSObject {
      - note: We make initializer internal before multi-applicaiton is supported.
      */
     public init(id: String, key: String) throws {
-        super.init()
-        
         if let _ = applicationRegistry[id] {
             throw LCError.applicationDidRegister(id: id)
         }
