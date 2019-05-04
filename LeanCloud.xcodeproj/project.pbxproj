@@ -92,6 +92,7 @@
 		D3665C3721FEAAC1005B44B0 /* IMMessageTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3665C3621FEAAC1005B44B0 /* IMMessageTestCase.swift */; };
 		D3783A1221F453C3006F6635 /* IMConversationTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3783A1121F453C3006F6635 /* IMConversationTestCase.swift */; };
 		D393EDBE21D38206001CBB2B /* IMMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D393EDBD21D38206001CBB2B /* IMMessage.swift */; };
+		D3AB32D8227D983E00DCE794 /* CaptchaClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3AB32D7227D983E00DCE794 /* CaptchaClient.swift */; };
 		D3AC7BA821AE9C1A00C6C557 /* IMClientTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3AC7BA721AE9C1A00C6C557 /* IMClientTestCase.swift */; };
 		D3AF1CB722681F1200A97566 /* FMDB.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D3AF1CA422681EF500A97566 /* FMDB.framework */; };
 		D3BBFB41225D944100B75BA1 /* LCLocalStorageContextTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3BBFB40225D944100B75BA1 /* LCLocalStorageContextTestCase.swift */; };
@@ -417,6 +418,7 @@
 		D3783A1121F453C3006F6635 /* IMConversationTestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IMConversationTestCase.swift; sourceTree = "<group>"; };
 		D387262A217726B500DD8FBF /* SwiftProtobuf.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = SwiftProtobuf.xcodeproj; path = SwiftProtobuf/SwiftProtobuf.xcodeproj; sourceTree = "<group>"; };
 		D393EDBD21D38206001CBB2B /* IMMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IMMessage.swift; sourceTree = "<group>"; };
+		D3AB32D7227D983E00DCE794 /* CaptchaClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptchaClient.swift; sourceTree = "<group>"; };
 		D3AC7BA721AE9C1A00C6C557 /* IMClientTestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IMClientTestCase.swift; sourceTree = "<group>"; };
 		D3AF1C8A22681EF500A97566 /* fmdb.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = fmdb.xcodeproj; path = fmdb/fmdb.xcodeproj; sourceTree = "<group>"; };
 		D3BBFB40225D944100B75BA1 /* LCLocalStorageContextTestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCLocalStorageContextTestCase.swift; sourceTree = "<group>"; };
@@ -594,6 +596,7 @@
 				835F5D431D7E6808004D1A0E /* CQLClient.swift */,
 				835F5D531D7E6808004D1A0E /* Engine.swift */,
 				835F5D631D7E6808004D1A0E /* SMSClient.swift */,
+				D3AB32D7227D983E00DCE794 /* CaptchaClient.swift */,
 			);
 			path = Storage;
 			sourceTree = "<group>";
@@ -1065,6 +1068,7 @@
 				835F5D881D7E6808004D1A0E /* Value.swift in Sources */,
 				835F5D6F1D7E6808004D1A0E /* GeoPoint.swift in Sources */,
 				835F5D841D7E6808004D1A0E /* Result.swift in Sources */,
+				D3AB32D8227D983E00DCE794 /* CaptchaClient.swift in Sources */,
 				835F5D771D7E6808004D1A0E /* Engine.swift in Sources */,
 				835F5D761D7E6808004D1A0E /* User.swift in Sources */,
 				D34F1BB92268263000251BC8 /* IMLocalStorage.swift in Sources */,
