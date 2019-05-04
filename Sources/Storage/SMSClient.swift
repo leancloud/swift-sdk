@@ -54,10 +54,20 @@ public final class LCSMSClient {
         return request
     }
 
-    private static func createRequestParameters(templateName: String, variables: LCDictionaryConvertible? = nil) -> LCDictionary {
+    private static func createRequestParameters(
+        templateName: String,
+        signatureName: String,
+        captchaVerificationToken: String?,
+        variables: LCDictionaryConvertible?)
+        -> LCDictionary
+    {
         let parameters = variables?.lcDictionary ?? LCDictionary()
 
         parameters["template"] = templateName.lcString /* template is a reserved name. */
+        parameters["sign"] = signatureName.lcString
+        if let captchaVerificationToken = captchaVerificationToken {
+            parameters["validate_token"] = captchaVerificationToken.lcString
+        }
 
         return parameters
     }
@@ -74,11 +84,18 @@ public final class LCSMSClient {
     public static func requestShortMessage(
         application: LCApplication = LCApplication.default,
         mobilePhoneNumber: String,
-        templateName: String,
+        templateName: String = "Register_Notice",
+        signatureName: String = "LeanCloud",
+        captchaVerificationToken: String? = nil,
         variables: LCDictionaryConvertible? = nil)
         -> LCBooleanResult
     {
-        let parameters = createRequestParameters(templateName: templateName, variables: variables)
+        let parameters = createRequestParameters(
+            templateName: templateName,
+            signatureName: signatureName,
+            captchaVerificationToken: captchaVerificationToken,
+            variables: variables
+        )
 
         return expect { fulfill in
             requestShortMessage(application: application, mobilePhoneNumber: mobilePhoneNumber, parameters: parameters, completionInBackground: { result in
@@ -98,12 +115,19 @@ public final class LCSMSClient {
     public static func requestShortMessage(
         application: LCApplication = LCApplication.default,
         mobilePhoneNumber: String,
-        templateName: String,
+        templateName: String = "Register_Notice",
+        signatureName: String = "LeanCloud",
+        captchaVerificationToken: String? = nil,
         variables: LCDictionaryConvertible? = nil,
         completion: @escaping (LCBooleanResult) -> Void)
         -> LCRequest
     {
-        let parameters = createRequestParameters(templateName: templateName, variables: variables)
+        let parameters = createRequestParameters(
+            templateName: templateName,
+            signatureName: signatureName,
+            captchaVerificationToken: captchaVerificationToken,
+            variables: variables
+        )
 
         return requestShortMessage(application: application, mobilePhoneNumber: mobilePhoneNumber, parameters: parameters, completionInBackground: { result in
             mainQueueAsync {
