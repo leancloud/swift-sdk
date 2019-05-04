@@ -11,6 +11,8 @@ import Foundation
 class Logger {
     
     static let shared = Logger()
+    
+    private init() {}
 
     static let dateFormatter: DateFormatter = {
         let dateFormatter = DateFormatter()
@@ -28,7 +30,7 @@ class Logger {
         _ function: String = #function,
         _ line: Int = #line)
     {
-        guard LCApplication.default.logLevel >= level else {
+        guard LCApplication.logLevel >= level else {
             return
         }
 

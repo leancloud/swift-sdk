@@ -10,9 +10,11 @@ import Foundation
 import Alamofire
 
 final class LCResponse {
+    let application: LCApplication
     let response: Alamofire.DataResponse<Any>
 
-    init(response: Alamofire.DataResponse<Any>) {
+    init(application: LCApplication, response: Alamofire.DataResponse<Any>) {
+        self.application = application
         self.response = response
     }
 

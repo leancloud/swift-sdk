@@ -164,13 +164,13 @@ public class IMClient {
     ///   - customServerURL: The custom server URL for private deployment.
     ///   - application: The application that the client belongs to.
     public init(
+        application: LCApplication = LCApplication.default,
         ID: String,
         tag: String? = nil,
         options: Options = .default,
         delegate: IMClientDelegate? = nil,
         eventQueue: DispatchQueue = .main,
-        customServerURL: URL? = nil,
-        application: LCApplication = .default)
+        customServerURL: URL? = nil)
         throws
     {
         guard IMClient.lengthRangeOfClientID.contains(ID.count) else {
@@ -1070,7 +1070,7 @@ extension IMClient {
                     "start_ts": serverTimestamp
                 ]
                 let headers: [String: String] = ["X-LC-IM-Session-Token": token]
-                let _ = HTTPClient.default.request(
+                let _ = client.application.httpClient.request(
                     .get,
                     "/rtm/notifications",
                     parameters: parameters,
@@ -1233,7 +1233,7 @@ extension IMClient {
         var sessionCommand = IMSessionCommand()
         sessionCommand.configBitmap = SessionConfigs.support.rawValue
         sessionCommand.deviceToken = self.currentDeviceToken ?? self.fallbackUDID
-        sessionCommand.ua = HTTPClient.default.configuration.userAgent
+        sessionCommand.ua = self.application.httpClient.configuration.userAgent
         if let tag: String = self.tag {
             sessionCommand.tag = tag
         }
@@ -1626,6 +1626,7 @@ extension IMClient {
                     content = .string(command.msg)
                 }
                 let message = IMMessage.instance(
+                    application: client.application,
                     isTransient: (command.hasTransient ? command.transient : false),
                     conversationID: conversationID,
                     currentClientID: client.ID,

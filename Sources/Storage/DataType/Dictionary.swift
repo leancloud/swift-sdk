@@ -51,7 +51,11 @@ public final class LCDictionary: NSObject, LCValue, LCValueExtension, Collection
         self.init(Dictionary<Key, Value>(elements: elements))
     }
 
-    public convenience init(unsafeObject: Any) throws {
+    public convenience init(
+        application: LCApplication = LCApplication.default,
+        unsafeObject: Any)
+        throws
+    {
         self.init()
 
         guard let object = unsafeObject as? [Key: Any] else {
@@ -61,7 +65,7 @@ public final class LCDictionary: NSObject, LCValue, LCValueExtension, Collection
         }
 
         value = try object.mapValue { value in
-            try ObjectProfiler.shared.object(jsonValue: value)
+            try ObjectProfiler.shared.object(application: application, jsonValue: value)
         }
     }
 
@@ -176,8 +180,8 @@ public final class LCDictionary: NSObject, LCValue, LCValueExtension, Collection
     var lconValue: Any? {
         return value.compactMapValue { value in (value as? LCValueExtension)?.lconValue }
     }
-
-    static func instance() -> LCValue {
+    
+    static func instance(application: LCApplication) -> LCValue {
         return self.init([:])
     }
 

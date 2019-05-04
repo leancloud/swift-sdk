@@ -125,7 +125,8 @@ class IMClientTestCase: RTMBaseTestCase {
         let clientID: String = uuid
         let tag: String = "tag"
         
-        let application1: LCApplication = LCApplication(
+        applicationRegistry.removeAll()
+        let application1: LCApplication = try! LCApplication(
             id: LCApplication.default.id,
             key: LCApplication.default.key
         )
@@ -136,10 +137,10 @@ class IMClientTestCase: RTMBaseTestCase {
         XCTAssertTrue(application1.currentInstallation.save().isSuccess)
         let delegator1: Delegator = Delegator()
         let client1: IMClient = try! IMClient(
+            application: application1,
             ID: clientID,
             tag: tag,
-            delegate: delegator1,
-            application: application1
+            delegate: delegator1
         )
         
         let exp1 = expectation(description: "client1 open success")
@@ -152,7 +153,8 @@ class IMClientTestCase: RTMBaseTestCase {
         RTMConnectionRefMap_protobuf1.removeAll()
         RTMConnectionRefMap_protobuf3.removeAll()
         
-        let application2: LCApplication = LCApplication(
+        applicationRegistry.removeAll()
+        let application2: LCApplication = try! LCApplication(
             id: LCApplication.default.id,
             key: LCApplication.default.key
         )
@@ -163,10 +165,10 @@ class IMClientTestCase: RTMBaseTestCase {
         XCTAssertTrue(application2.currentInstallation.save().isSuccess)
         let delegator2: Delegator = Delegator()
         let client2: IMClient = try! IMClient(
+            application: application2,
             ID: clientID,
             tag: tag,
-            delegate: delegator2,
-            application: application2
+            delegate: delegator2
         )
         
         let exp2 = expectation(description: "client2 open success & kick client1 success")
@@ -257,7 +259,7 @@ class IMClientTestCase: RTMBaseTestCase {
     func testReportDeviceToken() {
         let application = LCApplication.default
         let currentDeviceToken = application.currentInstallation.deviceToken?.value
-        let client: IMClient = try! IMClient(ID: uuid, application: application)
+        let client: IMClient = try! IMClient(application: application, ID: uuid)
         XCTAssertEqual(currentDeviceToken, client.currentDeviceToken)
         
         let exp = expectation(description: "client report device token success")

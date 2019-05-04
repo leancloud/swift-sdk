@@ -24,7 +24,7 @@ class RTMConnectionTestCase: RTMBaseTestCase {
     }
     
     func testConnectionReference() {
-        let application = LCApplication(id: "1", key: "")
+        let application = try! LCApplication(id: uuid, key: uuid)
         for imProtocol in
             [RTMConnection.LCIMProtocol.protobuf1,
              RTMConnection.LCIMProtocol.protobuf3]
@@ -312,7 +312,7 @@ extension RTMConnectionTestCase {
         outCommand.appID = application.id
         outCommand.peerID = peerID
         var sessionCommand = IMSessionCommand()
-        sessionCommand.ua = HTTPClient.default.configuration.userAgent
+        sessionCommand.ua = application.httpClient.configuration.userAgent
         outCommand.sessionMessage = sessionCommand
         return outCommand
     }

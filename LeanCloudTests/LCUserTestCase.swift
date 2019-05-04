@@ -23,6 +23,7 @@ class LCUserTestCase: BaseTestCase {
     
     func testSignUpAndLogIn() {
         let user = LCUser()
+        let application = user.application
 
         let username = "user" + LeanCloud.Utility.uuid()
         let password = "qwerty"
@@ -32,7 +33,7 @@ class LCUserTestCase: BaseTestCase {
 
         XCTAssertTrue(user.signUp().isSuccess)
         XCTAssertTrue(LCUser.logIn(username: username, password: password).isSuccess)
-        XCTAssertNotNil(LCUser.current)
+        XCTAssertNotNil(application.currentUser)
         
         let email = "\(UUID().uuidString.replacingOccurrences(of: "-", with: ""))@qq.com"
         user.email = LCString(email)
@@ -42,7 +43,7 @@ class LCUserTestCase: BaseTestCase {
         
         XCTAssertTrue(LCUser.logIn(email: email, password: password).isSuccess)
 
-        let current = LCUser.current!
+        let current = application.currentUser!
         let sessionToken = current.sessionToken!.value
         let updatedAt = current.updatedAt!
 

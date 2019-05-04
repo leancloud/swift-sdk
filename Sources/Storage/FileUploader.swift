@@ -35,9 +35,6 @@ class FileUploader {
         self.payload = payload
     }
 
-    /// The HTTP client for touching file or other LeanCloud requests.
-    private lazy var httpClient = HTTPClient.default
-
     /// Session manager for uploading file.
     private lazy var sessionManager: SessionManager = {
         let sessionManager = SessionManager(configuration: .default)
@@ -281,7 +278,7 @@ class FileUploader {
         parameters: [String: Any],
         completion: @escaping (LCGenericResult<TouchResult>) -> Void) -> LCRequest
     {
-        return httpClient.request(.post, "fileTokens", parameters: parameters) { response in
+        return self.file.application.httpClient.request(.post, "fileTokens", parameters: parameters) { response in
             let dictionaryResult = LCValueResult<LCDictionary>(response: response)
 
             switch dictionaryResult {
@@ -328,7 +325,7 @@ class FileUploader {
                 throw LCError(code: .malformedData, reason: "Invalid uploading token.")
             }
         } catch let error {
-            return httpClient.request(error: error) { result in
+            return self.file.application.httpClient.request(error: error) { result in
                 completion(result)
             }
         }
@@ -499,7 +496,7 @@ class FileUploader {
             parameters["result"] = false
         }
 
-        _ = httpClient.request(.post, "fileCallback", parameters: parameters) { response in
+        _ = self.file.application.httpClient.request(.post, "fileCallback", parameters: parameters) { response in
             /* Ignore response of file feedback. */
         }
     }
@@ -515,7 +512,7 @@ class FileUploader {
 
             // Touch parameters are also part of propertise.
             do {
-                let dictionary = try LCDictionary(unsafeObject: touchParameters)
+                let dictionary = try LCDictionary(application: self.file.application, unsafeObject: touchParameters)
 
                 dictionary.forEach { (key, value) in
                     properties.set(key, value)
@@ -550,6 +547,8 @@ class FileUploader {
         progress: @escaping (Double) -> Void,
         completion: @escaping (LCBooleanResult) -> Void) -> LCRequest
     {
+        let httpClient: HTTPClient = self.file.application.httpClient
+        
         // If objectId exists, we think that the file has already been uploaded.
         if let _ = file.objectId {
             return httpClient.request(object: LCBooleanResult.success) { result in

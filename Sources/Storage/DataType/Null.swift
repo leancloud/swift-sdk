@@ -55,8 +55,8 @@ public final class LCNull: NSObject, LCValue, LCValueExtension {
     var lconValue: Any? {
         return jsonValue
     }
-
-    static func instance() throws -> LCValue {
+    
+    static func instance(application: LCApplication) -> LCValue {
         return LCNull()
     }
 

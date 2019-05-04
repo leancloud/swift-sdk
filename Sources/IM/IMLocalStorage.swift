@@ -500,6 +500,7 @@ class IMLocalStorage {
                         mentionedMembers = try JSONSerialization.jsonObject(with: data) as? [String]
                     }
                     let message = IMMessage.instance(
+                        application: client.application,
                         isTransient: false,
                         conversationID: table.conversationID,
                         currentClientID: client.ID,
@@ -1083,6 +1084,7 @@ class IMLocalStorage {
                         }
                     }
                     let message = IMMessage.instance(
+                        application: client.application,
                         isTransient: false,
                         conversationID: conversationID,
                         currentClientID: client.ID,

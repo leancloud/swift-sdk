@@ -194,6 +194,7 @@ class IMLocalStorageTestCase: RTMBaseTestCase {
             let date = Date()
             let dateMillisecond = Int64(date.timeIntervalSince1970 * 1000.0)
             let message = IMMessage.instance(
+                application: client.application,
                 isTransient: false,
                 conversationID: conversationID,
                 currentClientID: client.ID,
@@ -259,6 +260,7 @@ class IMLocalStorageTestCase: RTMBaseTestCase {
                 let date = Date()
                 let dateMillisecond = Int64(date.timeIntervalSince1970 * 1000.0)
                 let message = IMMessage.instance(
+                    application: client.application,
                     isTransient: false,
                     conversationID: conversationID,
                     currentClientID: client.ID,
@@ -388,6 +390,7 @@ class IMLocalStorageTestCase: RTMBaseTestCase {
             let date = Date()
             let sentTimestamp = Int64(date.timeIntervalSince1970 * 1000.0)
             messages.append(IMMessage.instance(
+                application: client.application,
                 isTransient: false,
                 conversationID: conversationID,
                 currentClientID: client.ID,
@@ -442,6 +445,7 @@ class IMLocalStorageTestCase: RTMBaseTestCase {
             let date = Date()
             let sentTimestamp = Int64(date.timeIntervalSince1970 * 1000.0)
             messages.append(IMMessage.instance(
+                application: client.application,
                 isTransient: false,
                 conversationID: conversationID,
                 currentClientID: client.ID,
@@ -555,6 +559,7 @@ class IMLocalStorageTestCase: RTMBaseTestCase {
             let date = Date()
             let sentTimestamp = Int64(date.timeIntervalSince1970 * 1000.0)
             messages.append(IMMessage.instance(
+                application: client.application,
                 isTransient: false,
                 conversationID: conversationID,
                 currentClientID: client.ID,
@@ -621,6 +626,7 @@ class IMLocalStorageTestCase: RTMBaseTestCase {
             let date = Date()
             let sentTimestamp = Int64(date.timeIntervalSince1970 * 1000.0)
             messages.append(IMMessage.instance(
+                application: client.application,
                 isTransient: false,
                 conversationID: conversationID,
                 currentClientID: client.ID,
@@ -864,6 +870,7 @@ class IMLocalStorageTestCase: RTMBaseTestCase {
             let date = Date()
             let sentTimestamp = Int64(date.timeIntervalSince1970 * 1000.0)
             messages.append(IMMessage.instance(
+                application: client.application,
                 isTransient: false,
                 conversationID: conversationID,
                 currentClientID: client.ID,

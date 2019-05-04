@@ -79,8 +79,8 @@ public final class LCString: NSObject, LCValue, LCValueExtension, ExpressibleByS
     var lconValue: Any? {
         return jsonValue
     }
-
-    class func instance() -> LCValue {
+    
+    static func instance(application: LCApplication) -> LCValue {
         return self.init()
     }
 

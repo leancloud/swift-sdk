@@ -70,7 +70,7 @@ class BatchRequest {
 
     func jsonValue() throws -> Any {
         let method = actualMethod
-        let path = try HTTPClient.default.getBatchRequestPath(object: object, method: method)
+        let path = try object.application.httpClient.getBatchRequestPath(object: object, method: method)
         let internalId = object.objectId?.value ?? object.internalId
 
         if let request = try object.preferredBatchRequest(method: method, path: path, internalId: internalId) {

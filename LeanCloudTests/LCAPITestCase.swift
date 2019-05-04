@@ -31,7 +31,7 @@ class LCAPITestCase: BaseTestCase {
 
         dispatchGroup.enter()
 
-        let request = HTTPClient.default.request(.get, "ping") { response in
+        let request = LCApplication.default.httpClient.request(.get, "ping") { response in
             XCTAssertEqual(response.error?._code, NSURLErrorCancelled)
             dispatchGroup.leave()
         }
