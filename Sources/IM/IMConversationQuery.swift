@@ -40,11 +40,11 @@ public class IMConversationQuery: LCQuery {
     init(client: IMClient, eventQueue: DispatchQueue? = nil) {
         self.eventQueue = eventQueue
         self.client = client
-        super.init(className: "_Conversation")
+        super.init(application: client.application, className: "_Conversation")
     }
     
     @available(*, unavailable)
-    public override init(className: String) {
+    public override init(application: LCApplication, className: String) {
         fatalError("not support")
     }
     

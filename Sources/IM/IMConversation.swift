@@ -214,7 +214,7 @@ public class IMConversation {
         self.convType = convType
         self.isUnique = (rawData[Key.unique.rawValue] as? Bool) ?? false
         self.uniqueID = (rawData[Key.uniqueId.rawValue] as? String)
-        if let message = self.decodingLastMessage(data: rawData) {
+        if let message = self.decodingLastMessage(data: rawData, client: client) {
             self.safeUpdatingLastMessage(newMessage: message, client: client, caching: caching, notifying: false)
         }
         if caching {
@@ -655,6 +655,7 @@ extension IMConversation {
                 content = .string(unreadTuple.data)
             }
             let message = IMMessage.instance(
+                application: client.application,
                 isTransient: false,
                 conversationID: self.ID,
                 currentClientID: self.clientID,
@@ -831,6 +832,7 @@ extension IMConversation {
             content = .string(patchItem.data)
         }
         let patchedMessage = IMMessage.instance(
+            application: client.application,
             isTransient: false,
             conversationID: self.ID,
             currentClientID: self.clientID,
@@ -1230,6 +1232,7 @@ extension IMConversation {
                 }
             }
             let message = IMMessage.instance(
+                application: client.application,
                 isTransient: false,
                 conversationID: self.ID,
                 currentClientID: client.ID,
@@ -1420,7 +1423,7 @@ internal extension IMConversation {
             self.rawData = data
             self.underlyingOutdated = false
         }
-        if let message = self.decodingLastMessage(data: data) {
+        if let message = self.decodingLastMessage(data: data, client: client) {
             self.safeUpdatingLastMessage(newMessage: message, client: client)
         }
         client.localStorage?.insertOrReplace(conversationID: self.ID, rawData: data, convType: self.convType)
@@ -1686,7 +1689,7 @@ internal extension IMConversation {
         return isUnreadMessageIncreased
     }
     
-    private func decodingLastMessage(data: RawData) -> IMMessage? {
+    private func decodingLastMessage(data: RawData, client: IMClient) -> IMMessage? {
         guard
             self.notTransientConversation,
             let timestamp: Int64 = IMConversation.decoding(key: .lastMessageTimestamp, from: data),
@@ -1707,6 +1710,7 @@ internal extension IMConversation {
             content = .string(string)
         }
         let message = IMMessage.instance(
+            application: client.application,
             isTransient: false,
             conversationID: self.ID,
             currentClientID: self.clientID,

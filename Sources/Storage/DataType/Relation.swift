@@ -15,6 +15,8 @@ import Foundation
  */
 public final class LCRelation: NSObject, LCValue, LCValueExtension, Sequence {
     public typealias Element = LCObject
+    
+    public let application: LCApplication
 
     /// The key where relationship based on.
     var key: String?
@@ -34,17 +36,25 @@ public final class LCRelation: NSObject, LCValue, LCValueExtension, Sequence {
     }
     
     override init() {
+        self.application = LCApplication.default
+        super.init()
+    }
+    
+    init(application: LCApplication) {
+        self.application = application
         super.init()
     }
 
-    init(key: String, parent: LCObject) {
+    init(application: LCApplication, key: String, parent: LCObject) {
+        self.application = application
         super.init()
-
+        
         self.key    = key
         self.parent = parent
     }
 
-    init?(dictionary: [String: Any]) {
+    init?(application: LCApplication, dictionary: [String: Any]) {
+        self.application = application
         super.init()
         
         guard let type = dictionary["__type"] as? String else {
@@ -61,13 +71,22 @@ public final class LCRelation: NSObject, LCValue, LCValueExtension, Sequence {
     }
 
     public required init?(coder aDecoder: NSCoder) {
+        if
+            let applicationID: String = aDecoder.decodeObject(forKey: "applicationID") as? String,
+            let registeredApplication = applicationRegistry[applicationID]
+        {
+            self.application = registeredApplication
+        } else {
+            self.application = LCApplication.default
+        }
         super.init()
-        
         value = (aDecoder.decodeObject(forKey: "value") as? [Element]) ?? []
         objectClassName = aDecoder.decodeObject(forKey: "objectClassName") as? String
     }
 
     public func encode(with aCoder: NSCoder) {
+        let applicationID: String = self.application.id
+        aCoder.encode(applicationID, forKey: "applicationID")
         aCoder.encode(value, forKey: "value")
 
         if let objectClassName = objectClassName {
@@ -122,9 +141,9 @@ public final class LCRelation: NSObject, LCValue, LCValueExtension, Sequence {
     var lconValue: Any? {
         return value.compactMap { (element) in element.lconValue }
     }
-
-    static func instance() -> LCValue {
-        return self.init()
+    
+    static func instance(application: LCApplication) -> LCValue {
+        return self.init(application: application)
     }
 
     func forEachChild(_ body: (_ child: LCValue) throws -> Void) rethrows {
@@ -217,9 +236,9 @@ public final class LCRelation: NSObject, LCValue, LCValueExtension, Sequence {
         /* If class name already known, use it.
            Otherwise, use class name redirection. */
         if let objectClassName = objectClassName {
-            query = LCQuery(className: objectClassName)
+            query = LCQuery(application: self.application, className: objectClassName)
         } else {
-            query = LCQuery(className: parent.actualClassName)
+            query = LCQuery(application: self.application, className: parent.actualClassName)
             query.extraParameters = [
                 "redirectClassNameForKey": key
             ]

@@ -66,34 +66,30 @@ class HTTPClient {
 
         static let `default` = Configuration(
             userAgent: "LeanCloud-Swift-SDK/\(__LeanCloudVersion)",
-            defaultTimeoutInterval: nil)
-
+            defaultTimeoutInterval: nil
+        )
     }
 
-    static let `default` = HTTPClient(application: .default, configuration: .default)
+//    static let `default` = HTTPClient(application: LCApplication.default, configuration: Configuration.default)
 
     let application: LCApplication
-
     let configuration: Configuration
+    let router: HTTPRouter
+    let sessionManager: SessionManager
 
     init(application: LCApplication, configuration: Configuration) {
         self.application = application
         self.configuration = configuration
+        self.router = HTTPRouter(application: application, configuration: .default)
+        self.sessionManager = {
+            let sessionConfiguration = URLSessionConfiguration.default
+            if let defaultTimeoutInterval = configuration.defaultTimeoutInterval {
+                sessionConfiguration.timeoutIntervalForRequest = defaultTimeoutInterval
+            }
+            let sessionManager = SessionManager(configuration: sessionConfiguration)
+            return sessionManager
+        }()
     }
-
-    lazy var router = HTTPRouter(application: application, configuration: .default)
-
-    lazy var sessionManager: SessionManager = {
-        let sessionConfiguration = URLSessionConfiguration.default
-
-        if let defaultTimeoutInterval = configuration.defaultTimeoutInterval {
-            sessionConfiguration.timeoutIntervalForRequest = defaultTimeoutInterval
-        }
-
-        let sessionManager = SessionManager(configuration: sessionConfiguration)
-
-        return sessionManager
-    }()
 
     /// Default completion dispatch queue.
     let defaultCompletionDispatchQueue = DispatchQueue(label: "LeanCloud.HTTPClient.Completion", attributes: .concurrent)
@@ -115,7 +111,7 @@ class HTTPClient {
             HeaderFieldName.accept:    "application/json"
         ]
 
-        if let sessionToken = LCUser.current?.sessionToken {
+        if let sessionToken = self.application.currentUser?.sessionToken {
             headers[HeaderFieldName.session] = sessionToken.value
         }
 
@@ -239,8 +235,15 @@ class HTTPClient {
         guard let url = router.route(path: path) else {
             let error = LCError(code: .notFound, reason: "URL not found.")
 
-            let response = LCResponse(response: DataResponse<Any>(
-                request: nil, response: nil, data: nil, result: .failure(error)))
+            let response = LCResponse(
+                application: self.application,
+                response: DataResponse<Any>(
+                    request: nil,
+                    response: nil,
+                    data: nil,
+                    result: .failure(error)
+                )
+            )
 
             completionDispatchQueue.sync {
                 completionHandler(response)
@@ -263,7 +266,7 @@ class HTTPClient {
 
         request.responseJSON(queue: completionDispatchQueue) { response in
             self.log(response: response, request: request)
-            completionHandler(LCResponse(response: response))
+            completionHandler(LCResponse(application: self.application, response: response))
         }
 
         return LCSingleRequest(request: request)
@@ -306,7 +309,7 @@ class HTTPClient {
 
         request.responseJSON(queue: completionDispatchQueue) { response in
             self.log(response: response, request: request)
-            completionHandler(LCResponse(response: response))
+            completionHandler(LCResponse(application: self.application, response: response))
         }
 
         return LCSingleRequest(request: request)
@@ -346,7 +349,7 @@ class HTTPClient {
     }
 
     func log(response: DataResponse<Any>, request: Request) {
-        Logger.shared.debug("\n\n\(response.lcDebugDescription(request))\n")
+        Logger.shared.debug("\n\n\(response.lcDebugDescription(application: self.application, request))\n")
     }
 
     func log(request: Request) {
@@ -376,7 +379,7 @@ extension Request {
 
 extension DataResponse {
 
-    func lcDebugDescription(_ request : Request) -> String {
+    func lcDebugDescription(application: LCApplication, _ request : Request) -> String {
         let taskIdentifier = request.task?.taskIdentifier ?? 0
 
         var message = "------ BEGIN LeanCloud HTTP Response\n"
@@ -394,7 +397,7 @@ extension DataResponse {
         if let data = data {
             do {
                 let jsonObject = try JSONSerialization.jsonObject(with: data, options: [])
-                let object = try ObjectProfiler.shared.object(jsonValue: jsonObject)
+                let object = try ObjectProfiler.shared.object(application: application, jsonValue: jsonObject)
                 message.append("data: \(object.jsonString)\n")
             } catch {
                 /* Nop */

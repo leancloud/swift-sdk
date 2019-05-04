@@ -17,6 +17,8 @@ import Foundation
  */
 @dynamicMemberLookup
 open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
+    public let application: LCApplication
+    
     /// Access control lists.
     @objc dynamic public var ACL: LCACL?
 
@@ -72,6 +74,16 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
     }
 
     public override required init() {
+        self.application = LCApplication.default
+        super.init()
+        self.operationHub = OperationHub(self)
+        self.propertyTable.elementDidChange = { (key, value) in
+            Runtime.setInstanceVariable(self, key, value)
+        }
+    }
+    
+    public required init(application: LCApplication) {
+        self.application = application
         super.init()
         self.operationHub = OperationHub(self)
         self.propertyTable.elementDidChange = { (key, value) in
@@ -79,40 +91,61 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
         }
     }
 
-    public convenience init(objectId: LCStringConvertible) {
-        self.init()
+    public convenience init(
+        application: LCApplication = LCApplication.default,
+        objectId: LCStringConvertible)
+    {
+        self.init(application: application)
         self.objectId = objectId.lcString
     }
 
-    public convenience init(className: LCStringConvertible) {
-        self.init()
+    public convenience init(
+        application: LCApplication = LCApplication.default,
+        className: LCStringConvertible)
+    {
+        self.init(application: application)
         self.propertyTable["className"] = className.lcString
     }
 
-    public convenience init(className: LCStringConvertible, objectId: LCStringConvertible) {
-        self.init()
+    public convenience init(
+        application: LCApplication = LCApplication.default,
+        className: LCStringConvertible,
+        objectId: LCStringConvertible)
+    {
+        self.init(application: application)
         self.propertyTable["className"] = className.lcString
         self.objectId = objectId.lcString
     }
 
-    convenience init(dictionary: LCDictionaryConvertible) {
-        self.init()
+    convenience init(application: LCApplication, dictionary: LCDictionaryConvertible) {
+        self.init(application: application)
         for (key, value) in dictionary.lcDictionary {
             self.propertyTable[key] = value
         }
     }
 
     public required convenience init?(coder aDecoder: NSCoder) {
-        self.init()
-        let dictionary = (aDecoder.decodeObject(forKey: "propertyTable") as? LCDictionary) ?? [:]
+        let application: LCApplication
+        if
+            let applicationID: String = aDecoder.decodeObject(forKey: "applicationID") as? String,
+            let registeredApplication: LCApplication = applicationRegistry[applicationID]
+        {
+            application = registeredApplication
+        } else {
+            application = LCApplication.default
+        }
+        self.init(application: application)
+        let dictionary: LCDictionary = (aDecoder.decodeObject(forKey: "propertyTable") as? LCDictionary) ?? [:]
         for (key, value) in dictionary {
             self.propertyTable[key] = value
         }
     }
-
-    open func encode(with aCoder: NSCoder) {
-        let propertyTable = self.dictionary.copy() as! LCDictionary
-
+    
+    public func encode(with aCoder: NSCoder) {
+        let applicationID: String = self.application.id
+        let propertyTable: LCDictionary = self.dictionary.copy() as! LCDictionary
+        
+        aCoder.encode(applicationID, forKey: "applicationID")
         aCoder.encode(propertyTable, forKey: "propertyTable")
     }
 
@@ -190,9 +223,9 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
     func preferredBatchRequest(method: HTTPClient.Method, path: String, internalId: String) throws -> [String: Any]? {
         return nil
     }
-
-    static func instance() -> LCValue {
-        return self.init()
+    
+    static func instance(application: LCApplication) -> LCValue {
+        return self.init(application: application)
     }
 
     func forEachChild(_ body: (_ child: LCValue) throws -> Void) rethrows {
@@ -276,7 +309,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
 
         guard
             let type = Value.self as? LCValueExtension.Type,
-            let value = try type.instance() as? Value
+            let value = type.instance(application: self.application) as? Value
         else {
             let reason = String(format: "Failed to load property for name \"%@\" with type \"%s\".", key, class_getName(Value.self))
             throw LCError(code: .invalidType, reason: reason)
@@ -604,7 +637,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
      - returns: The relation for key.
      */
     open func relationForKey(_ key: String) -> LCRelation {
-        return LCRelation(key: key, parent: self)
+        return LCRelation(application: self.application, key: key, parent: self)
     }
 
     /**
@@ -649,6 +682,16 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
     func objectDidSave() {
         /* Nop */
     }
+    
+    private static func assertObjectsApplication(_ objects: [LCObject]) -> Bool {
+        let sharedApplication = (objects.first?.application ?? LCApplication.default)
+        for object in objects {
+            if object.application !== sharedApplication {
+                return false
+            }
+        }
+        return true
+    }
 
     // MARK: Save object
 
@@ -660,6 +703,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
      - returns: The result of deletion request.
      */
     public static func save(_ objects: [LCObject]) -> LCBooleanResult {
+        assert(self.assertObjectsApplication(objects), "objects with multiple applications.")
         return expect { fulfill in
             save(objects, completionInBackground: { result in
                 fulfill(result)
@@ -676,6 +720,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
      - returns: The request of saving.
      */
     public static func save(_ objects: [LCObject], completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
+        assert(self.assertObjectsApplication(objects), "objects with multiple applications.")
         return save(objects, completionInBackground: { result in
             mainQueueAsync {
                 completion(result)
@@ -685,6 +730,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
 
     @discardableResult
     static func save(_ objects: [LCObject], completionInBackground completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
+        assert(self.assertObjectsApplication(objects), "objects with multiple applications.")
         return ObjectUpdater.save(objects, completionInBackground: completion)
     }
 
@@ -718,10 +764,9 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
      - returns: The result of deletion request.
      */
     public static func delete(_ objects: [LCObject]) -> LCBooleanResult {
+        assert(self.assertObjectsApplication(objects), "objects with multiple applications.")
         return expect { fulfill in
-            delete(objects, completionInBackground: { result in
-                fulfill(result)
-            })
+            delete(objects, completionInBackground: fulfill)
         }
     }
 
@@ -734,15 +779,13 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
      - returns: The request of deletion.
      */
     public static func delete(_ objects: [LCObject], completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
-        return delete(objects, completionInBackground: { result in
-            mainQueueAsync {
-                completion(result)
-            }
-        })
+        assert(self.assertObjectsApplication(objects), "objects with multiple applications.")
+        return delete(objects, completionInBackground: { result in mainQueueAsync { completion(result) } } )
     }
 
     @discardableResult
     private static func delete(_ objects: [LCObject], completionInBackground completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
+        assert(self.assertObjectsApplication(objects), "objects with multiple applications.")
         return ObjectUpdater.delete(objects, completionInBackground: completion)
     }
 
@@ -776,6 +819,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
      - returns: The result of fetching request.
      */
     public static func fetch(_ objects: [LCObject]) -> LCBooleanResult {
+        assert(self.assertObjectsApplication(objects), "objects with multiple applications.")
         return expect { fulfill in
             fetch(objects, completionInBackground: { result in
                 fulfill(result)
@@ -792,6 +836,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
      - returns: The request of fetching.
      */
     public static func fetch(_ objects: [LCObject], completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
+        assert(self.assertObjectsApplication(objects), "objects with multiple applications.")
         return fetch(objects, completionInBackground: { result in
             mainQueueAsync {
                 completion(result)
@@ -801,7 +846,8 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
 
     @discardableResult
     private static func fetch(_ objects: [LCObject], completionInBackground completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
-        return ObjectUpdater.fetch(objects, completionInBackground: completion)
+        assert(self.assertObjectsApplication(objects), "objects with multiple applications.")
+        return ObjectUpdater.fetch(objects, completionInBackground: completion )
     }
 
     /**

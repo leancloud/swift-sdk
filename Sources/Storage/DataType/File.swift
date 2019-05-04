@@ -52,11 +52,12 @@ public class LCFile: LCObject {
         }
     }
 
-    /// The HTTP client.
-    private lazy var httpClient = HTTPClient.default
-
     public required init() {
         super.init()
+    }
+    
+    public required init(application: LCApplication) {
+        super.init(application: application)
     }
 
     /**
@@ -64,8 +65,10 @@ public class LCFile: LCObject {
 
      - parameter url: The file URL.
      */
-    public init(url: LCStringConvertible) {
-        super.init()
+    public init(
+        application: LCApplication = LCApplication.default,
+        url: LCStringConvertible) {
+        super.init(application: application)
         self.url = url.lcString
     }
 
@@ -92,8 +95,11 @@ public class LCFile: LCObject {
 
      - parameter content: The file content.
      */
-    public init(payload: Payload) {
-        super.init()
+    public init(
+        application: LCApplication = LCApplication.default,
+        payload: Payload)
+    {
+        super.init(application: application)
         self.payload = payload
     }
 
@@ -157,6 +163,8 @@ public class LCFile: LCObject {
         progressInBackground progress: @escaping (Double) -> Void,
         completion: @escaping (LCBooleanResult) -> Void) -> LCRequest
     {
+        let httpClient: HTTPClient = self.application.httpClient
+        
         if let _ = objectId {
             let error = LCError(
                 code: .inconsistency,

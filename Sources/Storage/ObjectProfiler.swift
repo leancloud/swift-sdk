@@ -480,11 +480,11 @@ class ObjectProfiler {
 
      - returns: An LCObject object for class name.
      */
-    func object(className: String) -> LCObject {
+    func object(application: LCApplication, className: String) -> LCObject {
         if let objectClass = objectClass(className) {
-            return objectClass.init()
+            return objectClass.init(application: application)
         } else {
-            return LCObject(className: className)
+            return LCObject(application: application, className: className)
         }
     }
 
@@ -496,9 +496,9 @@ class ObjectProfiler {
 
      - returns: An LCObject object.
      */
-    func object(dictionary: [String: Any], className: String) throws -> LCObject {
-        let result = object(className: className)
-        let keyValues = try dictionary.compactMapValue { try object(jsonValue: $0) }
+    func object(application: LCApplication, dictionary: [String: Any], className: String) throws -> LCObject {
+        let result = object(application: application, className: className)
+        let keyValues = try dictionary.compactMapValue { try object(application: application, jsonValue: $0) }
 
         keyValues.forEach { (key, value) in
             result.update(key, value)
@@ -515,14 +515,14 @@ class ObjectProfiler {
 
      - returns: An LCValue object, or nil if object can not be decoded.
      */
-    func object(dictionary: [String: Any], dataType: HTTPClient.DataType) throws -> LCValue? {
+    func object(application: LCApplication, dictionary: [String: Any], dataType: HTTPClient.DataType) throws -> LCValue? {
         switch dataType {
         case .object,
              .pointer:
             let className = dictionary["className"] as? String ?? LCObject.objectClassName()
-            return try object(dictionary: dictionary, className: className)
+            return try object(application: application, dictionary: dictionary, className: className)
         case .relation:
-            return LCRelation(dictionary: dictionary)
+            return LCRelation(application: application, dictionary: dictionary)
         case .geoPoint:
             return LCGeoPoint(dictionary: dictionary)
         case .bytes:
@@ -530,7 +530,7 @@ class ObjectProfiler {
         case .date:
             return LCDate(dictionary: dictionary)
         case .file:
-            return try object(dictionary: dictionary, className: LCFile.objectClassName())
+            return try object(application: application, dictionary: dictionary, className: LCFile.objectClassName())
         }
     }
 
@@ -541,17 +541,17 @@ class ObjectProfiler {
 
      - returns: An LCValue object.
      */
-    private func object(dictionary: [String: Any]) throws -> LCValue {
+    private func object(application: LCApplication, dictionary: [String: Any]) throws -> LCValue {
         var result: LCValue!
 
         if let type = dictionary["__type"] as? String {
             if let dataType = HTTPClient.DataType(rawValue: type) {
-                result = try object(dictionary: dictionary, dataType: dataType)
+                result = try object(application: application, dictionary: dictionary, dataType: dataType)
             }
         }
 
         if result == nil {
-            result = LCDictionary(try dictionary.compactMapValue { try object(jsonValue: $0) })
+            result = LCDictionary(try dictionary.compactMapValue { try object(application: application, jsonValue: $0) })
         }
 
         return result
@@ -564,7 +564,7 @@ class ObjectProfiler {
 
      - returns: An LCValue object of the corresponding JSON value.
      */
-    func object(jsonValue: Any) throws -> LCValue {
+    func object(application: LCApplication, jsonValue: Any) throws -> LCValue {
         switch jsonValue {
         /* Note: a bool is also a number, we must match it first. */
         case let bool where isBoolean(bool):
@@ -574,9 +574,9 @@ class ObjectProfiler {
         case let string as String:
             return LCString(string)
         case let array as [Any]:
-            return LCArray(try array.map { try object(jsonValue: $0) })
+            return LCArray(try array.map { try object(application: application, jsonValue: $0) })
         case let dictionary as [String: Any]:
-            return try object(dictionary: dictionary)
+            return try object(application: application, dictionary: dictionary)
         case let data as Data:
             return LCData(data)
         case let date as Date:
@@ -622,7 +622,12 @@ class ObjectProfiler {
      */
     func updateObject(_ object: LCObject, _ dictionary: [String: Any]) {
         dictionary.forEach { (key, value) in
-            object.update(key, try! self.object(jsonValue: value))
+            do {
+                let new = try self.object(application: object.application, jsonValue: value)
+                object.update(key, new)
+            } catch {
+                Logger.shared.error(error)
+            }
         }
     }
 

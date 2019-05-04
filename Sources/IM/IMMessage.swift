@@ -190,6 +190,7 @@ open class IMMessage {
     public required init() {}
     
     static func instance(
+        application: LCApplication,
         isTransient: Bool,
         conversationID: String,
         currentClientID: String,
@@ -213,7 +214,7 @@ open class IMMessage {
                 let messageClass: IMCategorizedMessage.Type = LCCategorizedMessageMap[typeNumber]
             {
                 let categorizedMessage = messageClass.init()
-                categorizedMessage.decoding(with: rawData)
+                categorizedMessage.decoding(rawData: rawData, application: application)
                 message = categorizedMessage
             }
         } catch {
@@ -385,7 +386,7 @@ open class IMCategorizedMessage: IMMessage, IMMessageCategorizing {
     /// The location data.
     public var location: LCGeoPoint?
     
-    fileprivate func decoding(with rawData: [String: Any]) {
+    fileprivate func decoding(rawData: [String: Any], application: LCApplication) {
         if let text: String = rawData[ReservedKey.text.rawValue] as? String {
             self.text = text
         }
@@ -402,7 +403,7 @@ open class IMCategorizedMessage: IMMessage, IMMessageCategorizing {
             let objectID: String = fileRawData[FileKey.objId.rawValue] as? String,
             let URLString: String = fileRawData[FileKey.url.rawValue] as? String
         {
-            let file = LCFile(objectId: objectID)
+            let file = LCFile(application: application, objectId: objectID)
             file.url = LCString(URLString)
             self.file = file
             self.fileMetaData = (fileRawData[FileKey.metaData.rawValue] as? [String: Any])

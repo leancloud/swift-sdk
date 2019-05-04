@@ -38,8 +38,11 @@ public class LCRole: LCObject {
 
      - parameter name: The name of role.
      */
-    public convenience init(name: String) {
-        self.init()
+    public convenience init(
+        application: LCApplication = LCApplication.default,
+        name: String)
+    {
+        self.init(application: application)
         self.name = LCString(name)
     }
 }

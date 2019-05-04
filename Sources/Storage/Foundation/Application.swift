@@ -8,6 +8,8 @@
 
 import Foundation
 
+var applicationRegistry: [String: LCApplication] = [:]
+
 /**
  LeanCloud application.
 
@@ -16,6 +18,16 @@ import Foundation
  It is a context of application-specific settings and objects.
  */
 public final class LCApplication: NSObject {
+    
+    /// log level.
+    public static var logLevel: LogLevel = .off
+    
+    /**
+     Default application.
+     
+     You must call method `set(id:key:region:)` to initialize it before your starting.
+     */
+    public static let `default` = LCApplication()
 
     /**
      Application region.
@@ -85,21 +97,45 @@ public final class LCApplication: NSObject {
     public private(set) var key: String!
 
     /// Application region.
-    var region: Region {
+    private(set) lazy var region: Region = {
         return Region(id: id)
-    }
-
-    /// Application log level.
-    public var logLevel: LogLevel = .off
-
-    /**
-     Default application.
-
-     You must call method `set(id:key:region:)` to initialize it when application did finish launch.
-     */
-    public static let `default` = LCApplication()
+    }()
+    
+    lazy var currentInstallationCacheURL: URL? = {
+        do {
+            return try self.localStorageContext?.fileURL(place: .systemCaches, module: .push, file: .installation)
+        } catch {
+            Logger.shared.error(error)
+            return nil
+        }
+    }()
+    
+    public internal(set) lazy var currentInstallation: LCInstallation = {
+        if
+            let localStorageContext = self.localStorageContext,
+            let fileURL: URL = self.currentInstallationCacheURL
+        {
+            do {
+                if
+                    let table: LCInstallation.StorageTable = try localStorageContext.table(from: fileURL),
+                    let data: Data = table.jsonString.data(using: .utf8),
+                    let dictionary: [String: Any] = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+                {
+                    let lcDictionary = try LCDictionary(application: self, unsafeObject: dictionary)
+                    return LCInstallation(application: self, dictionary: lcDictionary)
+                }
+            } catch {
+                Logger.shared.error(error)
+            }
+        }
+        return LCInstallation(application: self)
+    }()
+    
+    public var currentUser: LCUser?
     
     private(set) var localStorageContext: LocalStorageContext?
+    
+    private(set) var httpClient: HTTPClient!
 
     /**
      Create an application.
@@ -107,7 +143,7 @@ public final class LCApplication: NSObject {
      - note: We make initializer internal before multi-applicaiton is supported.
      */
     override init() {
-        /* Nop */
+        super.init()
     }
 
     /**
@@ -118,9 +154,17 @@ public final class LCApplication: NSObject {
 
      - note: We make initializer internal before multi-applicaiton is supported.
      */
-    init(id: String, key: String) {
+    public init(id: String, key: String) throws {
+        super.init()
+        
+        if let _ = applicationRegistry[id] {
+            throw LCError.applicationDidRegister(id: id)
+        }
         self.id = id
         self.key = key
+        applicationRegistry[id] = self
+        
+        try self.doInitializing()
     }
 
     /**
@@ -129,18 +173,35 @@ public final class LCApplication: NSObject {
      - parameter id:    Application ID.
      - parameter key:   Application key.
      */
-    public func set(id: String, key: String) {
+    public func set(id: String, key: String) throws {
+        if let _ = applicationRegistry[id] {
+            throw LCError.applicationDidRegister(id: id)
+        }
         self.id = id
         self.key = key
+        applicationRegistry[id] = self
         
+        try self.doInitializing()
+    }
+    
+    func doInitializing() throws {
         // register default LeanCloud object classes if needed.
         _ = ObjectProfiler.shared
-        
-        do {
-            self.localStorageContext = try LocalStorageContext(applicationID: id)
-        } catch {
-            Logger.shared.error(error)
-        }
+        // init local storage context
+        self.localStorageContext = try LocalStorageContext(applicationID: self.id)
+        // init HTTP client
+        self.httpClient = HTTPClient(application: self, configuration: HTTPClient.Configuration.default)
     }
 
+}
+
+extension LCError {
+    
+    static func applicationDidRegister(id: String) -> LCError {
+        return LCError(
+            code: .inconsistency,
+            reason: "Application with \"\(id)\" has been registered."
+        )
+    }
+    
 }

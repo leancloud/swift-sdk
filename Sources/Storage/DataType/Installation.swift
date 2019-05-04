@@ -46,7 +46,7 @@ public class LCInstallation: LCObject {
 
     public required init() {
         super.init()
-
+        
         self.timeZone = NSTimeZone.system.identifier.lcString
         
         if let bundleIdentifier = Bundle.main.bundleIdentifier {
@@ -63,7 +63,27 @@ public class LCInstallation: LCObject {
         self.deviceType = "tvos"
         #endif
     }
-
+    
+    public required init(application: LCApplication) {
+        super.init(application: application)
+        
+        self.timeZone = NSTimeZone.system.identifier.lcString
+        
+        if let bundleIdentifier = Bundle.main.bundleIdentifier {
+            self.apnsTopic = bundleIdentifier.lcString
+        }
+        
+        #if os(iOS)
+        self.deviceType = "ios"
+        #elseif os(macOS)
+        self.deviceType = "macos"
+        #elseif os(watchOS)
+        self.deviceType = "watchos"
+        #elseif os(tvOS)
+        self.deviceType = "tvos"
+        #endif
+    }
+    
     /**
      Set required properties for installation.
 
@@ -85,7 +105,7 @@ public class LCInstallation: LCObject {
             var request: [String: Any] = [:]
 
             request["method"] = HTTPClient.Method.post.rawValue
-            request["path"] = try HTTPClient.default.getBatchRequestPath(object: self, method: .post)
+            request["path"] = try self.application.httpClient.getBatchRequestPath(object: self, method: .post)
 
             if var body = dictionary.lconValue as? [String: Any] {
                 body["__internalId"] = internalId
@@ -115,26 +135,38 @@ public class LCInstallation: LCObject {
 
     override func objectDidSave() {
         super.objectDidSave()
-
-        let application = LCApplication.default
-
-        if application.currentInstallation == self {
-            application.storageContextCache.installation = self
+        
+        if
+            self.application.currentInstallation === self,
+            let url: URL = self.application.currentInstallationCacheURL
+        {
+            let table = StorageTable(
+                jsonString: self.jsonString,
+                applicationID: self.application.id
+            )
+            do {
+                try self.application.localStorageContext?.save(table: table, to: url)
+            } catch {
+                Logger.shared.error(error)
+            }
         }
     }
 
 }
 
-extension LCApplication {
-
-    public var currentInstallation: LCInstallation {
-        return lc_lazyload("currentInstallation", .OBJC_ASSOCIATION_RETAIN) {
-            storageContextCache.installation ?? LCInstallation()
+extension LCInstallation {
+    
+    struct StorageTable: Codable {
+        let jsonString: String
+        let applicationID: String
+        
+        enum CodingKeys: String, CodingKey {
+            case jsonString = "json_string"
+            case applicationID = "application_id"
         }
     }
-
+    
 }
-
 
 public protocol LCDeviceTokenConvertible {
 

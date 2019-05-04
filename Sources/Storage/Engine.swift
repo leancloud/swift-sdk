@@ -17,9 +17,14 @@ public final class LCEngine {
 
      - returns: The result of function call.
      */
-    public static func call(_ function: String, parameters: LCDictionaryConvertible? = nil) -> LCValueOptionalResult {
+    public static func call(
+        application: LCApplication = LCApplication.default,
+        _ function: String,
+        parameters: LCDictionaryConvertible? = nil)
+        -> LCValueOptionalResult
+    {
         return expect { fulfill in
-            call(function, parameters: parameters, completionInBackground: { result in
+            call(application: application, function, parameters: parameters, completionInBackground: { result in
                 fulfill(result)
             })
         }
@@ -33,8 +38,14 @@ public final class LCEngine {
 
      - parameter completion: The completion callback closure.
      */
-    public static func call(_ function: String, parameters: LCDictionaryConvertible? = nil, completion: @escaping (LCValueOptionalResult) -> Void) -> LCRequest {
-        return call(function, parameters: parameters, completionInBackground: { result in
+    public static func call(
+        application: LCApplication = LCApplication.default,
+        _ function: String,
+        parameters: LCDictionaryConvertible? = nil,
+        completion: @escaping (LCValueOptionalResult) -> Void)
+        -> LCRequest
+    {
+        return call(application: application, function, parameters: parameters, completionInBackground: { result in
             mainQueueAsync {
                 completion(result)
             }
@@ -42,9 +53,15 @@ public final class LCEngine {
     }
 
     @discardableResult
-    private static func call(_ function: String, parameters: LCDictionaryConvertible? = nil, completionInBackground completion: @escaping (LCValueOptionalResult) -> Void) -> LCRequest {
+    private static func call(
+        application: LCApplication,
+        _ function: String,
+        parameters: LCDictionaryConvertible? = nil,
+        completionInBackground completion: @escaping (LCValueOptionalResult) -> Void)
+        -> LCRequest
+    {
         let parameters = parameters?.lcDictionary.lconValue as? [String: Any]
-        let request = HTTPClient.default.request(.post, "call/\(function)", parameters: parameters) { response in
+        let request = application.httpClient.request(.post, "call/\(function)", parameters: parameters) { response in
             let result = LCValueOptionalResult(response: response, keyPath: "result")
             completion(result)
         }
@@ -62,8 +79,13 @@ public final class LCEngine {
 
      - returns: The result of function call.
      */
-    public static func call(_ function: String, parameters: LCObject) -> LCValueOptionalResult {
-        return call(function, parameters: parameters.dictionary)
+    public static func call(
+        application: LCApplication = LCApplication.default,
+        _ function: String,
+        parameters: LCObject)
+        -> LCValueOptionalResult
+    {
+        return call(application: application, function, parameters: parameters.dictionary)
     }
 
     /**
@@ -76,7 +98,13 @@ public final class LCEngine {
 
      - parameter completion: The completion callback closure.
      */
-    public static func call(_ function: String, parameters: LCObject, completion: @escaping (LCValueOptionalResult) -> Void) -> LCRequest {
-        return call(function, parameters: parameters.dictionary, completion: completion)
+    public static func call(
+        application: LCApplication = LCApplication.default,
+        _ function: String,
+        parameters: LCObject,
+        completion: @escaping (LCValueOptionalResult) -> Void)
+        -> LCRequest
+    {
+        return call(application: application, function, parameters: parameters.dictionary, completion: completion)
     }
 }

@@ -69,17 +69,19 @@ class ObjectUpdater {
      - returns: The response of request.
      */
     private static func saveInOneBatchRequest(_ objects: [LCObject], completionInBackground completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
+        let httpClient: HTTPClient = (objects.first?.application ?? LCApplication.default).httpClient
+        
         var requests: [Any]
 
         do {
             requests = try createSaveBatchRequests(objects: objects)
         } catch let error {
-            return HTTPClient.default.request(error: error, completionHandler: completion)
+            return httpClient.request(error: error, completionHandler: completion)
         }
 
         let parameters = ["requests": requests]
 
-        let request = HTTPClient.default.request(.post, "batch/save", parameters: parameters) { response in
+        let request = httpClient.request(.post, "batch/save", parameters: parameters) { response in
             let result = LCBooleanResult(response: response)
 
             switch result {
@@ -112,7 +114,7 @@ class ObjectUpdater {
             let family = try ObjectProfiler.shared.family(objects)
             return saveInOneBatchRequest(family, completionInBackground: completion)
         } catch let error {
-            return HTTPClient.default.request(error: error, completionHandler: completion)
+            return (objects.first?.application ?? LCApplication.default).httpClient.request(error: error, completionHandler: completion)
         }
     }
 
@@ -131,7 +133,7 @@ class ObjectUpdater {
         let newbornOrphans = ObjectProfiler.shared.deepestNewbornOrphans(objects)
 
         if newbornOrphans.isEmpty {
-            return HTTPClient.default.request(object: .success) { result in
+            return (objects.first?.application ?? LCApplication.default).httpClient.request(object: .success) { result in
                 completion(result)
             }
         } else {
@@ -186,7 +188,7 @@ class ObjectUpdater {
                 try object.validateBeforeSaving()
             }
         } catch let error {
-            return HTTPClient.default.request(
+            return (objects.first?.application ?? LCApplication.default).httpClient.request(
                 error: error,
                 completionHandler: completion)
         }
@@ -216,8 +218,10 @@ class ObjectUpdater {
      - returns: The response of deletion request.
      */
     static func delete(_ objects: [LCObject], completionInBackground completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
+        let httpClient: HTTPClient = (objects.first?.application ?? LCApplication.default).httpClient
+        
         if objects.isEmpty {
-            return HTTPClient.default.request(object: .success) { result in
+            return httpClient.request(object: .success) { result in
                 completion(result)
             }
         } else {
@@ -228,12 +232,12 @@ class ObjectUpdater {
                     try BatchRequest(object: object, method: .delete).jsonValue()
                 }
             } catch let error {
-                return HTTPClient.default.request(error: error, completionHandler: completion)
+                return httpClient.request(error: error, completionHandler: completion)
             }
 
             let parameters = ["requests": requests]
 
-            return HTTPClient.default.request(.post, "batch", parameters: parameters) { response in
+            return httpClient.request(.post, "batch", parameters: parameters) { response in
                 completion(LCBooleanResult(response: response))
             }
         }
@@ -310,8 +314,10 @@ class ObjectUpdater {
      - returns: The response of fetching request.
      */
     static func fetch(_ objects: [LCObject], completionInBackground completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
+        let httpClient: HTTPClient = (objects.first?.application ?? LCApplication.default).httpClient
+        
         if objects.isEmpty {
-            return HTTPClient.default.request(object: .success) { result in
+            return httpClient.request(object: .success) { result in
                 completion(result)
             }
         } else {
@@ -322,12 +328,12 @@ class ObjectUpdater {
                     try BatchRequest(object: object, method: .get).jsonValue()
                 }
             } catch let error {
-                return HTTPClient.default.request(error: error, completionHandler: completion)
+                return httpClient.request(error: error, completionHandler: completion)
             }
 
             let parameters = ["requests": requests]
 
-            return HTTPClient.default.request(.post, "batch", parameters: parameters) { response in
+            return httpClient.request(.post, "batch", parameters: parameters) { response in
                 var result = LCBooleanResult(response: response)
 
                 switch result {

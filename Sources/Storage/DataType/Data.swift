@@ -107,8 +107,8 @@ public final class LCData: NSObject, LCValue, LCValueExtension {
     var lconValue: Any? {
         return jsonValue
     }
-
-    static func instance() -> LCValue {
+    
+    static func instance(application: LCApplication) -> LCValue {
         return self.init()
     }
 
