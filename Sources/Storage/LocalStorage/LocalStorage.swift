@@ -386,7 +386,6 @@ class LocalStorageContext {
         }
     }
     
-    let appID: String
     let cachesDirectoryPath: URL
     let applicationSupportDirectoryPath: URL
     
@@ -415,7 +414,6 @@ class LocalStorageContext {
             )
             return pathURL
         }
-        self.appID = applicationID
         self.cachesDirectoryPath = try appDirectoryPath(systemCachesDirectory)
         self.applicationSupportDirectoryPath = try appDirectoryPath(systemApplicationSupportDirectory)
     }
