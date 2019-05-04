@@ -117,7 +117,7 @@ public final class LCApplication: NSObject {
         {
             do {
                 if
-                    let table: LCInstallation.StorageTable = try localStorageContext.table(from: fileURL),
+                    let table: LCInstallation.CacheTable = try localStorageContext.table(from: fileURL),
                     let data: Data = table.jsonString.data(using: .utf8),
                     let dictionary: [String: Any] = try JSONSerialization.jsonObject(with: data) as? [String: Any]
                 {
@@ -136,6 +136,8 @@ public final class LCApplication: NSObject {
     private(set) var localStorageContext: LocalStorageContext?
     
     private(set) var httpClient: HTTPClient!
+    
+    private(set) var httpRouter: HTTPRouter!
 
     /**
      Create an application.
@@ -164,7 +166,7 @@ public final class LCApplication: NSObject {
         self.key = key
         applicationRegistry[id] = self
         
-        try self.doInitializing()
+        self.doInitializing()
     }
 
     /**
@@ -181,16 +183,21 @@ public final class LCApplication: NSObject {
         self.key = key
         applicationRegistry[id] = self
         
-        try self.doInitializing()
+        self.doInitializing()
     }
     
-    func doInitializing() throws {
+    func doInitializing() {
+        // init local storage context
+        do {
+            self.localStorageContext = try LocalStorageContext(applicationID: self.id)
+        } catch {
+            Logger.shared.error(error)
+        }
         // register default LeanCloud object classes if needed.
         _ = ObjectProfiler.shared
-        // init local storage context
-        self.localStorageContext = try LocalStorageContext(applicationID: self.id)
         // init HTTP client
-        self.httpClient = HTTPClient(application: self, configuration: HTTPClient.Configuration.default)
+        self.httpClient = HTTPClient(application: self, configuration: .default)
+        self.httpRouter = HTTPRouter(application: self, configuration: .default)
     }
 
 }
