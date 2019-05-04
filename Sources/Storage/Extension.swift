@@ -233,16 +233,6 @@ extension Sequence {
 
 }
 
-extension LCApplication {
-
-    var storageContextCache: StorageContextCache {
-        return lc_lazyload("storageContextCache", .OBJC_ASSOCIATION_RETAIN) {
-            StorageContextCache(application: self)
-        }
-    }
-
-}
-
 extension LCError {
 
     /**

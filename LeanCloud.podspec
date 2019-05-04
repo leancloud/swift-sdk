@@ -16,11 +16,7 @@ Pod::Spec.new do |s|
   s.subspec 'Storage' do |ss|
     ss.dependency 'Alamofire', '~> 4.8.0'
 
-    ss.source_files = 'Sources/Storage/**/*.{h,m,swift}'
-    ss.resources = 'Sources/Storage/**/*.{xcdatamodeld}'
-    ss.private_header_files = 'Sources/Storage/Foundation/Polyfill/Polyfill.h'
-    ss.preserve_paths = 'Sources/Storage/Foundation/**/*.{modulemap}'
-    ss.pod_target_xcconfig = { 'SWIFT_INCLUDE_PATHS' => '"$(PODS_TARGET_SRCROOT)"/**' }
+    ss.source_files = 'Sources/Storage/**/*.{swift}'
   end
 
   s.subspec 'IM' do |ss|
@@ -29,7 +25,6 @@ Pod::Spec.new do |s|
 
     ss.dependency 'LeanCloud/Storage'
 
-    ss.source_files = 'Sources/IM/**/*.swift'
-    ss.resources = 'Sources/IM/**/*.{xcdatamodeld}'
+    ss.source_files = 'Sources/IM/**/*.{swift}'
   end
 end

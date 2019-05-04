@@ -96,23 +96,6 @@ class LCRouterTestCase: BaseTestCase {
         }
     }
 
-    func testCacheExpiration() {
-        let host = "s5vdi3ie.api.lncld.net"
-        let appRouterCache = AppRouterCache(application: LCRouterTestCase.cnApplication)
-
-        do {
-            try appRouterCache.cacheHostTable([.api: host], expirationDate: Date(timeIntervalSinceNow: 0.3))
-        } catch let error {
-            XCTFail(error.localizedDescription)
-        }
-
-        XCTAssertEqual(try appRouterCache.fetchHost(module: .api), host)
-        XCTAssertEqual(try appRouterCache.fetchHost(module: .push), nil)
-
-        Thread.sleep(forTimeInterval: 0.3)
-        XCTAssertEqual(try appRouterCache.fetchHost(module: .api), nil)
-    }
-
     func testAppRouterThrottle() {
         var requestSet = Set<LCRequest>()
         var resultArray: [LCBooleanResult] = []
