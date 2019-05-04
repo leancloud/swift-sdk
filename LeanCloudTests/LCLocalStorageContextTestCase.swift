@@ -1,5 +1,5 @@
 //
-//  LCLocalStorageTestCase.swift
+//  LCLocalStorageContextTestCase.swift
 //  LeanCloudTests
 //
 //  Created by zapcannon87 on 2019/4/10.
