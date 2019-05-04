@@ -31,11 +31,6 @@ class LCInstallationTestCase: BaseTestCase {
         XCTAssertTrue(installation.save().isSuccess)
         
         XCTAssertFalse(installation.hasDataToUpload)
-
-        let cachedInstallation = LCApplication.default.storageContextCache.installation
-
-        XCTAssertFalse(installation === cachedInstallation)
-        XCTAssertEqual(installation, cachedInstallation)
     }
 
 }

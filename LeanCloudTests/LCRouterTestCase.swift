@@ -21,15 +21,15 @@ class LCRouterTestCase: BaseTestCase {
         super.tearDown()
     }
 
-    let cnApplication       = LCApplication(id: "S5vDI3IeCk1NLLiM1aFg3262-gzGzoHsz", key: "7g5pPsI55piz2PRLPWK5MPz0")
-    let ceApplication       = LCApplication(id: "uwWkfssEBRtrxVpQWEnFtqfr-9Nh9j0Va", key: "9OaLpoW21lIQtRYzJya4WHUR")
-    let usApplication       = LCApplication(id: "eX7urCufwLd6X5mHxt7V12nL-MdYXbMMI", key: "PrmzHPnRXjXezS54KryuHMG6")
-    let earlyCnApplication  = LCApplication(id: "uay57kigwe0b6f5n0e1d4z4xhydsml3dor24bzwvzr57wdap", key: "kfgz7jjfsk55r5a8a3y4ttd3je1ko11bkibcikonk32oozww")
+    static let cnApplication       = LCApplication.default
+    static let ceApplication       = try! LCApplication(id: "uwWkfssEBRtrxVpQWEnFtqfr-9Nh9j0Va", key: "9OaLpoW21lIQtRYzJya4WHUR")
+    static let usApplication       = try! LCApplication(id: "eX7urCufwLd6X5mHxt7V12nL-MdYXbMMI", key: "PrmzHPnRXjXezS54KryuHMG6")
+    static let earlyCnApplication  = try! LCApplication(id: "uay57kigwe0b6f5n0e1d4z4xhydsml3dor24bzwvzr57wdap", key: "kfgz7jjfsk55r5a8a3y4ttd3je1ko11bkibcikonk32oozww")
 
-    lazy var cnRouter       = HTTPRouter(application: cnApplication, configuration: .default)
-    lazy var ceRouter       = HTTPRouter(application: ceApplication, configuration: .default)
-    lazy var usRouter       = HTTPRouter(application: usApplication, configuration: .default)
-    lazy var earlyCnRouter  = HTTPRouter(application: earlyCnApplication, configuration: .default)
+    lazy var cnRouter       = HTTPRouter(application: LCRouterTestCase.cnApplication, configuration: .default)
+    lazy var ceRouter       = HTTPRouter(application: LCRouterTestCase.ceApplication, configuration: .default)
+    lazy var usRouter       = HTTPRouter(application: LCRouterTestCase.usApplication, configuration: .default)
+    lazy var earlyCnRouter  = HTTPRouter(application: LCRouterTestCase.earlyCnApplication, configuration: .default)
 
     func testAbsoluteUrl() {
         XCTAssertEqual(
@@ -98,7 +98,7 @@ class LCRouterTestCase: BaseTestCase {
 
     func testCacheExpiration() {
         let host = "s5vdi3ie.api.lncld.net"
-        let appRouterCache = AppRouterCache(application: cnApplication)
+        let appRouterCache = AppRouterCache(application: LCRouterTestCase.cnApplication)
 
         do {
             try appRouterCache.cacheHostTable([.api: host], expirationDate: Date(timeIntervalSinceNow: 0.3))
