@@ -140,7 +140,7 @@ public class LCInstallation: LCObject {
             self.application.currentInstallation === self,
             let url: URL = self.application.currentInstallationCacheURL
         {
-            let table = StorageTable(
+            let table = CacheTable(
                 jsonString: self.jsonString,
                 applicationID: self.application.id
             )
@@ -156,7 +156,7 @@ public class LCInstallation: LCObject {
 
 extension LCInstallation {
     
-    struct StorageTable: Codable {
+    struct CacheTable: Codable {
         let jsonString: String
         let applicationID: String
         
