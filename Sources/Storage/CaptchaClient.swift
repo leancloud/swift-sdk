@@ -10,6 +10,7 @@ import Foundation
 
 public class LCCaptchaClient {
     
+    /// Captcha
     public struct Captcha: Codable {
         public let token: String?
         public let url: String?
@@ -20,6 +21,7 @@ public class LCCaptchaClient {
         }
     }
     
+    /// Captcha Verification
     public struct Verification: Codable {
         public let token: String?
         
@@ -28,6 +30,14 @@ public class LCCaptchaClient {
         }
     }
     
+    /// Request a Captcha.
+    ///
+    /// - Parameters:
+    ///   - application: The application.
+    ///   - width: The width of the image.
+    ///   - height: The height of the image.
+    ///   - completion: success with a captcha.
+    /// - Returns: HTTP Request.
     @discardableResult
     public static func requestCaptcha(
         application: LCApplication = LCApplication.default,
@@ -76,6 +86,14 @@ public class LCCaptchaClient {
         return request
     }
     
+    /// Verify a Captcha.
+    ///
+    /// - Parameters:
+    ///   - application: The application.
+    ///   - code: The code of the captcha.
+    ///   - captchaToken: The token of the captcha.
+    ///   - completion: sucess with a captcha verification.
+    /// - Returns: HTTP Request.
     @discardableResult
     public static func verifyCaptcha(
         application: LCApplication = LCApplication.default,

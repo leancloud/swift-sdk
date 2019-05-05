@@ -75,7 +75,7 @@ class RTMConnectionTestCase: RTMBaseTestCase {
         var connection: RTMConnection? = tuple?.0
         
         let deinitExp = expectation(description: "deinit")
-        let commandCallback = RTMConnection.CommandCallback(callingQueue: .main, closure: { (result) in
+        let commandCallback = RTMConnection.CommandCallback(timeoutInterval: 30, callingQueue: .main, closure: { (result) in
             XCTAssertTrue(Thread.isMainThread)
             XCTAssertEqual(result.error?.code, LCError.InternalErrorCode.connectionLost.rawValue)
             deinitExp.fulfill()
@@ -90,34 +90,30 @@ class RTMConnectionTestCase: RTMBaseTestCase {
     }
     
     func testTimerCommandTimeout() {
-        RTMTimeoutInterval = 5
+        let commandTimeoutInterval: TimeInterval = 5.0
         
         let peerID = uuid
         let tuple = connectedConnection(peerID: peerID)
         let connection = tuple.0
         
-        let originRTMTimeoutInterval = RTMTimeoutInterval
-        
         let timeoutExp = expectation(description: "command callback timeout")
         let start = Date().timeIntervalSince1970
-        let commandCallback = RTMConnection.CommandCallback(callingQueue: .main) { (result) in
+        let commandCallback = RTMConnection.CommandCallback(timeoutInterval: commandTimeoutInterval, callingQueue: .main) { (result) in
             XCTAssertTrue(Thread.isMainThread)
             XCTAssertEqual(result.error?.code, LCError.InternalErrorCode.commandTimeout.rawValue)
             let interval = Date().timeIntervalSince1970 - start
-            XCTAssertTrue(((RTMTimeoutInterval - 3)...(RTMTimeoutInterval + 3)) ~= interval)
+            XCTAssertTrue(((commandTimeoutInterval - 3)...(commandTimeoutInterval + 3)) ~= interval)
             timeoutExp.fulfill()
         }
         connection.serialQueue.async {
             connection.timer?.insert(commandCallback: commandCallback, index: connection.underlyingSerialIndex)
         }
-        wait(for: [timeoutExp], timeout: RTMTimeoutInterval * 2)
+        wait(for: [timeoutExp], timeout: commandTimeoutInterval * 2)
         
         delay()
         
         XCTAssertEqual(connection.timer?.commandCallbackCollection.count, 0)
         XCTAssertEqual(connection.timer?.commandIndexSequence.count, 0)
-        
-        RTMTimeoutInterval = originRTMTimeoutInterval
     }
     
     func testDelegateEvent() {
@@ -281,15 +277,13 @@ extension RTMConnectionTestCase {
     
     func connectedConnection(
         application: LCApplication = .default,
-        peerID: String = uuid,
-        customServerURL: URL? = nil)
+        peerID: String = uuid)
         -> (RTMConnection, Delegator)
     {
         let connection = try! RTMConnectionRegistering(
             application: application,
             peerID: peerID,
-            lcimProtocol: .protobuf1,
-            customServerURL: customServerURL
+            lcimProtocol: .protobuf1
         )
         let delegator = Delegator()
         let connectionDelegator = RTMConnection.Delegator(queue: .main)

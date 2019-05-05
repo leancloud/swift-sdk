@@ -181,14 +181,11 @@ public class IMConversation {
             let validType = ConvType(rawValue: typeRawValue) {
             convType = validType
         } else {
-            if let transient: Bool = rawData[Key.transient.rawValue] as? Bool,
-                transient == true {
+            if let transient: Bool = rawData[Key.transient.rawValue] as? Bool, transient {
                 convType = .transient
-            } else if let system: Bool = rawData[Key.system.rawValue] as? Bool,
-                system == true {
+            } else if let system: Bool = rawData[Key.system.rawValue] as? Bool, system {
                 convType = .system
-            } else if let temporary: Bool = rawData[Key.temporary.rawValue] as? Bool,
-                temporary == true {
+            } else if let temporary: Bool = rawData[Key.temporary.rawValue] as? Bool, temporary {
                 convType = .temporary
             } else if ID.hasPrefix(IMTemporaryConversation.prefixOfID) {
                 convType = .temporary

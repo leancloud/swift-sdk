@@ -58,19 +58,11 @@ class HTTPClient {
      HTTPClient configuration.
      */
     struct Configuration {
-
+        
         let userAgent: String
-
-        /// Default timeout interval for request. If not given, defaults to 60 seconds.
-        let defaultTimeoutInterval: TimeInterval?
-
-        static let `default` = Configuration(
-            userAgent: "LeanCloud-Swift-SDK/\(__LeanCloudVersion)",
-            defaultTimeoutInterval: nil
-        )
+        
+        static let `default` = Configuration(userAgent: "LeanCloud-Swift-SDK/\(__LeanCloudVersion)")
     }
-
-//    static let `default` = HTTPClient(application: LCApplication.default, configuration: Configuration.default)
 
     let application: LCApplication
     let configuration: Configuration
@@ -81,9 +73,7 @@ class HTTPClient {
         self.configuration = configuration
         self.sessionManager = {
             let sessionConfiguration = URLSessionConfiguration.default
-            if let defaultTimeoutInterval = configuration.defaultTimeoutInterval {
-                sessionConfiguration.timeoutIntervalForRequest = defaultTimeoutInterval
-            }
+            sessionConfiguration.timeoutIntervalForRequest = application.configuration.HTTPRequestTimeoutInterval
             let sessionManager = SessionManager(configuration: sessionConfiguration)
             return sessionManager
         }()

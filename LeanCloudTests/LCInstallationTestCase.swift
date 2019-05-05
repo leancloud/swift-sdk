@@ -14,8 +14,6 @@ class LCInstallationTestCase: BaseTestCase {
     func testCurrentInstallation() {
         let installation = LCApplication.default.currentInstallation
         
-        XCTAssertFalse(installation.hasDataToUpload)
-        
         installation.set(deviceToken: UUID().uuidString.replacingOccurrences(of: "-", with: ""), apnsTeamId: "LeanCloud")
         
         XCTAssertTrue(installation.hasDataToUpload)
