@@ -73,8 +73,6 @@ public final class LCApplication {
 
     /**
      Application log level.
-
-     We assume that log levels are ordered.
      */
     public enum LogLevel: Int, Comparable {
 
@@ -89,12 +87,45 @@ public final class LCApplication {
         }
 
     }
+    
+    /// Application Configuration.
+    public struct Configuration {
+        
+        /// HTTP Request Timeout Interval, default is 60.0 second.
+        public let HTTPRequestTimeoutInterval: TimeInterval
+        
+        /// RTM Connecting Timeout Interval, default is 15.0 second.
+        public let RTMConnectingTimeoutInterval: TimeInterval
+        
+        /// RTM Command Timeout Interval, default is 30.0 second.
+        public let RTMCommandTimeoutInterval: TimeInterval
+        
+        /// RTM Custom Server URL.
+        public let RTMCustomServerURL: URL?
+        
+        public static let `default` = Configuration()
+        
+        init(
+            HTTPRequestTimeoutInterval: TimeInterval = 60.0,
+            RTMConnectingTimeoutInterval: TimeInterval = 15.0,
+            RTMCommandTimeoutInterval: TimeInterval = 30.0,
+            RTMCustomServerURL: URL? = nil)
+        {
+            self.HTTPRequestTimeoutInterval = HTTPRequestTimeoutInterval
+            self.RTMConnectingTimeoutInterval = RTMConnectingTimeoutInterval
+            self.RTMCommandTimeoutInterval = RTMCommandTimeoutInterval
+            self.RTMCustomServerURL = RTMCustomServerURL
+        }
+    }
 
     /// Application ID.
     public private(set) var id: String!
 
     /// Application key.
     public private(set) var key: String!
+    
+    /// Application Configuration.
+    public private(set) var configuration: Configuration = .default
 
     /// Application region.
     private(set) lazy var region: Region = {
@@ -110,6 +141,7 @@ public final class LCApplication {
         }
     }()
     
+    /// Current Installation.
     public internal(set) lazy var currentInstallation: LCInstallation = {
         if
             let localStorageContext = self.localStorageContext,
@@ -131,6 +163,7 @@ public final class LCApplication {
         return LCInstallation(application: self)
     }()
     
+    /// Current User.
     public var currentUser: LCUser?
     
     private(set) var localStorageContext: LocalStorageContext?
@@ -151,38 +184,43 @@ public final class LCApplication {
 
      - parameter id: Application ID.
      - parameter key: Application key.
-
-     - note: We make initializer internal before multi-applicaiton is supported.
+     - parameter configuration: Application Configuration.
      */
-    public init(id: String, key: String) throws {
+    public init(id: String, key: String, configuration: Configuration = .default) throws {
         if let _ = applicationRegistry[id] {
             throw LCError.applicationDidRegister(id: id)
         }
         self.id = id
         self.key = key
+        self.configuration = configuration
         applicationRegistry[id] = self
         
-        self.doInitializing()
+        self.doInitializing(configuration: configuration)
     }
 
     /**
-     Initialize application by application information.
+     Initialize default application.
 
      - parameter id:    Application ID.
      - parameter key:   Application key.
+     - parameter configuration: Application Configuration.
      */
-    public func set(id: String, key: String) throws {
+    public func set(id: String, key: String, configuration: Configuration = .default) throws {
         if let _ = applicationRegistry[id] {
             throw LCError.applicationDidRegister(id: id)
         }
+        guard self === LCApplication.default else {
+            throw LCError(code: .inconsistency, reason: "Only LCApplication.default can call this function.")
+        }
         self.id = id
         self.key = key
+        self.configuration = configuration
         applicationRegistry[id] = self
         
-        self.doInitializing()
+        self.doInitializing(configuration: configuration)
     }
     
-    func doInitializing() {
+    func doInitializing(configuration: Configuration) {
         // init local storage context
         do {
             self.localStorageContext = try LocalStorageContext(applicationID: self.id)
@@ -192,8 +230,14 @@ public final class LCApplication {
         // register default LeanCloud object classes if needed.
         _ = ObjectProfiler.shared
         // init HTTP client
-        self.httpClient = HTTPClient(application: self, configuration: .default)
-        self.httpRouter = HTTPRouter(application: self, configuration: .default)
+        self.httpClient = HTTPClient(
+            application: self,
+            configuration: .default
+        )
+        self.httpRouter = HTTPRouter(
+            application: self,
+            configuration: .default
+        )
     }
 
 }

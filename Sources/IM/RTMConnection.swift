@@ -13,9 +13,6 @@ import UIKit
 import Starscream
 import Alamofire
 
-public var RTMConnectingTimeoutInterval: TimeInterval = 10.0
-public var RTMTimeoutInterval: TimeInterval = 30.0
-
 private let RTMMutex = NSLock()
 
 var RTMConnectionRefMap_protobuf1: [String: [String: RTMConnection]] = [:]
@@ -24,8 +21,7 @@ var RTMConnectionRefMap_protobuf3: [String: [String: RTMConnection]] = [:]
 func RTMConnectionRegistering(
     application: LCApplication,
     peerID: String,
-    lcimProtocol: RTMConnection.LCIMProtocol,
-    customServerURL: URL? = nil)
+    lcimProtocol: RTMConnection.LCIMProtocol)
     throws -> RTMConnection
 {
     RTMMutex.lock()
@@ -63,8 +59,7 @@ func RTMConnectionRegistering(
             } else {
                 connection = try RTMConnection(
                     application: application,
-                    lcimProtocol: lcimProtocol,
-                    customRTMServerURL: customServerURL
+                    lcimProtocol: lcimProtocol
                 )
                 sharedConnectionMap[peerID] = connection
             }
@@ -73,8 +68,7 @@ func RTMConnectionRegistering(
     } else {
         connection = try RTMConnection(
             application: application,
-            lcimProtocol: lcimProtocol,
-            customRTMServerURL: customServerURL
+            lcimProtocol: lcimProtocol
         )
         connectionRefMap[appID] = [peerID: connection]
     }
@@ -170,9 +164,13 @@ class RTMConnection {
         let expiration: TimeInterval
         let callingQueue: DispatchQueue
         
-        init(callingQueue: DispatchQueue, closure: @escaping (Result) -> Void) {
+        init(
+            timeoutInterval: TimeInterval,
+            callingQueue: DispatchQueue,
+            closure: @escaping (Result) -> Void)
+        {
             self.closure = closure
-            self.expiration = Date().timeIntervalSince1970 + RTMTimeoutInterval
+            self.expiration = Date().timeIntervalSince1970 + timeoutInterval
             self.callingQueue = callingQueue
         }
     }
@@ -337,7 +335,6 @@ class RTMConnection {
     
     let application: LCApplication
     let lcimProtocol: LCIMProtocol
-    let customRTMServerURL: URL?
     let rtmRouter: RTMRouter?
     
     let serialQueue: DispatchQueue = DispatchQueue(label: "\(RTMConnection.self).serialQueue")
@@ -388,18 +385,16 @@ class RTMConnection {
     }
     #endif
     
-    init(application: LCApplication, lcimProtocol: LCIMProtocol, customRTMServerURL: URL? = nil) throws {
+    init(application: LCApplication, lcimProtocol: LCIMProtocol) throws {
         #if DEBUG
         self.serialQueue.setSpecific(key: self.specificKey, value: self.specificValue)
         #endif
         
         self.application = application
         self.lcimProtocol = lcimProtocol
-        if let customRTMServerURL = customRTMServerURL {
-            self.customRTMServerURL = customRTMServerURL
+        if let _ = self.application.configuration.RTMCustomServerURL {
             self.rtmRouter = nil
         } else {
-            self.customRTMServerURL = nil
             self.rtmRouter = try RTMRouter(application: application)
         }
         
@@ -527,7 +522,11 @@ class RTMConnection {
                 return
             }
             if let callback = callback, let callingQueue = callingQueue {
-                let commandCallback = CommandCallback(callingQueue: callingQueue, closure: callback)
+                let commandCallback = CommandCallback(
+                    timeoutInterval: self.application.configuration.RTMCommandTimeoutInterval,
+                    callingQueue: callingQueue,
+                    closure: callback
+                )
                 let index: UInt16 = UInt16(outCommand.i)
                 timer.insert(commandCallback: commandCallback, index: index)
             }
@@ -618,7 +617,7 @@ extension RTMConnection {
                 switch result {
                 case .success(value: let url):
                     var request = URLRequest(url: url)
-                    request.timeoutInterval = RTMConnectingTimeoutInterval
+                    request.timeoutInterval = self.application.configuration.RTMConnectingTimeoutInterval
                     let socket = WebSocket(request: request, protocols: [self.lcimProtocol.rawValue])
                     socket.delegate = self
                     socket.pongDelegate = self
@@ -690,7 +689,7 @@ extension RTMConnection {
     
     private func getRTMServer(callback: @escaping (LCGenericResult<URL>) -> Void) {
         assert(self.specificAssertion)
-        if let customRTMServerURL = self.customRTMServerURL {
+        if let customRTMServerURL = self.application.configuration.RTMCustomServerURL {
             callback(.success(value: customRTMServerURL))
         } else if let rtmRouter = self.rtmRouter, !self.isInRouting {
             self.isInRouting = true

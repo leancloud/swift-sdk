@@ -64,9 +64,6 @@ public class IMClient {
     /// The dispatch queue where the event about IM are called. Default is main.
     public let eventQueue: DispatchQueue
     
-    /// The custom server URL.
-    public let customServerURL: URL?
-    
     /// The session state of the client.
     ///
     /// - opened: opened.
@@ -161,7 +158,6 @@ public class IMClient {
     ///   - options: @see `IMClient.Options`.
     ///   - delegate: @see `IMClientDelegate`.
     ///   - eventQueue: @see property `eventQueue`, default is main.
-    ///   - customServerURL: The custom server URL for private deployment.
     ///   - application: The application that the client belongs to.
     public init(
         application: LCApplication = LCApplication.default,
@@ -169,8 +165,7 @@ public class IMClient {
         tag: String? = nil,
         options: Options = .default,
         delegate: IMClientDelegate? = nil,
-        eventQueue: DispatchQueue = .main,
-        customServerURL: URL? = nil)
+        eventQueue: DispatchQueue = .main)
         throws
     {
         guard IMClient.lengthRangeOfClientID.contains(ID.count) else {
@@ -189,7 +184,6 @@ public class IMClient {
         self.options = options
         self.delegate = delegate
         self.eventQueue = eventQueue
-        self.customServerURL = customServerURL
         self.application = application
         self.installation = application.currentInstallation
         
@@ -220,8 +214,7 @@ public class IMClient {
         self.connection = try RTMConnectionRegistering(
             application: application,
             peerID: ID,
-            lcimProtocol: options.lcimProtocol,
-            customServerURL: customServerURL
+            lcimProtocol: options.lcimProtocol
         )
         self.rtmDelegator = RTMConnection.Delegator(queue: self.serialQueue)
         
