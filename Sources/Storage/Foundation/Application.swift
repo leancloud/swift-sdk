@@ -17,7 +17,7 @@ var applicationRegistry: [String: LCApplication] = [:]
 
  It is a context of application-specific settings and objects.
  */
-public final class LCApplication {
+public class LCApplication {
     
     /// log level.
     public static var logLevel: LogLevel = .off
@@ -105,7 +105,7 @@ public final class LCApplication {
         
         public static let `default` = Configuration()
         
-        init(
+        public init(
             HTTPRequestTimeoutInterval: TimeInterval = 60.0,
             RTMConnectingTimeoutInterval: TimeInterval = 15.0,
             RTMCommandTimeoutInterval: TimeInterval = 30.0,
