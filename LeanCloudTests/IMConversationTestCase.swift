@@ -1523,8 +1523,8 @@ class IMConversationTestCase: RTMBaseTestCase {
 
 extension IMConversationTestCase {
     
-    func newOpenedClient(clientID: String? = nil, customRTMURL: URL? = nil) -> IMClient? {
-        var client: IMClient? = try? IMClient(ID: clientID ?? uuid, customServerURL: customRTMURL)
+    func newOpenedClient(clientID: String? = nil) -> IMClient? {
+        var client: IMClient? = try? IMClient(ID: clientID ?? uuid)
         let exp = expectation(description: "open")
         client?.open { (result) in
             if result.isFailure { client = nil }

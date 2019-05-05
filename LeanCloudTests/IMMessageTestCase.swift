@@ -1308,11 +1308,10 @@ extension IMMessageTestCase {
     
     func newOpenedClient(
         clientID: String? = nil,
-        options: IMClient.Options = .default,
-        customRTMURL: URL? = nil)
+        options: IMClient.Options = .default)
         -> IMClient?
     {
-        var client: IMClient? = try? IMClient(ID: clientID ?? uuid, options:options, customServerURL: customRTMURL)
+        var client: IMClient? = try? IMClient(ID: clientID ?? uuid, options:options)
         let exp = expectation(description: "open")
         client?.open { (result) in
             XCTAssertTrue(result.isSuccess)
@@ -1346,7 +1345,7 @@ extension IMMessageTestCase {
         return conversation
     }
     
-    func convenienceInit(clientCount: Int = 2, RTMServerURL: URL? = nil, shouldConnectionShared: Bool = true) -> [Tuple]? {
+    func convenienceInit(clientCount: Int = 2, shouldConnectionShared: Bool = true) -> [Tuple]? {
         var tuples: [Tuple] = []
         let exp = expectation(description: "get conversations")
         exp.expectedFulfillmentCount = clientCount
@@ -1355,7 +1354,7 @@ extension IMMessageTestCase {
         var conversationMap: [String: IMConversation] = [:]
         var clientIDs: [String] = []
         for _ in 0..<clientCount {
-            guard let client = newOpenedClient(customRTMURL: RTMServerURL) else {
+            guard let client = newOpenedClient() else {
                 continue
             }
             let delegator = IMClientTestCase.Delegator()
