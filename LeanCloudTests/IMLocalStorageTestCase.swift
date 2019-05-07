@@ -350,18 +350,6 @@ class IMLocalStorageTestCase: RTMBaseTestCase {
         expectingOrder(.updatedTimestamp(descending: false))
         expectingOrder(.lastMessageSentTimestamp(descending: true))
         expectingOrder(.lastMessageSentTimestamp(descending: false))
-        
-        expecting { (exp) in
-            client.localStorage?.selectConversations(IDSet: conversationIDSet, completion: { (client, result) in
-                XCTAssertTrue(result.isSuccess)
-                XCTAssertNil(result.error)
-                XCTAssertEqual(conversationIDSet.count, result.value?.conversations.count)
-                for conv in result.value!.conversations {
-                    XCTAssertTrue(conversationIDSet.contains(conv.ID))
-                }
-                exp.fulfill()
-            })
-        }
     }
     
     func testInsertOrReplaceMessages() {

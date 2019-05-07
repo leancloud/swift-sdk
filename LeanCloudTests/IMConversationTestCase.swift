@@ -186,7 +186,33 @@ class IMConversationTestCase: RTMBaseTestCase {
             return
         }
         
+        let delegatorA = IMClientTestCase.Delegator()
+        clientA.delegate = delegatorA
+        let delegatorB = IMClientTestCase.Delegator()
+        clientB.delegate = delegatorB
+        
         let exp1 = expectation(description: "create unique conversation")
+        exp1.expectedFulfillmentCount = 5
+        delegatorA.conversationEvent = { _, _, event in
+            switch event {
+            case .joined:
+                exp1.fulfill()
+            case .membersJoined:
+                exp1.fulfill()
+            default:
+                break
+            }
+        }
+        delegatorB.conversationEvent = { _, _, event in
+            switch event {
+            case .joined:
+                exp1.fulfill()
+            case .membersJoined:
+                exp1.fulfill()
+            default:
+                break
+            }
+        }
         try? clientA.createConversation(clientIDs: [clientA.ID, clientB.ID], completion: { (result) in
             if let conv: IMConversation = result.value {
                 XCTAssertTrue(type(of: conv) == IMConversation.self)
@@ -200,7 +226,31 @@ class IMConversationTestCase: RTMBaseTestCase {
         })
         wait(for: [exp1], timeout: timeout)
         
+        delegatorA.conversationEvent = nil
+        delegatorB.conversationEvent = nil
+        
         let exp2 = expectation(description: "create unique conversation")
+        exp2.expectedFulfillmentCount = 5
+        delegatorA.conversationEvent = { _, _, event in
+            switch event {
+            case .joined:
+                exp2.fulfill()
+            case .membersJoined:
+                exp2.fulfill()
+            default:
+                break
+            }
+        }
+        delegatorB.conversationEvent = { _, _, event in
+            switch event {
+            case .joined:
+                exp2.fulfill()
+            case .membersJoined:
+                exp2.fulfill()
+            default:
+                break
+            }
+        }
         try? clientB.createConversation(clientIDs: [clientA.ID, clientB.ID], completion: { (result) in
             if let conv: IMConversation = result.value {
                 XCTAssertTrue(type(of: conv) == IMConversation.self)

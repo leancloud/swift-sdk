@@ -95,6 +95,7 @@
 		D3AB32D8227D983E00DCE794 /* CaptchaClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3AB32D7227D983E00DCE794 /* CaptchaClient.swift */; };
 		D3AC7BA821AE9C1A00C6C557 /* IMClientTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3AC7BA721AE9C1A00C6C557 /* IMClientTestCase.swift */; };
 		D3AF1CB722681F1200A97566 /* FMDB.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D3AF1CA422681EF500A97566 /* FMDB.framework */; };
+		D3B600842281679400F2E556 /* LCApplicationTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B600832281679400F2E556 /* LCApplicationTestCase.swift */; };
 		D3BBFB41225D944100B75BA1 /* LCLocalStorageContextTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3BBFB40225D944100B75BA1 /* LCLocalStorageContextTestCase.swift */; };
 		D3C3782F21E48D3C00EA9AC9 /* IMConversationQuery.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3C3782E21E48D3C00EA9AC9 /* IMConversationQuery.swift */; };
 		D3DAD03C218DA402008BCD37 /* RTMConnectionTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3DAD03B218DA402008BCD37 /* RTMConnectionTestCase.swift */; };
@@ -421,6 +422,7 @@
 		D3AB32D7227D983E00DCE794 /* CaptchaClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptchaClient.swift; sourceTree = "<group>"; };
 		D3AC7BA721AE9C1A00C6C557 /* IMClientTestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IMClientTestCase.swift; sourceTree = "<group>"; };
 		D3AF1C8A22681EF500A97566 /* fmdb.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = fmdb.xcodeproj; path = fmdb/fmdb.xcodeproj; sourceTree = "<group>"; };
+		D3B600832281679400F2E556 /* LCApplicationTestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCApplicationTestCase.swift; sourceTree = "<group>"; };
 		D3BBFB40225D944100B75BA1 /* LCLocalStorageContextTestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCLocalStorageContextTestCase.swift; sourceTree = "<group>"; };
 		D3C3782E21E48D3C00EA9AC9 /* IMConversationQuery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IMConversationQuery.swift; sourceTree = "<group>"; };
 		D3DAD03B218DA402008BCD37 /* RTMConnectionTestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RTMConnectionTestCase.swift; sourceTree = "<group>"; };
@@ -540,6 +542,7 @@
 				8342FCCC1C7B13A700C3CF15 /* Info.plist */,
 				83D5923D1CD88846007177C5 /* BridgingHeader.h */,
 				8342FCCA1C7B13A700C3CF15 /* BaseTestCase.swift */,
+				D3B600832281679400F2E556 /* LCApplicationTestCase.swift */,
 				11FBD1E4215BDDCA00370C61 /* LCCoreTestCase.swift */,
 				1178D10E213F7B9600429131 /* LCAPITestCase.swift */,
 				116A682521427442004141A5 /* LCRouterTestCase.swift */,
@@ -1119,6 +1122,7 @@
 				83FAF0931CC4D1E400A84063 /* LCObjectTestCase.swift in Sources */,
 				834EA7151D2A139A00108DDC /* LCUserTestCase.swift in Sources */,
 				D3BBFB41225D944100B75BA1 /* LCLocalStorageContextTestCase.swift in Sources */,
+				D3B600842281679400F2E556 /* LCApplicationTestCase.swift in Sources */,
 				D33A8DAA21F577F2005B84A9 /* RTMBaseTestCase.swift in Sources */,
 				11FBD1E5215BDDCA00370C61 /* LCCoreTestCase.swift in Sources */,
 				8342FCCB1C7B13A700C3CF15 /* BaseTestCase.swift in Sources */,
