@@ -206,11 +206,18 @@ public class LCApplication {
      - parameter configuration: Application Configuration.
      */
     public func set(id: String, key: String, configuration: Configuration = .default) throws {
-        if let _ = applicationRegistry[id] {
-            throw LCError.applicationDidRegister(id: id)
-        }
         guard self === LCApplication.default else {
             throw LCError(code: .inconsistency, reason: "Only LCApplication.default can call this function.")
+        }
+        if let setID = self.id, let setKey = self.key {
+            guard setID == id, setKey == key else {
+                throw LCError(code: .inconsistency, reason: "Should not modify the id and key of LCApplication.default.")
+            }
+            applicationRegistry[id] = self
+            return
+        }
+        if let _ = applicationRegistry[id] {
+            throw LCError.applicationDidRegister(id: id)
         }
         self.id = id
         self.key = key
