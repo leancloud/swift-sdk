@@ -20,15 +20,5 @@ class RTMBaseTestCase: BaseTestCase {
     static var uuid: String {
         return UUID().uuidString.replacingOccurrences(of: "-", with: "")
     }
-    
-    override func setUp() {
-        super.setUp()
-    }
-    
-    override func tearDown() {
-        try! FileManager.default.removeItem(at: LCApplication.default.localStorageContext!.applicationSupportDirectoryPath)
-        try! FileManager.default.removeItem(at: LCApplication.default.localStorageContext!.cachesDirectoryPath)
-        super.tearDown()
-    }
 
 }

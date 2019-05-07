@@ -479,6 +479,7 @@ class IMLocalStorage {
         -> [IMConversation]
     {
         let lastMsgKey = IMLocalStorage.Table.LastMessage.CodingKeys.self
+        var mutableConversationMap: [String: IMConversation] = conversationMap
         var conversations: [IMConversation] = []
         while result.next() {
             guard let data: Data = result.data(forColumn: lastMsgKey.raw_data.rawValue) else {
@@ -486,7 +487,7 @@ class IMLocalStorage {
             }
             do {
                 let table = try JSONDecoder().decode(IMLocalStorage.Table.Message.self, from: data)
-                if let conversation = conversationMap[table.conversationID] {
+                if let conversation = mutableConversationMap.removeValue(forKey: table.conversationID) {
                     var content: IMMessage.Content?
                     if let tableContent = table.content {
                         if table.binary, let data = tableContent.data(using: .utf8) {
@@ -529,12 +530,15 @@ class IMLocalStorage {
             }
         }
         result.close()
-        return conversations
+        if needSequence {
+            return conversations + Array(mutableConversationMap.values)
+        } else {
+            return conversations
+        }
     }
     
     func selectConversations(
         order: IMClient.StoredConversationOrder = .lastMessageSentTimestamp(descending: true),
-        IDSet: Set<String>? = nil,
         completion: @escaping (IMClient, LCGenericResult<(conversationMap: [String: IMConversation], conversations: [IMConversation])>) -> Void)
     {
         self.dbQueue.inDatabase { (db) in
@@ -550,13 +554,6 @@ class IMLocalStorage {
             var selectConversationSQL: String = "select * from \(Table.conversation)"
             var selectLastMessageSQL: String = "select * from \(Table.lastMessage)"
             do {
-                var conversationIDJoinedString: String? = nil
-                
-                if let set = IDSet, !set.isEmpty {
-                    let joinedString: String = ("\"" + set.joined(separator: "\",\"") + "\"")
-                    conversationIDJoinedString = joinedString
-                    selectConversationSQL += " where \(Table.Conversation.CodingKeys.id.rawValue) in (\(joinedString))"
-                }
                 switch order {
                 case .createdTimestamp, .updatedTimestamp:
                     selectConversationSQL += " order by \(order.key) \(order.sqlOrder)"
@@ -566,9 +563,6 @@ class IMLocalStorage {
                 IMLocalStorage.verboseLogging(database: db, SQL: selectConversationSQL)
                 let conversationResult = try db.executeQuery(selectConversationSQL, values: nil)
                 
-                if let joinedString: String = conversationIDJoinedString {
-                    selectLastMessageSQL += " where \(Table.LastMessage.CodingKeys.conversation_id.rawValue) in (\(joinedString))"
-                }
                 switch order {
                 case .lastMessageSentTimestamp:
                     selectLastMessageSQL += " order by \(order.key) \(order.sqlOrder)"
@@ -583,14 +577,30 @@ class IMLocalStorage {
                 
                 switch order {
                 case .createdTimestamp, .updatedTimestamp:
-                    let tuple = self.handleStoredConversation(result: conversationResult, client: client, needSequence: true)
+                    let tuple = self.handleStoredConversation(
+                        result: conversationResult,
+                        client: client,
+                        needSequence: true
+                    )
                     conversations = tuple.0
                     conversationMap = tuple.1
-                    self.handleStoredLastMessage(result: lastMessageResult, client: client, conversationMap: conversationMap)
+                    self.handleStoredLastMessage(
+                        result: lastMessageResult,
+                        client: client,
+                        conversationMap: conversationMap
+                    )
                 case .lastMessageSentTimestamp:
-                    let tuple = self.handleStoredConversation(result: conversationResult, client: client)
+                    let tuple = self.handleStoredConversation(
+                        result: conversationResult,
+                        client: client
+                    )
                     conversationMap = tuple.1
-                    conversations = self.handleStoredLastMessage(result: lastMessageResult, client: client, conversationMap: conversationMap, needSequence: true)
+                    conversations = self.handleStoredLastMessage(
+                        result: lastMessageResult,
+                        client: client,
+                        conversationMap: conversationMap,
+                        needSequence: true
+                    )
                 }
                 
                 client.serialQueue.async {
@@ -678,11 +688,12 @@ class IMLocalStorage {
                 insert or replace into \(Table.lastMessage)
                 (
                 \(Table.LastMessage.CodingKeys.conversation_id.rawValue),
-                \(Table.LastMessage.CodingKeys.raw_data.rawValue)
+                \(Table.LastMessage.CodingKeys.raw_data.rawValue),
+                \(Table.LastMessage.CodingKeys.sent_timestamp.rawValue)
                 )
-                values(?,?)
+                values(?,?,?)
                 """
-                let values: [Any] = [table.conversationID, rawData]
+                let values: [Any] = [table.conversationID, rawData, table.sentTimestamp]
                 IMLocalStorage.verboseLogging(database: db, SQL: sql)
                 try db.executeUpdate(sql, values: values)
                 self.client?.serialQueue.async {

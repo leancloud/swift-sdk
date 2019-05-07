@@ -337,6 +337,150 @@ class IMClientTestCase: RTMBaseTestCase {
         })
         wait(for: [queryExp2], timeout: timeout)
     }
+    
+    func testPrepareLocalStorage() {
+        expecting { (exp) in
+            let notUseLocalStorageClient = try! IMClient(ID: uuid, options: [])
+            do {
+                try notUseLocalStorageClient.prepareLocalStorage(completion: { (_) in })
+                XCTFail()
+            } catch {
+                XCTAssertTrue(error is LCError)
+            }
+            exp.fulfill()
+        }
+        
+        expecting { (exp) in
+            let client = try! IMClient(ID: uuid)
+            try! client.prepareLocalStorage(completion: { (result) in
+                XCTAssertTrue(result.isSuccess)
+                XCTAssertNil(result.error)
+                exp.fulfill()
+            })
+        }
+    }
+    
+    func testGetAndLoadStoredConversations() {
+        expecting { (exp) in
+            let notUseLocalStorageClient = try! IMClient(ID: uuid, options: [])
+            do {
+                try notUseLocalStorageClient.getAndLoadStoredConversations(completion: { (_) in })
+                XCTFail()
+            } catch {
+                XCTAssertTrue(error is LCError)
+            }
+            exp.fulfill()
+        }
+        
+        let client = try! IMClient(ID: uuid)
+        
+        expecting { (exp) in
+            try! client.prepareLocalStorage(completion: { (result) in
+                XCTAssertTrue(result.isSuccess)
+                XCTAssertNil(result.error)
+                exp.fulfill()
+            })
+        }
+        
+        expecting { (exp) in
+            try! client.getAndLoadStoredConversations(completion: { (result) in
+                XCTAssertTrue(result.isSuccess)
+                XCTAssertNil(result.error)
+                XCTAssertEqual(result.value?.count, 0)
+                XCTAssertTrue(client.convCollection.isEmpty)
+                exp.fulfill()
+            })
+        }
+        
+        expecting { (exp) in
+            client.open(completion: { (result) in
+                XCTAssertTrue(result.isSuccess)
+                XCTAssertNil(result.error)
+                exp.fulfill()
+            })
+        }
+        
+        for _ in 0...1 {
+            var conv: IMConversation!
+            
+            expecting { (exp) in
+                try! client.createConversation(clientIDs: [uuid], completion: { (result) in
+                    XCTAssertTrue(result.isSuccess)
+                    XCTAssertNil(result.error)
+                    conv = result.value
+                    exp.fulfill()
+                })
+            }
+            
+            delay(seconds: 0.1)
+            
+            expecting { (exp) in
+                try! conv.refresh(completion: { (result) in
+                    XCTAssertTrue(result.isSuccess)
+                    XCTAssertNil(result.error)
+                    exp.fulfill()
+                })
+            }
+            
+            delay(seconds: 0.1)
+            
+            expecting { (exp) in
+                let message = IMMessage()
+                try! message.set(content: .string("test"))
+                try! conv.send(message: message, completion: { (result) in
+                    XCTAssertTrue(result.isSuccess)
+                    XCTAssertNil(result.error)
+                    exp.fulfill()
+                })
+            }
+        }
+        
+        let checker: (IMClient.StoredConversationOrder) -> Void = { order in
+            self.expecting { (exp) in
+                try! client.getAndLoadStoredConversations(order: order, completion: { (result) in
+                    XCTAssertTrue(result.isSuccess)
+                    XCTAssertNil(result.error)
+                    XCTAssertEqual(result.value?.count, 2)
+                    switch order {
+                    case let .lastMessageSentTimestamp(descending: descending):
+                        let firstTimestamp = result.value?.first?.lastMessage?.sentTimestamp
+                        let lastTimestamp = result.value?.last?.lastMessage?.sentTimestamp
+                        if descending {
+                            XCTAssertGreaterThanOrEqual(firstTimestamp!, lastTimestamp!)
+                        } else {
+                            XCTAssertGreaterThanOrEqual(lastTimestamp!, firstTimestamp!)
+                        }
+                    case let .createdTimestamp(descending: descending):
+                        let firstTimestamp = result.value?.first?.createdAt?.timeIntervalSince1970
+                        let lastTimestamp = result.value?.last?.createdAt?.timeIntervalSince1970
+                        if descending {
+                            XCTAssertGreaterThanOrEqual(firstTimestamp!, lastTimestamp!)
+                        } else {
+                            XCTAssertGreaterThanOrEqual(lastTimestamp!, firstTimestamp!)
+                        }
+                    case let .updatedTimestamp(descending: descending):
+                        let firstTimestamp = result.value?.first?.updatedAt?.timeIntervalSince1970
+                        let lastTimestamp = result.value?.last?.updatedAt?.timeIntervalSince1970
+                        if descending {
+                            XCTAssertGreaterThanOrEqual(firstTimestamp!, lastTimestamp!)
+                        } else {
+                            XCTAssertGreaterThanOrEqual(lastTimestamp!, firstTimestamp!)
+                        }
+                    }
+                    exp.fulfill()
+                })
+            }
+        }
+ 
+        checker(.lastMessageSentTimestamp(descending: true))
+        checker(.lastMessageSentTimestamp(descending: false))
+        checker(.updatedTimestamp(descending: true))
+        checker(.updatedTimestamp(descending: false))
+        checker(.createdTimestamp(descending: true))
+        checker(.createdTimestamp(descending: false))
+        
+        XCTAssertEqual(client.convCollection.count, 2)
+    }
 
 }
 
