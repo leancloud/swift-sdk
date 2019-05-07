@@ -929,7 +929,6 @@ extension IMClient {
     }
     
     public func getAndLoadStoredConversations(
-        IDs: Set<String>? = nil,
         order: IMClient.StoredConversationOrder = .lastMessageSentTimestamp(descending: true),
         completion: @escaping (LCGenericResult<[IMConversation]>) -> Void)
         throws
@@ -937,7 +936,7 @@ extension IMClient {
         guard let localStorage = self.localStorage else {
             throw LCError.clientLocalStorageNotFound
         }
-        localStorage.selectConversations(order: order, IDSet: IDs) { (client, result) in
+        localStorage.selectConversations(order: order) { (client, result) in
             assert(client.specificAssertion)
             switch result {
             case .success(value: let tuple):
