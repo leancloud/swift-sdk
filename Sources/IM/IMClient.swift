@@ -240,6 +240,7 @@ public class IMClient {
     }
     
     deinit {
+        Logger.shared.verbose("\(IMClient.self) with Peer ID <\"\(self.ID)\"> deinit.")
         self.connection.removeDelegator(peerID: self.ID)
         RTMConnectionReleasing(
             application: self.application,
