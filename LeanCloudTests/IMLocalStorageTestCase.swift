@@ -638,7 +638,7 @@ class IMLocalStorageTestCase: RTMBaseTestCase {
         }
         
         expecting { (exp) in
-            client.localStorage?.selectMessages(conversationID: conversationID, limit: 1, completion: { (_, result, hasBreakpointInTheInterval) in
+            client.localStorage?.selectMessages(conversationID: conversationID, limit: 1, completion: { (_, result, hasBreakpoint) in
                 XCTAssertTrue(result.isSuccess)
                 XCTAssertNil(result.error)
                 XCTAssertEqual(result.value?.count, 1)
@@ -647,17 +647,17 @@ class IMLocalStorageTestCase: RTMBaseTestCase {
                     XCTAssertEqual(item.sentTimestamp!, messages[index].sentTimestamp!)
                     XCTAssertEqual(item.ID!, messages[index].ID!)
                 }
-                XCTAssertFalse(hasBreakpointInTheInterval)
+                XCTAssertTrue(hasBreakpoint)
                 exp.fulfill()
             })
         }
         
         expecting { (exp) in
-            client.localStorage?.selectMessages(conversationID: conversationID, limit: 20, completion: { (_, result, hasBreakpointInTheInterval) in
+            client.localStorage?.selectMessages(conversationID: conversationID, limit: 20, completion: { (_, result, hasBreakpoint) in
                 XCTAssertTrue(result.isSuccess)
                 XCTAssertNil(result.error)
                 XCTAssertEqual(result.value?.count, 3)
-                XCTAssertFalse(hasBreakpointInTheInterval)
+                XCTAssertTrue(hasBreakpoint)
                 exp.fulfill()
             })
         }
@@ -669,11 +669,11 @@ class IMLocalStorageTestCase: RTMBaseTestCase {
                 sentTimestamp: startMessage?.sentTimestamp,
                 isClosed: true
             )
-            client.localStorage?.selectMessages(conversationID: conversationID, start: start, end: nil, direction: .newToOld, limit: 20, completion: { (_, result, hasBreakpointInTheInterval) in
+            client.localStorage?.selectMessages(conversationID: conversationID, start: start, end: nil, direction: .newToOld, limit: 20, completion: { (_, result, hasBreakpoint) in
                 XCTAssertTrue(result.isSuccess)
                 XCTAssertNil(result.error)
                 XCTAssertEqual(result.value?.count, 3)
-                XCTAssertFalse(hasBreakpointInTheInterval)
+                XCTAssertTrue(hasBreakpoint)
                 exp.fulfill()
             })
         }
@@ -685,7 +685,7 @@ class IMLocalStorageTestCase: RTMBaseTestCase {
                 sentTimestamp: startMessage?.sentTimestamp,
                 isClosed: false
             )
-            client.localStorage?.selectMessages(conversationID: conversationID, start: start, end: nil, direction: .newToOld, limit: 20, completion: { (_, result, hasBreakpointInTheInterval) in
+            client.localStorage?.selectMessages(conversationID: conversationID, start: start, end: nil, direction: .newToOld, limit: 20, completion: { (_, result, hasBreakpoint) in
                 XCTAssertTrue(result.isSuccess)
                 XCTAssertNil(result.error)
                 XCTAssertEqual(result.value?.count, 2)
@@ -694,7 +694,7 @@ class IMLocalStorageTestCase: RTMBaseTestCase {
                     XCTAssertEqual(item.sentTimestamp!, messages[index].sentTimestamp!)
                     XCTAssertEqual(item.ID!, messages[index].ID!)
                 }
-                XCTAssertFalse(hasBreakpointInTheInterval)
+                XCTAssertTrue(hasBreakpoint)
                 exp.fulfill()
             })
         }
@@ -706,11 +706,11 @@ class IMLocalStorageTestCase: RTMBaseTestCase {
                 sentTimestamp: endMessage?.sentTimestamp,
                 isClosed: true
             )
-            client.localStorage?.selectMessages(conversationID: conversationID, start: nil, end: end, direction: .newToOld, limit: 20, completion: { (_, result, hasBreakpointInTheInterval) in
+            client.localStorage?.selectMessages(conversationID: conversationID, start: nil, end: end, direction: .newToOld, limit: 20, completion: { (_, result, hasBreakpoint) in
                 XCTAssertTrue(result.isSuccess)
                 XCTAssertNil(result.error)
                 XCTAssertEqual(result.value?.count, 3)
-                XCTAssertFalse(hasBreakpointInTheInterval)
+                XCTAssertTrue(hasBreakpoint)
                 exp.fulfill()
             })
         }
@@ -722,7 +722,7 @@ class IMLocalStorageTestCase: RTMBaseTestCase {
                 sentTimestamp: endMessage?.sentTimestamp,
                 isClosed: false
             )
-            client.localStorage?.selectMessages(conversationID: conversationID, start: nil, end: end, direction: .newToOld, limit: 20, completion: { (_, result, hasBreakpointInTheInterval) in
+            client.localStorage?.selectMessages(conversationID: conversationID, start: nil, end: end, direction: .newToOld, limit: 20, completion: { (_, result, hasBreakpoint) in
                 XCTAssertTrue(result.isSuccess)
                 XCTAssertNil(result.error)
                 XCTAssertEqual(result.value?.count, 2)
@@ -731,7 +731,7 @@ class IMLocalStorageTestCase: RTMBaseTestCase {
                     XCTAssertEqual(item.sentTimestamp!, messages[index + 1].sentTimestamp!)
                     XCTAssertEqual(item.ID!, messages[index + 1].ID!)
                 }
-                XCTAssertFalse(hasBreakpointInTheInterval)
+                XCTAssertTrue(hasBreakpoint)
                 exp.fulfill()
             })
         }
@@ -749,11 +749,11 @@ class IMLocalStorageTestCase: RTMBaseTestCase {
                 sentTimestamp: endMessage?.sentTimestamp,
                 isClosed: true
             )
-            client.localStorage?.selectMessages(conversationID: conversationID, start: start, end: end, direction: nil, limit: 20, completion: { (_, result, hasBreakpointInTheInterval) in
+            client.localStorage?.selectMessages(conversationID: conversationID, start: start, end: end, direction: nil, limit: 20, completion: { (_, result, hasBreakpoint) in
                 XCTAssertTrue(result.isSuccess)
                 XCTAssertNil(result.error)
                 XCTAssertEqual(result.value?.count, 3)
-                XCTAssertFalse(hasBreakpointInTheInterval)
+                XCTAssertTrue(hasBreakpoint)
                 exp.fulfill()
             })
         }
@@ -771,7 +771,7 @@ class IMLocalStorageTestCase: RTMBaseTestCase {
                 sentTimestamp: endMessage?.sentTimestamp,
                 isClosed: true
             )
-            client.localStorage?.selectMessages(conversationID: conversationID, start: start, end: end, direction: nil, limit: 20, completion: { (_, result, hasBreakpointInTheInterval) in
+            client.localStorage?.selectMessages(conversationID: conversationID, start: start, end: end, direction: nil, limit: 20, completion: { (_, result, hasBreakpoint) in
                 XCTAssertTrue(result.isSuccess)
                 XCTAssertNil(result.error)
                 XCTAssertEqual(result.value?.count, 2)
@@ -780,7 +780,7 @@ class IMLocalStorageTestCase: RTMBaseTestCase {
                     XCTAssertEqual(item.sentTimestamp!, messages[index].sentTimestamp!)
                     XCTAssertEqual(item.ID!, messages[index].ID!)
                 }
-                XCTAssertFalse(hasBreakpointInTheInterval)
+                XCTAssertTrue(hasBreakpoint)
                 exp.fulfill()
             })
         }
@@ -798,7 +798,7 @@ class IMLocalStorageTestCase: RTMBaseTestCase {
                 sentTimestamp: endMessage?.sentTimestamp,
                 isClosed: false
             )
-            client.localStorage?.selectMessages(conversationID: conversationID, start: start, end: end, direction: nil, limit: 20, completion: { (_, result, hasBreakpointInTheInterval) in
+            client.localStorage?.selectMessages(conversationID: conversationID, start: start, end: end, direction: nil, limit: 20, completion: { (_, result, hasBreakpoint) in
                 XCTAssertTrue(result.isSuccess)
                 XCTAssertNil(result.error)
                 XCTAssertEqual(result.value?.count, 2)
@@ -807,7 +807,7 @@ class IMLocalStorageTestCase: RTMBaseTestCase {
                     XCTAssertEqual(item.sentTimestamp!, messages[index + 1].sentTimestamp!)
                     XCTAssertEqual(item.ID!, messages[index + 1].ID!)
                 }
-                XCTAssertFalse(hasBreakpointInTheInterval)
+                XCTAssertTrue(hasBreakpoint)
                 exp.fulfill()
             })
         }
@@ -825,7 +825,7 @@ class IMLocalStorageTestCase: RTMBaseTestCase {
                 sentTimestamp: endMessage?.sentTimestamp,
                 isClosed: false
             )
-            client.localStorage?.selectMessages(conversationID: conversationID, start: start, end: end, direction: nil, limit: 20, completion: { (_, result, hasBreakpointInTheInterval) in
+            client.localStorage?.selectMessages(conversationID: conversationID, start: start, end: end, direction: nil, limit: 20, completion: { (_, result, hasBreakpoint) in
                 XCTAssertTrue(result.isSuccess)
                 XCTAssertNil(result.error)
                 XCTAssertEqual(result.value?.count, 1)
@@ -834,7 +834,7 @@ class IMLocalStorageTestCase: RTMBaseTestCase {
                     XCTAssertEqual(item.sentTimestamp!, messages[index + 1].sentTimestamp!)
                     XCTAssertEqual(item.ID!, messages[index + 1].ID!)
                 }
-                XCTAssertFalse(hasBreakpointInTheInterval)
+                XCTAssertFalse(hasBreakpoint)
                 exp.fulfill()
             })
         }

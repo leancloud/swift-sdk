@@ -1075,8 +1075,8 @@ extension IMConversation {
                 end: end,
                 direction: direction,
                 limit: limit)
-            { (client, result, hasBreakpointInTheInterval) in
-                var shouldUseNetwork: Bool = (hasBreakpointInTheInterval || result.isFailure)
+            { (client, result, hasBreakpoint) in
+                var shouldUseNetwork: Bool = (hasBreakpoint || result.isFailure)
                 if !shouldUseNetwork, let value = result.value {
                     shouldUseNetwork = (value.count != limit)
                 }

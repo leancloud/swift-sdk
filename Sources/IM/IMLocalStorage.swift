@@ -1062,7 +1062,7 @@ class IMLocalStorage {
                 IMLocalStorage.verboseLogging(database: db, SQL: sql)
                 let result = try db.executeQuery(sql, values: nil)
                 var messages: [IMMessage] = []
-                var breakpointSequence: [Bool] = []
+                var breakpointSet: Set<Bool> = []
                 while result.next() {
                     let sentTimestamp: Int64 = result.longLongInt(forColumn: key.sentTimestamp.rawValue)
                     guard
@@ -1117,19 +1117,12 @@ class IMLocalStorage {
                     }
                     let breakpoint = result.bool(forColumn: key.breakpoint.rawValue)
                     message.breakpoint = breakpoint
-                    breakpointSequence.append(breakpoint)
+                    breakpointSet.insert(breakpoint)
                     messages.append(message)
                 }
                 result.close()
-                if !breakpointSequence.isEmpty {
-                    breakpointSequence.removeFirst()
-                }
-                if !breakpointSequence.isEmpty {
-                    breakpointSequence.removeLast()
-                }
-                let hasBreakpointInTheInterval: Bool = breakpointSequence.contains(true)
                 client.serialQueue.async {
-                    completion(client, .success(value: messages), hasBreakpointInTheInterval)
+                    completion(client, .success(value: messages), breakpointSet.contains(true))
                 }
             } catch {
                 Logger.shared.error(error)
