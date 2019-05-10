@@ -358,7 +358,42 @@ open class IMCategorizedMessage: IMMessage, IMMessageCategorizing {
         return ReservedType.none.rawValue
     }
     
-    public required init() { super.init() }
+    public required init() {
+        super.init()
+    }
+    
+    public init(
+        application: LCApplication = LCApplication.default,
+        data: Data,
+        format: String? = nil)
+    {
+        super.init()
+        let payload = LCFile.Payload.data(data: data)
+        self.file = LCFile(application: application, payload: payload)
+        self.setFileFormat(format: format)
+    }
+    
+    public init(
+        application: LCApplication = LCApplication.default,
+        filePath: String,
+        format: String? = nil)
+    {
+        super.init()
+        let fileURL = URL(fileURLWithPath: filePath)
+        let payload = LCFile.Payload.fileURL(fileURL: fileURL)
+        self.file = LCFile(application: application, payload: payload)
+        self.setFileFormat(format: format)
+    }
+    
+    public init(
+        application: LCApplication = LCApplication.default,
+        url: URL,
+        format: String? = nil)
+    {
+        super.init()
+        self.file = LCFile(application: application, url: url)
+        self.setFileFormat(format: format)
+    }
     
     var rawData: [String: Any] = [:]
     
@@ -573,6 +608,13 @@ open class IMCategorizedMessage: IMMessage, IMMessageCategorizing {
         return self.fileMetaData?[key.rawValue] as? T
     }
     
+    private func setFileFormat(format: String?) {
+        guard let format = format else {
+            return
+        }
+        self.file?.metaData?[FileKey.format.rawValue] = LCString(format)
+    }
+    
 }
 
 /// IM Text Message
@@ -580,6 +622,30 @@ public class IMTextMessage: IMCategorizedMessage {
     
     public override var lcType: MessageType {
         return ReservedType.text.rawValue
+    }
+    
+    public required init() {
+        super.init()
+    }
+    
+    public init(text: String) {
+        super.init()
+        self.text = text
+    }
+    
+    @available(*, unavailable)
+    public override init(application: LCApplication = LCApplication.default, data: Data, format: String? = nil) {
+        super.init(application: application, data: data, format: format)
+    }
+    
+    @available(*, unavailable)
+    public override init(application: LCApplication = LCApplication.default, filePath: String, format: String? = nil) {
+        super.init(application: application, filePath: filePath, format: format)
+    }
+    
+    @available(*, unavailable)
+    public override init(application: LCApplication = LCApplication.default, url: URL, format: String? = nil) {
+        super.init(application: application, url: url, format: format)
     }
     
 }
@@ -727,6 +793,30 @@ public class IMLocationMessage: IMCategorizedMessage {
         return ReservedType.location.rawValue
     }
     
+    public required init() {
+        super.init()
+    }
+    
+    public init(latitude: Double, longitude: Double) {
+        super.init()
+        self.location = LCGeoPoint(latitude: latitude, longitude: longitude)
+    }
+    
+    @available(*, unavailable)
+    public override init(application: LCApplication = LCApplication.default, data: Data, format: String? = nil) {
+        super.init(application: application, data: data, format: format)
+    }
+    
+    @available(*, unavailable)
+    public override init(application: LCApplication = LCApplication.default, filePath: String, format: String? = nil) {
+        super.init(application: application, filePath: filePath, format: format)
+    }
+    
+    @available(*, unavailable)
+    public override init(application: LCApplication = LCApplication.default, url: URL, format: String? = nil) {
+        super.init(application: application, url: url, format: format)
+    }
+    
     public var latitude: Double? {
         return self.location?.latitude
     }
@@ -742,6 +832,25 @@ public class IMRecalledMessage: IMCategorizedMessage {
     
     public override var lcType: MessageType {
         return ReservedType.recalled.rawValue
+    }
+    
+    public required init() {
+        super.init()
+    }
+    
+    @available(*, unavailable)
+    public override init(application: LCApplication = LCApplication.default, data: Data, format: String? = nil) {
+        super.init(application: application, data: data, format: format)
+    }
+    
+    @available(*, unavailable)
+    public override init(application: LCApplication = LCApplication.default, filePath: String, format: String? = nil) {
+        super.init(application: application, filePath: filePath, format: format)
+    }
+    
+    @available(*, unavailable)
+    public override init(application: LCApplication = LCApplication.default, url: URL, format: String? = nil) {
+        super.init(application: application, url: url, format: format)
     }
     
 }
