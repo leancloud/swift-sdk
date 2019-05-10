@@ -1051,12 +1051,13 @@ class IMLocalStorage {
             var sql: String = ""
             do {
                 let key = Table.Message.CodingKeys.self
+                let order = (direction ?? .newToOld)
                 sql =
                 """
                 select * from \(Table.message)
                 where \(key.conversationID.rawValue) = \"\(conversationID)\"
                 and \(self.messageWhereCondition(start: start, end: end, direction: direction))
-                order by \(key.sentTimestamp.rawValue) asc,\(key.messageID.rawValue) asc
+                order by \(key.sentTimestamp.rawValue) \(order.SQLOrder),\(key.messageID.rawValue) \(order.SQLOrder)
                 limit \(limit)
                 """
                 IMLocalStorage.verboseLogging(database: db, SQL: sql)
