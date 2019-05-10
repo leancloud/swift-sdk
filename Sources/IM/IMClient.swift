@@ -1112,7 +1112,7 @@ extension IMClient {
             processNotification(self, conversationID)
         }
         
-        let queryIDs: Set<String> = tuple.2
+        let queryIDs: Set<String> = tuple.queryIDs
         if !queryIDs.isEmpty {
             self.getConversations(by: queryIDs) { (client, result) in
                 switch result {
@@ -1126,7 +1126,7 @@ extension IMClient {
             }
         }
         
-        let queryTempIDs: Set<String> = tuple.3
+        let queryTempIDs: Set<String> = tuple.queryTempIDs
         if !queryTempIDs.isEmpty {
             self.getTemporaryConversations(by: queryTempIDs) { (client, result) in
                 switch result {
@@ -1694,7 +1694,11 @@ extension IMClient {
                         }
                     }
                 case .failure(error: let error):
-                    groupFlags.append(false)
+                    if error.code == LCError.InternalErrorCode.conversationNotFound.rawValue {
+                        groupFlags.append(true)
+                    } else {
+                        groupFlags.append(false)
+                    }
                     Logger.shared.error(error)
                 }
             }
@@ -1778,7 +1782,11 @@ extension IMClient {
                         }
                     }
                 case .failure(error: let error):
-                    groupFlags.append(false)
+                    if error.code == LCError.InternalErrorCode.conversationNotFound.rawValue {
+                        groupFlags.append(true)
+                    } else {
+                        groupFlags.append(false)
+                    }
                     Logger.shared.error(error)
                 }
             }
