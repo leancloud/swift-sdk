@@ -1119,7 +1119,11 @@ class IMLocalStorage {
                     let breakpoint = result.bool(forColumn: key.breakpoint.rawValue)
                     message.breakpoint = breakpoint
                     breakpointSet.insert(breakpoint)
-                    messages.append(message)
+                    if order == .newToOld {
+                        messages.insert(message, at: 0)
+                    } else {
+                        messages.append(message)
+                    }
                 }
                 result.close()
                 client.serialQueue.async {
