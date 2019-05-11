@@ -642,10 +642,10 @@ class IMLocalStorageTestCase: RTMBaseTestCase {
                 XCTAssertTrue(result.isSuccess)
                 XCTAssertNil(result.error)
                 XCTAssertEqual(result.value?.count, 1)
-                for (index, item) in result.value!.enumerated() {
-                    XCTAssertEqual(item.conversationID!, messages[index].conversationID!)
-                    XCTAssertEqual(item.sentTimestamp!, messages[index].sentTimestamp!)
-                    XCTAssertEqual(item.ID!, messages[index].ID!)
+                for (_, item) in result.value!.enumerated() {
+                    XCTAssertEqual(item.conversationID!, messages.last!.conversationID!)
+                    XCTAssertEqual(item.sentTimestamp!, messages.last!.sentTimestamp!)
+                    XCTAssertEqual(item.ID!, messages.last!.ID!)
                 }
                 XCTAssertTrue(hasBreakpoint)
                 exp.fulfill()
