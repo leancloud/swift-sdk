@@ -890,7 +890,11 @@ extension IMClient {
         guard let localStorage = self.localStorage else {
             throw LCError.clientLocalStorageNotFound
         }
-        localStorage.open(completion: completion)
+        localStorage.open { [weak self] (result) in
+            self?.eventQueue.async {
+                completion(result)
+            }
+        }
     }
     
     public enum StoredConversationOrder {
@@ -957,7 +961,11 @@ extension IMClient {
         guard let localStorage = self.localStorage else {
             throw LCError.clientLocalStorageNotFound
         }
-        localStorage.deleteConversationAndMessages(IDs: IDs, completion: completion)
+        localStorage.deleteConversationAndMessages(IDs: IDs) { [weak self] (result) in
+            self?.eventQueue.async {
+                completion(result)
+            }
+        }
     }
     
 }
