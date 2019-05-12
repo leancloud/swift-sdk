@@ -2135,7 +2135,7 @@ public enum IMConversationEvent {
     
     case dataUpdated(updatingData: [String: Any]?, updatedData: [String: Any]?, byClientID: String?, at: Date?)
     
-    case lastMessageUpdated
+    case lastMessageUpdated(newMessage: Bool)
     
     case unreadMessageCountUpdated
     

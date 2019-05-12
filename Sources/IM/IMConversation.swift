@@ -1660,7 +1660,8 @@ internal extension IMConversation {
                 client.localStorage?.insertOrReplace(conversationID: self.ID, lastMessage: newMessage)
             }
             if notifying {
-                messageEvent = .lastMessageUpdated
+                let isNewMessageReplacing: Bool = shouldIncreased
+                messageEvent = .lastMessageUpdated(newMessage: isNewMessageReplacing)
             }
             if shouldIncreased && newMessage.ioType == .in {
                 isUnreadMessageIncreased = true
