@@ -350,9 +350,11 @@ class IMClientTestCase: RTMBaseTestCase {
             exp.fulfill()
         }
         
+        let client = try! IMClient(ID: uuid)
+        
         expecting { (exp) in
-            let client = try! IMClient(ID: uuid)
             try! client.prepareLocalStorage(completion: { (result) in
+                XCTAssertTrue(Thread.isMainThread)
                 XCTAssertTrue(result.isSuccess)
                 XCTAssertNil(result.error)
                 exp.fulfill()
@@ -384,6 +386,7 @@ class IMClientTestCase: RTMBaseTestCase {
         
         expecting { (exp) in
             try! client.getAndLoadStoredConversations(completion: { (result) in
+                XCTAssertTrue(Thread.isMainThread)
                 XCTAssertTrue(result.isSuccess)
                 XCTAssertNil(result.error)
                 XCTAssertEqual(result.value?.count, 0)
