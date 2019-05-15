@@ -256,7 +256,7 @@ class FileUploader {
         parameters["name"] = attributes.name
         parameters["mime_type"] = attributes.mimeType
 
-        var metaData: [String: Any] = [:]
+        var metaData: [String: Any] = (file.metaData?.jsonValue as? [String: Any]) ?? [:]
 
         metaData["size"] = attributes.size
         metaData["mime_type"] = attributes.mimeType
