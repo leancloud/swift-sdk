@@ -78,7 +78,7 @@ open class IMMessage {
     /// The ID of the conversation which this message belong to.
     public private(set) var conversationID: String?
     
-    /// The sent timestamp of this message.
+    /// The sent timestamp of this message. measurement is millisecond.
     public private(set) var sentTimestamp: Int64?
     
     /// The sent date of this message.
@@ -86,7 +86,7 @@ open class IMMessage {
         return IMClient.date(fromMillisecond: sentTimestamp)
     }
     
-    /// The delivered timestamp of this message.
+    /// The delivered timestamp of this message. measurement is millisecond.
     public var deliveredTimestamp: Int64?
     
     /// The delivered date of this message.
@@ -94,7 +94,7 @@ open class IMMessage {
         return IMClient.date(fromMillisecond: deliveredTimestamp)
     }
     
-    /// The read timestamp of this message.
+    /// The read timestamp of this message. measurement is millisecond.
     public var readTimestamp: Int64?
     
     /// The read date of this message.
@@ -108,7 +108,7 @@ open class IMMessage {
         public let reason: String?
     }
     
-    /// The patched timestamp of this message.
+    /// The patched timestamp of this message. measurement is millisecond.
     public internal(set) var patchedTimestamp: Int64?
     
     /// The patched date of this message.
@@ -127,18 +127,15 @@ open class IMMessage {
         if self.ioType == .out {
             return false
         } else {
-            if self.isAllMembersMentioned == true {
+            if let allMentioned: Bool = self.isAllMembersMentioned,
+                allMentioned {
                 return true
             }
-            if
-                let clientID: String = self.currentClientID,
-                let mentionedMembers: [String] = self.mentionedMembers,
-                mentionedMembers.contains(clientID)
-            {
-                return true
-            } else {
-                return false
+            if let clientID: String = self.currentClientID,
+                let mentionedMembers: [String] = self.mentionedMembers {
+                return mentionedMembers.contains(clientID)
             }
+            return false
         }
     }
     
@@ -205,20 +202,20 @@ open class IMMessage {
         -> IMMessage
     {
         var message = IMMessage()
-        do {
-            let lcTypeKey: String = IMCategorizedMessage.ReservedKey.type.rawValue
-            if let string: String = content?.string,
-                string.contains(lcTypeKey),
-                let rawData: [String: Any] = try string.jsonObject(),
-                let typeNumber: Int = rawData[lcTypeKey] as? Int,
-                let messageClass: IMCategorizedMessage.Type = LCCategorizedMessageMap[typeNumber]
-            {
-                let categorizedMessage = messageClass.init()
-                categorizedMessage.decoding(rawData: rawData, application: application)
-                message = categorizedMessage
+        let messageTypeKey: String = IMCategorizedMessage.ReservedKey.type.rawValue
+        if let string: String = content?.string, string.contains(messageTypeKey) {
+            do {
+                if let rawData: [String: Any] = try string.jsonObject(),
+                    let typeNumber: Int = rawData[messageTypeKey] as? Int,
+                    let messageType: IMCategorizedMessage.Type = IMCategorizedMessageTypeMap[typeNumber]
+                {
+                    let categorizedMessage = messageType.init()
+                    categorizedMessage.decoding(rawData: rawData, application: application)
+                    message = categorizedMessage
+                }
+            } catch {
+                Logger.shared.error(error)
             }
-        } catch {
-            Logger.shared.verbose(error)
         }
         message.isTransient = isTransient
         message.conversationID = conversationID
@@ -278,7 +275,7 @@ open class IMMessage {
     
 }
 
-private var LCCategorizedMessageMap: [Int: IMCategorizedMessage.Type] = [
+var IMCategorizedMessageTypeMap: [Int: IMCategorizedMessage.Type] = [
     IMCategorizedMessage.ReservedType.none.rawValue: IMCategorizedMessage.self,
     IMCategorizedMessage.ReservedType.text.rawValue: IMTextMessage.self,
     IMCategorizedMessage.ReservedType.image.rawValue: IMImageMessage.self,
@@ -290,7 +287,7 @@ private var LCCategorizedMessageMap: [Int: IMCategorizedMessage.Type] = [
 ]
 
 /// IM Message Categorizing Protocol
-public protocol IMMessageCategorizing {
+public protocol IMMessageCategorizing: class {
     
     /// Message Type is Int Type
     typealias MessageType = Int
@@ -298,7 +295,7 @@ public protocol IMMessageCategorizing {
     /// The type of the categorized message,
     /// The zero and negative number is reserved for default categorized message,
     /// Any other categorized message should use positive number.
-    var lcType: MessageType { get } // add `lc` prefix to avoid conflict
+    static var messageType: MessageType { get }
     
 }
 
@@ -344,17 +341,17 @@ open class IMCategorizedMessage: IMMessage, IMMessageCategorizing {
     ///
     /// - Throws: if `lcType` is not a positive number.
     public static func register() throws {
-        let type: Int = self.init().lcType
+        let type: Int = self.messageType
         guard type > 0 else {
             throw LCError(
                 code: .inconsistency,
                 reason: "The value of the customized message's type should be a positive integer"
             )
         }
-        LCCategorizedMessageMap[type] = self
+        IMCategorizedMessageTypeMap[type] = self
     }
     
-    public var lcType: MessageType {
+    open class var messageType: MessageType {
         return ReservedType.none.rawValue
     }
     
@@ -394,6 +391,11 @@ open class IMCategorizedMessage: IMMessage, IMMessageCategorizing {
         self.file = LCFile(application: application, url: url)
         self.setFileFormat(format: format)
     }
+
+    @available(*, unavailable)
+    public override func set(content: IMMessage.Content) throws {
+        try super.set(content: content)
+    }
     
     var rawData: [String: Any] = [:]
     
@@ -416,7 +418,7 @@ open class IMCategorizedMessage: IMMessage, IMMessageCategorizing {
     /// The file object.
     public var file: LCFile?
     
-    internal private(set) var fileMetaData: [String: Any]?
+    private(set) var fileMetaData: [String: Any]?
     
     /// The location data.
     public var location: LCGeoPoint?
@@ -568,7 +570,7 @@ open class IMCategorizedMessage: IMMessage, IMMessageCategorizing {
     }
     
     func encodingMessageContent() throws {
-        self.rawData[ReservedKey.type.rawValue] = self.lcType
+        self.rawData[ReservedKey.type.rawValue] = type(of: self).messageType
         if let text: String = self.text {
             self.rawData[ReservedKey.text.rawValue] = text
         }
@@ -609,10 +611,16 @@ open class IMCategorizedMessage: IMMessage, IMMessageCategorizing {
     }
     
     private func setFileFormat(format: String?) {
-        guard let format = format else {
+        guard let format = format, let file = self.file else {
             return
         }
-        self.file?.metaData?[FileKey.format.rawValue] = LCString(format)
+        let key = FileKey.format.rawValue
+        let value = LCString(format)
+        if let metaData: LCDictionary = file.metaData {
+            metaData[key] = value
+        } else {
+            file.metaData = LCDictionary([key: value])
+        }
     }
     
 }
@@ -620,7 +628,7 @@ open class IMCategorizedMessage: IMMessage, IMMessageCategorizing {
 /// IM Text Message
 public class IMTextMessage: IMCategorizedMessage {
     
-    public override var lcType: MessageType {
+    public class override var messageType: MessageType {
         return ReservedType.text.rawValue
     }
     
@@ -653,7 +661,7 @@ public class IMTextMessage: IMCategorizedMessage {
 /// IM Image Message
 public class IMImageMessage: IMCategorizedMessage {
     
-    public override var lcType: MessageType {
+    public class override var messageType: MessageType {
         return ReservedType.image.rawValue
     }
     
@@ -692,7 +700,7 @@ public class IMImageMessage: IMCategorizedMessage {
 /// IM Audio Message
 public class IMAudioMessage: IMCategorizedMessage {
     
-    public override var lcType: MessageType {
+    public class override var messageType: MessageType {
         return ReservedType.audio.rawValue
     }
     
@@ -726,7 +734,7 @@ public class IMAudioMessage: IMCategorizedMessage {
 /// IM Video Message
 public class IMVideoMessage: IMCategorizedMessage {
     
-    public override var lcType: MessageType {
+    public class override var messageType: MessageType {
         return ReservedType.video.rawValue
     }
     
@@ -760,7 +768,7 @@ public class IMVideoMessage: IMCategorizedMessage {
 /// IM File Message
 public class IMFileMessage: IMCategorizedMessage {
     
-    public override var lcType: MessageType {
+    public class override var messageType: MessageType {
         return ReservedType.file.rawValue
     }
     
@@ -789,7 +797,7 @@ public class IMFileMessage: IMCategorizedMessage {
 /// IM Location Message
 public class IMLocationMessage: IMCategorizedMessage {
     
-    public override var lcType: MessageType {
+    public class override var messageType: MessageType {
         return ReservedType.location.rawValue
     }
     
@@ -830,7 +838,7 @@ public class IMLocationMessage: IMCategorizedMessage {
 /// IM Recalled Message
 public class IMRecalledMessage: IMCategorizedMessage {
     
-    public override var lcType: MessageType {
+    public class override var messageType: MessageType {
         return ReservedType.recalled.rawValue
     }
     
