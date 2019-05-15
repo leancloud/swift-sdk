@@ -597,7 +597,7 @@ class IMMessageTestCase: RTMBaseTestCase {
         }
         let message = CustomMessage()
         do {
-            try message.set(content: .string(""))
+            try (message as IMMessage).set(content: .string(""))
             XCTFail()
         } catch {
             XCTAssertTrue(error is LCError)
@@ -1272,11 +1272,14 @@ class IMMessageTestCase: RTMBaseTestCase {
         wait(for: [intervalQueryExp], timeout: timeout)
         
         let typeQuery = expectation(description: "type query")
-        try? conversation.queryMessage(type: IMTextMessage().lcType, completion: { (result) in
+        try? conversation.queryMessage(type: IMTextMessage.messageType, completion: { (result) in
             XCTAssertTrue(result.isSuccess)
             XCTAssertNil(result.error)
             XCTAssertEqual(result.value?.count, 1)
-            XCTAssertEqual((result.value?.first as? IMTextMessage)?.lcType, IMTextMessage().lcType)
+            XCTAssertEqual(
+                (result.value?.first as? IMTextMessage)?[IMCategorizedMessage.ReservedKey.type.rawValue] as? Int,
+                IMTextMessage.messageType
+            )
             XCTAssertNotNil(result.value?.first?.deliveredTimestamp)
             XCTAssertNotNil(result.value?.first?.deliveredDate)
             XCTAssertEqual(result.value?.first?.status, .delivered)
@@ -1295,13 +1298,13 @@ extension IMMessageTestCase {
     typealias Tuple = (client: IMClient, conversation: IMConversation, delegator: IMClientTestCase.Delegator)
     
     class CustomMessage: IMCategorizedMessage {
-        override var lcType: MessageType {
+        class override var messageType: MessageType {
             return 1
         }
     }
     
     class InvalidCustomMessage: IMCategorizedMessage {
-        override var lcType: MessageType {
+        class override var messageType: MessageType {
             return -1
         }
     }
