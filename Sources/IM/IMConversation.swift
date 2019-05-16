@@ -779,6 +779,13 @@ extension IMConversation {
                         newMessage.deliveredTimestamp = oldMessage.deliveredTimestamp
                         newMessage.readTimestamp = oldMessage.readTimestamp
                         self.safeUpdatingLastMessage(newMessage: newMessage, client: client)
+                        if let localStorage = client.localStorage {
+                            do {
+                                try localStorage.updateOrIgnore(message: newMessage)
+                            } catch {
+                                Logger.shared.error(error)
+                            }
+                        }
                         client.eventQueue.async {
                             completion(.success)
                         }
