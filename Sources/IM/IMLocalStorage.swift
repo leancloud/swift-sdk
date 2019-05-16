@@ -919,6 +919,7 @@ class IMLocalStorage {
                     table.sentTimestamp,
                     table.messageID
                 ]
+                IMLocalStorage.verboseLogging(database: db, SQL: sql, values: values)
                 try db.executeUpdate(sql, values: values)
                 self.client?.serialQueue.async {
                     completion?(.success)
