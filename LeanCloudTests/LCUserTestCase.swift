@@ -58,5 +58,11 @@ class LCUserTestCase: BaseTestCase {
 
         LCUser.logOut()
     }
+    
+    func testSignUpOrLogInByMobilePhoneNumberAndVerificationCode() {
+        let mobilePhoneNumber = "18677777777"
+        let verificationCode = "375586"
+        XCTAssertTrue(LCUser.signUpOrLogIn(mobilePhoneNumber: mobilePhoneNumber, verificationCode: verificationCode).isSuccess)
+    }
 
 }
