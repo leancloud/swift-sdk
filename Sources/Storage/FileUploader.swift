@@ -33,14 +33,13 @@ class FileUploader {
     init(file: LCFile, payload: LCFile.Payload) {
         self.file = file
         self.payload = payload
+        let sessionManager = SessionManager(configuration: .default)
+        sessionManager.startRequestsImmediately = false
+        self.sessionManager = sessionManager
     }
 
     /// Session manager for uploading file.
-    private lazy var sessionManager: SessionManager = {
-        let sessionManager = SessionManager(configuration: .default)
-        sessionManager.startRequestsImmediately = false
-        return sessionManager
-    }()
+    private let sessionManager: SessionManager
 
     /**
      File tokens.
