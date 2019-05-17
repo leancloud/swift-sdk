@@ -95,7 +95,7 @@ class FileUploader {
     /**
      File attributes.
      */
-    private struct FileAttributes {
+    struct FileAttributes {
 
         /// File payload.
         let payload: LCFile.Payload
@@ -220,7 +220,7 @@ class FileUploader {
             }
         }
 
-        static private func getMIMEType(filename: String?) -> String? {
+        static func getMIMEType(filename: String?) -> String? {
             guard let filename = filename else {
                 return nil
             }

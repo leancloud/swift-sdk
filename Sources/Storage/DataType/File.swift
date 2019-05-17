@@ -179,7 +179,23 @@ public class LCFile: LCObject {
             return upload(payload: payload, progress: progress, completion: { result in
                 self.handleUploadResult(result, completion: completion)
             })
-        } else if let _ = url {
+        } else if let remoteURL = url {
+            if let metaData = self.metaData {
+                metaData["__source"] = "external".lcString
+            } else {
+                self.metaData = LCDictionary(["__source": "external".lcString])
+            }
+            
+            if self.name == nil {
+                self.name = (remoteURL.value as NSString).lastPathComponent.lcString
+            }
+            
+            if self.mimeType == nil {
+                if let mimeType = FileUploader.FileAttributes.getMIMEType(filename: self.name?.value) {
+                    self.mimeType = mimeType.lcString
+                }
+            }
+            
             let parameters = dictionary.jsonValue as? [String: Any]
 
             return httpClient.request(.post, "files", parameters: parameters) { response in
