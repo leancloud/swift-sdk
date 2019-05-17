@@ -11,10 +11,10 @@ import Foundation
 /**
  LeanCloud file type.
  */
-public final class LCFile: LCObject {
+public class LCFile: LCObject {
 
     /// The file URL.
-    @objc public dynamic var url: LCString?
+    @objc dynamic public var url: LCString?
 
     /**
      The file key.
@@ -22,19 +22,19 @@ public final class LCFile: LCObject {
      It's the resource key of third-party file hosting provider.
      It may be nil for some providers.
      */
-    @objc public dynamic var key: LCString?
+    @objc dynamic public var key: LCString?
 
     /// The file name.
-    @objc public dynamic var name: LCString?
+    @objc dynamic public var name: LCString?
 
     /// The file meta data.
-    @objc public dynamic var metaData: LCDictionary?
+    @objc dynamic public var metaData: LCDictionary?
 
     /// The file hosting provider.
-    @objc public dynamic var provider: LCString?
+    @objc dynamic public var provider: LCString?
 
     /// The file bucket.
-    @objc public dynamic var bucket: LCString?
+    @objc dynamic public var bucket: LCString?
 
     /**
      The MIME type of file.
@@ -52,11 +52,12 @@ public final class LCFile: LCObject {
         }
     }
 
-    /// The HTTP client.
-    private lazy var httpClient = HTTPClient.default
-
     public required init() {
         super.init()
+    }
+    
+    public required init(application: LCApplication) {
+        super.init(application: application)
     }
 
     /**
@@ -64,7 +65,10 @@ public final class LCFile: LCObject {
 
      - parameter url: The file URL.
      */
-    public init(url: LCStringConvertible) {
+    public init(
+        application: LCApplication = LCApplication.default,
+        url: LCStringConvertible) {
+        super.init(application: application)
         self.url = url.lcString
     }
 
@@ -91,15 +95,19 @@ public final class LCFile: LCObject {
 
      - parameter content: The file content.
      */
-    public init(payload: Payload) {
+    public init(
+        application: LCApplication = LCApplication.default,
+        payload: Payload)
+    {
+        super.init(application: application)
         self.payload = payload
     }
 
-    public override class func objectClassName() -> String {
+    public final override class func objectClassName() -> String {
         return "_File"
     }
 
-    override public func save() -> LCBooleanResult {
+    public override func save() -> LCBooleanResult {
         return expect { fulfill in
             self.save(
             progressInBackground: { _ in /* Nop */ },
@@ -109,7 +117,7 @@ public final class LCFile: LCObject {
         }
     }
 
-    override public func save(
+    public override func save(
         _ completion: @escaping (LCBooleanResult) -> Void) -> LCRequest
     {
         return save(
@@ -155,6 +163,8 @@ public final class LCFile: LCObject {
         progressInBackground progress: @escaping (Double) -> Void,
         completion: @escaping (LCBooleanResult) -> Void) -> LCRequest
     {
+        let httpClient: HTTPClient = self.application.httpClient
+        
         if let _ = objectId {
             let error = LCError(
                 code: .inconsistency,
@@ -169,7 +179,23 @@ public final class LCFile: LCObject {
             return upload(payload: payload, progress: progress, completion: { result in
                 self.handleUploadResult(result, completion: completion)
             })
-        } else if let _ = url {
+        } else if let remoteURL = url {
+            if let metaData = self.metaData {
+                metaData["__source"] = "external".lcString
+            } else {
+                self.metaData = LCDictionary(["__source": "external".lcString])
+            }
+            
+            if self.name == nil {
+                self.name = (remoteURL.value as NSString).lastPathComponent.lcString
+            }
+            
+            if self.mimeType == nil {
+                if let mimeType = FileUploader.FileAttributes.getMIMEType(filename: self.name?.value) {
+                    self.mimeType = mimeType.lcString
+                }
+            }
+            
             let parameters = dictionary.jsonValue as? [String: Any]
 
             return httpClient.request(.post, "files", parameters: parameters) { response in

@@ -35,7 +35,11 @@ public final class LCCQLValue {
 
         do {
             let objects = try results.map { dictionary in
-                try ObjectProfiler.shared.object(dictionary: dictionary, className: className)
+                try ObjectProfiler.shared.object(
+                    application: self.response.application,
+                    dictionary: dictionary,
+                    className: className
+                )
             }
 
             return objects
@@ -88,9 +92,14 @@ public final class LCCQLClient {
 
      - returns: The result of CQL statement.
      */
-    public static func execute(_ cql: String, parameters: LCArrayConvertible? = nil) -> LCCQLResult {
+    public static func execute(
+        application: LCApplication = LCApplication.default,
+        _ cql: String,
+        parameters: LCArrayConvertible? = nil)
+        -> LCCQLResult
+    {
         return expect { fulfill in
-            execute(cql, parameters: parameters, completionInBackground: { result in
+            execute(application: application, cql, parameters: parameters, completionInBackground: { result in
                 fulfill(result)
             })
         }
@@ -103,8 +112,13 @@ public final class LCCQLClient {
      - parameter parameters: The parameters for placeholders in CQL statement.
      - parameter completion: The completion callback closure.
      */
-    public static func execute(_ cql: String, parameters: LCArrayConvertible? = nil, completion: @escaping (_ result: LCCQLResult) -> Void) -> LCRequest {
-        return execute(cql, parameters: parameters, completionInBackground: { result in
+    public static func execute(
+        application: LCApplication = LCApplication.default,
+        _ cql: String, parameters: LCArrayConvertible? = nil,
+        completion: @escaping (_ result: LCCQLResult) -> Void)
+        -> LCRequest
+    {
+        return execute(application: application, cql, parameters: parameters, completionInBackground: { result in
             mainQueueAsync {
                 completion(result)
             }
@@ -112,9 +126,15 @@ public final class LCCQLClient {
     }
 
     @discardableResult
-    private static func execute(_ cql: String, parameters: LCArrayConvertible? = nil, completionInBackground completion: @escaping (LCCQLResult) -> Void) -> LCRequest {
+    private static func execute(
+        application: LCApplication,
+        _ cql: String,
+        parameters: LCArrayConvertible? = nil,
+        completionInBackground completion: @escaping (LCCQLResult) -> Void)
+        -> LCRequest
+    {
         let parameters = self.parameters(cql, parameters: parameters)
-        let request = HTTPClient.default.request(.get, endpoint, parameters: parameters) { response in
+        let request = application.httpClient.request(.get, endpoint, parameters: parameters) { response in
             let result = LCCQLResult(response: response)
             completion(result)
         }

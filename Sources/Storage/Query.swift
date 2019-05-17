@@ -11,7 +11,9 @@ import Foundation
 /**
  Query defines a query for objects.
  */
-final public class LCQuery: NSObject, NSCopying, NSCoding {
+public class LCQuery: NSObject, NSCopying, NSCoding {
+    public let application: LCApplication
+    
     /// Object class name.
     public let objectClassName: String
 
@@ -40,7 +42,7 @@ final public class LCQuery: NSObject, NSCopying, NSCoding {
 
     /// Dictionary of constraints indexed by key.
     /// Note that it may contains LCValue or Query value.
-    private var constraintDictionary: [String: Any] = [:]
+    var constraintDictionary: [String: Any] = [:]
 
     /// Extra parameters for query request.
     var extraParameters: [String: Any]?
@@ -132,7 +134,7 @@ final public class LCQuery: NSObject, NSCopying, NSCoding {
     }
 
     var endpoint: String {
-        return HTTPClient.default.getClassEndpoint(className: objectClassName)
+        return self.application.httpClient.getClassEndpoint(className: objectClassName)
     }
 
     /**
@@ -140,12 +142,16 @@ final public class LCQuery: NSObject, NSCopying, NSCoding {
 
      - parameter objectClassName: The class name to query.
      */
-    public init(className: String) {
+    public init(
+        application: LCApplication = LCApplication.default,
+        className: String)
+    {
+        self.application = application
         self.objectClassName = className
     }
 
     public func copy(with zone: NSZone?) -> Any {
-        let query = LCQuery(className: objectClassName)
+        let query = LCQuery(application: self.application, className: objectClassName)
 
         query.includedKeys  = includedKeys
         query.selectedKeys  = selectedKeys
@@ -159,6 +165,14 @@ final public class LCQuery: NSObject, NSCopying, NSCoding {
     }
 
     public required init?(coder aDecoder: NSCoder) {
+        if
+            let applicationID = aDecoder.decodeObject(forKey: "applicationID") as? String,
+            let registeredApplication = applicationRegistry[applicationID]
+        {
+            self.application = registeredApplication
+        } else {
+            self.application = LCApplication.default
+        }
         objectClassName = aDecoder.decodeObject(forKey: "objectClassName") as! String
         includedKeys    = aDecoder.decodeObject(forKey: "includedKeys") as! Set<String>
         selectedKeys    = aDecoder.decodeObject(forKey: "selectedKeys") as! Set<String>
@@ -170,6 +184,8 @@ final public class LCQuery: NSObject, NSCopying, NSCoding {
     }
 
     public func encode(with aCoder: NSCoder) {
+        let applicationID: String = self.application.id
+        aCoder.encode(applicationID, forKey: "applicationID")
         aCoder.encode(objectClassName, forKey: "objectClassName")
         aCoder.encode(includedKeys, forKey: "includedKeys")
         aCoder.encode(selectedKeys, forKey: "selectedKeys")
@@ -193,6 +209,11 @@ final public class LCQuery: NSObject, NSCopying, NSCoding {
      - parameter constraint: The constraint.
      */
     public func whereKey(_ key: String, _ constraint: Constraint) {
+        // because self.where will never throw error, so use try!
+        try! self.where(key, constraint)
+    }
+    
+    func `where`(_ key: String, _ constraint: Constraint) throws {
         var dictionary: [String: Any]?
 
         switch constraint {
@@ -279,9 +300,12 @@ final public class LCQuery: NSObject, NSCopying, NSCoding {
 
      - parameter query: The query to be validated.
      */
-    func validateClassName(_ query: LCQuery) throws {
+    func validateApplicationAndClassName(_ query: LCQuery) throws {
+        guard query.application === self.application else {
+            throw LCError(code: .inconsistency, reason: "Different application.")
+        }
         guard query.objectClassName == objectClassName else {
-            throw LCError(code: .inconsistency, reason: "Different class names.", userInfo: nil)
+            throw LCError(code: .inconsistency, reason: "Different class names.")
         }
     }
 
@@ -295,9 +319,9 @@ final public class LCQuery: NSObject, NSCopying, NSCoding {
      - returns: The logic AND of two queries.
      */
     public func and(_ query: LCQuery) throws -> LCQuery {
-        try validateClassName(query)
+        try validateApplicationAndClassName(query)
 
-        let result = LCQuery(className: objectClassName)
+        let result = LCQuery(application: self.application, className: objectClassName)
 
         result.constraintDictionary["$and"] = [self.constraintDictionary, query.constraintDictionary]
 
@@ -314,9 +338,9 @@ final public class LCQuery: NSObject, NSCopying, NSCoding {
      - returns: The logic OR of two queries.
      */
     public func or(_ query: LCQuery) throws -> LCQuery {
-        try validateClassName(query)
+        try validateApplicationAndClassName(query)
 
-        let result = LCQuery(className: objectClassName)
+        let result = LCQuery(application: self.application, className: objectClassName)
 
         result.constraintDictionary["$or"] = [self.constraintDictionary, query.constraintDictionary]
 
@@ -351,7 +375,9 @@ final public class LCQuery: NSObject, NSCopying, NSCoding {
      */
     func processResults<T: LCObject>(_ results: [Any], className: String?) -> [T] {
         return results.map { dictionary in
-            let object = ObjectProfiler.shared.object(className: className ?? self.objectClassName) as! T
+            let object = ObjectProfiler.shared.object(
+                application: self.application,
+                className: className ?? self.objectClassName) as! T
 
             if let dictionary = dictionary as? [String: Any] {
                 ObjectProfiler.shared.updateObject(object, dictionary)
@@ -391,7 +417,7 @@ final public class LCQuery: NSObject, NSCopying, NSCoding {
 
     @discardableResult
     private func find<T>(completionInBackground completion: @escaping (LCQueryResult<T>) -> Void) -> LCRequest {
-        return HTTPClient.default.request(.get, endpoint, parameters: parameters) { response in
+        return self.application.httpClient.request(.get, endpoint, parameters: parameters) { response in
             if let error = LCError(response: response) {
                 completion(.failure(error: error))
             } else {
@@ -525,7 +551,7 @@ final public class LCQuery: NSObject, NSCopying, NSCoding {
         parameters["count"] = 1
         parameters["limit"] = 0
 
-        let request = HTTPClient.default.request(.get, endpoint, parameters: parameters) { response in
+        let request = self.application.httpClient.request(.get, endpoint, parameters: parameters) { response in
             let result = LCCountResult(response: response)
             completion(result)
         }

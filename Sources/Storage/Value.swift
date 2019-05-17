@@ -164,7 +164,7 @@ protocol LCValueExtension: LCValue {
 
      - returns: An instance of current type.
      */
-    static func instance() throws -> LCValue
+    static func instance(application: LCApplication) -> LCValue
 
     // MARK: Enumeration
 

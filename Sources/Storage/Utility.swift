@@ -37,3 +37,25 @@ class Utility {
         }
     }
 }
+
+protocol InternalSynchronizing {
+    
+    var mutex: NSLock { get }
+    
+}
+
+extension InternalSynchronizing {
+    
+    func sync(_ autoClosure: @autoclosure () -> Void) {
+        sync { autoClosure() }
+    }
+    
+    func sync(_ closure: () -> Void) {
+        self.mutex.lock()
+        defer {
+            self.mutex.unlock()
+        }
+        closure()
+    }
+    
+}

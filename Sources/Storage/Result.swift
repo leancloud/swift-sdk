@@ -12,6 +12,8 @@ public protocol LCResultType {
     var error: LCError? { get }
     var isSuccess: Bool { get }
     var isFailure: Bool { get }
+
+    init(error: LCError)
 }
 
 extension LCResultType {
@@ -23,6 +25,10 @@ extension LCResultType {
 public enum LCBooleanResult: LCResultType {
     case success
     case failure(error: LCError)
+
+    public init(error: LCError) {
+        self = .failure(error: error)
+    }
 
     public var error: LCError? {
         switch self {
@@ -49,9 +55,17 @@ public enum LCBooleanResult: LCResultType {
     }
 }
 
-enum LCGenericResult<T>: LCResultType {
+public enum LCGenericResult<T>: LCResultType {
     case success(value: T)
     case failure(error: LCError)
+    
+    public init(value: T) {
+        self = .success(value: value)
+    }
+
+    public init(error: LCError) {
+        self = .failure(error: error)
+    }
 
     public var error: LCError? {
         switch self {
@@ -59,6 +73,15 @@ enum LCGenericResult<T>: LCResultType {
             return nil
         case let .failure(error):
             return error
+        }
+    }
+    
+    public var value: T? {
+        switch self {
+        case .success(value: let value):
+            return value
+        default:
+            return nil
         }
     }
 
@@ -76,6 +99,10 @@ enum LCGenericResult<T>: LCResultType {
 public enum LCValueResult<T: LCValue>: LCResultType {
     case success(object: T)
     case failure(error: LCError)
+
+    public init(error: LCError) {
+        self = .failure(error: error)
+    }
 
     init(response: LCResponse) {
         if let error = LCError(response: response) {
@@ -101,7 +128,7 @@ public enum LCValueResult<T: LCValue>: LCResultType {
                 jsonValue = dictionary
             }
 
-            value = try ObjectProfiler.shared.object(jsonValue: jsonValue)
+            value = try ObjectProfiler.shared.object(application: response.application, jsonValue: jsonValue)
         } catch let error {
             self = .failure(error: LCError(error: error))
             return
@@ -148,6 +175,10 @@ public enum LCValueOptionalResult: LCResultType {
     case success(object: LCValue?)
     case failure(error: LCError)
 
+    public init(error: LCError) {
+        self = .failure(error: error)
+    }
+
     init(response: LCResponse, keyPath: String) {
         if let error = LCError(response: response) {
             self = .failure(error: error)
@@ -155,7 +186,7 @@ public enum LCValueOptionalResult: LCResultType {
         }
 
         if let jsonValue: Any = response[keyPath] {
-            self = .success(object: try? ObjectProfiler.shared.object(jsonValue: jsonValue))
+            self = .success(object: try? ObjectProfiler.shared.object(application: response.application, jsonValue: jsonValue))
         } else {
             self = .success(object: nil)
         }
@@ -191,6 +222,10 @@ public enum LCQueryResult<T: LCObject>: LCResultType {
     case success(objects: [T])
     case failure(error: LCError)
 
+    public init(error: LCError) {
+        self = .failure(error: error)
+    }
+
     public var error: LCError? {
         switch self {
         case .success:
@@ -220,6 +255,10 @@ public enum LCQueryResult<T: LCObject>: LCResultType {
 public enum LCCountResult: LCResultType {
     case success(count: Int)
     case failure(error: LCError)
+
+    public init(error: LCError) {
+        self = .failure(error: error)
+    }
 
     init(response: LCResponse) {
         if let error = LCError(response: response) {
@@ -258,6 +297,10 @@ public enum LCCountResult: LCResultType {
 public enum LCCQLResult: LCResultType {
     case success(value: LCCQLValue)
     case failure(error: LCError)
+
+    public init(error: LCError) {
+        self = .failure(error: error)
+    }
 
     init(response: LCResponse) {
         if let error = LCError(response: response) {

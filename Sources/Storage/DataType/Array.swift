@@ -37,7 +37,11 @@ public final class LCArray: NSObject, LCValue, LCValueExtension, Collection, Exp
         self.init(elements)
     }
 
-    public convenience init(unsafeObject: Any) throws {
+    public convenience init(
+        application: LCApplication = LCApplication.default,
+        unsafeObject: Any)
+        throws
+    {
         self.init()
 
         guard let object = unsafeObject as? [Any] else {
@@ -47,7 +51,7 @@ public final class LCArray: NSObject, LCValue, LCValueExtension, Collection, Exp
         }
 
         value = try object.map { element in
-            try ObjectProfiler.shared.object(jsonValue: element)
+            try ObjectProfiler.shared.object(application: application, jsonValue: element)
         }
     }
 
@@ -121,8 +125,8 @@ public final class LCArray: NSObject, LCValue, LCValueExtension, Collection, Exp
     var lconValue: Any? {
         return value.compactMap { element in (element as? LCValueExtension)?.lconValue }
     }
-
-    static func instance() -> LCValue {
+    
+    static func instance(application: LCApplication) -> LCValue {
         return self.init([])
     }
 

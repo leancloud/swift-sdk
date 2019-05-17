@@ -8,18 +8,6 @@
 
 import Foundation
 
-extension LCError {
-
-    static let appRouterUrlNotFound = LCError(
-        code: .inconsistency,
-        reason: "App router URL not found.")
-
-    static let applicationNotInitialized = LCError(
-        code: .inconsistency,
-        reason: "Application not initialized.")
-
-}
-
 /**
  HTTP router for application.
  */
@@ -74,11 +62,16 @@ class HTTPRouter {
     init(application: LCApplication, configuration: Configuration) {
         self.application = application
         self.configuration = configuration
+        if let localStorageContext = application.localStorageContext {
+            do {
+                let url: URL = try localStorageContext.fileURL(place: .systemCaches, module: .router, file: .appServer)
+                self.cacheTable = try localStorageContext.table(from: url)
+                self.cacheTableURL = url
+            } catch {
+                Logger.shared.error(error)
+            }
+        }
     }
-
-    /// HTTPClient and HTTPRouter is not really circular referenced.
-    /// Here, router retains a **newly created** client, not the client which retains current router.
-    private lazy var httpClient = HTTPClient(application: application, configuration: .default)
 
     private let appRouterURL = URL(string: "https://app-router.leancloud.cn/2/route")
 
@@ -87,9 +80,10 @@ class HTTPRouter {
 
     /// App router completion array.
     private var appRouterCompletions: [(LCBooleanResult) -> Void] = []
-
-    /// App router cache.
-    private lazy var appRouterCache = AppRouterCache(application: application)
+    
+    private(set) var cacheTable: CacheTable?
+    
+    private(set) var cacheTableURL: URL?
 
     /// RTM router path.
     private let rtmRouterPath = "v1/route"
@@ -167,8 +161,15 @@ class HTTPRouter {
 
      - returns: A versionized path.
      */
-    private func versionizedPath(_ path: String) -> String {
-        return configuration.apiVersion.appendingPathComponent(path)
+    private func versionizedPath(_ path: String, module: Module? = nil) -> String {
+        let module = module ?? findModule(path: path)
+
+        switch module {
+        case .rtm:
+            return path // RTM router path itself has API version already.
+        default:
+            return configuration.apiVersion.appendingPathComponent(path)
+        }
     }
 
     /**
@@ -245,24 +246,20 @@ class HTTPRouter {
      - parameter dictionary: The raw dictionary returned by app router.
      */
     func cacheAppRouter(_ dictionary: LCDictionary) throws {
-        guard let ttl = dictionary.removeValue(forKey: "ttl") as? LCNumber else {
-            throw LCError(code: .malformedData, reason: "Malformed router table.")
+        let key = CacheTable.CodingKeys.self
+        let table = CacheTable(
+            apiServer: dictionary[key.apiServer.rawValue]?.stringValue,
+            engineServer: dictionary[key.engineServer.rawValue]?.stringValue,
+            pushServer: dictionary[key.pushServer.rawValue]?.stringValue,
+            rtmRouterServer: dictionary[key.rtmRouterServer.rawValue]?.stringValue,
+            statsServer: dictionary[key.statsServer.rawValue]?.stringValue,
+            ttl: dictionary[key.ttl.rawValue]?.doubleValue,
+            createdTimestamp: Date().timeIntervalSince1970
+        )
+        self.cacheTable = table
+        if let url: URL = self.cacheTableURL {
+            try self.application.localStorageContext?.save(table: table, to: url)
         }
-
-        var hostTable: [Module: String] = [:]
-
-        dictionary.forEach { (key, value) in
-            if
-                let module = Module(key: key),
-                let host = value.stringValue
-            {
-                hostTable[module] = host
-            }
-        }
-
-        let expirationDate = Date(timeIntervalSinceNow: ttl.value)
-
-        try appRouterCache.cacheHostTable(hostTable, expirationDate: expirationDate)
     }
 
     /**
@@ -304,17 +301,13 @@ class HTTPRouter {
      - returns: App router request.
      */
     private func requestAppRouterWithoutThrottle(completion: @escaping (LCValueResult<LCDictionary>) -> Void) -> LCRequest {
-        guard let url = appRouterURL else {
-            return httpClient.request(
-                error: LCError.appRouterUrlNotFound,
-                completionHandler: completion)
-        }
-        guard let id = application.id else {
-            return httpClient.request(
-                error: LCError.applicationNotInitialized,
-                completionHandler: completion)
-        }
-        return httpClient.request(url: url, method: .get, parameters: ["appId": id]) { response in
+        let httpClient: HTTPClient = self.application.httpClient
+        
+        let url = self.appRouterURL!
+        
+        let appID = self.application.id!
+        
+        return httpClient.request(url: url, method: .get, parameters: ["appId": appID]) { response in
             completion(LCValueResult(response: response))
         }
     }
@@ -355,15 +348,10 @@ class HTTPRouter {
      */
     func cachedUrl(path: String, module: Module) -> URL? {
         return synchronize(on: self) {
-            do {
-                guard let host = try appRouterCache.fetchHost(module: module) else {
-                    return nil
-                }
-                return absoluteUrl(host: host, path: path)
-            } catch let error {
-                Logger.shared.error(error)
+            guard let host: String = self.cacheTable?.host(module: module) else {
                 return nil
             }
+            return absoluteUrl(host: host, path: path)
         }
     }
 
@@ -377,7 +365,7 @@ class HTTPRouter {
      */
     func route(path: String, module: Module? = nil) -> URL? {
         let module = module ?? findModule(path: path)
-        let fullPath = versionizedPath(path)
+        let fullPath = versionizedPath(path, module: module)
 
         if let url = cachedUrl(path: fullPath, module: module) {
             return url
@@ -392,4 +380,46 @@ class HTTPRouter {
         }
     }
 
+}
+
+extension HTTPRouter {
+    
+    struct CacheTable: Codable {
+        let apiServer: String?
+        let engineServer: String?
+        let pushServer: String?
+        let rtmRouterServer: String?
+        let statsServer: String?
+        let ttl: TimeInterval?
+        let createdTimestamp: TimeInterval
+        
+        enum CodingKeys: String, CodingKey {
+            case apiServer = "api_server"
+            case engineServer = "engine_server"
+            case pushServer = "push_server"
+            case rtmRouterServer = "rtm_router_server"
+            case statsServer = "stats_server"
+            case ttl = "ttl"
+            case createdTimestamp = "created_timestamp"
+        }
+        
+        func host(module: Module) -> String? {
+            guard (self.createdTimestamp + (ttl ?? 0)) > Date().timeIntervalSince1970 else {
+                return nil
+            }
+            switch module {
+            case .api:
+                return self.apiServer
+            case .engine:
+                return self.engineServer
+            case .push:
+                return self.pushServer
+            case .rtm:
+                return self.rtmRouterServer
+            case .stats:
+                return self.statsServer
+            }
+        }
+    }
+    
 }

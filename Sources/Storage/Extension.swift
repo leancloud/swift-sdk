@@ -132,6 +132,44 @@ extension Dictionary {
         }
         return Dictionary<Key, T>(elements: elements)
     }
+    
+    /*
+     Maybe you will think: Why use JSONSerialization encoding and decoding `Dictionary` ?
+     
+     Because a Swift Raw Data Type `[String: Any]` is Strong-Type-Checking.
+     
+     e.g.
+     ```
+     var dic: [String: Any] = ["foo": Int32(1)]
+     (dic["foo"] as? Int) == nil
+     (dic["foo"] as? Int32) == Optional(1)
+     ```
+     
+     But after JSONSerialization's encoding and decoding.
+     
+     The Swift Type `[String: Any]` has been converted to a Real JSON Object.
+     
+     ```
+     dic = try! dic.jsonObject()
+     (dic["foo"] as? Int) == Optional(1)
+     (dic["foo"] as? Int32) == Optional(1)
+     ```
+     
+     This will make data better for SDK to handle it.
+     */
+    func jsonObject() throws -> [Key: Value]? {
+        let data: Data = try JSONSerialization.data(withJSONObject: self)
+        if let json: [Key: Value] = try JSONSerialization.jsonObject(with: data) as? [Key: Value] {
+            return json
+        } else {
+            return nil
+        }
+    }
+    
+    func jsonString(using encoding: String.Encoding = .utf8, options: JSONSerialization.WritingOptions = []) throws -> String? {
+        let data = try JSONSerialization.data(withJSONObject: self, options: options)
+        return String(data: data, encoding: encoding)
+    }
 }
 
 extension String {
@@ -175,22 +213,22 @@ extension String {
     func prefix(upTo end: Int) -> String {
         return String(prefix(upTo: index(startIndex, offsetBy: end)))
     }
+    
+    func jsonObject<T>(using encoding: String.Encoding = .utf8, options: JSONSerialization.ReadingOptions = []) throws -> T? {
+        guard !self.isEmpty else { return nil }
+        if let data: Data = self.data(using: encoding) {
+            return try JSONSerialization.jsonObject(with: data, options: options) as? T
+        } else {
+            return nil
+        }
+    }
+    
 }
 
 extension Sequence {
 
     var unique: [Element] {
         return NSOrderedSet(array: Array(self)).array as? [Element] ?? []
-    }
-
-}
-
-extension LCApplication {
-
-    var storageContextCache: StorageContextCache {
-        return lc_lazyload("storageContextCache", .OBJC_ASSOCIATION_RETAIN) {
-            StorageContextCache(application: self)
-        }
     }
 
 }
