@@ -245,6 +245,20 @@ public class LCApplication {
             application: self,
             configuration: .default
         )
+        
+        Logger.shared.debug(
+            """
+            \n
+            ------ LCApplication Initializing Infomation
+            
+            LCApplication with ID<\"\(self.id!)\"> did initialize success.
+            
+            The Configuration of this Application is \(configuration).
+            
+            ------ END
+            
+            """
+        )
     }
 
 }
