@@ -61,6 +61,14 @@ class HTTPRouter {
 
     init(application: LCApplication, configuration: Configuration) {
         self.application = application
+        
+        var _customizedServerTable: [String: String] = [:]
+        application.configuration.customizedServers.forEach { (item) in
+            let tuple = item.moduleKeyAndHost
+            _customizedServerTable[tuple.key] = tuple.host
+        }
+        self.customizedHostTable = _customizedServerTable
+        
         self.configuration = configuration
         if let localStorageContext = application.localStorageContext {
             do {
@@ -100,6 +108,8 @@ class HTTPRouter {
         "statistics": .stats,
         "always_collect": .stats
     ]
+    
+    private let customizedHostTable: [String: String]
 
     /**
      Get module of path.
@@ -366,6 +376,10 @@ class HTTPRouter {
     func route(path: String, module: Module? = nil) -> URL? {
         let module = module ?? findModule(path: path)
         let fullPath = versionizedPath(path, module: module)
+        
+        if let host = self.customizedHostTable[module.key] {
+            return absoluteUrl(host: host, path: fullPath)
+        }
 
         if let url = cachedUrl(path: fullPath, module: module) {
             return url

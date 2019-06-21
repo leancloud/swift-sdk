@@ -91,6 +91,8 @@ public class LCApplication {
     /// Application Configuration.
     public struct Configuration {
         
+        public let customizedServers: [ServerCustomizableModule]
+        
         /// HTTP Request Timeout Interval, default is 60.0 second.
         public let HTTPRequestTimeoutInterval: TimeInterval
         
@@ -106,15 +108,37 @@ public class LCApplication {
         public static let `default` = Configuration()
         
         public init(
+            customizedServers: [ServerCustomizableModule] = [],
             HTTPRequestTimeoutInterval: TimeInterval = 60.0,
             RTMConnectingTimeoutInterval: TimeInterval = 15.0,
             RTMCommandTimeoutInterval: TimeInterval = 30.0,
             RTMCustomServerURL: URL? = nil)
         {
+            self.customizedServers = customizedServers
             self.HTTPRequestTimeoutInterval = HTTPRequestTimeoutInterval
             self.RTMConnectingTimeoutInterval = RTMConnectingTimeoutInterval
             self.RTMCommandTimeoutInterval = RTMCommandTimeoutInterval
             self.RTMCustomServerURL = RTMCustomServerURL
+        }
+    }
+    
+    public enum ServerCustomizableModule {
+        case api(_ host: String)
+        case push(_ host: String)
+        case engine(_ host: String)
+        case rtm(_ host: String)
+        
+        var moduleKeyAndHost: (key: String, host: String) {
+            switch self {
+            case .api(let host):
+                return (HTTPRouter.Module.api.key, host)
+            case .engine(let host):
+                return (HTTPRouter.Module.engine.key, host)
+            case .push(let host):
+                return (HTTPRouter.Module.push.key, host)
+            case .rtm(let host):
+                return (HTTPRouter.Module.rtm.key, host)
+            }
         }
     }
 
