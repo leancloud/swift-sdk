@@ -10,11 +10,7 @@
   * [x] Short Message
   * [x] File Hosting
   * [x] Push Notification
-
-## Wanted Features
-  * [ ] Search Query
-  * [ ] Instant Messaging
-  * [ ] Your good idea we are looking forward to :)
+  * [x] Instant Messaging
 
 ## Communication
   * If you **have some advice**, open an issue.
