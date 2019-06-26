@@ -1035,7 +1035,7 @@ extension IMConversation {
             )
         }
         var underlyingPolicy: MessageQueryPolicy = policy
-        if let _ = type {
+        if [ConvType.transient, ConvType.temporary].contains(self.convType) || type != nil {
             underlyingPolicy = .onlyNetwork
         } else {
             if underlyingPolicy == .default {
@@ -1136,7 +1136,10 @@ extension IMConversation {
                 assert(client.specificAssertion)
                 do {
                     let messages = try self.handleMessageQueryResult(command: inCommand, client: client)
-                    if let localStorage = client.localStorage {
+                    if
+                        [ConvType.normal, ConvType.system].contains(self.convType),
+                        let localStorage = client.localStorage
+                    {
                         localStorage.insertOrReplace(messages: messages)
                     }
                     completion(client, .success(value: messages))
