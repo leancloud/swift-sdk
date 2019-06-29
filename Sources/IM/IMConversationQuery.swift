@@ -186,14 +186,11 @@ public class IMConversationQuery: LCQuery {
     /// - Parameters:
     ///   - ID: The ID of the conversation.
     ///   - completion: callback.
-    public func getConversation<T: IMConversation>(
+    public func getConversation(
         by ID: String,
-        completion: @escaping (LCGenericResult<T>) -> Void)
+        completion: @escaping (LCGenericResult<IMConversation>) -> Void)
         throws
     {
-        if T.self == IMTemporaryConversation.self {
-            throw LCError.conversationQueryTypeInvalid
-        }
         try self.where(IMConversation.Key.objectId.rawValue, .equalTo(ID))
         let tuple = try self.whereAndSort()
         self.queryConversations(
@@ -203,7 +200,7 @@ public class IMConversationQuery: LCQuery {
         { (result) in
             switch result {
             case .success(value: let conversations):
-                if let conversation: T = conversations.first as? T {
+                if let conversation = conversations.first {
                     completion(.success(value: conversation))
                 } else {
                     let error = LCError(code: .conversationNotFound)
@@ -220,14 +217,11 @@ public class IMConversationQuery: LCQuery {
     /// - Parameters:
     ///   - IDs: The set of ID string.
     ///   - completion: callback.
-    public func getConversations<T: IMConversation>(
+    public func getConversations(
         by IDs: Set<String>,
-        completion: @escaping (LCGenericResult<[T]>) -> Void)
+        completion: @escaping (LCGenericResult<[IMConversation]>) -> Void)
         throws
     {
-        if T.self == IMTemporaryConversation.self {
-            throw LCError.conversationQueryTypeInvalid
-        }
         guard IMConversationQuery.limitRangeOfQueryResult.contains(IDs.count) else {
             throw LCError.conversationQueryLimitInvalid
         }
@@ -257,9 +251,19 @@ public class IMConversationQuery: LCQuery {
         }
         self.queryConversations(
             limit: IDs.count,
-            tempConvIDs: Array(IDs),
-            completion: completion
-        )
+            tempConvIDs: Array(IDs))
+        { result in
+            switch result {
+            case .success(value: let conversations):
+                if let tmpConversations = conversations as? [IMTemporaryConversation] {
+                    completion(.success(value: tmpConversations))
+                } else {
+                    completion(.failure(error: LCError.conversationQueryTypeInvalid))
+                }
+            case .failure(error: let error):
+                completion(.failure(error: error))
+            }
+        }
     }
     
     /// General conversation query (not support temporary conversation query).
@@ -270,10 +274,7 @@ public class IMConversationQuery: LCQuery {
     /// The default skip is 0.
     ///
     /// - Parameter completion: callback
-    public func findConversations<T: IMConversation>(completion: @escaping (LCGenericResult<[T]>) -> Void) throws {
-        if T.self == IMTemporaryConversation.self {
-            throw LCError.conversationQueryTypeInvalid
-        }
+    public func findConversations(completion: @escaping (LCGenericResult<[IMConversation]>) -> Void) throws {
         if let limit: Int = self.limit {
             guard IMConversationQuery.limitRangeOfQueryResult.contains(limit) else {
                 throw LCError.conversationQueryLimitInvalid
@@ -294,14 +295,14 @@ public class IMConversationQuery: LCQuery {
 
 private extension IMConversationQuery {
     
-    func queryConversations<T: IMConversation>(
+    func queryConversations(
         whereString: String? = nil,
         sortString: String? = nil,
         limit: Int? = nil,
         skip: Int? = nil,
         options: Options? = nil,
         tempConvIDs: [String]? = nil,
-        completion: @escaping (LCGenericResult<[T]>) -> Void)
+        completion: @escaping (LCGenericResult<[IMConversation]>) -> Void)
     {
         self.client?.sendCommand(constructor: { () -> IMGenericCommand in
             var outCommand = IMGenericCommand()
@@ -332,7 +333,7 @@ private extension IMConversationQuery {
             outCommand.convMessage = convCommand
             return outCommand
         }, completion: { (client, commandCallbackResult) in
-            let callback: (LCGenericResult<[T]>) -> Void = { result in
+            let callback: (LCGenericResult<[IMConversation]>) -> Void = { result in
                 if let queue = self.eventQueue {
                     queue.async { completion(result) }
                 } else {
@@ -343,17 +344,14 @@ private extension IMConversationQuery {
             case .inCommand(let inCommand):
                 assert(client.specificAssertion)
                 do {
-                    let conversations: [T] = try self.conversations(command: inCommand, client: client)
-                    let result = LCGenericResult<[T]>.success(value: conversations)
-                    callback(result)
+                    let conversations = try self.conversations(command: inCommand, client: client)
+                    callback(.success(value: conversations))
                 } catch {
                     let error = LCError(error: error)
-                    let result = LCGenericResult<[T]>.failure(error: error)
-                    callback(result)
+                    callback(.failure(error: error))
                 }
             case .error(let error):
-                let result = LCGenericResult<[T]>.failure(error: error)
-                callback(result)
+                callback(.failure(error: error))
             }
         })
     }
@@ -372,17 +370,17 @@ private extension IMConversationQuery {
         return (whereString, sortString)
     }
     
-    func conversations<T: IMConversation>(command: IMGenericCommand, client: IMClient) throws -> [T] {
+    func conversations(command: IMGenericCommand, client: IMClient) throws -> [IMConversation] {
         assert(client.specificAssertion)
-        let convMessage: IMConvCommand? = (command.hasConvMessage ? command.convMessage : nil)
-        let jsonMessage: IMJsonObjectMessage? = ((convMessage?.hasResults ?? false) ? convMessage?.results : nil)
-        guard let jsonString: String = ((jsonMessage?.hasData ?? false) ? jsonMessage?.data : nil) else {
+        guard
+            let convMessage: IMConvCommand = (command.hasConvMessage ? command.convMessage : nil),
+            let jsonMessage: IMJsonObjectMessage = (convMessage.hasResults ? convMessage.results : nil),
+            let jsonString: String = (jsonMessage.hasData ? jsonMessage.data : nil),
+            let rawDatas: [IMConversation.RawData] = try jsonString.jsonObject() else
+        {
             throw LCError(code: .commandInvalid)
         }
-        guard let rawDatas: [IMConversation.RawData] = try jsonString.jsonObject(), !rawDatas.isEmpty else {
-            throw LCError(code: .conversationNotFound)
-        }
-        var conversations: [T] = []
+        var conversations: [IMConversation] = []
         for rawData in rawDatas {
             guard let objectId: String = rawData[IMConversation.Key.objectId.rawValue] as? String else {
                 throw LCError.conversationQueryObjectIDNotFound
@@ -395,13 +393,7 @@ private extension IMConversationQuery {
                 instance = IMConversation.instance(ID: objectId, rawData: rawData, client: client, caching: true)
                 client.convCollection[objectId] = instance
             }
-            guard let conversation: T = instance as? T else {
-                throw LCError(
-                    code: .invalidType,
-                    reason: "conversation<T: \(type(of: instance))> can't cast to type: \(T.self)"
-                )
-            }
-            conversations.append(conversation)
+            conversations.append(instance)
         }
         return conversations
     }
@@ -427,7 +419,7 @@ fileprivate extension LCError {
     static var conversationQueryTypeInvalid: LCError {
         return LCError(
             code: .invalidType,
-            reason: "if result type is \(IMTemporaryConversation.self), should use Get-Temporary-Conversations API"
+            reason: "The type of query result is invalid"
         )
     }
     
