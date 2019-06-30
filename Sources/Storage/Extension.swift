@@ -335,14 +335,14 @@ func mainQueueSync<T>(task: () throws -> T) rethrows -> T {
 
  - note: When task finish it's job, it must call `fulfill` to provide expected result.
  */
-func expect<T>(task: @escaping (_ fulfill: @escaping (T) -> Void) -> Void) -> T {
+func expect<T>(_ task: @escaping (_ fulfill: @escaping (T) -> Void) throws -> Void) rethrows -> T {
     var result: T!
 
     let dispatchGroup = DispatchGroup()
 
     dispatchGroup.enter()
 
-    task { value in
+    try task { value in
         result = value
         dispatchGroup.leave()
     }
