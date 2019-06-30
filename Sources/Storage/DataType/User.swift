@@ -54,6 +54,8 @@ open class LCUser: LCObject {
     public final override class func objectClassName() -> String {
         return "_User"
     }
+    
+    // MARK: Sign up
 
     /**
      Sign up an user.
@@ -80,9 +82,9 @@ open class LCUser: LCObject {
             }
         })
     }
-
+    
     @discardableResult
-    public func signUp(completionInBackground completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
+    private func signUp(completionInBackground completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
         return type(of: self).save([self], completionInBackground: completion)
     }
 
