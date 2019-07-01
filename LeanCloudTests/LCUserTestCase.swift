@@ -64,5 +64,75 @@ class LCUserTestCase: BaseTestCase {
         let verificationCode = "375586"
         XCTAssertTrue(LCUser.signUpOrLogIn(mobilePhoneNumber: mobilePhoneNumber, verificationCode: verificationCode).isSuccess)
     }
+    
+    func testAuthDataLogin() {
+        let user = LCUser()
+        let authData: [String: Any] = [
+            "access_token": UUID().uuidString,
+            "openid": UUID().uuidString
+        ]
+        XCTAssertTrue(user.logIn(authData: authData, platform: .weixin).isSuccess)
+        XCTAssertNotNil(user.authData)
+        XCTAssertTrue(user.application.currentUser === user)
+    }
+    
+    func testAuthDataLoginWithUnionID() {
+        let user = LCUser()
+        let authData: [String: Any] = [
+            "access_token": UUID().uuidString,
+            "openid": UUID().uuidString
+        ]
+        let unionID: String = UUID().uuidString
+        XCTAssertTrue(user.logIn(authData: authData, platform: .custom(UUID().uuidString), unionID: unionID, unionIDPlatform: .weixin, options: [.mainAccount]).isSuccess)
+        XCTAssertNotNil(user.authData)
+        XCTAssertTrue(user.application.currentUser === user)
+    }
+    
+    func testAuthDataLoginFailOnNotExist() {
+        let user = LCUser()
+        let authData: [String: Any] = [
+            "access_token": UUID().uuidString,
+            "openid": UUID().uuidString
+        ]
+        XCTAssertTrue(user.logIn(authData: authData, platform: .weixin, options: [.failOnNotExist]).isFailure)
+    }
+    
+    func testAuthDataAssociate() {
+        let user = LCUser()
+        user.username = UUID().uuidString.lcString
+        user.password = UUID().uuidString.lcString
+        XCTAssertTrue(user.signUp().isSuccess)
+        
+        let authData: [String: Any] = [
+            "access_token": UUID().uuidString,
+            "openid": UUID().uuidString
+        ]
+        do {
+            let result = try user.associate(authData: authData, platform: .weixin)
+            XCTAssertTrue(result.isSuccess)
+            XCTAssertNotNil(user.authData)
+        } catch {
+            XCTFail("\(error)")
+        }
+    }
+    
+    func testAuthDataDisassociate() {
+        let user = LCUser()
+        let authData: [String: Any] = [
+            "access_token": UUID().uuidString,
+            "openid": UUID().uuidString
+        ]
+        XCTAssertTrue(user.logIn(authData: authData, platform: .weixin).isSuccess)
+        XCTAssertNotNil(user.authData)
+        XCTAssertTrue(user.application.currentUser === user)
+        
+        do {
+            let result = try user.disassociate(authData: .weixin)
+            XCTAssertTrue(result.isSuccess)
+            XCTAssertTrue((user.authData ?? [:]).isEmpty)
+        } catch {
+            XCTFail("\(error)")
+        }
+    }
 
 }
