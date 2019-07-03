@@ -29,6 +29,27 @@ class LCObjectTestCase: BaseTestCase {
         XCTAssertTrue(object.save().isSuccess)
         XCTAssertNotNil(object.objectId)
     }
+    
+    func testSaveObjectWithOption() {
+        let object = TestObject(className: "\(TestObject.self)")
+        object.numberField = 0
+        
+        XCTAssertTrue(object.save(options: [.fetchWhenSave]).isSuccess)
+        
+        if let objectId = object.objectId {
+            object.numberField = 1
+            
+            let noResultQuery = LCQuery(className: "\(TestObject.self)")
+            noResultQuery.whereKey("objectId", .equalTo(UUID().uuidString))
+            XCTAssertEqual(object.save(options: [.query(noResultQuery)]).error?.code, 305)
+            
+            let hasResultQuery = LCQuery(className: "\(TestObject.self)")
+            hasResultQuery.whereKey("objectId", .equalTo(objectId))
+            XCTAssertTrue(object.save(options: [.query(hasResultQuery)]).isSuccess)
+        } else {
+            XCTFail("no objectId")
+        }
+    }
 
     func testCircularReference() {
         let object1 = TestObject()
