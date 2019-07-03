@@ -559,5 +559,17 @@ class LCQueryTestCase: BaseTestCase {
         let objects = query.find().objects ?? []
         XCTAssertTrue(objects.isEmpty)
     }
+    
+    func testIncludeACL() {
+        let _ = sharedObject
+        let query  = objectQuery()
+        
+        query.limit = 1
+        query.includeACL = true
+        
+        let objects = query.find().objects ?? []
+        XCTAssertNotNil(objects.first)
+        XCTAssertNotNil(objects.first?.ACL)
+    }
 
 }
