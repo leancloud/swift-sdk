@@ -818,10 +818,10 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
 
      - returns: The result of fetching request.
      */
-    public static func fetch(_ objects: [LCObject]) -> LCBooleanResult {
+    public static func fetch(_ objects: [LCObject], keys: [String]? = nil) -> LCBooleanResult {
         assert(self.assertObjectsApplication(objects), "objects with multiple applications.")
         return expect { fulfill in
-            fetch(objects, completionInBackground: { result in
+            fetch(objects, keys: keys, completionInBackground: { result in
                 fulfill(result)
             })
         }
@@ -835,9 +835,9 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
 
      - returns: The request of fetching.
      */
-    public static func fetch(_ objects: [LCObject], completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
+    public static func fetch(_ objects: [LCObject], keys: [String]? = nil, completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
         assert(self.assertObjectsApplication(objects), "objects with multiple applications.")
-        return fetch(objects, completionInBackground: { result in
+        return fetch(objects, keys: keys, completionInBackground: { result in
             mainQueueAsync {
                 completion(result)
             }
@@ -845,9 +845,9 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
     }
 
     @discardableResult
-    private static func fetch(_ objects: [LCObject], completionInBackground completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
+    private static func fetch(_ objects: [LCObject], keys: [String]?, completionInBackground completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
         assert(self.assertObjectsApplication(objects), "objects with multiple applications.")
-        return ObjectUpdater.fetch(objects, completionInBackground: completion )
+        return ObjectUpdater.fetch(objects, keys: keys, completionInBackground: completion)
     }
 
     /**
@@ -855,8 +855,8 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
 
      - returns: The result of fetching request.
      */
-    public func fetch() -> LCBooleanResult {
-        return type(of: self).fetch([self])
+    public func fetch(keys: [String]? = nil) -> LCBooleanResult {
+        return type(of: self).fetch([self], keys: keys)
     }
 
     /**
@@ -864,7 +864,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
 
      - parameter completion: The completion callback closure.
      */
-    public func fetch(_ completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
-        return type(of: self).fetch([self], completion: completion)
+    public func fetch(keys: [String]? = nil, completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
+        return type(of: self).fetch([self], keys: keys, completion: completion)
     }
 }

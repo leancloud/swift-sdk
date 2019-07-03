@@ -313,7 +313,7 @@ class ObjectUpdater {
 
      - returns: The response of fetching request.
      */
-    static func fetch(_ objects: [LCObject], completionInBackground completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
+    static func fetch(_ objects: [LCObject], keys: [String]?, completionInBackground completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
         let httpClient: HTTPClient = (objects.first?.application ?? LCApplication.default).httpClient
         
         if objects.isEmpty {
@@ -324,8 +324,12 @@ class ObjectUpdater {
             var requests: [Any]
 
             do {
+                var onlyIncludeKeys: [String: Any]?
+                if let keys: [String] = keys {
+                    onlyIncludeKeys = ["keys": keys.joined(separator: ",")]
+                }
                 requests = try objects.unique.map { object in
-                    try BatchRequest(object: object, method: .get).jsonValue()
+                    try BatchRequest(object: object, method: .get, parameters: onlyIncludeKeys).jsonValue()
                 }
             } catch let error {
                 return httpClient.request(error: error, completionHandler: completion)
