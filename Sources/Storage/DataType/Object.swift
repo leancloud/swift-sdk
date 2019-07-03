@@ -694,6 +694,11 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
     }
 
     // MARK: Save object
+    
+    public enum SaveOption {
+        case fetchWhenSave
+        case query(LCQuery)
+    }
 
     /**
      Save a batch of objects in one request synchronously.
@@ -702,10 +707,10 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
 
      - returns: The result of deletion request.
      */
-    public static func save(_ objects: [LCObject]) -> LCBooleanResult {
+    public static func save(_ objects: [LCObject], options: [SaveOption] = []) -> LCBooleanResult {
         assert(self.assertObjectsApplication(objects), "objects with multiple applications.")
         return expect { fulfill in
-            save(objects, completionInBackground: { result in
+            save(objects, options: options, completionInBackground: { result in
                 fulfill(result)
             })
         }
@@ -719,9 +724,10 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
 
      - returns: The request of saving.
      */
-    public static func save(_ objects: [LCObject], completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
+    @discardableResult
+    public static func save(_ objects: [LCObject], options: [SaveOption] = [], completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
         assert(self.assertObjectsApplication(objects), "objects with multiple applications.")
-        return save(objects, completionInBackground: { result in
+        return save(objects, options: options, completionInBackground: { result in
             mainQueueAsync {
                 completion(result)
             }
@@ -729,9 +735,20 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
     }
 
     @discardableResult
-    static func save(_ objects: [LCObject], completionInBackground completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
+    static func save(_ objects: [LCObject], options: [SaveOption], completionInBackground completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
         assert(self.assertObjectsApplication(objects), "objects with multiple applications.")
-        return ObjectUpdater.save(objects, completionInBackground: completion)
+        var parameters: [String: Any] = [:]
+        for option in options {
+            switch option {
+            case .fetchWhenSave:
+                parameters["fetchWhenSave"] = true
+            case .query(let query):
+                if let whereDictionary: Any = query.lconValue["where"] {
+                    parameters["where"] = whereDictionary
+                }
+            }
+        }
+        return ObjectUpdater.save(objects, parameters: (parameters.isEmpty ? nil : parameters), completionInBackground: completion)
     }
 
     /**
@@ -739,8 +756,8 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
 
      - returns: The result of saving request.
      */
-    public func save() -> LCBooleanResult {
-        return type(of: self).save([self])
+    public func save(options: [SaveOption] = []) -> LCBooleanResult {
+        return type(of: self).save([self], options: options)
     }
 
     /**
@@ -750,8 +767,9 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
 
      - returns: The request of saving.
      */
-    public func save(_ completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
-        return type(of: self).save([self], completion: completion)
+    @discardableResult
+    public func save(options: [SaveOption] = [], completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
+        return type(of: self).save([self], options: options, completion: completion)
     }
 
     // MARK: Delete object
@@ -778,6 +796,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
 
      - returns: The request of deletion.
      */
+    @discardableResult
     public static func delete(_ objects: [LCObject], completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
         assert(self.assertObjectsApplication(objects), "objects with multiple applications.")
         return delete(objects, completionInBackground: { result in mainQueueAsync { completion(result) } } )
@@ -805,6 +824,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
 
      - returns: The request of deletion.
      */
+    @discardableResult
     public func delete(_ completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
         return type(of: self).delete([self], completion: completion)
     }
@@ -818,10 +838,10 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
 
      - returns: The result of fetching request.
      */
-    public static func fetch(_ objects: [LCObject]) -> LCBooleanResult {
+    public static func fetch(_ objects: [LCObject], keys: [String]? = nil) -> LCBooleanResult {
         assert(self.assertObjectsApplication(objects), "objects with multiple applications.")
         return expect { fulfill in
-            fetch(objects, completionInBackground: { result in
+            fetch(objects, keys: keys, completionInBackground: { result in
                 fulfill(result)
             })
         }
@@ -835,9 +855,10 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
 
      - returns: The request of fetching.
      */
-    public static func fetch(_ objects: [LCObject], completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
+    @discardableResult
+    public static func fetch(_ objects: [LCObject], keys: [String]? = nil, completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
         assert(self.assertObjectsApplication(objects), "objects with multiple applications.")
-        return fetch(objects, completionInBackground: { result in
+        return fetch(objects, keys: keys, completionInBackground: { result in
             mainQueueAsync {
                 completion(result)
             }
@@ -845,9 +866,9 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
     }
 
     @discardableResult
-    private static func fetch(_ objects: [LCObject], completionInBackground completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
+    private static func fetch(_ objects: [LCObject], keys: [String]?, completionInBackground completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
         assert(self.assertObjectsApplication(objects), "objects with multiple applications.")
-        return ObjectUpdater.fetch(objects, completionInBackground: completion )
+        return ObjectUpdater.fetch(objects, keys: keys, completionInBackground: completion)
     }
 
     /**
@@ -855,8 +876,8 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
 
      - returns: The result of fetching request.
      */
-    public func fetch() -> LCBooleanResult {
-        return type(of: self).fetch([self])
+    public func fetch(keys: [String]? = nil) -> LCBooleanResult {
+        return type(of: self).fetch([self], keys: keys)
     }
 
     /**
@@ -864,7 +885,8 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
 
      - parameter completion: The completion callback closure.
      */
-    public func fetch(_ completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
-        return type(of: self).fetch([self], completion: completion)
+    @discardableResult
+    public func fetch(keys: [String]? = nil, completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
+        return type(of: self).fetch([self], keys: keys, completion: completion)
     }
 }

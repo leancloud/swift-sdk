@@ -22,6 +22,9 @@ public class LCQuery: NSObject, NSCopying, NSCoding {
 
     /// The number of objects to skip before returning.
     public var skip: Int?
+    
+    /// The query result whether include ACL.
+    public var includeACL: Bool?
 
     /// Included keys.
     private var includedKeys: Set<String> = []
@@ -70,6 +73,9 @@ public class LCQuery: NSObject, NSCopying, NSCoding {
         }
         if let skip = skip {
             dictionary["skip"] = skip
+        }
+        if let includeACL = self.includeACL, includeACL {
+            dictionary["returnACL"] = "true"
         }
 
         if let extraParameters = extraParameters {

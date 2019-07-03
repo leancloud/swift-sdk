@@ -12,11 +12,18 @@ class BatchRequest {
     let object: LCObject
     let method: HTTPClient.Method?
     let operationTable: OperationTable?
+    let parameters: [String: Any]?
 
-    init(object: LCObject, method: HTTPClient.Method? = nil, operationTable: OperationTable? = nil) {
+    init(
+        object: LCObject,
+        method: HTTPClient.Method? = nil,
+        operationTable: OperationTable? = nil,
+        parameters: [String: Any]? = nil)
+    {
         self.object = object
         self.method = method
         self.operationTable = operationTable
+        self.parameters = parameters
     }
 
     var isNewborn: Bool {
@@ -81,6 +88,9 @@ class BatchRequest {
             "path": path,
             "method": method.rawValue
         ]
+        if let params: [String: Any] = self.parameters {
+            request["params"] = params
+        }
 
         switch method {
         case .get:
@@ -107,9 +117,9 @@ class BatchRequestBuilder {
 
      - returns: A list of request.
      */
-    static func buildRequests(_ object: LCObject) throws -> [BatchRequest] {
+    static func buildRequests(_ object: LCObject, parameters: [String: Any]?) throws -> [BatchRequest] {
         return try operationTableList(object).map { element in
-            BatchRequest(object: object, operationTable: element)
+            BatchRequest(object: object, operationTable: element, parameters: parameters)
         }
     }
 

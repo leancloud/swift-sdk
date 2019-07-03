@@ -106,8 +106,18 @@ public class LCFile: LCObject {
     public final override class func objectClassName() -> String {
         return "_File"
     }
+    
+    @available(*, unavailable)
+    public override func save(options: [LCObject.SaveOption] = []) -> LCBooleanResult {
+        fatalError("not support")
+    }
+    
+    @available(*, unavailable)
+    public override func save(options: [LCObject.SaveOption] = [], completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
+        fatalError("not support")
+    }
 
-    public override func save() -> LCBooleanResult {
+    public func save() -> LCBooleanResult {
         return expect { fulfill in
             self.save(
             progressInBackground: { _ in /* Nop */ },
@@ -117,9 +127,7 @@ public class LCFile: LCObject {
         }
     }
 
-    public override func save(
-        _ completion: @escaping (LCBooleanResult) -> Void) -> LCRequest
-    {
+    public func save(_ completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
         return save(
             progress: { _ in /* Nop */ },
             completion: completion)

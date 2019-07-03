@@ -29,6 +29,27 @@ class LCObjectTestCase: BaseTestCase {
         XCTAssertTrue(object.save().isSuccess)
         XCTAssertNotNil(object.objectId)
     }
+    
+    func testSaveObjectWithOption() {
+        let object = TestObject(className: "\(TestObject.self)")
+        object.numberField = 0
+        
+        XCTAssertTrue(object.save(options: [.fetchWhenSave]).isSuccess)
+        
+        if let objectId = object.objectId {
+            object.numberField = 1
+            
+            let noResultQuery = LCQuery(className: "\(TestObject.self)")
+            noResultQuery.whereKey("objectId", .equalTo(UUID().uuidString))
+            XCTAssertEqual(object.save(options: [.query(noResultQuery)]).error?.code, 305)
+            
+            let hasResultQuery = LCQuery(className: "\(TestObject.self)")
+            hasResultQuery.whereKey("objectId", .equalTo(objectId))
+            XCTAssertTrue(object.save(options: [.query(hasResultQuery)]).isSuccess)
+        } else {
+            XCTFail("no objectId")
+        }
+    }
 
     func testCircularReference() {
         let object1 = TestObject()
@@ -221,6 +242,29 @@ class LCObjectTestCase: BaseTestCase {
         XCTAssertEqual(LCError.InternalErrorCode(rawValue: LCObject.fetch([object, newborn]).error!._code), .notFound)
         XCTAssertEqual(LCError.ServerErrorCode(rawValue: LCObject.fetch([object, notFound]).error!._code), .objectNotFound)
         XCTAssertTrue(LCObject.fetch([object, child]).isSuccess)
+    }
+    
+    func testFetchWithKeys() {
+        let object = TestObject(className: "\(TestObject.self)")
+        object.booleanField = false
+        object.stringField = "string"
+        object.numberField = 1
+        XCTAssertTrue(object.save().isSuccess)
+        
+        if let objectId = object.objectId {
+            let replica = TestObject(className: "\(TestObject.self)", objectId: objectId)
+            replica.booleanField = true
+            replica.stringField = "changed"
+            replica.numberField = 2
+            XCTAssertTrue(replica.save().isSuccess)
+            
+            XCTAssertTrue(object.fetch(keys: ["booleanField", "numberField"]).isSuccess)
+            XCTAssertEqual(object.booleanField, replica.booleanField)
+            XCTAssertEqual(object.numberField, replica.numberField)
+            XCTAssertNotEqual(object.stringField, replica.stringField)
+        } else {
+            XCTFail("no objectId")
+        }
     }
 
     func testDelete() {
