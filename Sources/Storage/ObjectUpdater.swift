@@ -47,12 +47,12 @@ class ObjectUpdater {
 
      - returns: An array of batch requests.
      */
-    private static func createSaveBatchRequests(objects: [LCObject]) throws -> [Any] {
+    private static func createSaveBatchRequests(objects: [LCObject], parameters: [String: Any]?) throws -> [Any] {
         var requests: [BatchRequest] = []
         let toposort = try ObjectProfiler.shared.toposort(objects)
 
         try toposort.forEach { object in
-            requests.append(contentsOf: try BatchRequestBuilder.buildRequests(object))
+            requests.append(contentsOf: try BatchRequestBuilder.buildRequests(object, parameters: parameters))
         }
 
         let jsonRequests = try requests.map { request in
@@ -68,13 +68,13 @@ class ObjectUpdater {
      - parameter requests: A list of batch requests.
      - returns: The response of request.
      */
-    private static func saveInOneBatchRequest(_ objects: [LCObject], completionInBackground completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
+    private static func saveInOneBatchRequest(_ objects: [LCObject], parameters: [String: Any]?, completionInBackground completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
         let httpClient: HTTPClient = (objects.first?.application ?? LCApplication.default).httpClient
         
         var requests: [Any]
 
         do {
-            requests = try createSaveBatchRequests(objects: objects)
+            requests = try createSaveBatchRequests(objects: objects, parameters: parameters)
         } catch let error {
             return httpClient.request(error: error, completionHandler: completion)
         }
@@ -109,10 +109,10 @@ class ObjectUpdater {
 
      - returns: The response of request.
      */
-    private static func saveIndependentObjects(_ objects: [LCObject], completionInBackground completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
+    private static func saveIndependentObjects(_ objects: [LCObject], parameters: [String: Any]?, completionInBackground completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
         do {
             let family = try ObjectProfiler.shared.family(objects)
-            return saveInOneBatchRequest(family, completionInBackground: completion)
+            return saveInOneBatchRequest(family, parameters: parameters, completionInBackground: completion)
         } catch let error {
             return (objects.first?.application ?? LCApplication.default).httpClient.request(error: error, completionHandler: completion)
         }
@@ -129,7 +129,7 @@ class ObjectUpdater {
      - parameter objects: An array of root object.
      - returns: The response of request.
      */
-    private static func saveNewbornOrphans(_ objects: [LCObject], completionInBackground completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
+    private static func saveNewbornOrphans(_ objects: [LCObject], parameters: [String: Any]?, completionInBackground completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
         let newbornOrphans = ObjectProfiler.shared.deepestNewbornOrphans(objects)
 
         if newbornOrphans.isEmpty {
@@ -139,10 +139,10 @@ class ObjectUpdater {
         } else {
             let sequenceRequest = LCSequenceRequest()
 
-            let request = saveIndependentObjects(newbornOrphans, completionInBackground: { result in
+            let request = saveIndependentObjects(newbornOrphans, parameters: parameters, completionInBackground: { result in
                 switch result {
                 case .success:
-                    let subsequentRequset = saveNewbornOrphans(objects, completionInBackground: completion)
+                    let subsequentRequset = saveNewbornOrphans(objects, parameters: parameters, completionInBackground: completion)
                     sequenceRequest.setCurrentRequest(subsequentRequset)
                 case .failure:
                     completion(result)
@@ -177,7 +177,7 @@ class ObjectUpdater {
 
      - returns: The response of request.
      */
-    static func save(_ objects: [LCObject], completionInBackground completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
+    static func save(_ objects: [LCObject], parameters: [String: Any]?, completionInBackground completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
         var family: [LCObject]
         let objects = objects.unique
 
@@ -195,10 +195,10 @@ class ObjectUpdater {
 
         let sequenceRequest = LCSequenceRequest()
 
-        let request = saveNewbornOrphans(objects, completionInBackground: { result in
+        let request = saveNewbornOrphans(objects, parameters: parameters, completionInBackground: { result in
             switch result {
             case .success:
-                let request = saveInOneBatchRequest(family, completionInBackground: completion)
+                let request = saveInOneBatchRequest(family, parameters: parameters, completionInBackground: completion)
                 sequenceRequest.setCurrentRequest(request)
             case .failure:
                 completion(result)

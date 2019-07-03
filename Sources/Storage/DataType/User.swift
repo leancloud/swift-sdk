@@ -88,7 +88,7 @@ open class LCUser: LCObject {
     
     @discardableResult
     private func signUp(completionInBackground completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
-        return type(of: self).save([self], completionInBackground: completion)
+        return type(of: self).save([self], options: [], completionInBackground: completion)
     }
 
     // MARK: Log in with username and password

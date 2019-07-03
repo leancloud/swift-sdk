@@ -117,9 +117,9 @@ class BatchRequestBuilder {
 
      - returns: A list of request.
      */
-    static func buildRequests(_ object: LCObject) throws -> [BatchRequest] {
+    static func buildRequests(_ object: LCObject, parameters: [String: Any]?) throws -> [BatchRequest] {
         return try operationTableList(object).map { element in
-            BatchRequest(object: object, operationTable: element)
+            BatchRequest(object: object, operationTable: element, parameters: parameters)
         }
     }
 
