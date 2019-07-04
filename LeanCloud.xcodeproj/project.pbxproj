@@ -27,7 +27,6 @@
 		11D9C101216DFB2D00A620B7 /* MD5.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11D9C100216DFB2D00A620B7 /* MD5.swift */; };
 		11FBD1E5215BDDCA00370C61 /* LCCoreTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11FBD1E4215BDDCA00370C61 /* LCCoreTestCase.swift */; };
 		11FBD1E8215BEEB400370C61 /* test.zip in Resources */ = {isa = PBXBuildFile; fileRef = 11FBD1E7215BEEB400370C61 /* test.zip */; };
-		8334561C1CE589E500D42725 /* LCEngineTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8334561B1CE589E500D42725 /* LCEngineTestCase.swift */; };
 		8342FCC61C7B13A700C3CF15 /* LeanCloud.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8342FCBB1C7B13A700C3CF15 /* LeanCloud.framework */; };
 		8342FCCB1C7B13A700C3CF15 /* BaseTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8342FCCA1C7B13A700C3CF15 /* BaseTestCase.swift */; };
 		834EA7151D2A139A00108DDC /* LCUserTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 834EA7141D2A139A00108DDC /* LCUserTestCase.swift */; };
@@ -48,7 +47,6 @@
 		835F5D741D7E6808004D1A0E /* Role.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D501D7E6808004D1A0E /* Role.swift */; };
 		835F5D751D7E6808004D1A0E /* String.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D511D7E6808004D1A0E /* String.swift */; };
 		835F5D761D7E6808004D1A0E /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D521D7E6808004D1A0E /* User.swift */; };
-		835F5D771D7E6808004D1A0E /* Engine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D531D7E6808004D1A0E /* Engine.swift */; };
 		835F5D791D7E6808004D1A0E /* Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D551D7E6808004D1A0E /* Extension.swift */; };
 		835F5D7A1D7E6808004D1A0E /* LeanCloud.h in Headers */ = {isa = PBXBuildFile; fileRef = 835F5D561D7E6808004D1A0E /* LeanCloud.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		835F5D7B1D7E6808004D1A0E /* LeanCloud.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D571D7E6808004D1A0E /* LeanCloud.swift */; };
@@ -354,7 +352,6 @@
 		11D9C100216DFB2D00A620B7 /* MD5.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MD5.swift; sourceTree = "<group>"; };
 		11FBD1E4215BDDCA00370C61 /* LCCoreTestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCCoreTestCase.swift; sourceTree = "<group>"; };
 		11FBD1E7215BEEB400370C61 /* test.zip */ = {isa = PBXFileReference; lastKnownFileType = archive.zip; path = test.zip; sourceTree = "<group>"; };
-		8334561B1CE589E500D42725 /* LCEngineTestCase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LCEngineTestCase.swift; sourceTree = "<group>"; };
 		8342FCBB1C7B13A700C3CF15 /* LeanCloud.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = LeanCloud.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		8342FCC01C7B13A700C3CF15 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		8342FCC51C7B13A700C3CF15 /* LeanCloudTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LeanCloudTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -378,7 +375,6 @@
 		835F5D501D7E6808004D1A0E /* Role.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Role.swift; sourceTree = "<group>"; };
 		835F5D511D7E6808004D1A0E /* String.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = String.swift; sourceTree = "<group>"; };
 		835F5D521D7E6808004D1A0E /* User.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
-		835F5D531D7E6808004D1A0E /* Engine.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Engine.swift; sourceTree = "<group>"; };
 		835F5D551D7E6808004D1A0E /* Extension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Extension.swift; sourceTree = "<group>"; };
 		835F5D561D7E6808004D1A0E /* LeanCloud.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LeanCloud.h; sourceTree = "<group>"; };
 		835F5D571D7E6808004D1A0E /* LeanCloud.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LeanCloud.swift; sourceTree = "<group>"; };
@@ -551,7 +547,6 @@
 				1178D10E213F7B9600429131 /* LCAPITestCase.swift */,
 				116A682521427442004141A5 /* LCRouterTestCase.swift */,
 				8365CFA71D79849D006B856E /* LCTypeTestCase.swift */,
-				8334561B1CE589E500D42725 /* LCEngineTestCase.swift */,
 				83BC11D51CDD76E900D7E7A6 /* LCACLTestCase.swift */,
 				83FAF0921CC4D1E400A84063 /* LCObjectTestCase.swift */,
 				83D0DE6E1CC7B3FF00FC204E /* LCQueryTestCase.swift */,
@@ -602,7 +597,6 @@
 				835F5D611D7E6808004D1A0E /* Result.swift */,
 				835F5D5D1D7E6808004D1A0E /* Query.swift */,
 				835F5D431D7E6808004D1A0E /* CQLClient.swift */,
-				835F5D531D7E6808004D1A0E /* Engine.swift */,
 				835F5D631D7E6808004D1A0E /* SMSClient.swift */,
 				D3AB32D7227D983E00DCE794 /* CaptchaClient.swift */,
 				D363341F22CD9EC300995DC1 /* Cloud.swift */,
@@ -1078,7 +1072,6 @@
 				835F5D6F1D7E6808004D1A0E /* GeoPoint.swift in Sources */,
 				835F5D841D7E6808004D1A0E /* Result.swift in Sources */,
 				D3AB32D8227D983E00DCE794 /* CaptchaClient.swift in Sources */,
-				835F5D771D7E6808004D1A0E /* Engine.swift in Sources */,
 				835F5D761D7E6808004D1A0E /* User.swift in Sources */,
 				D34F1BB92268263000251BC8 /* IMLocalStorage.swift in Sources */,
 				D393EDBE21D38206001CBB2B /* IMMessage.swift in Sources */,
@@ -1141,7 +1134,6 @@
 				114E1E852153A3ED00DA7DB0 /* LCFileTestCase.swift in Sources */,
 				83BC11D61CDD76E900D7E7A6 /* LCACLTestCase.swift in Sources */,
 				1178D10F213F7B9600429131 /* LCAPITestCase.swift in Sources */,
-				8334561C1CE589E500D42725 /* LCEngineTestCase.swift in Sources */,
 				D3AC7BA821AE9C1A00C6C557 /* IMClientTestCase.swift in Sources */,
 				D3FE04522277EA6C0008C88A /* IMLocalStorageTestCase.swift in Sources */,
 				116A682621427442004141A5 /* LCRouterTestCase.swift in Sources */,
