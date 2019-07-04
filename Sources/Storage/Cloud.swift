@@ -64,8 +64,16 @@ public class LCCloud {
         let httpClient: HTTPClient = application.httpClient
         
         let request = httpClient.request(.post, "functions/\(function)", parameters: parameters) { (response) in
-            let result = self.handleCloudResult(application: application, response: response)
-            completion(result)
+            if let error: Error = response.error {
+                completion(.failure(error: LCError(error: error)))
+            } else {
+                if let value = response.value as? [String: Any], let result = value["result"] {
+                    completion(.success(value: result))
+                } else {
+                    let error = LCError(code: .invalidType, reason: "invalid response data type.")
+                    completion(.failure(error: error))
+                }
+            }
         }
         
         return request
@@ -125,36 +133,27 @@ public class LCCloud {
         let httpClient: HTTPClient = application.httpClient
         
         let request = httpClient.request(.post, "call/\(function)", parameters: parameters) { (response) in
-            let result = self.handleCloudResult(application: application, response: response)
-            completion(result)
-        }
-        
-        return request
-    }
-    
-    private static func handleCloudResult(application: LCApplication, response: LCResponse) -> LCGenericResult<Any> {
-        let cloudResult: LCGenericResult<Any>
-        
-        if let error: Error = response.error {
-            cloudResult = .failure(error: LCError(error: error))
-        } else {
-            if
-                let value = response.value as? [String: Any],
-                let result = value["result"]
-            {
-                do {
-                    let object = try ObjectProfiler.shared.object(application: application, jsonValue: result)
-                    cloudResult = .success(value: object)
-                } catch {
-                    cloudResult = .failure(error: LCError(error: error))
-                }
+            if let error: Error = response.error {
+                completion(.failure(error: LCError(error: error)))
             } else {
-                let error = LCError(code: .invalidType, reason: "invalid response data type.")
-                cloudResult = .failure(error: error)
+                if
+                    let value = response.value as? [String: Any],
+                    let result = value["result"]
+                {
+                    do {
+                        let object = try ObjectProfiler.shared.object(application: application, jsonValue: result)
+                        completion(.success(value: object))
+                    } catch {
+                        completion(.failure(error: LCError(error: error)))
+                    }
+                } else {
+                    let error = LCError(code: .invalidType, reason: "invalid response data type.")
+                    completion(.failure(error: error))
+                }
             }
         }
         
-        return cloudResult
+        return request
     }
     
 }
