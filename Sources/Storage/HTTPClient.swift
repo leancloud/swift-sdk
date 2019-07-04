@@ -45,7 +45,7 @@ class HTTPClient {
     }
 
     /// Header field name.
-    class HeaderFieldName {
+    struct HeaderFieldName {
         static let id         = "X-LC-Id"
         static let signature  = "X-LC-Sign"
         static let session    = "X-LC-Session"
@@ -96,7 +96,8 @@ class HTTPClient {
             HeaderFieldName.id:        application.id,
             HeaderFieldName.signature: createRequestSignature(),
             HeaderFieldName.userAgent: configuration.userAgent,
-            HeaderFieldName.accept:    "application/json"
+            HeaderFieldName.accept:    "application/json",
+            HeaderFieldName.production: (self.application.configuration.isProductionMode ? "1" : "0")
         ]
 
         if let sessionToken = self.application.currentUser?.sessionToken {

@@ -91,7 +91,11 @@ public class LCApplication {
     /// Application Configuration.
     public struct Configuration {
         
+        /// Customized Servers
         public let customizedServers: [ServerCustomizableModule]
+        
+        /// Production Mode
+        public let isProductionMode: Bool
         
         /// HTTP Request Timeout Interval, default is 60.0 second.
         public let HTTPRequestTimeoutInterval: TimeInterval
@@ -109,12 +113,14 @@ public class LCApplication {
         
         public init(
             customizedServers: [ServerCustomizableModule] = [],
+            isProductionMode: Bool = true,
             HTTPRequestTimeoutInterval: TimeInterval = 60.0,
             RTMConnectingTimeoutInterval: TimeInterval = 15.0,
             RTMCommandTimeoutInterval: TimeInterval = 30.0,
             RTMCustomServerURL: URL? = nil)
         {
             self.customizedServers = customizedServers
+            self.isProductionMode = isProductionMode
             self.HTTPRequestTimeoutInterval = HTTPRequestTimeoutInterval
             self.RTMConnectingTimeoutInterval = RTMConnectingTimeoutInterval
             self.RTMCommandTimeoutInterval = RTMCommandTimeoutInterval
