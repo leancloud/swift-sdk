@@ -97,7 +97,7 @@ class HTTPClient {
             HeaderFieldName.signature: createRequestSignature(),
             HeaderFieldName.userAgent: configuration.userAgent,
             HeaderFieldName.accept:    "application/json",
-            HeaderFieldName.production: (self.application.configuration.isProductionMode ? "1" : "0")
+            HeaderFieldName.production: (self.application.configuration.environment.contains(.cloudEngineDevelopment) ? "0" : "1")
         ]
 
         if let sessionToken = self.application.currentUser?.sessionToken {

@@ -88,14 +88,32 @@ public class LCApplication {
 
     }
     
+    /// Environment of the Application
+    public struct Environment: OptionSet {
+        public let rawValue: Int
+        
+        public init(rawValue: Int) {
+            self.rawValue = rawValue
+        }
+        
+        /// development environment of Cloud Engine
+        public static let cloudEngineDevelopment = Environment(rawValue: 1 << 0)
+        
+        /// development environment of Push
+        public static let pushDevelopment = Environment(rawValue: 1 << 1)
+        
+        /// default is production environment
+        public static let `default`: Environment = []
+    }
+    
     /// Application Configuration.
     public struct Configuration {
         
         /// Customized Servers
         public let customizedServers: [ServerCustomizableModule]
         
-        /// Production Mode
-        public let isProductionMode: Bool
+        /// Environment
+        public let environment: Environment
         
         /// HTTP Request Timeout Interval, default is 60.0 second.
         public let HTTPRequestTimeoutInterval: TimeInterval
@@ -113,14 +131,14 @@ public class LCApplication {
         
         public init(
             customizedServers: [ServerCustomizableModule] = [],
-            isProductionMode: Bool = true,
+            environment: Environment = [.default],
             HTTPRequestTimeoutInterval: TimeInterval = 60.0,
             RTMConnectingTimeoutInterval: TimeInterval = 15.0,
             RTMCommandTimeoutInterval: TimeInterval = 30.0,
             RTMCustomServerURL: URL? = nil)
         {
             self.customizedServers = customizedServers
-            self.isProductionMode = isProductionMode
+            self.environment = environment
             self.HTTPRequestTimeoutInterval = HTTPRequestTimeoutInterval
             self.RTMConnectingTimeoutInterval = RTMConnectingTimeoutInterval
             self.RTMCommandTimeoutInterval = RTMCommandTimeoutInterval
