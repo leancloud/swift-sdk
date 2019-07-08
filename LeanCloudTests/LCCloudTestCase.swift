@@ -12,11 +12,11 @@ import XCTest
 class LCCloudTestCase: BaseTestCase {
     
     func testCloudRun() {
-        XCTAssertEqual(LCCloud.run("test").value as? String, "test")
+        XCTAssertEqual(LCEngine.call("test").value as? String, "test")
     }
     
     func testCloudRPC() {
-        XCTAssertTrue(LCCloud.rpc("test").isSuccess)
+        XCTAssertTrue(LCEngine.rpc("test").isSuccess)
     }
 
 }
