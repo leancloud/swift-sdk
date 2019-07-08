@@ -86,7 +86,7 @@
 		D34F1BB92268263000251BC8 /* IMLocalStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D34F1BB82268263000251BC8 /* IMLocalStorage.swift */; };
 		D357B46522632A210002D14C /* Starscream.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D30A2F81224A069100C000D5 /* Starscream.framework */; };
 		D357B46722632A510002D14C /* Starscream.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = D30A2F81224A069100C000D5 /* Starscream.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		D363342022CD9EC300995DC1 /* Cloud.swift in Sources */ = {isa = PBXBuildFile; fileRef = D363341F22CD9EC300995DC1 /* Cloud.swift */; };
+		D363342022CD9EC300995DC1 /* Engine.swift in Sources */ = {isa = PBXBuildFile; fileRef = D363341F22CD9EC300995DC1 /* Engine.swift */; };
 		D363343622CDB0D300995DC1 /* LCCloudTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = D363343522CDB0D300995DC1 /* LCCloudTestCase.swift */; };
 		D3662F9222019B590046A390 /* test.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = D3662F9122019B590046A390 /* test.mp3 */; };
 		D3665C3721FEAAC1005B44B0 /* IMMessageTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3665C3621FEAAC1005B44B0 /* IMMessageTestCase.swift */; };
@@ -412,7 +412,7 @@
 		D33D36D722017DAC008C9BDA /* test.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = test.png; sourceTree = "<group>"; };
 		D33D36DA22019197008C9BDA /* test.mp4 */ = {isa = PBXFileReference; lastKnownFileType = file; path = test.mp4; sourceTree = "<group>"; };
 		D34F1BB82268263000251BC8 /* IMLocalStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IMLocalStorage.swift; sourceTree = "<group>"; };
-		D363341F22CD9EC300995DC1 /* Cloud.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Cloud.swift; sourceTree = "<group>"; };
+		D363341F22CD9EC300995DC1 /* Engine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Engine.swift; sourceTree = "<group>"; };
 		D363343522CDB0D300995DC1 /* LCCloudTestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCCloudTestCase.swift; sourceTree = "<group>"; };
 		D3662F9122019B590046A390 /* test.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = test.mp3; sourceTree = "<group>"; };
 		D3665C3621FEAAC1005B44B0 /* IMMessageTestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IMMessageTestCase.swift; sourceTree = "<group>"; };
@@ -599,7 +599,7 @@
 				835F5D431D7E6808004D1A0E /* CQLClient.swift */,
 				835F5D631D7E6808004D1A0E /* SMSClient.swift */,
 				D3AB32D7227D983E00DCE794 /* CaptchaClient.swift */,
-				D363341F22CD9EC300995DC1 /* Cloud.swift */,
+				D363341F22CD9EC300995DC1 /* Engine.swift */,
 			);
 			path = Storage;
 			sourceTree = "<group>";
@@ -1077,7 +1077,7 @@
 				D393EDBE21D38206001CBB2B /* IMMessage.swift in Sources */,
 				114E1E772151FFB600DA7DB0 /* File.swift in Sources */,
 				11D9C0FA216DF63B00A620B7 /* Error.swift in Sources */,
-				D363342022CD9EC300995DC1 /* Cloud.swift in Sources */,
+				D363342022CD9EC300995DC1 /* Engine.swift in Sources */,
 				835F5D701D7E6808004D1A0E /* Null.swift in Sources */,
 				11D9C101216DFB2D00A620B7 /* MD5.swift in Sources */,
 				835F5D6E1D7E6808004D1A0E /* Dictionary.swift in Sources */,

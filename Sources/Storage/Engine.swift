@@ -1,5 +1,5 @@
 //
-//  Cloud.swift
+//  Engine.swift
 //  LeanCloud
 //
 //  Created by zapcannon87 on 2019/7/4.
@@ -8,7 +8,7 @@
 
 import Foundation
 
-public class LCCloud {
+public class LCEngine {
     
     /// call the cloud function synchronously
     ///
@@ -17,14 +17,14 @@ public class LCCloud {
     ///   - function: The name of the function in the cloud
     ///   - parameters: The parameters of the function
     /// - Returns: The result of the function
-    public static func run(
+    public static func call(
         application: LCApplication = LCApplication.default,
         _ function: String,
         parameters: [String: Any]? = nil)
         -> LCGenericResult<Any>
     {
         return expect { (fullfill) in
-            self.run(application: application, function: function, parameters: parameters, completionInBackground: { (result) in
+            self.call(application: application, function: function, parameters: parameters, completionInBackground: { (result) in
                 fullfill(result)
             })
         }
@@ -39,14 +39,14 @@ public class LCCloud {
     ///   - completion: The result of the callback
     /// - Returns: The Request
     @discardableResult
-    public static func run(
+    public static func call(
         application: LCApplication = LCApplication.default,
         _ function: String,
         parameters: [String: Any]? = nil,
         completion: @escaping (LCGenericResult<Any>) -> Void)
         -> LCRequest
     {
-        return self.run(application: application, function: function, parameters: parameters, completionInBackground: { (result) in
+        return self.call(application: application, function: function, parameters: parameters, completionInBackground: { (result) in
             mainQueueAsync {
                 completion(result)
             }
@@ -54,7 +54,7 @@ public class LCCloud {
     }
     
     @discardableResult
-    private static func run(
+    private static func call(
         application: LCApplication,
         function: String,
         parameters: [String: Any]? = nil,
@@ -115,7 +115,7 @@ public class LCCloud {
         completion: @escaping (LCGenericResult<Any>) -> Void)
         -> LCRequest
     {
-        return self.run(application: application, function: function, parameters: parameters, completionInBackground: { (result) in
+        return self.rpc(application: application, function: function, parameters: parameters, completionInBackground: { (result) in
             mainQueueAsync {
                 completion(result)
             }
