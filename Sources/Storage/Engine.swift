@@ -17,14 +17,14 @@ public class LCEngine {
     ///   - function: The name of the function in the cloud
     ///   - parameters: The parameters of the function
     /// - Returns: The result of the function
-    public static func call(
+    public static func run(
         application: LCApplication = LCApplication.default,
         _ function: String,
         parameters: [String: Any]? = nil)
         -> LCGenericResult<Any>
     {
         return expect { (fullfill) in
-            self.call(application: application, function: function, parameters: parameters, completionInBackground: { (result) in
+            self.run(application: application, function: function, parameters: parameters, completionInBackground: { (result) in
                 fullfill(result)
             })
         }
@@ -39,14 +39,14 @@ public class LCEngine {
     ///   - completion: The result of the callback
     /// - Returns: The Request
     @discardableResult
-    public static func call(
+    public static func run(
         application: LCApplication = LCApplication.default,
         _ function: String,
         parameters: [String: Any]? = nil,
         completion: @escaping (LCGenericResult<Any>) -> Void)
         -> LCRequest
     {
-        return self.call(application: application, function: function, parameters: parameters, completionInBackground: { (result) in
+        return self.run(application: application, function: function, parameters: parameters, completionInBackground: { (result) in
             mainQueueAsync {
                 completion(result)
             }
@@ -54,10 +54,10 @@ public class LCEngine {
     }
     
     @discardableResult
-    private static func call(
+    private static func run(
         application: LCApplication,
         function: String,
-        parameters: [String: Any]? = nil,
+        parameters: [String: Any]?,
         completionInBackground completion: @escaping (LCGenericResult<Any>) -> Void)
         -> LCRequest
     {
@@ -86,14 +86,14 @@ public class LCEngine {
     ///   - function: The name of the function in the cloud
     ///   - parameters: The parameters of the function
     /// - Returns: The result of the function
-    public static func rpc(
+    public static func call(
         application: LCApplication = LCApplication.default,
         _ function: String,
-        parameters: [String: Any]? = nil)
-        -> LCGenericResult<Any>
+        parameters: LCDictionaryConvertible? = nil)
+        -> LCValueOptionalResult
     {
         return expect { (fullfill) in
-            self.rpc(application: application, function: function, parameters: parameters, completionInBackground: { (result) in
+            self.call(application: application, function: function, parameters: parameters, completionInBackground: { (result) in
                 fullfill(result)
             })
         }
@@ -108,49 +108,67 @@ public class LCEngine {
     ///   - completion: The result of the callback
     /// - Returns: The Request
     @discardableResult
-    public static func rpc(
+    public static func call(
         application: LCApplication = LCApplication.default,
         _ function: String,
-        parameters: [String: Any]? = nil,
-        completion: @escaping (LCGenericResult<Any>) -> Void)
+        parameters: LCDictionaryConvertible? = nil,
+        completion: @escaping (LCValueOptionalResult) -> Void)
         -> LCRequest
     {
-        return self.rpc(application: application, function: function, parameters: parameters, completionInBackground: { (result) in
+        return self.call(application: application, function: function, parameters: parameters, completionInBackground: { (result) in
             mainQueueAsync {
                 completion(result)
             }
         })
     }
     
-    @discardableResult
-    private static func rpc(
-        application: LCApplication,
-        function: String,
-        parameters: [String: Any]?,
-        completionInBackground completion: @escaping (LCGenericResult<Any>) -> Void)
+    /// call the cloud function by RPC synchronously
+    ///
+    /// - Parameters:
+    ///   - application: The application
+    ///   - function: The name of the function in the cloud
+    ///   - parameters: The parameters of the function
+    /// - Returns: The result of the function
+    public static func call(
+        application: LCApplication = LCApplication.default,
+        _ function: String,
+        parameters: LCObject)
+        -> LCValueOptionalResult
+    {
+        return self.call(application: application, function, parameters: parameters.dictionary)
+    }
+    
+    /// call the cloud function by RPC asynchronously
+    ///
+    /// - Parameters:
+    ///   - application: The application
+    ///   - function: The name of the function in the cloud
+    ///   - parameters: The parameters of the function
+    ///   - completion: The result of the callback
+    /// - Returns: The Request
+    public static func call(
+        application: LCApplication = LCApplication.default,
+        _ function: String,
+        parameters: LCObject,
+        completion: @escaping (LCValueOptionalResult) -> Void)
         -> LCRequest
     {
-        let httpClient: HTTPClient = application.httpClient
+        return self.call(application: application, function, parameters: parameters.dictionary, completion: completion)
+    }
+    
+    @discardableResult
+    private static func call(
+        application: LCApplication,
+        function: String,
+        parameters: LCDictionaryConvertible?,
+        completionInBackground completion: @escaping (LCValueOptionalResult) -> Void)
+        -> LCRequest
+    {
+        let parameters = parameters?.lcDictionary.lconValue as? [String: Any]
         
-        let request = httpClient.request(.post, "call/\(function)", parameters: parameters) { (response) in
-            if let error: Error = response.error {
-                completion(.failure(error: LCError(error: error)))
-            } else {
-                if
-                    let value = response.value as? [String: Any],
-                    let result = value["result"]
-                {
-                    do {
-                        let object = try ObjectProfiler.shared.object(application: application, jsonValue: result)
-                        completion(.success(value: object))
-                    } catch {
-                        completion(.failure(error: LCError(error: error)))
-                    }
-                } else {
-                    let error = LCError(code: .invalidType, reason: "invalid response data type.")
-                    completion(.failure(error: error))
-                }
-            }
+        let request = application.httpClient.request(.post, "call/\(function)", parameters: parameters) { response in
+            let result = LCValueOptionalResult(response: response, keyPath: "result")
+            completion(result)
         }
         
         return request
