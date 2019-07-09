@@ -11,6 +11,22 @@ import XCTest
 
 class IMClientTestCase: RTMBaseTestCase {
     
+    func testInitWithUser() {
+        let user = LCUser()
+        user.username = UUID().uuidString.lcString
+        user.password = UUID().uuidString.lcString
+        
+        XCTAssertTrue(user.signUp().isSuccess)
+        
+        do {
+            let client = try IMClient(user: user)
+            XCTAssertNotNil(client.user)
+            XCTAssertEqual(client.ID, user.objectId?.stringValue)
+        } catch {
+            XCTFail("\(error)")
+        }
+    }
+    
     func testDeinit() {
         do {
             let invalidID: String = Array<String>.init(repeating: "a", count: 65).joined()
