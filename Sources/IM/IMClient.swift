@@ -64,6 +64,9 @@ public class IMClient {
     /// The client delegate.
     public weak var delegate: IMClientDelegate?
     
+    /// The signature delegate.
+    public weak var signatureDelegate: IMSignatureDelegate?
+    
     /// The dispatch queue where the event about IM are called. Default is main.
     public let eventQueue: DispatchQueue
     
@@ -132,6 +135,19 @@ public class IMClient {
         }
     }
     
+    public enum Action {
+        case open
+        case createConversation(memberIDs: Set<String>)
+        case join(conversation: IMConversation)
+        case add(memberIDs: Set<String>, toConversation: IMConversation)
+        case remove(memberIDs: Set<String>, fromConversation: IMConversation)
+        case queryMessage(conversation: IMConversation)
+        case block(conversation: IMConversation)
+        case unblock(conversation: IMConversation)
+        case conversation(_: IMConversation, blockingMemberIDs: Set<String>)
+        case conversation(_: IMConversation, unblockingMemberIDs: Set<String>)
+    }
+    
     /// ref: `https://github.com/leancloud/avoscloud-push/blob/develop/push-server/doc/protocol.md`
     struct SessionConfigs: OptionSet {
         let rawValue: Int64
@@ -169,6 +185,7 @@ public class IMClient {
         tag: String? = nil,
         options: Options = .default,
         delegate: IMClientDelegate? = nil,
+        signatureDelegate: IMSignatureDelegate? = nil,
         eventQueue: DispatchQueue = .main)
         throws
     {
@@ -187,6 +204,7 @@ public class IMClient {
         self.tag = tag
         self.options = options
         self.delegate = delegate
+        self.signatureDelegate = signatureDelegate
         self.eventQueue = eventQueue
         self.application = application
         self.installation = application.currentInstallation
@@ -257,6 +275,7 @@ public class IMClient {
         tag: String? = nil,
         options: Options = .default,
         delegate: IMClientDelegate? = nil,
+        signatureDelegate: IMSignatureDelegate? = nil,
         eventQueue: DispatchQueue = .main)
         throws
     {
@@ -269,6 +288,7 @@ public class IMClient {
             tag: tag,
             options: options,
             delegate: delegate,
+            signatureDelegate: signatureDelegate,
             eventQueue: eventQueue
         )
         self.user = user
@@ -1258,7 +1278,13 @@ extension IMClient {
     
     // MARK: Session Command
     
-    func newSessionCommand(op: IMOpType, token: String? = nil, isReopen: Bool? = nil) -> IMGenericCommand {
+    func newSessionCommand(
+        op: IMOpType,
+        token: String? = nil,
+        isReopen: Bool? = nil,
+        signature: IMSignature? = nil)
+        -> IMGenericCommand
+    {
         assert(self.specificAssertion)
         assert(op == .open || op == .refresh)
         var outCommand = IMGenericCommand()
@@ -1276,19 +1302,50 @@ extension IMClient {
         if let token = token {
             sessionCommand.st = token
         }
-        if let r = isReopen {
-            sessionCommand.r = r
-        }
         if op == .open {
+            if let r = isReopen {
+                sessionCommand.r = r
+            }
             if let lastUnreadNotifTime: Int64 = self.lastUnreadNotifTime {
                 sessionCommand.lastUnreadNotifTime = lastUnreadNotifTime
             }
             if let lastPatchTime: Int64 = self.localRecord.lastPatchTimestamp {
                 sessionCommand.lastPatchTime = lastPatchTime
             }
+            if let signature = signature {
+                sessionCommand.s = signature.signature
+                sessionCommand.t = signature.timestamp
+                sessionCommand.n = signature.nonce
+            }
         }
         outCommand.sessionMessage = sessionCommand
         return outCommand
+    }
+    
+    func getOpenCommand(
+        token: String? = nil,
+        isReopen: Bool? = nil,
+        completion: @escaping (IMClient, IMGenericCommand) -> Void)
+    {
+        assert(self.specificAssertion)
+        if let signatureDelegate = self.signatureDelegate {
+            self.eventQueue.async {
+                signatureDelegate.client(self, action: .open, signatureHandler: { (client, signature) in
+                    client.serialQueue.async {
+                        let sessionCommand = client.newSessionCommand(
+                            op: .open,
+                            token: token,
+                            isReopen: isReopen,
+                            signature: signature
+                        )
+                        completion(client, sessionCommand)
+                    }
+                })
+            }
+        } else {
+            let sessionCommand = self.newSessionCommand(op: .open, token: token, isReopen: isReopen)
+            completion(self, sessionCommand)
+        }
     }
     
     func send(reopenCommand command: IMGenericCommand) {
@@ -1305,15 +1362,16 @@ extension IMClient {
                 } else if error.code == LCError.InternalErrorCode.connectionLost.rawValue {
                     Logger.shared.debug(error)
                 } else if error.code == LCError.ServerErrorCode.sessionTokenExpired.rawValue {
-                    let openCommand = client.newSessionCommand(op: .open, isReopen: true)
-                    client.send(reopenCommand: openCommand)
-                    #if DEBUG
-                    NotificationCenter.default.post(
-                        name: IMClient.TestSessionTokenExpiredNotification,
-                        object: client,
-                        userInfo: ["error": error]
-                    )
-                    #endif
+                    client.getOpenCommand(isReopen: true, completion: { (client, openCommand) in
+                        client.send(reopenCommand: openCommand)
+                        #if DEBUG
+                        NotificationCenter.default.post(
+                            name: IMClient.TestSessionTokenExpiredNotification,
+                            object: client,
+                            userInfo: ["error": error]
+                        )
+                        #endif
+                    })
                 } else {
                     // unknown error, maybe should close session.
                     client.sessionClosed(with: .failure(error: error))
@@ -2045,31 +2103,32 @@ extension IMClient: RTMConnectionDelegate {
             let openingCompletion = self.openingCompletion,
             let openingOptions = self.openingOptions
         {
-            let openCommand = self.newSessionCommand(op: .open, isReopen: openingOptions.r)
-            self.connection.send(command: openCommand, callingQueue: self.serialQueue) { [weak self] (result) in
-                guard let self = self else { return }
-                assert(self.specificAssertion)
-                self.openingCompletion = nil
-                self.openingOptions = nil
-                switch result {
-                case .inCommand(let inCommand):
-                    self.handle(openCommandCallback: inCommand, completion: openingCompletion)
-                    self.report(deviceToken: self.currentDeviceToken, openCommand: openCommand)
-                case .error(let error):
-                    self.eventQueue.async {
-                        openingCompletion(.failure(error: error))
+            self.getOpenCommand(isReopen: openingOptions.r) { (client, openCommand) in
+                weak var wClient = client
+                client.connection.send(command: openCommand, callingQueue: client.serialQueue) { (result) in
+                    guard let client = wClient else { return }
+                    assert(client.specificAssertion)
+                    client.openingCompletion = nil
+                    client.openingOptions = nil
+                    switch result {
+                    case .inCommand(let inCommand):
+                        client.handle(openCommandCallback: inCommand, completion: openingCompletion)
+                        client.report(deviceToken: client.currentDeviceToken, openCommand: openCommand)
+                    case .error(let error):
+                        client.eventQueue.async {
+                            openingCompletion(.failure(error: error))
+                        }
                     }
                 }
             }
         } else if let sessionToken = self.sessionToken {
-            let openCommand: IMGenericCommand
-            if let expiration = self.sessionTokenExpiration,
-                expiration > Date() {
-                openCommand = self.newSessionCommand(op: .open, token: sessionToken, isReopen: true)
-            } else {
-                openCommand = self.newSessionCommand(op: .open, isReopen: true)
+            var notExpired: Bool = false
+            if let expiration = self.sessionTokenExpiration, expiration > Date() {
+                notExpired = true
             }
-            self.send(reopenCommand: openCommand)
+            self.getOpenCommand(token: (notExpired ? sessionToken : nil), isReopen: true) { (client, openCommand) in
+                client.send(reopenCommand: openCommand)
+            }
         }
     }
     
@@ -2214,6 +2273,27 @@ public protocol IMClientDelegate: class {
     ///   - event: @see `IMConversationEvent`
     func client(_ client: IMClient, conversation: IMConversation, event: IMConversationEvent)
     
+}
+
+public protocol IMSignatureDelegate: class {
+    
+    func client(_ client: IMClient, action: IMClient.Action, signatureHandler: @escaping (IMClient, IMSignature?) -> Void)
+    
+}
+
+public struct IMSignature {
+    
+    public let signature: String
+    
+    public let timestamp: Int64
+    
+    public let nonce: String
+    
+    public init(signature: String, timestamp: Int64, nonce: String) {
+        self.signature = signature
+        self.timestamp = timestamp
+        self.nonce = nonce
+    }
 }
 
 extension LCError {
