@@ -87,7 +87,7 @@
 		D357B46522632A210002D14C /* Starscream.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D30A2F81224A069100C000D5 /* Starscream.framework */; };
 		D357B46722632A510002D14C /* Starscream.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = D30A2F81224A069100C000D5 /* Starscream.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		D363342022CD9EC300995DC1 /* Engine.swift in Sources */ = {isa = PBXBuildFile; fileRef = D363341F22CD9EC300995DC1 /* Engine.swift */; };
-		D363343622CDB0D300995DC1 /* LCCloudTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = D363343522CDB0D300995DC1 /* LCCloudTestCase.swift */; };
+		D363343622CDB0D300995DC1 /* LCEngineTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = D363343522CDB0D300995DC1 /* LCEngineTestCase.swift */; };
 		D3662F9222019B590046A390 /* test.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = D3662F9122019B590046A390 /* test.mp3 */; };
 		D3665C3721FEAAC1005B44B0 /* IMMessageTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3665C3621FEAAC1005B44B0 /* IMMessageTestCase.swift */; };
 		D3783A1221F453C3006F6635 /* IMConversationTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3783A1121F453C3006F6635 /* IMConversationTestCase.swift */; };
@@ -413,7 +413,7 @@
 		D33D36DA22019197008C9BDA /* test.mp4 */ = {isa = PBXFileReference; lastKnownFileType = file; path = test.mp4; sourceTree = "<group>"; };
 		D34F1BB82268263000251BC8 /* IMLocalStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IMLocalStorage.swift; sourceTree = "<group>"; };
 		D363341F22CD9EC300995DC1 /* Engine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Engine.swift; sourceTree = "<group>"; };
-		D363343522CDB0D300995DC1 /* LCCloudTestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCCloudTestCase.swift; sourceTree = "<group>"; };
+		D363343522CDB0D300995DC1 /* LCEngineTestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCEngineTestCase.swift; sourceTree = "<group>"; };
 		D3662F9122019B590046A390 /* test.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = test.mp3; sourceTree = "<group>"; };
 		D3665C3621FEAAC1005B44B0 /* IMMessageTestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IMMessageTestCase.swift; sourceTree = "<group>"; };
 		D3783A1121F453C3006F6635 /* IMConversationTestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IMConversationTestCase.swift; sourceTree = "<group>"; };
@@ -555,7 +555,7 @@
 				114E1E842153A3ED00DA7DB0 /* LCFileTestCase.swift */,
 				118763AE2176EA3A0078645B /* LCInstallationTestCase.swift */,
 				D3BBFB40225D944100B75BA1 /* LCLocalStorageContextTestCase.swift */,
-				D363343522CDB0D300995DC1 /* LCCloudTestCase.swift */,
+				D363343522CDB0D300995DC1 /* LCEngineTestCase.swift */,
 				D33A8DA921F577F2005B84A9 /* RTMBaseTestCase.swift */,
 				1123922B2191669100ECCBCC /* RTMRouterTestCase.swift */,
 				D3DAD03B218DA402008BCD37 /* RTMConnectionTestCase.swift */,
@@ -1130,7 +1130,7 @@
 				8352B5231D2BAAE600531785 /* LCRelationTestCase.swift in Sources */,
 				D3665C3721FEAAC1005B44B0 /* IMMessageTestCase.swift in Sources */,
 				83D0DE6F1CC7B3FF00FC204E /* LCQueryTestCase.swift in Sources */,
-				D363343622CDB0D300995DC1 /* LCCloudTestCase.swift in Sources */,
+				D363343622CDB0D300995DC1 /* LCEngineTestCase.swift in Sources */,
 				114E1E852153A3ED00DA7DB0 /* LCFileTestCase.swift in Sources */,
 				83BC11D61CDD76E900D7E7A6 /* LCACLTestCase.swift in Sources */,
 				1178D10F213F7B9600429131 /* LCAPITestCase.swift in Sources */,
