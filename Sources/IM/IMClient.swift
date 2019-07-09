@@ -44,6 +44,9 @@ public class IMClient {
     /// The client tag.
     public let tag: String?
     
+    /// The user.
+    public private(set) var user: LCUser?
+    
     /// The client options.
     public let options: Options
     
@@ -159,6 +162,7 @@ public class IMClient {
     ///   - delegate: @see `IMClientDelegate`.
     ///   - eventQueue: @see property `eventQueue`, default is main.
     ///   - application: The application that the client belongs to.
+    /// - Throws: Error.
     public init(
         application: LCApplication = LCApplication.default,
         ID: String,
@@ -237,6 +241,37 @@ public class IMClient {
         }
         
         self.localStorage?.client = self
+    }
+    
+    /// Initialization.
+    ///
+    /// - Parameters:
+    ///   - user: The user which is valid.
+    ///   - tag: The client tag. `reservedValueOfTag` should not be used.
+    ///   - options: @see `IMClient.Options`.
+    ///   - delegate: @see `IMClientDelegate`.
+    ///   - eventQueue: @see property `eventQueue`, default is main.
+    /// - Throws: Error.
+    public convenience init(
+        user: LCUser,
+        tag: String? = nil,
+        options: Options = .default,
+        delegate: IMClientDelegate? = nil,
+        eventQueue: DispatchQueue = .main)
+        throws
+    {
+        guard let objectId = user.objectId?.stringValue else {
+            throw LCError.userIDNotFound
+        }
+        try self.init(
+            application: user.application,
+            ID: objectId,
+            tag: tag,
+            options: options,
+            delegate: delegate,
+            eventQueue: eventQueue
+        )
+        self.user = user
     }
     
     deinit {
@@ -2187,6 +2222,13 @@ extension LCError {
         return LCError(
             code: .inconsistency,
             reason: "Length of client ID should in \(IMClient.lengthRangeOfClientID)"
+        )
+    }
+    
+    static var userIDNotFound: LCError {
+        return LCError(
+            code: .inconsistency,
+            reason: "The ID of the user not found"
         )
     }
     
