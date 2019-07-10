@@ -632,16 +632,133 @@ extension IMClient {
         
         var isUnique: Bool {
             switch self {
-            case .normalAndUnique: return true
-            default: return false
+            case .normalAndUnique:
+                return true
+            default:
+                return false
             }
         }
         
         var isTransient: Bool {
             switch self {
-            case .transient: return true
-            default: return false
+            case .transient:
+                return true
+            default:
+                return false
             }
+        }
+        
+        var isTemporary: Bool {
+            switch self {
+            case .temporary:
+                return true
+            default:
+                return false
+            }
+        }
+        
+        var convType: IMConversation.ConvType {
+            switch self {
+            case .normal, .normalAndUnique:
+                return .normal
+            case .transient:
+                return .transient
+            case .temporary:
+                return .temporary
+            }
+        }
+    }
+    
+    typealias ConversationCreationTuple = (members: [String], attrString: String?, option: ConversationCreationOption)
+    
+    func preprocessConversationCreation(
+        clientIDs: Set<String>,
+        name: String?,
+        attributes: [String: Any]?,
+        option: ConversationCreationOption)
+        throws
+        -> ConversationCreationTuple
+    {
+        var members: [String]
+        if option.isTransient {
+            members = []
+        } else {
+            for item in clientIDs {
+                guard IMClient.lengthRangeOfClientID.contains(item.count) else {
+                    throw LCError.clientIDInvalid
+                }
+            }
+            members = Array<String>(clientIDs)
+            if !clientIDs.contains(self.ID) {
+                members.append(self.ID)
+            }
+        }
+        
+        var attr: [String: Any] = [:]
+        if let name: String = name {
+            attr[IMConversation.Key.name.rawValue] = name
+        }
+        if let attributes: [String: Any] = attributes {
+            attr[IMConversation.Key.attributes.rawValue] = attributes
+        }
+        var attrString: String? = nil
+        if !attr.isEmpty {
+            let data = try JSONSerialization.data(withJSONObject: attr)
+            attrString = String(data: data, encoding: .utf8)
+        }
+        
+        return (members, attrString, option)
+    }
+    
+    func newConvStartCommand(tuple: ConversationCreationTuple, signature: IMSignature? = nil) -> IMGenericCommand {
+        var outCommand = IMGenericCommand()
+        outCommand.cmd = .conv
+        outCommand.op = .start
+        var convMessage = IMConvCommand()
+        switch tuple.option {
+        case .normal:
+            break
+        case .normalAndUnique:
+            convMessage.unique = true
+        case .transient:
+            convMessage.transient = true
+        case .temporary(ttl: let ttl):
+            convMessage.tempConv = true
+            if ttl > 0 {
+                convMessage.tempConvTtl = ttl
+            }
+        }
+        if !tuple.option.isTransient {
+            convMessage.m = tuple.members
+        }
+        if let attrString: String = tuple.attrString {
+            var attrMessage = IMJsonObjectMessage()
+            attrMessage.data = attrString
+            convMessage.attr = attrMessage
+        }
+        if let signature: IMSignature = signature {
+            convMessage.s = signature.signature
+            convMessage.t = signature.timestamp
+            convMessage.n = signature.nonce
+        }
+        outCommand.convMessage = convMessage
+        return outCommand
+    }
+    
+    func getConvStartCommand(tuple: ConversationCreationTuple, completion: @escaping (IMClient, IMGenericCommand) -> Void) {
+        if let signatureDelegate = self.signatureDelegate {
+            self.eventQueue.async {
+                let action: IMClient.Action = .createConversation(memberIDs: Set(tuple.members))
+                signatureDelegate.client(self, action: action) { (client, signature) in
+                    client.serialQueue.async {
+                        let command = client.newConvStartCommand(tuple: tuple, signature: signature)
+                        completion(client, command)
+                    }
+                }
+            }
+        } else {
+            let command = self.newConvStartCommand(tuple: tuple)
+            completion(self, command)
         }
     }
     
@@ -659,163 +776,83 @@ extension IMClient {
             attributes: attributes,
             option: option
         )
-        let members: [String] = tuple.members
-        let attrJSON: [String: Any] = tuple.attrJSON
-        let attrString: String? = tuple.attrString
         
-        var type: IMConversation.ConvType = .normal
-        
-        self.sendCommand(constructor: { () -> IMGenericCommand in
-            var outCommand = IMGenericCommand()
-            outCommand.cmd = .conv
-            outCommand.op = .start
-            var convMessage = IMConvCommand()
-            if !option.isTransient {
-                convMessage.m = members
-            }
-            switch option {
-            case .normal:
-                break
-            case .normalAndUnique:
-                convMessage.unique = true
-            case .transient:
-                convMessage.transient = true
-                type = .transient
-            case .temporary(ttl: let ttl):
-                convMessage.tempConv = true
-                if ttl > 0 { convMessage.tempConvTtl = ttl }
-                type = .temporary
-            }
-            if let dataString: String = attrString {
-                var attrMessage = IMJsonObjectMessage()
-                attrMessage.data = dataString
-                convMessage.attr = attrMessage
-            }
-            outCommand.convMessage = convMessage
-            return outCommand
-        }) { (client, result) in
-            switch result {
-            case .inCommand(let inCommand):
-                assert(client.specificAssertion)
-                guard
-                    inCommand.cmd == .conv,
-                    inCommand.op == .started,
-                    inCommand.hasConvMessage,
-                    inCommand.convMessage.hasCid
-                    else
-                {
+        let sendingClosure: (IMClient, IMGenericCommand) -> Void = { (client, outCommand) in
+            client.sendCommand(constructor: { outCommand }) { (client, result) in
+                switch result {
+                case .inCommand(let inCommand):
+                    assert(client.specificAssertion)
+                    do {
+                        let conversation: T = try client.conversationInstance(
+                            inCommand: inCommand,
+                            tuple: tuple
+                        )
+                        client.eventQueue.async {
+                            completion(.success(value: conversation))
+                        }
+                    } catch {
+                        client.eventQueue.async {
+                            let err = LCError(error: error)
+                            completion(.failure(error: err))
+                        }
+                    }
+                case .error(let error):
                     client.eventQueue.async {
-                        let error = LCError(code: .commandInvalid)
                         completion(.failure(error: error))
                     }
-                    return
-                }
-                do {
-                    let conversation: T = try client.conversationInstance(
-                        convMessage: inCommand.convMessage,
-                        members: members,
-                        attrJSON: attrJSON,
-                        attrString: attrString,
-                        option: option,
-                        convType: type
-                    )
-                    client.eventQueue.async {
-                        completion(.success(value: conversation))
-                    }
-                } catch {
-                    client.eventQueue.async {
-                        let err = LCError(error: error)
-                        completion(.failure(error: err))
-                    }
-                }
-            case .error(let error):
-                client.eventQueue.async {
-                    completion(.failure(error: error))
                 }
             }
         }
-    }
-    
-    func preprocessConversationCreation(
-        clientIDs: Set<String>,
-        name: String?,
-        attributes: [String: Any]?,
-        option: ConversationCreationOption)
-        throws -> (members: [String], attrJSON: [String: Any], attrString: String?)
-    {
-        var members: [String]
-        if option.isTransient {
-            members = []
+        
+        if option.isTemporary {
+            let outCommand = self.newConvStartCommand(tuple: tuple)
+            sendingClosure(self, outCommand)
         } else {
-            members = Array<String>(clientIDs)
-            for item in clientIDs {
-                guard IMClient.lengthRangeOfClientID.contains(item.count) else {
-                    throw LCError.clientIDInvalid
-                }
-            }
-            if !clientIDs.contains(self.ID) {
-                members.append(self.ID)
-            }
+            self.getConvStartCommand(tuple: tuple, completion: sendingClosure)
         }
-        
-        var attrJSON: [String: Any] = [:]
-        if let name: String = name {
-            attrJSON[IMConversation.Key.name.rawValue] = name
-        }
-        if let attributes: [String: Any] = attributes {
-            attrJSON[IMConversation.Key.attributes.rawValue] = attributes
-        }
-        var attrString: String? = nil
-        if !attrJSON.isEmpty {
-            let data = try JSONSerialization.data(withJSONObject: attrJSON, options: [])
-            attrString = String(data: data, encoding: .utf8)
-        }
-        
-        return (members, attrJSON, attrString)
     }
     
-    func conversationInstance<T: IMConversation>(
-        convMessage: IMConvCommand,
-        members: [String],
-        attrJSON: [String: Any],
-        attrString: String?,
-        option: ConversationCreationOption,
-        convType: IMConversation.ConvType)
-        throws -> T
-    {
+    func conversationInstance<T: IMConversation>(inCommand: IMGenericCommand, tuple: ConversationCreationTuple) throws -> T {
         assert(self.specificAssertion)
-        let id: String = convMessage.cid
+        guard
+            let convMessage = (inCommand.hasConvMessage ? inCommand.convMessage : nil),
+            let convID: String = (convMessage.hasCid ? convMessage.cid : nil) else
+        {
+            throw LCError(code: .commandInvalid)
+        }
+        var attr: [String: Any] = [:]
+        if let json: [String: Any] = try tuple.attrString?.jsonObject() {
+            attr = json
+        }
         let conversation: IMConversation
-        if let conv: IMConversation = self.convCollection[id] {
-            if let json: [String: Any] = try attrString?.jsonObject() {
-                conv.safeChangingRawData(operation: .rawDataMerging(data: json), client: self)
-            }
+        if let conv: IMConversation = self.convCollection[convID] {
+            conv.safeChangingRawData(operation: .rawDataMerging(data: attr), client: self)
             conversation = conv
         } else {
-            var json: [String: Any] = attrJSON
-            json[IMConversation.Key.convType.rawValue] = convType.rawValue
-            json[IMConversation.Key.creator.rawValue] = self.ID
-            if !option.isTransient {
-                json[IMConversation.Key.members.rawValue] = members
+            let key = IMConversation.Key.self
+            attr[key.convType.rawValue] = tuple.option.convType.rawValue
+            attr[key.creator.rawValue] = self.ID
+            if !tuple.option.isTransient {
+                attr[key.members.rawValue] = tuple.members
             }
-            if option.isUnique {
-                json[IMConversation.Key.unique.rawValue] = true
+            if tuple.option.isUnique {
+                attr[key.unique.rawValue] = true
             }
             if convMessage.hasCdate {
-                json[IMConversation.Key.createdAt.rawValue] = convMessage.cdate
-                if !option.isUnique {
-                    json[IMConversation.Key.updatedAt.rawValue] = convMessage.cdate
+                attr[key.createdAt.rawValue] = convMessage.cdate
+                if !tuple.option.isUnique {
+                    attr[key.updatedAt.rawValue] = convMessage.cdate
                 }
             }
             if convMessage.hasUniqueID {
-                json[IMConversation.Key.uniqueId.rawValue] = convMessage.uniqueID
+                attr[key.uniqueId.rawValue] = convMessage.uniqueID
             }
             if convMessage.hasTempConvTtl {
-                json[IMConversation.Key.temporaryTTL.rawValue] = convMessage.tempConvTtl
+                attr[key.temporaryTTL.rawValue] = convMessage.tempConvTtl
             }
-            if let rawData: IMConversation.RawData = try json.jsonObject() {
-                conversation = IMConversation.instance(ID: id, rawData: rawData, client: self, caching: true)
-                self.convCollection[id] = conversation
+            if let rawData: IMConversation.RawData = try attr.jsonObject() {
+                conversation = IMConversation.instance(ID: convID, rawData: rawData, client: self, caching: true)
+                self.convCollection[convID] = conversation
             } else {
                 throw LCError(code: .malformedData)
             }
@@ -1322,12 +1359,11 @@ extension IMClient {
         return outCommand
     }
     
-    func getOpenCommand(
+    func getSessionOpenCommand(
         token: String? = nil,
         isReopen: Bool? = nil,
         completion: @escaping (IMClient, IMGenericCommand) -> Void)
     {
-        assert(self.specificAssertion)
         if let signatureDelegate = self.signatureDelegate {
             self.eventQueue.async {
                 signatureDelegate.client(self, action: .open, signatureHandler: { (client, signature) in
@@ -1343,7 +1379,11 @@ extension IMClient {
                 })
             }
         } else {
-            let sessionCommand = self.newSessionCommand(op: .open, token: token, isReopen: isReopen)
+            let sessionCommand = self.newSessionCommand(
+                op: .open,
+                token: token,
+                isReopen: isReopen
+            )
             completion(self, sessionCommand)
         }
     }
@@ -1357,12 +1397,13 @@ extension IMClient {
             case .inCommand(let inCommand):
                 client.handle(openCommandCallback: inCommand)
             case .error(let error):
-                if error.code == LCError.InternalErrorCode.commandTimeout.rawValue {
+                switch error.code {
+                case LCError.InternalErrorCode.commandTimeout.rawValue:
                     client.send(reopenCommand: command)
-                } else if error.code == LCError.InternalErrorCode.connectionLost.rawValue {
+                case LCError.InternalErrorCode.connectionLost.rawValue:
                     Logger.shared.debug(error)
-                } else if error.code == LCError.ServerErrorCode.sessionTokenExpired.rawValue {
-                    client.getOpenCommand(isReopen: true, completion: { (client, openCommand) in
+                case LCError.ServerErrorCode.sessionTokenExpired.rawValue:
+                    client.getSessionOpenCommand(isReopen: true, completion: { (client, openCommand) in
                         client.send(reopenCommand: openCommand)
                         #if DEBUG
                         NotificationCenter.default.post(
@@ -1372,8 +1413,7 @@ extension IMClient {
                         )
                         #endif
                     })
-                } else {
-                    // unknown error, maybe should close session.
+                default:
                     client.sessionClosed(with: .failure(error: error))
                 }
             }
@@ -2103,7 +2143,7 @@ extension IMClient: RTMConnectionDelegate {
             let openingCompletion = self.openingCompletion,
             let openingOptions = self.openingOptions
         {
-            self.getOpenCommand(isReopen: openingOptions.r) { (client, openCommand) in
+            self.getSessionOpenCommand(isReopen: openingOptions.r) { (client, openCommand) in
                 weak var wClient = client
                 client.connection.send(command: openCommand, callingQueue: client.serialQueue) { (result) in
                     guard let client = wClient else { return }
@@ -2126,7 +2166,7 @@ extension IMClient: RTMConnectionDelegate {
             if let expiration = self.sessionTokenExpiration, expiration > Date() {
                 notExpired = true
             }
-            self.getOpenCommand(token: (notExpired ? sessionToken : nil), isReopen: true) { (client, openCommand) in
+            self.getSessionOpenCommand(token: (notExpired ? sessionToken : nil), isReopen: true) { (client, openCommand) in
                 client.send(reopenCommand: openCommand)
             }
         }

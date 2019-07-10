@@ -1423,6 +1423,9 @@ extension IMConversation {
 internal extension IMConversation {
     
     private func rawDataChangeOperationMerging(data: RawData, client: IMClient) {
+        guard !data.isEmpty else {
+            return
+        }
         var rawData: RawData?
         sync {
             self.rawData.merge(data) { (_, new) in new }
