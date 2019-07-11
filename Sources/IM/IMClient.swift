@@ -2302,6 +2302,8 @@ public protocol IMClientDelegate: class {
     
 }
 
+// MARK: - Signature
+
 public protocol IMSignatureDelegate: class {
     
     func client(_ client: IMClient, action: IMSignature.Action, signatureHandler: @escaping (IMClient, IMSignature?) -> Void)
@@ -2336,6 +2338,8 @@ public struct IMSignature {
         self.nonce = nonce
     }
 }
+
+// MARK: - Error
 
 extension LCError {
     
