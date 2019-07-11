@@ -791,7 +791,7 @@ extension IMClient {
             }
         }
         
-        if option.isTemporary {
+        if option.isTransient || option.isTemporary {
             let outCommand = self.newConvStartCommand(tuple: tuple)
             sendingClosure(self, outCommand)
         } else {

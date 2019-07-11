@@ -1306,7 +1306,58 @@ extension IMConversation {
         }
     }
     
+    private func newConvAddRemoveCommand(
+        members: Set<String>,
+        op: IMOpType,
+        signature: IMSignature? = nil)
+        -> IMGenericCommand
+    {
+        var outCommand = IMGenericCommand()
+        outCommand.cmd = .conv
+        outCommand.op = op
+        var convCommand = IMConvCommand()
+        convCommand.cid = self.ID
+        convCommand.m = Array<String>(members)
+        if let signature = signature {
+            convCommand.s = signature.signature
+            convCommand.t = signature.timestamp
+            convCommand.n = signature.nonce
+        }
+        outCommand.convMessage = convCommand
+        return outCommand
+    }
+    
+    private func getConvAddRemoveCommand(
+        members: Set<String>,
+        op: IMOpType,
+        completion: @escaping (IMClient, IMGenericCommand) -> Void)
+    {
+        guard let client = self.client else {
+            return
+        }
+        if self.convType == .normal, let signatureDelegate = client.signatureDelegate {
+            client.eventQueue.async {
+                let action: IMSignature.Action
+                if op == .add {
+                    action = .add(memberIDs: members, toConversation: self)
+                } else {
+                    action = .remove(memberIDs: members, fromConversation: self)
+                }
+                signatureDelegate.client(client, action: action, signatureHandler: { (client, signature) in
+                    client.serialQueue.async {
+                        let command = self.newConvAddRemoveCommand(members: members, op: op, signature: signature)
+                        completion(client, command)
+                    }
+                })
+            }
+        } else {
+            let command = self.newConvAddRemoveCommand(members: members, op: op)
+            completion(client, command)
+        }
+    }
+    
     private func update(members: Set<String>, op: IMOpType, completion: @escaping (MemberResult) -> Void) throws {
+        assert(op == .add || op == .remove)
         guard !members.isEmpty else {
             throw LCError(code: .inconsistency, reason: "parameter `members` should not be empty.")
         }
@@ -1315,20 +1366,17 @@ extension IMConversation {
                 throw LCError.clientIDInvalid
             }
         }
-        self.client?.sendCommand(constructor: { () -> IMGenericCommand in
-            var outCommand = IMGenericCommand()
-            outCommand.cmd = .conv
-            outCommand.op = op
-            var convCommand = IMConvCommand()
-            convCommand.cid = self.ID
-            convCommand.m = Array<String>(members)
-            outCommand.convMessage = convCommand
-            return outCommand
-        }, completion: { (client, result) in
-            switch result {
-            case .inCommand(let inCommand):
-                assert(client.specificAssertion)
-                if let convCommand = (inCommand.hasConvMessage ? inCommand.convMessage : nil) {
+        self.getConvAddRemoveCommand(members: members, op: op) { (client, outCommand) in
+            client.sendCommand(constructor: { outCommand }, completion: { (client, result) in
+                switch result {
+                case .inCommand(let inCommand):
+                    assert(client.specificAssertion)
+                    guard let convCommand = (inCommand.hasConvMessage ? inCommand.convMessage : nil) else {
+                        client.eventQueue.async {
+                            completion(.failure(error: LCError(code: .commandInvalid)))
+                        }
+                        return
+                    }
                     let allowedPids: [String] = convCommand.allowedPids
                     let failedPids: [IMErrorCommand] = convCommand.failedPids
                     let udate: String? = (convCommand.hasUdate ? convCommand.udate : nil)
@@ -1355,22 +1403,18 @@ extension IMConversation {
                             client: client
                         )
                     default:
-                        return
+                        break
                     }
                     client.eventQueue.async {
                         completion(memberResult)
                     }
-                } else {
+                case .error(let error):
                     client.eventQueue.async {
-                        completion(.failure(error: LCError(code: .commandInvalid)))
+                        completion(.failure(error: error))
                     }
                 }
-            case .error(let error):
-                client.eventQueue.async {
-                    completion(.failure(error: error))
-                }
-            }
-        })
+            })
+        }
     }
     
 }
