@@ -7,22 +7,13 @@
 //
 
 import XCTest
-import LeanCloud
+@testable import LeanCloud
 
 class BaseTestCase: XCTestCase {
     
     static let timeout: TimeInterval = 60.0
     
     let timeout: TimeInterval = 60.0
-    
-    static var masterKey: String {
-        if LCApplication.default.id == "S5vDI3IeCk1NLLiM1aFg3262-gzGzoHsz" {
-            return "Q26gTodbyi1Ki7lM9vtncF6U,master"
-        } else {
-            XCTFail("default Application ID changed")
-            return ""
-        }
-    }
     
     override func setUp() {
         super.setUp()
@@ -90,4 +81,24 @@ class BaseTestCase: XCTestCase {
         wait(for: exps, timeout: timeout)
     }
 
+}
+
+extension LCApplication {
+    
+    var masterKey: String {
+        switch self.id {
+        case "S5vDI3IeCk1NLLiM1aFg3262-gzGzoHsz":
+            return "Q26gTodbyi1Ki7lM9vtncF6U,master"
+        default:
+            fatalError()
+        }
+    }
+    
+    var v2router: HTTPRouter {
+        return HTTPRouter(
+            application: self,
+            configuration: HTTPRouter.Configuration(apiVersion: "1.2")
+        )
+    }
+    
 }

@@ -500,6 +500,30 @@ class IMClientTestCase: RTMBaseTestCase {
         
         XCTAssertEqual(client.convCollection.count, 2)
     }
+    
+    func testInitWithUserAndOpenWithSignature() {
+        let user = LCUser()
+        user.username = UUID().uuidString.lcString
+        user.password = UUID().uuidString.lcString
+        
+        XCTAssertTrue(user.signUp().isSuccess)
+        
+        if let sessionToken = user.sessionToken?.stringValue {
+            
+            let signatureDelegator = SignatureDelegator()
+            signatureDelegator.sessionToken = sessionToken
+            
+            let client = try! IMClient(user: user, signatureDelegate: signatureDelegator)
+            
+            expecting { (exp) in
+                client.open(completion: { (result) in
+                    XCTAssertTrue(result.isSuccess)
+                    XCTAssertNil(result.error)
+                    exp.fulfill()
+                })
+            }
+        }
+    }
 
 }
 
@@ -533,6 +557,43 @@ extension IMClientTestCase {
             self.conversationEvent = nil
             self.messageEvent = nil
         }
+    }
+    
+    class SignatureDelegator: IMSignatureDelegate {
+        
+        var sessionToken: String?
+        
+        func client(_ client: IMClient, action: IMSignature.Action, signatureHandler: @escaping (IMClient, IMSignature?) -> Void) {
+            XCTAssertTrue(Thread.isMainThread)
+            switch action {
+            case .open:
+                guard let sessionToken = self.sessionToken else {
+                    break
+                }
+                
+                let application = client.application
+                let httpClient: HTTPClient = application.httpClient
+                let url = application.v2router.route(path: "rtm/clients/sign", module: .api)!
+                let parameters: [String: Any] = ["session_token": sessionToken]
+                
+                let _ = httpClient.request(url: url, method: .get, parameters: parameters) { (response) in
+                    guard
+                        let value = response.value as? [String: Any],
+                        let client_id = value["client_id"] as? String,
+                        client_id == client.ID,
+                        let signature = value["signature"] as? String,
+                        let timestamp = value["timestamp"] as? Int64,
+                        let nonce = value["nonce"] as? String else
+                    {
+                        return
+                    }
+                    signatureHandler(client, IMSignature(signature: signature, timestamp: timestamp, nonce: nonce))
+                }
+            default:
+                break
+            }
+        }
+        
     }
     
 }
