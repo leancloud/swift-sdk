@@ -11,11 +11,6 @@ import Alamofire
 @testable import LeanCloud
 
 class IMConversationTestCase: RTMBaseTestCase {
-    
-    static let v2Router = HTTPRouter(
-        application: .default,
-        configuration: HTTPRouter.Configuration(apiVersion: "1.2")
-    )
 
     func testCreateConversationThenErrorThrows() {
         
@@ -1586,6 +1581,7 @@ extension IMConversationTestCase {
     
     static func newServiceConversation() -> String? {
         var objectID: String?
+        let url = LCApplication.default.v2router.route(path: "/rtm/service-conversations", module: .api)!
         let parameters: Parameters = [
             "name": uuid
         ]
@@ -1595,12 +1591,12 @@ extension IMConversationTestCase {
             "Content-Type": "application/json"
         ]
         let request: URLRequest = Alamofire.request(
-            v2Router.route(path: "/rtm/service-conversations", module: .api)!,
+            url,
             method: .post,
             parameters: parameters,
             encoding: JSONEncoding.default,
-            headers: headers
-            ).request!
+            headers: headers)
+            .request!
         print("------\n\(request.url!)\n\(parameters)\n------\n")
         var loop = true
         let task = URLSession.shared.dataTask(with: request) { (data, response, error) in
@@ -1623,21 +1619,22 @@ extension IMConversationTestCase {
     
     static func subscribing(serviceConversation conversationID: String, by clientID: String) -> Bool {
         var success: Bool = false
+        let url = LCApplication.default.v2router.route(path: "/rtm/service-conversations/\(conversationID)/subscribers")!
         let parameters: Parameters = [
             "client_id": clientID
         ]
         let headers: HTTPHeaders = [
             "X-LC-Id": LCApplication.default.id,
-            "X-LC-Key": masterKey,
+            "X-LC-Key": LCApplication.default.masterKey,
             "Content-Type": "application/json"
         ]
         let request: URLRequest = Alamofire.request(
-            v2Router.route(path: "/rtm/service-conversations/\(conversationID)/subscribers")!,
+            url,
             method: .post,
             parameters: parameters,
             encoding: JSONEncoding.default,
-            headers: headers
-            ).request!
+            headers: headers)
+            .request!
         print("------\n\(request.url!)\n\(parameters)\n------\n")
         var loop = true
         let task = URLSession.shared.dataTask(with: request) { (data, response, error) in
@@ -1663,22 +1660,23 @@ extension IMConversationTestCase {
     
     static func broadcastingMessage(to conversationID: String, content: String = "test") -> (String, Int64)? {
         var tuple: (String, Int64)?
+        let url = LCApplication.default.v2router.route(path: "/rtm/service-conversations/\(conversationID)/broadcasts", module: .api)!
         let parameters: Parameters = [
             "from_client": "master",
             "message": content
         ]
         let headers: HTTPHeaders = [
             "X-LC-Id": LCApplication.default.id,
-            "X-LC-Key": masterKey,
+            "X-LC-Key": LCApplication.default.masterKey,
             "Content-Type": "application/json"
         ]
         let request: URLRequest = Alamofire.request(
-            v2Router.route(path: "/rtm/service-conversations/\(conversationID)/broadcasts", module: .api)!,
+            url,
             method: .post,
             parameters: parameters,
             encoding: JSONEncoding.default,
-            headers: headers
-            ).request!
+            headers: headers)
+            .request!
         print("------\n\(request.url!)\n\(parameters)\n------\n")
         var loop = true
         let task = URLSession.shared.dataTask(with: request) { (data, response, error) in

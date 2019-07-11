@@ -30,20 +30,55 @@ public class LCCaptchaClient {
         }
     }
     
-    /// Request a Captcha.
+    /// Request a Captcha synchronously.
     ///
     /// - Parameters:
     ///   - application: The application.
     ///   - width: The width of the image.
     ///   - height: The height of the image.
-    ///   - completion: success with a captcha.
-    /// - Returns: HTTP Request.
+    /// - Returns: Result.
+    public static func requestCaptcha(
+        application: LCApplication = LCApplication.default,
+        width: Double? = nil,
+        height: Double? = nil)
+        -> LCGenericResult<Captcha>
+    {
+        return expect { (fullfill) in
+            self.requestCaptcha(application: application, width: width, height: height, completionInBackground: { (result) in
+                fullfill(result)
+            })
+        }
+    }
+    
+    /// Request a Captcha asynchronously.
+    ///
+    /// - Parameters:
+    ///   - application: The application.
+    ///   - width: The width of the image.
+    ///   - height: The height of the image.
+    ///   - completion: The callback of the result.
+    /// - Returns: Request.
     @discardableResult
     public static func requestCaptcha(
         application: LCApplication = LCApplication.default,
         width: Double? = nil,
         height: Double? = nil,
         completion: @escaping (LCGenericResult<Captcha>) -> Void)
+        -> LCRequest
+    {
+        return self.requestCaptcha(application: application, width: width, height: height, completionInBackground: { (result) in
+            mainQueueAsync {
+                completion(result)
+            }
+        })
+    }
+    
+    @discardableResult
+    private static func requestCaptcha(
+        application: LCApplication,
+        width: Double?,
+        height: Double?,
+        completionInBackground completion: @escaping (LCGenericResult<Captcha>) -> Void)
         -> LCRequest
     {
         var parameters: [String: Any] = [:]
@@ -54,31 +89,19 @@ public class LCCaptchaClient {
             parameters["height"] = height
         }
         
-        let request = application.httpClient.request(
-            .get,
-            "requestCaptcha",
-            parameters: (parameters.isEmpty ? nil : parameters))
-        { response in
+        let request = application.httpClient.request(.get, "requestCaptcha", parameters: (parameters.isEmpty ? nil : parameters)) { response in
             if let error = LCError(response: response) {
-                mainQueueAsync {
-                    completion(.failure(error: error))
-                }
+                completion(.failure(error: error))
             } else {
                 guard let data: Data = response.data else {
-                    mainQueueAsync {
-                        completion(.failure(error: LCError(code: .notFound, reason: "Response data not found.")))
-                    }
+                    completion(.failure(error: LCError(code: .notFound, reason: "Response data not found.")))
                     return
                 }
                 do {
                     let captcha: Captcha = try JSONDecoder().decode(Captcha.self, from: data)
-                    mainQueueAsync {
-                        completion(.success(value: captcha))
-                    }
+                    completion(.success(value: captcha))
                 } catch {
-                    mainQueueAsync {
-                        completion(.failure(error: LCError(error: error)))
-                    }
+                    completion(.failure(error: LCError(error: error)))
                 }
             }
         }
@@ -86,14 +109,34 @@ public class LCCaptchaClient {
         return request
     }
     
-    /// Verify a Captcha.
+    /// Verify a Captcha synchronously.
     ///
     /// - Parameters:
     ///   - application: The application.
     ///   - code: The code of the captcha.
     ///   - captchaToken: The token of the captcha.
-    ///   - completion: sucess with a captcha verification.
-    /// - Returns: HTTP Request.
+    /// - Returns: Result.
+    public static func verifyCaptcha(
+        application: LCApplication = LCApplication.default,
+        code: String,
+        captchaToken: String)
+        -> LCGenericResult<Verification>
+    {
+        return expect { (fullfill) in
+            self.verifyCaptcha(application: application, code: code, captchaToken: captchaToken, completionInBackground: { (result) in
+                fullfill(result)
+            })
+        }
+    }
+    
+    /// Verify a Captcha asynchronously.
+    ///
+    /// - Parameters:
+    ///   - application: The application.
+    ///   - code: The code of the captcha.
+    ///   - captchaToken: The token of the captcha.
+    ///   - completion: The callback of the result.
+    /// - Returns: Request.
     @discardableResult
     public static func verifyCaptcha(
         application: LCApplication = LCApplication.default,
@@ -102,36 +145,39 @@ public class LCCaptchaClient {
         completion: @escaping (LCGenericResult<Verification>) -> Void)
         -> LCRequest
     {
+        return self.verifyCaptcha(application: application, code: code, captchaToken: captchaToken, completionInBackground: { (result) in
+            mainQueueAsync {
+                completion(result)
+            }
+        })
+    }
+    
+    @discardableResult
+    private static func verifyCaptcha(
+        application: LCApplication,
+        code: String,
+        captchaToken: String,
+        completionInBackground completion: @escaping (LCGenericResult<Verification>) -> Void)
+        -> LCRequest
+    {
         let parameters: [String: Any] = [
             "captcha_code": code,
             "captcha_token": captchaToken
         ]
         
-        let request = application.httpClient.request(
-            .post,
-            "verifyCaptcha",
-            parameters: parameters)
-        { response in
+        let request = application.httpClient.request(.post, "verifyCaptcha", parameters: parameters) { response in
             if let error = LCError(response: response) {
-                mainQueueAsync {
-                    completion(.failure(error: error))
-                }
+                completion(.failure(error: error))
             } else {
                 guard let data: Data = response.data else {
-                    mainQueueAsync {
-                        completion(.failure(error: LCError(code: .notFound, reason: "Response data not found.")))
-                    }
+                    completion(.failure(error: LCError(code: .notFound, reason: "Response data not found.")))
                     return
                 }
                 do {
                     let verification: Verification = try JSONDecoder().decode(Verification.self, from: data)
-                    mainQueueAsync {
-                        completion(.success(value: verification))
-                    }
+                    completion(.success(value: verification))
                 } catch {
-                    mainQueueAsync {
-                        completion(.failure(error: LCError(error: error)))
-                    }
+                    completion(.failure(error: LCError(error: error)))
                 }
             }
         }
