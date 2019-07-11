@@ -135,19 +135,6 @@ public class IMClient {
         }
     }
     
-    public enum Action {
-        case open
-        case createConversation(memberIDs: Set<String>)
-        case join(conversation: IMConversation)
-        case add(memberIDs: Set<String>, toConversation: IMConversation)
-        case remove(memberIDs: Set<String>, fromConversation: IMConversation)
-        case queryMessage(conversation: IMConversation)
-        case block(conversation: IMConversation)
-        case unblock(conversation: IMConversation)
-        case conversation(_: IMConversation, blockingMemberIDs: Set<String>)
-        case conversation(_: IMConversation, unblockingMemberIDs: Set<String>)
-    }
-    
     /// ref: `https://github.com/leancloud/avoscloud-push/blob/develop/push-server/doc/protocol.md`
     struct SessionConfigs: OptionSet {
         let rawValue: Int64
@@ -748,7 +735,7 @@ extension IMClient {
     func getConvStartCommand(tuple: ConversationCreationTuple, completion: @escaping (IMClient, IMGenericCommand) -> Void) {
         if let signatureDelegate = self.signatureDelegate {
             self.eventQueue.async {
-                let action: IMClient.Action = .createConversation(memberIDs: Set(tuple.members))
+                let action: IMSignature.Action = .createConversation(memberIDs: Set(tuple.members))
                 signatureDelegate.client(self, action: action) { (client, signature) in
                     client.serialQueue.async {
                         let command = client.newConvStartCommand(tuple: tuple, signature: signature)
@@ -2317,11 +2304,23 @@ public protocol IMClientDelegate: class {
 
 public protocol IMSignatureDelegate: class {
     
-    func client(_ client: IMClient, action: IMClient.Action, signatureHandler: @escaping (IMClient, IMSignature?) -> Void)
+    func client(_ client: IMClient, action: IMSignature.Action, signatureHandler: @escaping (IMClient, IMSignature?) -> Void)
     
 }
 
 public struct IMSignature {
+    
+    public enum Action {
+        case open
+        case createConversation(memberIDs: Set<String>)
+        case add(memberIDs: Set<String>, toConversation: IMConversation)
+        case remove(memberIDs: Set<String>, fromConversation: IMConversation)
+        case queryMessage(conversation: IMConversation)
+        case block(conversation: IMConversation)
+        case unblock(conversation: IMConversation)
+        case conversation(_: IMConversation, blockingMemberIDs: Set<String>)
+        case conversation(_: IMConversation, unblockingMemberIDs: Set<String>)
+    }
     
     public let signature: String
     
