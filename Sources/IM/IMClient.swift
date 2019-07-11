@@ -791,7 +791,7 @@ extension IMClient {
             }
         }
         
-        if option.isTransient || option.isTemporary {
+        if option.isTemporary {
             let outCommand = self.newConvStartCommand(tuple: tuple)
             sendingClosure(self, outCommand)
         } else {
@@ -2311,11 +2311,13 @@ public protocol IMSignatureDelegate: class {
 public struct IMSignature {
     
     public enum Action {
+        
         case open
+        
         case createConversation(memberIDs: Set<String>)
         case add(memberIDs: Set<String>, toConversation: IMConversation)
         case remove(memberIDs: Set<String>, fromConversation: IMConversation)
-        case queryMessage(conversation: IMConversation)
+        
         case block(conversation: IMConversation)
         case unblock(conversation: IMConversation)
         case conversation(_: IMConversation, blockingMemberIDs: Set<String>)
