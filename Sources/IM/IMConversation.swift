@@ -170,6 +170,19 @@ public class IMConversation {
     }
     private var underlyingIsUnreadMessageContainMention: Bool = false
     
+    /// The role of member map.
+    public private(set) var memberInfoTable: [String: MemberInfo]? {
+        set {
+            sync(self.underlyingMemberInfoTable = newValue)
+        }
+        get {
+            var value: [String: MemberInfo]?
+            sync(value = self.underlyingMemberInfoTable)
+            return value
+        }
+    }
+    private var underlyingMemberInfoTable: [String: MemberInfo]?
+    
     /// Get value via subscript syntax.
     public subscript(key: String) -> Any? {
         get { return safeDecodingRawData(with: key) }
@@ -1810,6 +1823,92 @@ internal extension IMConversation {
             sets.append(.outdated(outdated))
         }
         localStorage.updateOrIgnore(conversationID: self.ID, sets: sets)
+    }
+    
+}
+
+// MARK: Member Role
+
+extension IMConversation {
+    
+    public enum MemberRole {
+        case member
+        case manager
+        case owner
+    }
+    
+    public struct MemberInfo {
+        public let ID: String
+        public let role: MemberRole
+        let conversationID: String
+        
+        init?(rawData: [String: Any]) {
+            guard
+                let clientId: String = rawData["clientId"] as? String,
+                let cid: String = rawData["cid"] as? String,
+                let role: String = rawData["role"] as? String else
+            {
+                return nil
+            }
+            self.ID = clientId
+            self.conversationID = cid
+            switch role {
+            case "Manager":
+                self.role = .manager
+            default:
+                return nil
+            }
+        }
+    }
+    
+    public func fetchMemberRoleMap(completion: @escaping (LCBooleanResult) -> Void) {
+        self.client?.serialQueue.async {
+            self.client?.getSessionToken(completion: { (client, result) in
+                assert(client.specificAssertion)
+                switch result {
+                case .success(value: let token):
+                    let httpClient: HTTPClient = client.application.httpClient
+                    let header: [String: String] = [
+                        "X-LC-IM-Session-Token": token
+                    ]
+                    let parameters: [String: Any] = [
+                        "client_id": client.ID,
+                        "cid": self.ID
+                    ]
+                    _ = httpClient.request(
+                        .get,
+                        "classes/_ConversationMemberInfo",
+                        parameters: parameters,
+                        headers: header)
+                    { (response) in
+                        if let error = LCError(response: response) {
+                            client.eventQueue.async {
+                                completion(.failure(error: error))
+                            }
+                        } else if let results = response.results as? [[String: Any]] {
+                            var table: [String: MemberInfo] = [:]
+                            for rawData in results {
+                                if let info = MemberInfo(rawData: rawData) {
+                                    table[info.ID] = info
+                                }
+                            }
+                            self.memberInfoTable = table
+                            client.eventQueue.async {
+                                completion(.success)
+                            }
+                        } else {
+                            client.eventQueue.async {
+                                completion(.failure(error: LCError(code: .malformedData)))
+                            }
+                        }
+                    }
+                case .failure(error: let error):
+                    client.eventQueue.async {
+                        completion(.failure(error: error))
+                    }
+                }
+            })
+        }
     }
     
 }
