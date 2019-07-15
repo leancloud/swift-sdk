@@ -397,7 +397,7 @@ extension IMConversation: InternalSynchronizing {
     
 }
 
-// MARK: - Message Sending
+// MARK: Message Sending
 
 extension IMConversation {
     
@@ -601,7 +601,7 @@ extension IMConversation {
     
 }
 
-// MARK: - Message Reading
+// MARK: Message Reading
 
 extension IMConversation {
     
@@ -688,7 +688,7 @@ extension IMConversation {
     
 }
 
-// MARK: - Message Updating
+// MARK: Message Updating
 
 extension IMConversation {
     
@@ -877,7 +877,7 @@ extension IMConversation {
     
 }
 
-// MARK: - Message Receipt Timestamp
+// MARK: Message Receipt Timestamp
 
 extension IMConversation {
     
@@ -950,7 +950,7 @@ extension IMConversation {
     
 }
 
-// MARK: - Message Query
+// MARK: Message Query
 
 extension IMConversation {
     
@@ -1269,7 +1269,7 @@ extension IMConversation {
     
 }
 
-// MARK: - Members
+// MARK: Members
 
 extension IMConversation {
     
@@ -1419,7 +1419,7 @@ extension IMConversation {
     
 }
 
-// MARK: - Mute
+// MARK: Mute
 
 extension IMConversation {
     
@@ -1462,7 +1462,7 @@ extension IMConversation {
     
 }
 
-// MARK: - Data Updating
+// MARK: Data Updating
 
 internal extension IMConversation {
     
@@ -1814,7 +1814,7 @@ internal extension IMConversation {
     
 }
 
-// MARK: - Misc
+// MARK: Misc
 
 private extension IMConversation {
     
