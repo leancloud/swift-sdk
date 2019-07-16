@@ -1610,6 +1610,38 @@ extension IMClient {
     
     // MARK: Command Processing
     
+    private func eventAndRawDataOperation(
+        convCommand: IMConvCommand,
+        op: IMOpType)
+        -> (IMConversation.RawDataChangeOperation, IMConversationEvent)
+    {
+        let rawDataOperation: IMConversation.RawDataChangeOperation
+        let event: IMConversationEvent
+        
+        let byClientID: String? = (convCommand.hasInitBy ? convCommand.initBy : nil)
+        let udate: String? = (convCommand.hasUdate ? convCommand.udate : nil)
+        let atDate: Date? = (convCommand.hasUdate ? LCDate.dateFromString(convCommand.udate) : nil)
+        
+        switch op {
+        case .joined:
+            rawDataOperation = .append(members: [self.ID], udate: udate)
+            event = .joined(byClientID: byClientID, at: atDate)
+        case .left:
+            rawDataOperation = .remove(members: [self.ID], udate: udate)
+            event = .left(byClientID: byClientID, at: atDate)
+        case .membersJoined:
+            rawDataOperation = .append(members: convCommand.m, udate: udate)
+            event = .membersJoined(members: convCommand.m, byClientID: byClientID, at: atDate)
+        case .membersLeft:
+            rawDataOperation = .remove(members: convCommand.m, udate: udate)
+            event = .membersLeft(members: convCommand.m, byClientID: byClientID, at: atDate)
+        default:
+            fatalError()
+        }
+        
+        return (rawDataOperation, event)
+    }
+    
     func process(convCommand command: IMConvCommand, op: IMOpType, serverTimestamp: Int64?) {
         assert(self.specificAssertion)
         guard let conversationID: String = (command.hasCid ? command.cid : nil) else {
@@ -1619,37 +1651,19 @@ extension IMClient {
             assert(client.specificAssertion)
             switch result {
             case .success(value: let conversation):
-                var event: IMConversationEvent? = nil
-                var rawDataOperation: IMConversation.RawDataChangeOperation? = nil
+                var rawDataOperation: IMConversation.RawDataChangeOperation?
+                var event: IMConversationEvent?
                 switch op {
                 case .joined, .left, .membersJoined, .membersLeft:
-                    let byClientID: String? = (command.hasInitBy ? command.initBy : nil)
-                    let udate: String? = (command.hasUdate ? command.udate : nil)
-                    let atDate: Date? = (command.hasUdate ? LCDate.dateFromString(command.udate) : nil)
-                    switch op {
-                    case .joined:
-                        rawDataOperation = .append(members: [client.ID], udate: udate)
-                        event = .joined(byClientID: byClientID, at: atDate)
-                    case .left:
-                        rawDataOperation = .remove(members: [client.ID], udate: udate)
-                        event = .left(byClientID: byClientID, at: atDate)
-                    case .membersJoined:
-                        rawDataOperation = .append(members: command.m, udate: udate)
-                        event = .membersJoined(members: command.m, byClientID: byClientID, at: atDate)
-                    case .membersLeft:
-                        rawDataOperation = .remove(members: command.m, udate: udate)
-                        event = .membersLeft(members: command.m, byClientID: byClientID, at: atDate)
-                    default:
-                        break
-                    }
+                    let tuple = client.eventAndRawDataOperation(convCommand: command, op: op)
+                    rawDataOperation = tuple.0
+                    event = tuple.1
                 case .updated:
                     do {
                         if
-                            command.hasAttr,
-                            command.attr.hasData,
+                            command.hasAttr, command.attr.hasData,
                             let attr: [String: Any] = try command.attr.data.jsonObject(),
-                            command.hasAttrModified,
-                            command.attrModified.hasData,
+                            command.hasAttrModified, command.attrModified.hasData,
                             let attrModified: [String: Any] = try command.attrModified.data.jsonObject()
                         {
                             rawDataOperation = .updated(
@@ -1663,11 +1677,26 @@ extension IMClient {
                                 byClientID: (command.hasInitBy ? command.initBy : nil),
                                 at: (command.hasUdate ? LCDate.dateFromString(command.udate) : nil)
                             )
-                        } else {
-                            Logger.shared.error("invalid command \(command)")
                         }
                     } catch {
                         Logger.shared.error(error)
+                    }
+                case .memberInfoChanged:
+                    if
+                        let info = (command.hasInfo ? command.info : nil),
+                        let memberID = (info.hasPid ? info.pid : nil),
+                        let roleRawValue = (info.hasRole ? info.role : nil),
+                        let role = IMConversation.MemberRole(rawValue: roleRawValue)
+                    {
+                        let memberInfo = IMConversation.MemberInfo(
+                            ID: memberID,
+                            role: role,
+                            conversationID: conversation.ID,
+                            creator: conversation.creator
+                        )
+                        let byClientID = (command.hasInitBy ? command.initBy : nil)
+                        let atDate = IMClient.date(fromMillisecond: serverTimestamp)
+                        event = IMConversationEvent.memberInfoChanged(info: memberInfo, byClientID: byClientID, at: atDate)
                     }
                 default:
                     break
@@ -1675,10 +1704,7 @@ extension IMClient {
                 if let rawDataOperation = rawDataOperation {
                     conversation.safeChangingRawData(operation: rawDataOperation, client: client)
                     let lastServerTimestampUpdated: Bool = client.localRecord.update(lastServerTimestamp: serverTimestamp)
-                    if
-                        lastServerTimestampUpdated,
-                        let _ = self.cachedConvMapSnapshot?[conversationID]
-                    {
+                    if lastServerTimestampUpdated, let _ = self.cachedConvMapSnapshot?[conversationID] {
                         conversation.isOutdated = true
                         conversation.tryUpdateLocalStorageData(client: client, outdated: true)
                     }
@@ -2253,6 +2279,8 @@ public enum IMConversationEvent {
     case membersJoined(members: [String], byClientID: String?, at: Date?)
     
     case membersLeft(members: [String], byClientID: String?, at: Date?)
+    
+    case memberInfoChanged(info: IMConversation.MemberInfo, byClientID: String?, at: Date?)
     
     case dataUpdated(updatingData: [String: Any]?, updatedData: [String: Any]?, byClientID: String?, at: Date?)
     

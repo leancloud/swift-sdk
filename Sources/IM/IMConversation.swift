@@ -171,15 +171,10 @@ public class IMConversation {
     private var underlyingIsUnreadMessageContainMention: Bool = false
     
     /// The role of member map.
-    public private(set) var memberInfoTable: [String: MemberInfo]? {
-        set {
-            sync(self.underlyingMemberInfoTable = newValue)
-        }
-        get {
-            var value: [String: MemberInfo]?
-            sync(value = self.underlyingMemberInfoTable)
-            return value
-        }
+    public var memberInfoTable: [String: MemberInfo]? {
+        var value: [String: MemberInfo]?
+        sync(value = self.underlyingMemberInfoTable)
+        return value
     }
     private var underlyingMemberInfoTable: [String: MemberInfo]?
     
@@ -1649,6 +1644,7 @@ internal extension IMConversation {
         case append(members: [String], udate: String?)
         case remove(members: [String], udate: String?)
         case updated(attr: [String: Any], attrModified: [String: Any], udate: String?)
+        case memberInfoChanged(info: MemberInfo)
     }
     
     func safeChangingRawData(operation: RawDataChangeOperation, client: IMClient) {
@@ -1664,6 +1660,14 @@ internal extension IMConversation {
             self.rawDataChangeOperationRemove(members: leftMembers, udate: udate, client: client)
         case let .updated(attr: attr, attrModified: attrModified, udate):
             self.rawDataChangeOperationUpdated(attr: attr, attrModified: attrModified, udate: udate, client: client)
+        case let .memberInfoChanged(info: info):
+            sync {
+                if let _ = self.underlyingMemberInfoTable {
+                    self.underlyingMemberInfoTable?[info.ID] = info
+                } else {
+                    self.underlyingMemberInfoTable = [info.ID: info]
+                }
+            }
         }
     }
     
@@ -1831,10 +1835,10 @@ internal extension IMConversation {
 
 extension IMConversation {
     
-    public enum MemberRole {
-        case member
-        case manager
-        case owner
+    public enum MemberRole: String {
+        case owner = "Owner"
+        case manager = "Manager"
+        case member = "Member"
     }
     
     public struct MemberInfo {
@@ -1842,7 +1846,7 @@ extension IMConversation {
         public let role: MemberRole
         let conversationID: String
         
-        init?(rawData: [String: Any]) {
+        init?(rawData: [String: Any], creator: String?) {
             guard
                 let clientId: String = rawData["clientId"] as? String,
                 let cid: String = rawData["cid"] as? String,
@@ -1851,13 +1855,27 @@ extension IMConversation {
                 return nil
             }
             self.ID = clientId
-            self.conversationID = cid
-            switch role {
-            case "Manager":
-                self.role = .manager
-            default:
-                return nil
+            if let creator = creator, creator == clientId {
+                self.role = .owner
+            } else {
+                switch role {
+                case "Manager":
+                    self.role = .manager
+                default:
+                    return nil
+                }
             }
+            self.conversationID = cid
+        }
+        
+        init(ID: String, role: MemberRole, conversationID: String, creator: String?) {
+            self.ID = ID
+            if let creator = creator, creator == ID {
+                self.role = .owner
+            } else {
+                self.role = role
+            }
+            self.conversationID = conversationID
         }
     }
     
@@ -1886,13 +1904,14 @@ extension IMConversation {
                                 completion(.failure(error: error))
                             }
                         } else if let results = response.results as? [[String: Any]] {
+                            let creator = self.creator
                             var table: [String: MemberInfo] = [:]
                             for rawData in results {
-                                if let info = MemberInfo(rawData: rawData) {
+                                if let info = MemberInfo(rawData: rawData, creator: creator) {
                                     table[info.ID] = info
                                 }
                             }
-                            self.memberInfoTable = table
+                            self.sync(self.underlyingMemberInfoTable = table)
                             client.eventQueue.async {
                                 completion(.success)
                             }
@@ -1909,6 +1928,57 @@ extension IMConversation {
                 }
             })
         }
+    }
+    
+    public func update(role: MemberRole, ofMember memberID: String, completion: @escaping (LCBooleanResult) -> Void) throws {
+        guard role != .owner else {
+            throw LCError(code: LCError.InternalErrorCode.ownerPromotionNotAllowed)
+        }
+        self.client?.sendCommand(constructor: { () -> IMGenericCommand in
+            var outCommand = IMGenericCommand()
+            outCommand.cmd = .conv
+            outCommand.op = .memberInfoUpdate
+            var convCommand = IMConvCommand()
+            convCommand.cid = self.ID
+            convCommand.targetClientID = memberID
+            var convMemberInfo = IMConvMemberInfo()
+            convMemberInfo.pid = memberID
+            convMemberInfo.role = role.rawValue
+            convCommand.info = convMemberInfo
+            outCommand.convMessage = convCommand
+            return outCommand
+        }, completion: { (client, result) in
+            assert(client.specificAssertion)
+            switch result {
+            case .inCommand(let inCommand):
+                guard inCommand.cmd == .conv, inCommand.op == .memberInfoUpdated else {
+                    client.eventQueue.async {
+                        completion(.failure(error: LCError(code: .commandInvalid)))
+                    }
+                    return
+                }
+                let info = MemberInfo(
+                    ID: memberID,
+                    role: role,
+                    conversationID: self.ID,
+                    creator: self.creator
+                )
+                self.sync {
+                    if let _ = self.underlyingMemberInfoTable {
+                        self.underlyingMemberInfoTable?[info.ID] = info
+                    } else {
+                        self.underlyingMemberInfoTable = [info.ID: info]
+                    }
+                }
+                client.eventQueue.async {
+                    completion(.success)
+                }
+            case .error(let error):
+                client.eventQueue.async {
+                    completion(.failure(error: error))
+                }
+            }
+        })
     }
     
 }
