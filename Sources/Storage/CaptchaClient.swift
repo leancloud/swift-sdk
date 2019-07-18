@@ -43,9 +43,9 @@ public class LCCaptchaClient {
         height: Double? = nil)
         -> LCGenericResult<Captcha>
     {
-        return expect { (fullfill) in
+        return expect { (fulfill) in
             self.requestCaptcha(application: application, width: width, height: height, completionInBackground: { (result) in
-                fullfill(result)
+                fulfill(result)
             })
         }
     }
@@ -122,9 +122,9 @@ public class LCCaptchaClient {
         captchaToken: String)
         -> LCGenericResult<Verification>
     {
-        return expect { (fullfill) in
+        return expect { (fulfill) in
             self.verifyCaptcha(application: application, code: code, captchaToken: captchaToken, completionInBackground: { (result) in
-                fullfill(result)
+                fulfill(result)
             })
         }
     }

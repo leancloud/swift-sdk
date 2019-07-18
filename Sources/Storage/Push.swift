@@ -31,9 +31,9 @@ public class LCPush {
         expirationInterval: TimeInterval? = nil)
         -> LCBooleanResult
     {
-        return expect { (fullfill) in
+        return expect { (fulfill) in
             self.send(application: application, data: data, query: query, channels: channels, pushDate: pushDate, expirationDate: expirationDate, expirationInterval: expirationInterval, completionInBackground: { (result) in
-                fullfill(result)
+                fulfill(result)
             })
         }
     }

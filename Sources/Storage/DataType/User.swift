@@ -1133,14 +1133,14 @@ open class LCUser: LCObject {
         throws
         -> LCBooleanResult
     {
-        return try expect { fullfill in
+        return try expect { fulfill in
             try self.associate(
                 authData: authData,
                 platform: platform,
                 unionID: unionID,
                 unionIDPlatform: unionIDPlatform,
                 options: options,
-                completionInBackground: { fullfill($0) }
+                completionInBackground: { fulfill($0) }
             )
         }
     }
@@ -1220,10 +1220,10 @@ open class LCUser: LCObject {
     }
     
     public func disassociate(authData platform: AuthDataPlatform) throws -> LCBooleanResult {
-        return try expect { fullfill in
+        return try expect { fulfill in
             try self.disassociate(
                 authData: platform,
-                completionInBackground: { fullfill($0) }
+                completionInBackground: { fulfill($0) }
             )
         }
     }
