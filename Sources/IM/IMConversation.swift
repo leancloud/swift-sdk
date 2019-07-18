@@ -1470,6 +1470,158 @@ extension IMConversation {
     
 }
 
+// MARK: Member Role
+
+extension IMConversation {
+    
+    public enum MemberRole: String {
+        case owner = "Owner"
+        case manager = "Manager"
+        case member = "Member"
+    }
+    
+    public struct MemberInfo {
+        public let ID: String
+        public let role: MemberRole
+        let conversationID: String
+        
+        init?(rawData: [String: Any], creator: String?) {
+            guard
+                let clientId: String = rawData["clientId"] as? String,
+                let cid: String = rawData["cid"] as? String,
+                let role: String = rawData["role"] as? String else
+            {
+                return nil
+            }
+            self.ID = clientId
+            if let creator = creator, creator == clientId {
+                self.role = .owner
+            } else {
+                switch role {
+                case "Manager":
+                    self.role = .manager
+                default:
+                    return nil
+                }
+            }
+            self.conversationID = cid
+        }
+        
+        init(ID: String, role: MemberRole, conversationID: String, creator: String?) {
+            self.ID = ID
+            if let creator = creator, creator == ID {
+                self.role = .owner
+            } else {
+                self.role = role
+            }
+            self.conversationID = conversationID
+        }
+    }
+    
+    public func fetchMemberRoleMap(completion: @escaping (LCBooleanResult) -> Void) {
+        self.client?.serialQueue.async {
+            self.client?.getSessionToken(completion: { (client, result) in
+                assert(client.specificAssertion)
+                switch result {
+                case .success(value: let token):
+                    let httpClient: HTTPClient = client.application.httpClient
+                    let header: [String: String] = [
+                        "X-LC-IM-Session-Token": token
+                    ]
+                    let parameters: [String: Any] = [
+                        "client_id": client.ID,
+                        "cid": self.ID
+                    ]
+                    _ = httpClient.request(
+                        .get,
+                        "classes/_ConversationMemberInfo",
+                        parameters: parameters,
+                        headers: header)
+                    { (response) in
+                        if let error = LCError(response: response) {
+                            client.eventQueue.async {
+                                completion(.failure(error: error))
+                            }
+                        } else if let results = response.results as? [[String: Any]] {
+                            let creator = self.creator
+                            var table: [String: MemberInfo] = [:]
+                            for rawData in results {
+                                if let info = MemberInfo(rawData: rawData, creator: creator) {
+                                    table[info.ID] = info
+                                }
+                            }
+                            self.sync(self.underlyingMemberInfoTable = table)
+                            client.eventQueue.async {
+                                completion(.success)
+                            }
+                        } else {
+                            client.eventQueue.async {
+                                completion(.failure(error: LCError(code: .malformedData)))
+                            }
+                        }
+                    }
+                case .failure(error: let error):
+                    client.eventQueue.async {
+                        completion(.failure(error: error))
+                    }
+                }
+            })
+        }
+    }
+    
+    public func update(role: MemberRole, ofMember memberID: String, completion: @escaping (LCBooleanResult) -> Void) throws {
+        guard role != .owner else {
+            throw LCError(code: LCError.InternalErrorCode.ownerPromotionNotAllowed)
+        }
+        self.client?.sendCommand(constructor: { () -> IMGenericCommand in
+            var outCommand = IMGenericCommand()
+            outCommand.cmd = .conv
+            outCommand.op = .memberInfoUpdate
+            var convCommand = IMConvCommand()
+            convCommand.cid = self.ID
+            convCommand.targetClientID = memberID
+            var convMemberInfo = IMConvMemberInfo()
+            convMemberInfo.pid = memberID
+            convMemberInfo.role = role.rawValue
+            convCommand.info = convMemberInfo
+            outCommand.convMessage = convCommand
+            return outCommand
+        }, completion: { (client, result) in
+            assert(client.specificAssertion)
+            switch result {
+            case .inCommand(let inCommand):
+                guard inCommand.cmd == .conv, inCommand.op == .memberInfoUpdated else {
+                    client.eventQueue.async {
+                        completion(.failure(error: LCError(code: .commandInvalid)))
+                    }
+                    return
+                }
+                let info = MemberInfo(
+                    ID: memberID,
+                    role: role,
+                    conversationID: self.ID,
+                    creator: self.creator
+                )
+                self.sync {
+                    if let _ = self.underlyingMemberInfoTable {
+                        self.underlyingMemberInfoTable?[info.ID] = info
+                    } else {
+                        self.underlyingMemberInfoTable = [info.ID: info]
+                    }
+                }
+                client.eventQueue.async {
+                    completion(.success)
+                }
+            case .error(let error):
+                client.eventQueue.async {
+                    completion(.failure(error: error))
+                }
+            }
+        })
+    }
+    
+}
+
 // MARK: Data Updating
 
 internal extension IMConversation {
@@ -1827,158 +1979,6 @@ internal extension IMConversation {
             sets.append(.outdated(outdated))
         }
         localStorage.updateOrIgnore(conversationID: self.ID, sets: sets)
-    }
-    
-}
-
-// MARK: Member Role
-
-extension IMConversation {
-    
-    public enum MemberRole: String {
-        case owner = "Owner"
-        case manager = "Manager"
-        case member = "Member"
-    }
-    
-    public struct MemberInfo {
-        public let ID: String
-        public let role: MemberRole
-        let conversationID: String
-        
-        init?(rawData: [String: Any], creator: String?) {
-            guard
-                let clientId: String = rawData["clientId"] as? String,
-                let cid: String = rawData["cid"] as? String,
-                let role: String = rawData["role"] as? String else
-            {
-                return nil
-            }
-            self.ID = clientId
-            if let creator = creator, creator == clientId {
-                self.role = .owner
-            } else {
-                switch role {
-                case "Manager":
-                    self.role = .manager
-                default:
-                    return nil
-                }
-            }
-            self.conversationID = cid
-        }
-        
-        init(ID: String, role: MemberRole, conversationID: String, creator: String?) {
-            self.ID = ID
-            if let creator = creator, creator == ID {
-                self.role = .owner
-            } else {
-                self.role = role
-            }
-            self.conversationID = conversationID
-        }
-    }
-    
-    public func fetchMemberRoleMap(completion: @escaping (LCBooleanResult) -> Void) {
-        self.client?.serialQueue.async {
-            self.client?.getSessionToken(completion: { (client, result) in
-                assert(client.specificAssertion)
-                switch result {
-                case .success(value: let token):
-                    let httpClient: HTTPClient = client.application.httpClient
-                    let header: [String: String] = [
-                        "X-LC-IM-Session-Token": token
-                    ]
-                    let parameters: [String: Any] = [
-                        "client_id": client.ID,
-                        "cid": self.ID
-                    ]
-                    _ = httpClient.request(
-                        .get,
-                        "classes/_ConversationMemberInfo",
-                        parameters: parameters,
-                        headers: header)
-                    { (response) in
-                        if let error = LCError(response: response) {
-                            client.eventQueue.async {
-                                completion(.failure(error: error))
-                            }
-                        } else if let results = response.results as? [[String: Any]] {
-                            let creator = self.creator
-                            var table: [String: MemberInfo] = [:]
-                            for rawData in results {
-                                if let info = MemberInfo(rawData: rawData, creator: creator) {
-                                    table[info.ID] = info
-                                }
-                            }
-                            self.sync(self.underlyingMemberInfoTable = table)
-                            client.eventQueue.async {
-                                completion(.success)
-                            }
-                        } else {
-                            client.eventQueue.async {
-                                completion(.failure(error: LCError(code: .malformedData)))
-                            }
-                        }
-                    }
-                case .failure(error: let error):
-                    client.eventQueue.async {
-                        completion(.failure(error: error))
-                    }
-                }
-            })
-        }
-    }
-    
-    public func update(role: MemberRole, ofMember memberID: String, completion: @escaping (LCBooleanResult) -> Void) throws {
-        guard role != .owner else {
-            throw LCError(code: LCError.InternalErrorCode.ownerPromotionNotAllowed)
-        }
-        self.client?.sendCommand(constructor: { () -> IMGenericCommand in
-            var outCommand = IMGenericCommand()
-            outCommand.cmd = .conv
-            outCommand.op = .memberInfoUpdate
-            var convCommand = IMConvCommand()
-            convCommand.cid = self.ID
-            convCommand.targetClientID = memberID
-            var convMemberInfo = IMConvMemberInfo()
-            convMemberInfo.pid = memberID
-            convMemberInfo.role = role.rawValue
-            convCommand.info = convMemberInfo
-            outCommand.convMessage = convCommand
-            return outCommand
-        }, completion: { (client, result) in
-            assert(client.specificAssertion)
-            switch result {
-            case .inCommand(let inCommand):
-                guard inCommand.cmd == .conv, inCommand.op == .memberInfoUpdated else {
-                    client.eventQueue.async {
-                        completion(.failure(error: LCError(code: .commandInvalid)))
-                    }
-                    return
-                }
-                let info = MemberInfo(
-                    ID: memberID,
-                    role: role,
-                    conversationID: self.ID,
-                    creator: self.creator
-                )
-                self.sync {
-                    if let _ = self.underlyingMemberInfoTable {
-                        self.underlyingMemberInfoTable?[info.ID] = info
-                    } else {
-                        self.underlyingMemberInfoTable = [info.ID: info]
-                    }
-                }
-                client.eventQueue.async {
-                    completion(.success)
-                }
-            case .error(let error):
-                client.eventQueue.async {
-                    completion(.failure(error: error))
-                }
-            }
-        })
     }
     
 }
