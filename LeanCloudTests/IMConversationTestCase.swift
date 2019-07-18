@@ -1564,6 +1564,156 @@ class IMConversationTestCase: RTMBaseTestCase {
         delegatorB.reset()
     }
     
+    func testMemberInfo() {
+        guard
+            let clientA = newOpenedClient(),
+            let clientB = newOpenedClient() else
+        {
+            XCTFail()
+            return
+        }
+        let clientCID: String = self.uuid
+        
+        let delegatorA = IMClientTestCase.Delegator()
+        clientA.delegate = delegatorA
+        let delegatorB = IMClientTestCase.Delegator()
+        clientB.delegate = delegatorB
+        
+        var convA: IMConversation?
+        
+        expecting { (exp) in
+            try! clientA.createConversation(clientIDs: [clientB.ID, clientCID], completion: { (result) in
+                XCTAssertTrue(result.isSuccess)
+                XCTAssertNil(result.error)
+                convA = result.value
+                exp.fulfill()
+            })
+        }
+        
+        do {
+            try convA?.update(role: .owner, ofMember: clientB.ID, completion: { (_) in })
+            XCTFail()
+        } catch {
+            XCTAssertTrue(error is LCError)
+        }
+        
+        multiExpecting(expectations: { () -> [XCTestExpectation] in
+            let exp = self.expectation(description: "change member role to manager")
+            exp.expectedFulfillmentCount = 2
+            return [exp]
+        }) { (exps) in
+            let exp = exps[0]
+            
+            delegatorB.conversationEvent = { client, conv, event in
+                switch event {
+                case let .memberInfoChanged(info: info, byClientID: byClientID, at: at):
+                    XCTAssertTrue(Thread.isMainThread)
+                    XCTAssertEqual(info.role, .manager)
+                    XCTAssertEqual(info.ID, clientB.ID)
+                    XCTAssertEqual(info.conversationID, conv.ID)
+                    XCTAssertEqual(byClientID, clientA.ID)
+                    XCTAssertNotNil(at)
+                    XCTAssertEqual(conv.memberInfoTable?[info.ID]?.role, .manager)
+                    exp.fulfill()
+                default:
+                    break
+                }
+            }
+            
+            try! convA?.update(role: .manager, ofMember: clientB.ID, completion: { (result) in
+                XCTAssertTrue(Thread.isMainThread)
+                XCTAssertTrue(result.isSuccess)
+                XCTAssertNil(result.error)
+                XCTAssertEqual(convA?.memberInfoTable?[clientB.ID]?.role, .manager)
+                exp.fulfill()
+            })
+        }
+        
+        expecting { (exp) in
+            convA?.fetchMemberRoleMap(completion: { (result) in
+                XCTAssertTrue(Thread.isMainThread)
+                XCTAssertTrue(result.isSuccess)
+                XCTAssertNil(result.error)
+                XCTAssertNotNil(convA?.memberInfoTable)
+                XCTAssertEqual(convA?.memberInfoTable?[clientB.ID]?.role, .manager)
+                exp.fulfill()
+            })
+        }
+        
+        multiExpecting(expectations: { () -> [XCTestExpectation] in
+            let exp = self.expectation(description: "change member role to member")
+            exp.expectedFulfillmentCount = 2
+            return [exp]
+        }) { (exps) in
+            let exp = exps[0]
+            
+            delegatorB.conversationEvent = { client, conv, event in
+                switch event {
+                case let .memberInfoChanged(info: info, byClientID: byClientID, at: at):
+                    XCTAssertEqual(info.role, .member)
+                    XCTAssertEqual(info.ID, clientB.ID)
+                    XCTAssertEqual(info.conversationID, conv.ID)
+                    XCTAssertEqual(byClientID, clientA.ID)
+                    XCTAssertNotNil(at)
+                    XCTAssertEqual(conv.memberInfoTable?[info.ID]?.role, .member)
+                    exp.fulfill()
+                default:
+                    break
+                }
+            }
+            
+            try! convA?.update(role: .member, ofMember: clientB.ID, completion: { (result) in
+                XCTAssertTrue(result.isSuccess)
+                XCTAssertNil(result.error)
+                XCTAssertEqual(convA?.memberInfoTable?[clientB.ID]?.role, .member)
+                exp.fulfill()
+            })
+        }
+        
+        expecting { (exp) in
+            convA?.fetchMemberRoleMap(completion: { (result) in
+                XCTAssertTrue(Thread.isMainThread)
+                XCTAssertTrue(result.isSuccess)
+                XCTAssertNil(result.error)
+                XCTAssertNotNil(convA?.memberInfoTable)
+                XCTAssertEqual(convA?.memberInfoTable?.isEmpty, true)
+                exp.fulfill()
+            })
+        }
+        
+//        let delegatorC = IMClientTestCase.Delegator()
+//        let clientC = try! IMClient(ID: clientCID, delegate: delegatorC)
+//        clientC.test_change(serverTimestamp: 1)
+//
+//        multiExpecting(expectations: { () -> [XCTestExpectation] in
+//            let exp = self.expectation(description: "client received offline event")
+//            exp.expectedFulfillmentCount = 3
+//            return [exp]
+//        }) { (exps) in
+//            let exp = exps[0]
+//
+//            delegatorC.conversationEvent = { client, conv, event in
+//                switch event {
+//                case let .memberInfoChanged(info: info, byClientID: byClientID, at: at):
+//                    XCTAssertEqual(info.ID, clientB.ID)
+//                    XCTAssertEqual(info.conversationID, conv.ID)
+//                    XCTAssertEqual(byClientID, clientA.ID)
+//                    XCTAssertNotNil(at)
+//                    XCTAssertNotNil(conv.memberInfoTable?[info.ID])
+//                    exp.fulfill()
+//                default:
+//                    break
+//                }
+//            }
+//
+//            clientC.open(completion: { (result) in
+//                XCTAssertTrue(result.isSuccess)
+//                XCTAssertNil(result.error)
+//                exp.fulfill()
+//            })
+//        }
+    }
+    
 }
 
 extension IMConversationTestCase {
