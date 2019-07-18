@@ -315,14 +315,7 @@ public class IMConversation {
     ///
     /// - Parameter completion: callback
     public func refresh(completion: @escaping (LCBooleanResult) -> Void) throws {
-        try self.client?.conversationQuery.getConversation(by: self.ID, completion: { (result) in
-            switch result {
-            case .success(value: _):
-                completion(.success)
-            case .failure(error: let error):
-                completion(.failure(error: error))
-            }
-        })
+        try self._refresh(completion: completion)
     }
     
     /// Update conversation's data.
@@ -331,68 +324,26 @@ public class IMConversation {
     ///   - data: The data to be updated.
     ///   - completion: callback.
     public func update(attribution data: [String: Any], completion: @escaping (LCBooleanResult) -> Void) throws {
-        guard !data.isEmpty else {
-            throw LCError(code: .inconsistency, reason: "parameter invalid.")
-        }
-        let binaryData = try JSONSerialization.data(withJSONObject: data)
-        guard let jsonString = String(data: binaryData, encoding: .utf8) else {
-            throw LCError(code: .inconsistency, reason: "parameter invalid.")
-        }
-        self.client?.sendCommand(constructor: { () -> IMGenericCommand in
-            var outCommand = IMGenericCommand()
-            outCommand.cmd = .conv
-            outCommand.op = .update
-            var convCommand = IMConvCommand()
-            convCommand.cid = self.ID
-            var jsonObject = IMJsonObjectMessage()
-            jsonObject.data = jsonString
-            convCommand.attr = jsonObject
-            outCommand.convMessage = convCommand
-            return outCommand
-        }, completion: { (client, result) in
-            switch result {
-            case .inCommand(let inCommand):
-                assert(client.specificAssertion)
-                guard
-                    let convCommand = (inCommand.hasConvMessage ? inCommand.convMessage : nil),
-                    let jsonCommand = (convCommand.hasAttrModified ? convCommand.attrModified : nil),
-                    let attrModifiedString = (jsonCommand.hasData ? jsonCommand.data : nil)
-                    else
-                {
-                    client.eventQueue.async {
-                        let error = LCError(code: .commandInvalid)
-                        completion(.failure(error: error))
-                    }
-                    return
-                }
-                do {
-                    if let attrModified: [String: Any] = try attrModifiedString.jsonObject(),
-                        let udate: String = (convCommand.hasUdate ? convCommand.udate : nil) {
-                        self.safeChangingRawData(
-                            operation: .updated(attr: data, attrModified: attrModified, udate: udate),
-                            client: client
-                        )
-                        client.eventQueue.async {
-                            completion(.success)
-                        }
-                    } else {
-                        client.eventQueue.async {
-                            let error = LCError(code: .commandInvalid)
-                            completion(.failure(error: error))
-                        }
-                    }
-                } catch {
-                    let err = LCError(error: error)
-                    client.eventQueue.async {
-                        completion(.failure(error: err))
-                    }
-                }
-            case .error(let error):
-                client.eventQueue.async {
-                    completion(.failure(error: error))
-                }
-            }
-        })
+        try self._update(attribution: data, completion: completion)
+    }
+    
+    /// Fetching the table of member infomation in the conversation.
+    /// The result will be cached by the property `memberInfoTable`.
+    ///
+    /// - Parameter completion: Result of callback.
+    public func fetchMemberInfoTable(completion: @escaping (LCBooleanResult) -> Void) {
+        self._fetchMemberInfoTable(completion: completion)
+    }
+    
+    /// Updating role of the member in the conversaiton.
+    ///
+    /// - Parameters:
+    ///   - role: The role will be updated.
+    ///   - memberID: The ID of the member who will be updated.
+    ///   - completion: Result of callback.
+    /// - Throws: If role parameter is owner, throw error.
+    public func update(role: MemberRole, ofMember memberID: String, completion: @escaping (LCBooleanResult) -> Void) throws {
+        try self._update(role: role, ofMember: memberID, completion: completion)
     }
 
 }
@@ -990,7 +941,7 @@ extension IMConversation {
         case newToOld = 1
         case oldToNew = 2
         
-        internal var protobufEnum: IMLogsCommand.QueryDirection {
+        var protobufEnum: IMLogsCommand.QueryDirection {
             switch self {
             case .newToOld:
                 return .old
@@ -999,7 +950,7 @@ extension IMConversation {
             }
         }
         
-        internal var SQLOrder: String {
+        var SQLOrder: String {
             switch self {
             case .newToOld:
                 return "desc"
@@ -1518,7 +1469,7 @@ extension IMConversation {
         }
     }
     
-    public func fetchMemberInfoTable(completion: @escaping (LCBooleanResult) -> Void) {
+    private func _fetchMemberInfoTable(completion: @escaping (LCBooleanResult) -> Void) {
         self.client?.serialQueue.async {
             self.client?.getSessionToken(completion: { (client, result) in
                 assert(client.specificAssertion)
@@ -1569,7 +1520,7 @@ extension IMConversation {
         }
     }
     
-    public func update(role: MemberRole, ofMember memberID: String, completion: @escaping (LCBooleanResult) -> Void) throws {
+    private func _update(role: MemberRole, ofMember memberID: String, completion: @escaping (LCBooleanResult) -> Void) throws {
         guard role != .owner else {
             throw LCError(code: LCError.InternalErrorCode.ownerPromotionNotAllowed)
         }
@@ -1624,7 +1575,83 @@ extension IMConversation {
 
 // MARK: Data Updating
 
-internal extension IMConversation {
+extension IMConversation {
+    
+    private func _refresh(completion: @escaping (LCBooleanResult) -> Void) throws {
+        try self.client?.conversationQuery.getConversation(by: self.ID, completion: { (result) in
+            switch result {
+            case .success(value: _):
+                completion(.success)
+            case .failure(error: let error):
+                completion(.failure(error: error))
+            }
+        })
+    }
+    
+    private func _update(attribution data: [String: Any], completion: @escaping (LCBooleanResult) -> Void) throws {
+        guard !data.isEmpty else {
+            throw LCError(code: .inconsistency, reason: "parameter invalid.")
+        }
+        let binaryData = try JSONSerialization.data(withJSONObject: data)
+        guard let jsonString = String(data: binaryData, encoding: .utf8) else {
+            throw LCError(code: .inconsistency, reason: "parameter invalid.")
+        }
+        self.client?.sendCommand(constructor: { () -> IMGenericCommand in
+            var outCommand = IMGenericCommand()
+            outCommand.cmd = .conv
+            outCommand.op = .update
+            var convCommand = IMConvCommand()
+            convCommand.cid = self.ID
+            var jsonObject = IMJsonObjectMessage()
+            jsonObject.data = jsonString
+            convCommand.attr = jsonObject
+            outCommand.convMessage = convCommand
+            return outCommand
+        }, completion: { (client, result) in
+            switch result {
+            case .inCommand(let inCommand):
+                assert(client.specificAssertion)
+                guard
+                    let convCommand = (inCommand.hasConvMessage ? inCommand.convMessage : nil),
+                    let jsonCommand = (convCommand.hasAttrModified ? convCommand.attrModified : nil),
+                    let attrModifiedString = (jsonCommand.hasData ? jsonCommand.data : nil)
+                    else
+                {
+                    client.eventQueue.async {
+                        let error = LCError(code: .commandInvalid)
+                        completion(.failure(error: error))
+                    }
+                    return
+                }
+                do {
+                    if let attrModified: [String: Any] = try attrModifiedString.jsonObject(),
+                        let udate: String = (convCommand.hasUdate ? convCommand.udate : nil) {
+                        self.safeChangingRawData(
+                            operation: .updated(attr: data, attrModified: attrModified, udate: udate),
+                            client: client
+                        )
+                        client.eventQueue.async {
+                            completion(.success)
+                        }
+                    } else {
+                        client.eventQueue.async {
+                            let error = LCError(code: .commandInvalid)
+                            completion(.failure(error: error))
+                        }
+                    }
+                } catch {
+                    let err = LCError(error: error)
+                    client.eventQueue.async {
+                        completion(.failure(error: err))
+                    }
+                }
+            case .error(let error):
+                client.eventQueue.async {
+                    completion(.failure(error: error))
+                }
+            }
+        })
+    }
     
     private func rawDataChangeOperationMerging(data: RawData, client: IMClient) {
         guard !data.isEmpty else {
@@ -2055,6 +2082,16 @@ public class IMChatRoom: IMConversation {
         completion(.failure(error: LCError.conversationNotSupport(convType: type(of: self))))
     }
     
+    @available(*, unavailable)
+    public override func fetchMemberInfoTable(completion: @escaping (LCBooleanResult) -> Void) {
+        completion(.failure(error: LCError.conversationNotSupport(convType: type(of: self))))
+    }
+    
+    @available(*, unavailable)
+    public override func update(role: IMConversation.MemberRole, ofMember memberID: String, completion: @escaping (LCBooleanResult) -> Void) throws {
+        throw LCError.conversationNotSupport(convType: type(of: self))
+    }
+    
     /// Get count of online clients in this Chat Room.
     ///
     /// - Parameter completion: callback.
@@ -2139,6 +2176,16 @@ public class IMServiceConversation: IMConversation {
     
     @available(*, unavailable)
     public override func update(attribution data: [String : Any], completion: @escaping (LCBooleanResult) -> Void) throws {
+        throw LCError.conversationNotSupport(convType: type(of: self))
+    }
+    
+    @available(*, unavailable)
+    public override func fetchMemberInfoTable(completion: @escaping (LCBooleanResult) -> Void) {
+        completion(.failure(error: LCError.conversationNotSupport(convType: type(of: self))))
+    }
+    
+    @available(*, unavailable)
+    public override func update(role: IMConversation.MemberRole, ofMember memberID: String, completion: @escaping (LCBooleanResult) -> Void) throws {
         throw LCError.conversationNotSupport(convType: type(of: self))
     }
     
@@ -2258,6 +2305,16 @@ public class IMTemporaryConversation: IMConversation {
     
     @available(*, unavailable)
     public override func update(attribution data: [String : Any], completion: @escaping (LCBooleanResult) -> Void) throws {
+        throw LCError.conversationNotSupport(convType: type(of: self))
+    }
+    
+    @available(*, unavailable)
+    public override func fetchMemberInfoTable(completion: @escaping (LCBooleanResult) -> Void) {
+        completion(.failure(error: LCError.conversationNotSupport(convType: type(of: self))))
+    }
+    
+    @available(*, unavailable)
+    public override func update(role: IMConversation.MemberRole, ofMember memberID: String, completion: @escaping (LCBooleanResult) -> Void) throws {
         throw LCError.conversationNotSupport(convType: type(of: self))
     }
     
