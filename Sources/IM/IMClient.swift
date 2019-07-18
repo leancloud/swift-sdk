@@ -1696,6 +1696,7 @@ extension IMClient {
                         )
                         let byClientID = (command.hasInitBy ? command.initBy : nil)
                         let atDate = IMClient.date(fromMillisecond: serverTimestamp)
+                        rawDataOperation = .memberInfoChanged(info: memberInfo)
                         event = IMConversationEvent.memberInfoChanged(info: memberInfo, byClientID: byClientID, at: atDate)
                     }
                 default:
@@ -2020,11 +2021,15 @@ extension IMClient {
         case attr = "attr"
         case attrModified = "attrModified"
         case udate = "udate"
+        case info = "info"
         // rcp
         case id = "id"
         case t = "t"
         case read = "read"
         case from = "from"
+        // conv member info
+        case pid = "pid"
+        case role = "role"
     }
     
     enum NotificationCommand: String {
@@ -2038,6 +2043,7 @@ extension IMClient {
         case membersJoined = "members-joined"
         case membersLeft = "members-left"
         case updated = "updated"
+        case memberInfoChanged = "member-info-changed"
         
         var opType: IMOpType {
             switch self {
@@ -2051,11 +2057,12 @@ extension IMClient {
                 return .membersLeft
             case .updated:
                 return .updated
+            case .memberInfoChanged:
+                return .memberInfoChanged
             }
         }
     }
     
-    // for compatibility, should regard some unknown condition or unsupport message as success and callback with timestamp -1.
     func process(notification: [String: Any], conversationID: String, serverTimestamp: Int64) {
         assert(self.specificAssertion)
         guard
@@ -2088,29 +2095,36 @@ extension IMClient {
                     convCommand.m = m
                 }
             case .updated:
-                do {
-                    if
-                        let attr = notification[NotificationKey.attr.rawValue] as? [String: Any],
-                        let data = try attr.jsonString()
-                    {
-                        var jsonObject = IMJsonObjectMessage()
-                        jsonObject.data = data
-                        convCommand.attr = jsonObject
+                let setAttribution: (NotificationKey) -> Void = { key in
+                    do {
+                        if let attr = notification[key.rawValue] as? [String: Any], let data = try attr.jsonString() {
+                            var jsonObject = IMJsonObjectMessage()
+                            jsonObject.data = data
+                            switch key {
+                            case .attr:
+                                convCommand.attr = jsonObject
+                            case .attrModified:
+                                convCommand.attrModified = jsonObject
+                            default:
+                                fatalError()
+                            }
+                        }
+                    } catch {
+                        Logger.shared.error(error)
                     }
-                } catch {
-                    Logger.shared.error(error)
                 }
-                do {
-                    if
-                        let attrModified = notification[NotificationKey.attrModified.rawValue] as? [String: Any],
-                        let data = try attrModified.jsonString()
-                    {
-                        var jsonObject = IMJsonObjectMessage()
-                        jsonObject.data = data
-                        convCommand.attrModified = jsonObject
-                    }
-                } catch {
-                    Logger.shared.error(error)
+                setAttribution(.attr)
+                setAttribution(.attrModified)
+            case .memberInfoChanged:
+                if
+                    let info = notification[NotificationKey.info.rawValue] as? [String: Any],
+                    let pid = info[NotificationKey.pid.rawValue] as? String,
+                    let role = info[NotificationKey.role.rawValue] as? String
+                {
+                    var memberInfo = IMConvMemberInfo()
+                    memberInfo.pid = pid
+                    memberInfo.role = role
+                    convCommand.info = memberInfo
                 }
             }
             self.process(convCommand: convCommand, op: op.opType, serverTimestamp: serverTimestamp)
