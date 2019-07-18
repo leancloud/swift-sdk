@@ -1630,7 +1630,7 @@ class IMConversationTestCase: RTMBaseTestCase {
         }
         
         expecting { (exp) in
-            convA?.fetchMemberRoleTable(completion: { (result) in
+            convA?.fetchMemberInfoTable(completion: { (result) in
                 XCTAssertTrue(Thread.isMainThread)
                 XCTAssertTrue(result.isSuccess)
                 XCTAssertNil(result.error)
@@ -1671,7 +1671,7 @@ class IMConversationTestCase: RTMBaseTestCase {
         }
         
         expecting { (exp) in
-            convA?.fetchMemberRoleTable(completion: { (result) in
+            convA?.fetchMemberInfoTable(completion: { (result) in
                 XCTAssertTrue(Thread.isMainThread)
                 XCTAssertTrue(result.isSuccess)
                 XCTAssertNil(result.error)

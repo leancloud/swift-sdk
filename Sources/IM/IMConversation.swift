@@ -1518,7 +1518,7 @@ extension IMConversation {
         }
     }
     
-    public func fetchMemberRoleTable(completion: @escaping (LCBooleanResult) -> Void) {
+    public func fetchMemberInfoTable(completion: @escaping (LCBooleanResult) -> Void) {
         self.client?.serialQueue.async {
             self.client?.getSessionToken(completion: { (client, result) in
                 assert(client.specificAssertion)
