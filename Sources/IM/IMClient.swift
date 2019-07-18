@@ -2362,10 +2362,10 @@ public struct IMSignature {
         case add(memberIDs: Set<String>, toConversation: IMConversation)
         case remove(memberIDs: Set<String>, fromConversation: IMConversation)
         
-        case block(conversation: IMConversation)
-        case unblock(conversation: IMConversation)
-        case conversation(_: IMConversation, blockingMemberIDs: Set<String>)
-        case conversation(_: IMConversation, unblockingMemberIDs: Set<String>)
+        case clientBlocking(conversation: IMConversation)
+        case clientUnblocking(conversation: IMConversation)
+        case conversationBlocking(_: IMConversation, blockedMemberIDs: Set<String>)
+        case conversationUnblocking(_: IMConversation, unblockedMemberIDs: Set<String>)
     }
     
     public let signature: String
