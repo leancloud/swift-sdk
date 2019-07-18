@@ -965,6 +965,10 @@ extension IMClient {
 
 extension IMClient {
     
+    /// Open database of the local storage.
+    ///
+    /// - Parameter completion: Result of callback
+    /// - Throws: If client not init with `usingLocalStorage`, then throws error.
     public func prepareLocalStorage(completion: @escaping (LCBooleanResult) -> Void) throws {
         guard let localStorage = self.localStorage else {
             throw LCError.clientLocalStorageNotFound
@@ -976,6 +980,11 @@ extension IMClient {
         }
     }
     
+    /// Query Order Option for stored conversations.
+    ///
+    /// - updatedTimestamp: By updated timestamp.
+    /// - createdTimestamp: By created timestamp.
+    /// - lastMessageSentTimestamp: By last message sent timestamp.
     public enum StoredConversationOrder {
         case updatedTimestamp(descending: Bool)
         case createdTimestamp(descending: Bool)
@@ -1012,6 +1021,12 @@ extension IMClient {
         }
     }
     
+    /// Get stored conversations and load them to memory container.
+    ///
+    /// - Parameters:
+    ///   - order: @see `IMClient.StoredConversationOrder`.
+    ///   - completion: Result of callback.
+    /// - Throws: If client not init with `usingLocalStorage`, then throws error.
     public func getAndLoadStoredConversations(
         order: IMClient.StoredConversationOrder = .lastMessageSentTimestamp(descending: true),
         completion: @escaping (LCGenericResult<[IMConversation]>) -> Void)
@@ -1036,6 +1051,12 @@ extension IMClient {
         }
     }
     
+    /// Delete the stored conversations and the messages belong to them.
+    ///
+    /// - Parameters:
+    ///   - IDs: The ID set of the conversations that will be deleted.
+    ///   - completion: Result of callback.
+    /// - Throws: If client not init with `usingLocalStorage`, then throws error.
     public func deleteStoredConversationAndMessages(IDs: Set<String>, completion: @escaping (LCBooleanResult) -> Void) throws {
         guard let localStorage = self.localStorage else {
             throw LCError.clientLocalStorageNotFound
@@ -2271,7 +2292,6 @@ public enum IMClientEvent {
     case sessionDidPause(error: LCError)
     
     case sessionDidClose(error: LCError)
-    
 }
 
 /// The event about the conversation that belong to the client.
@@ -2280,6 +2300,7 @@ public enum IMClientEvent {
 /// - left: The client left the conversation.
 /// - membersJoined: The members joined the conversation.
 /// - membersLeft: The members left the conversation.
+/// - memberInfoChanged: The info of the member in the conversaiton has changed.
 /// - dataUpdated: The data of the conversation updated.
 /// - lastMessageUpdated: The last message of the conversation updated.
 /// - unreadMessageCountUpdated: The unread message count of the conversation updated.
@@ -2303,7 +2324,6 @@ public enum IMConversationEvent {
     case unreadMessageCountUpdated
     
     case message(event: IMMessageEvent)
-    
 }
 
 /// The event about the message that belong to the conversation.
@@ -2321,7 +2341,6 @@ public enum IMMessageEvent {
     case delivered(toClientID: String?, messageID: String, deliveredTimestamp: Int64)
     
     case read(byClientID: String?, messageID: String, readTimestamp: Int64)
-    
 }
 
 /// IM Client Delegate
@@ -2346,14 +2365,32 @@ public protocol IMClientDelegate: class {
 
 // MARK: - Signature
 
+/// IM Signature Delegate
 public protocol IMSignatureDelegate: class {
     
+    /// Delegate function of the signature action
+    ///
+    /// - Parameters:
+    ///   - client: The signature action belong to.
+    ///   - action: @see `IMSignature.Action`.
+    ///   - signatureHandler: The handler for the signature.
     func client(_ client: IMClient, action: IMSignature.Action, signatureHandler: @escaping (IMClient, IMSignature?) -> Void)
     
 }
 
 public struct IMSignature {
     
+    
+    /// Actions need signature.
+    ///
+    /// - open: Open client.
+    /// - createConversation: Create conversation.
+    /// - add: Add members to conversation.
+    /// - remove: Remove members from conversation.
+    /// - clientBlocking: Client blocking conversation.
+    /// - clientUnblocking: Client unblocking conversation.
+    /// - conversationBlocking: Conversation blocking client.
+    /// - conversationUnblocking: Conversation unblocking client.
     public enum Action {
         
         case open
@@ -2368,12 +2405,21 @@ public struct IMSignature {
         case conversationUnblocking(_: IMConversation, unblockedMemberIDs: Set<String>)
     }
     
+    /// signature
     public let signature: String
     
+    /// timestamp
     public let timestamp: Int64
     
+    /// nonce
     public let nonce: String
     
+    /// Initialization.
+    ///
+    /// - Parameters:
+    ///   - signature: signature.
+    ///   - timestamp: timestamp.
+    ///   - nonce: nonce.
     public init(signature: String, timestamp: Int64, nonce: String) {
         self.signature = signature
         self.timestamp = timestamp

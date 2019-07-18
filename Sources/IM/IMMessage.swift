@@ -302,6 +302,16 @@ public protocol IMMessageCategorizing: class {
 /// IM Categorized Message
 open class IMCategorizedMessage: IMMessage, IMMessageCategorizing {
     
+    /// Reserved message type.
+    ///
+    /// - none: none.
+    /// - text: text.
+    /// - image: image.
+    /// - audio: audio.
+    /// - video: video.
+    /// - location: location.
+    /// - file: file.
+    /// - recalled: recalled.
     public enum ReservedType: MessageType {
         case none = 0
         case text = -1
@@ -351,6 +361,7 @@ open class IMCategorizedMessage: IMMessage, IMMessageCategorizing {
         IMCategorizedMessageTypeMap[type] = self
     }
     
+    /// The type of message.
     open class var messageType: MessageType {
         return ReservedType.none.rawValue
     }
@@ -825,10 +836,12 @@ public class IMLocationMessage: IMCategorizedMessage {
         super.init(application: application, url: url, format: format)
     }
     
+    /// The latitude of location.
     public var latitude: Double? {
         return self.location?.latitude
     }
     
+    /// The longitude of location.
     public var longitude: Double? {
         return self.location?.longitude
     }

@@ -170,7 +170,7 @@ public class IMConversation {
     }
     private var underlyingIsUnreadMessageContainMention: Bool = false
     
-    /// The role of member map.
+    /// The table of member infomation.
     public var memberInfoTable: [String: MemberInfo]? {
         var value: [String: MemberInfo]?
         sync(value = self.underlyingMemberInfoTable)
@@ -242,8 +242,6 @@ public class IMConversation {
     var notTemporaryConversation: Bool {
         return self.convType != .temporary
     }
-    
-    /* Due to IMTemporaryConversation should override these functions, so they can't define in extension. */
     
     /// Join in this conversation.
     ///
@@ -368,6 +366,7 @@ extension IMConversation {
             self.rawValue = rawValue
         }
         
+        /// Default option is empty.
         public static let `default`: MessageSendOptions = []
         
         /// Get Receipt when other client received message or read message.
@@ -960,6 +959,12 @@ extension IMConversation {
         }
     }
     
+    /// Policy of Message Query
+    ///
+    /// - `default`: If using local storage, it is `cacheThenNetwork`. If not using local storage, it is `onlyNetwork`.
+    /// - onlyNetwork: Only query remote server
+    /// - onlyCache: Only query local storage
+    /// - cacheThenNetwork: Query local storage firstly, if not get result, then query remote server.
     public enum MessageQueryPolicy {
         case `default`
         case onlyNetwork
@@ -1421,19 +1426,31 @@ extension IMConversation {
     
 }
 
-// MARK: Member Role
+// MARK: Member Info
 
 extension IMConversation {
     
+    /// Role of the member in the conversation.
+    /// Privilege: owner > manager > member.
+    ///
+    /// - owner: Who owns the conversation.
+    /// - manager: Who can manage the conversation.
+    /// - member: General member.
     public enum MemberRole: String {
         case owner = "Owner"
         case manager = "Manager"
         case member = "Member"
     }
     
+    /// The infomation of one member in the conversation.
     public struct MemberInfo {
+        
+        /// The ID of the member.
         public let ID: String
+        
+        /// The role of the member.
         public let role: MemberRole
+        
         let conversationID: String
         
         init?(rawData: [String: Any], creator: String?) {
