@@ -2387,20 +2387,13 @@ public struct IMSignature {
     /// - createConversation: Create conversation.
     /// - add: Add members to conversation.
     /// - remove: Remove members from conversation.
-    /// - clientBlocking: Client blocking conversation.
-    /// - clientUnblocking: Client unblocking conversation.
     /// - conversationBlocking: Conversation blocking client.
     /// - conversationUnblocking: Conversation unblocking client.
     public enum Action {
-        
         case open
-        
         case createConversation(memberIDs: Set<String>)
         case add(memberIDs: Set<String>, toConversation: IMConversation)
         case remove(memberIDs: Set<String>, fromConversation: IMConversation)
-        
-        case clientBlocking(conversation: IMConversation)
-        case clientUnblocking(conversation: IMConversation)
         case conversationBlocking(_: IMConversation, blockedMemberIDs: Set<String>)
         case conversationUnblocking(_: IMConversation, unblockedMemberIDs: Set<String>)
     }
