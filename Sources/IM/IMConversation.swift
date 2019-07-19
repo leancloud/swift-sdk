@@ -299,14 +299,14 @@ public class IMConversation {
     ///
     /// - Parameter completion: callback.
     public func mute(completion: @escaping (LCBooleanResult) -> Void) {
-        self.sendMuteOrUnmute(op: .mute, completion: completion)
+        self.muteToggle(op: .mute, completion: completion)
     }
     
     /// Unmute this conversation.
     ///
     /// - Parameter completion: callback.
     public func unmute(completion: @escaping (LCBooleanResult) -> Void) {
-        self.sendMuteOrUnmute(op: .unmute, completion: completion)
+        self.muteToggle(op: .unmute, completion: completion)
     }
     
     /// Refresh conversation's data.
@@ -1387,7 +1387,8 @@ extension IMConversation {
 
 extension IMConversation {
     
-    private func sendMuteOrUnmute(op: IMOpType, completion: @escaping (LCBooleanResult) -> Void) {
+    private func muteToggle(op: IMOpType, completion: @escaping (LCBooleanResult) -> Void) {
+        assert(op == .mute || op == .unmute)
         self.client?.sendCommand(constructor: { () -> IMGenericCommand in
             var outCommand = IMGenericCommand()
             outCommand.cmd = .conv
