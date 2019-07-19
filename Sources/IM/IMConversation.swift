@@ -343,6 +343,32 @@ public class IMConversation {
     public func update(role: MemberRole, ofMember memberID: String, completion: @escaping (LCBooleanResult) -> Void) throws {
         try self._update(role: role, ofMember: memberID, completion: completion)
     }
+    
+    public func block(members: Set<String>, completion: @escaping (MemberResult) -> Void) throws {
+        try self.update(blockedMembers: members, op: .block, completion: completion)
+    }
+    
+    public func unblock(members: Set<String>, completion: @escaping (MemberResult) -> Void) throws {
+        try self.update(blockedMembers: members, op: .unblock, completion: completion)
+    }
+    
+    public typealias BlockedMembersResult = (members: [String], next: String?)
+    
+    public func getBlockedMembers(
+        limit: Int = 50,
+        next: String? = nil,
+        completion: @escaping (LCGenericResult<BlockedMembersResult>) -> Void)
+        throws
+    {
+        try self._getBlockedMembers(limit: limit, next: next, completion: completion)
+    }
+    
+    public func checkBlocking(
+        member ID: String,
+        completion: @escaping (LCGenericResult<Bool>) -> Void)
+    {
+        self._checkBlocking(member: ID, completion: completion)
+    }
 
 }
 
@@ -1591,6 +1617,192 @@ extension IMConversation {
     
 }
 
+// MARK: Blacklist
+
+extension IMConversation {
+    
+    private func newBlacklistBlockUnblockCommand(
+        members: Set<String>,
+        op: IMOpType,
+        signature: IMSignature? = nil)
+        -> IMGenericCommand
+    {
+        assert(op == .block || op == .unblock)
+        var command = IMGenericCommand()
+        command.cmd = .blacklist
+        command.op = op
+        var blacklistCommand = IMBlacklistCommand()
+        blacklistCommand.srcCid = self.ID
+        blacklistCommand.toPids = Array(members)
+        if let signature = signature {
+            blacklistCommand.s = signature.signature
+            blacklistCommand.t = signature.timestamp
+            blacklistCommand.n = signature.nonce
+        }
+        command.blacklistMessage = blacklistCommand
+        return command
+    }
+    
+    private func getBlacklistBlockUnblockCommand(
+        members: Set<String>,
+        op: IMOpType,
+        completion: @escaping (IMClient, IMGenericCommand) -> Void)
+    {
+        guard let client = self.client else {
+            return
+        }
+        if self.convType == .normal, let signatureDelegate = client.signatureDelegate {
+            client.eventQueue.async {
+                let action: IMSignature.Action
+                if op == .block {
+                    action = .conversationBlocking(self, blockedMemberIDs: members)
+                } else {
+                    action = .conversationUnblocking(self, unblockedMemberIDs: members)
+                }
+                signatureDelegate.client(client, action: action, signatureHandler: { (client, signature) in
+                    client.serialQueue.async {
+                        let command = self.newBlacklistBlockUnblockCommand(members: members, op: op, signature: signature)
+                        completion(client, command)
+                    }
+                })
+            }
+        } else {
+            let command = self.newBlacklistBlockUnblockCommand(members: members, op: op)
+            completion(client, command)
+        }
+    }
+    
+    private func update(
+        blockedMembers members: Set<String>,
+        op: IMOpType,
+        completion: @escaping (MemberResult) -> Void)
+        throws
+    {
+        guard !members.isEmpty else {
+            throw LCError(code: .inconsistency, reason: "parameter `members` should not be empty.")
+        }
+        self.getBlacklistBlockUnblockCommand(members: members, op: op) { (client, outCommand) in
+            client.sendCommand(constructor: { () -> IMGenericCommand in
+                outCommand
+            }, completion: { (client, result) in
+                assert(client.specificAssertion)
+                switch result {
+                case .inCommand(let inCommand):
+                    guard let blacklistMessage = (inCommand.hasBlacklistMessage ? inCommand.blacklistMessage : nil) else {
+                        client.eventQueue.async {
+                            completion(.failure(error: LCError(code: .commandInvalid)))
+                        }
+                        return
+                    }
+                    let allowedPids: [String] = blacklistMessage.allowedPids
+                    let failedPids: [IMErrorCommand] = blacklistMessage.failedPids
+                    
+                    let memberResult: MemberResult
+                    if failedPids.isEmpty {
+                        memberResult = .allSucceeded
+                    } else {
+                        let successIDs = (allowedPids.isEmpty ? nil : allowedPids)
+                        var failures: [([String], LCError)] = []
+                        for errCommand in failedPids {
+                            failures.append((errCommand.pids, errCommand.lcError))
+                        }
+                        memberResult = .slicing(success: successIDs, failure: failures)
+                    }
+                    
+                    client.eventQueue.async {
+                        completion(memberResult)
+                    }
+                case .error(let error):
+                    client.eventQueue.async {
+                        completion(.failure(error: error))
+                    }
+                }
+            })
+        }
+    }
+    
+    private func _getBlockedMembers(
+        limit: Int,
+        next: String?,
+        completion: @escaping (LCGenericResult<BlockedMembersResult>) -> Void)
+        throws
+    {
+        let limitRange: ClosedRange<Int> = 1...100
+        guard limitRange.contains(limit) else {
+            throw LCError(code: .inconsistency, reason: "parameter `limit` should in range \(limitRange)")
+        }
+        self.client?.sendCommand(constructor: { () -> IMGenericCommand in
+            var outCommand = IMGenericCommand()
+            outCommand.cmd = .blacklist
+            outCommand.op = .query
+            var blacklistCommand = IMBlacklistCommand()
+            blacklistCommand.srcCid = self.ID
+            blacklistCommand.limit = Int32(limit)
+            if let next = next {
+                blacklistCommand.next = next
+            }
+            outCommand.blacklistMessage = blacklistCommand
+            return outCommand
+        }, completion: { (client, result) in
+            assert(client.specificAssertion)
+            switch result {
+            case .inCommand(let inCommand):
+                guard let blacklistMessage = (inCommand.hasBlacklistMessage ? inCommand.blacklistMessage : nil) else {
+                    client.eventQueue.async {
+                        completion(.failure(error: LCError(code: .commandInvalid)))
+                    }
+                    return
+                }
+                let members = blacklistMessage.blockedPids
+                let next = (blacklistMessage.hasNext ? blacklistMessage.next : nil)
+                client.eventQueue.async {
+                    completion(.success(value: (members, next)))
+                }
+            case .error(let error):
+                client.eventQueue.async {
+                    completion(.failure(error: error))
+                }
+            }
+        })
+    }
+    
+    private func _checkBlocking(
+        member ID: String,
+        completion: @escaping (LCGenericResult<Bool>) -> Void)
+    {
+        self.client?.sendCommand(constructor: { () -> IMGenericCommand in
+            var outCommand = IMGenericCommand()
+            outCommand.cmd = .blacklist
+            outCommand.op = .checkBlock
+            var blacklistCommand = IMBlacklistCommand()
+            blacklistCommand.srcCid = self.ID
+            blacklistCommand.toPids = [ID]
+            outCommand.blacklistMessage = blacklistCommand
+            return outCommand
+        }, completion: { (client, result) in
+            assert(client.specificAssertion)
+            switch result {
+            case .inCommand(let inCommand):
+                guard let blacklistMessage = (inCommand.hasBlacklistMessage ? inCommand.blacklistMessage : nil) else {
+                    client.eventQueue.async {
+                        completion(.failure(error: LCError(code: .commandInvalid)))
+                    }
+                    return
+                }
+                let isBlocked = blacklistMessage.blockedPids.contains(ID)
+                client.eventQueue.async {
+                    completion(.success(value: isBlocked))
+                }
+            case .error(let error):
+                client.eventQueue.async {
+                    completion(.failure(error: error))
+                }
+            }
+        })
+    }
+    
+}
+
 // MARK: Data Updating
 
 extension IMConversation {
@@ -2110,6 +2322,26 @@ public class IMChatRoom: IMConversation {
         throw LCError.conversationNotSupport(convType: type(of: self))
     }
     
+    @available(*, unavailable)
+    public override func block(members: Set<String>, completion: @escaping (IMConversation.MemberResult) -> Void) throws {
+        throw LCError.conversationNotSupport(convType: type(of: self))
+    }
+    
+    @available(*, unavailable)
+    public override func unblock(members: Set<String>, completion: @escaping (IMConversation.MemberResult) -> Void) throws {
+        throw LCError.conversationNotSupport(convType: type(of: self))
+    }
+    
+    @available(*, unavailable)
+    public override func getBlockedMembers(limit: Int = 50, next: String? = nil, completion: @escaping (LCGenericResult<IMConversation.BlockedMembersResult>) -> Void) throws {
+        throw LCError.conversationNotSupport(convType: type(of: self))
+    }
+    
+    @available(*, unavailable)
+    public override func checkBlocking(member ID: String, completion: @escaping (LCGenericResult<Bool>) -> Void) {
+        completion(.failure(error: LCError.conversationNotSupport(convType: type(of: self))))
+    }
+    
     /// Get count of online clients in this Chat Room.
     ///
     /// - Parameter completion: callback.
@@ -2205,6 +2437,26 @@ public class IMServiceConversation: IMConversation {
     @available(*, unavailable)
     public override func update(role: IMConversation.MemberRole, ofMember memberID: String, completion: @escaping (LCBooleanResult) -> Void) throws {
         throw LCError.conversationNotSupport(convType: type(of: self))
+    }
+    
+    @available(*, unavailable)
+    public override func block(members: Set<String>, completion: @escaping (IMConversation.MemberResult) -> Void) throws {
+        throw LCError.conversationNotSupport(convType: type(of: self))
+    }
+    
+    @available(*, unavailable)
+    public override func unblock(members: Set<String>, completion: @escaping (IMConversation.MemberResult) -> Void) throws {
+        throw LCError.conversationNotSupport(convType: type(of: self))
+    }
+    
+    @available(*, unavailable)
+    public override func getBlockedMembers(limit: Int = 50, next: String? = nil, completion: @escaping (LCGenericResult<IMConversation.BlockedMembersResult>) -> Void) throws {
+        throw LCError.conversationNotSupport(convType: type(of: self))
+    }
+    
+    @available(*, unavailable)
+    public override func checkBlocking(member ID: String, completion: @escaping (LCGenericResult<Bool>) -> Void) {
+        completion(.failure(error: LCError.conversationNotSupport(convType: type(of: self))))
     }
     
     /// Subscribe this Service Conversation.
@@ -2334,6 +2586,26 @@ public class IMTemporaryConversation: IMConversation {
     @available(*, unavailable)
     public override func update(role: IMConversation.MemberRole, ofMember memberID: String, completion: @escaping (LCBooleanResult) -> Void) throws {
         throw LCError.conversationNotSupport(convType: type(of: self))
+    }
+    
+    @available(*, unavailable)
+    public override func block(members: Set<String>, completion: @escaping (IMConversation.MemberResult) -> Void) throws {
+        throw LCError.conversationNotSupport(convType: type(of: self))
+    }
+    
+    @available(*, unavailable)
+    public override func unblock(members: Set<String>, completion: @escaping (IMConversation.MemberResult) -> Void) throws {
+        throw LCError.conversationNotSupport(convType: type(of: self))
+    }
+    
+    @available(*, unavailable)
+    public override func getBlockedMembers(limit: Int = 50, next: String? = nil, completion: @escaping (LCGenericResult<IMConversation.BlockedMembersResult>) -> Void) throws {
+        throw LCError.conversationNotSupport(convType: type(of: self))
+    }
+    
+    @available(*, unavailable)
+    public override func checkBlocking(member ID: String, completion: @escaping (LCGenericResult<Bool>) -> Void) {
+        completion(.failure(error: LCError.conversationNotSupport(convType: type(of: self))))
     }
     
     /// Refresh temporary conversation's data.
