@@ -1745,8 +1745,8 @@ extension IMClient {
     func acknowledging(message: IMMessage, conversation: IMConversation) {
         assert(self.specificAssertion)
         guard
-            message.notTransientMessage,
-            conversation.notTransientConversation,
+            !message.isTransient,
+            conversation.convType != .transient,
             let conversationID: String = message.conversationID,
             let messageID: String = message.ID
             else

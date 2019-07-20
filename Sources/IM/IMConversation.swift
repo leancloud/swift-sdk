@@ -103,9 +103,8 @@ public class IMConversation {
     
     /// Indicates whether the conversation has been muted.
     public var isMuted: Bool {
-        if let mutedMembers: [String] = safeDecodingRawData(with: .mutedMembers),
-            mutedMembers.contains(self.clientID) {
-            return true
+        if let mutedMembers: [String] = safeDecodingRawData(with: .mutedMembers) {
+            return mutedMembers.contains(self.clientID)
         } else {
             return false
         }
@@ -201,13 +200,37 @@ public class IMConversation {
         }
         switch convType {
         case .normal:
-            return IMConversation(ID: ID, rawData: rawData, convType: convType, client: client, caching: caching)
+            return IMConversation(
+                ID: ID,
+                rawData: rawData,
+                convType: convType,
+                client: client,
+                caching: caching
+            )
         case .transient:
-            return IMChatRoom(ID: ID, rawData: rawData, convType: convType, client: client, caching: caching)
+            return IMChatRoom(
+                ID: ID,
+                rawData: rawData,
+                convType: convType,
+                client: client,
+                caching: caching
+            )
         case .system:
-            return IMServiceConversation(ID: ID, rawData: rawData, convType: convType, client: client, caching: caching)
+            return IMServiceConversation(
+                ID: ID,
+                rawData: rawData,
+                convType: convType,
+                client: client,
+                caching: caching
+            )
         case .temporary:
-            return IMTemporaryConversation(ID: ID, rawData: rawData, convType: convType, client: client, caching: caching)
+            return IMTemporaryConversation(
+                ID: ID,
+                rawData: rawData,
+                convType: convType,
+                client: client,
+                caching: caching
+            )
         }
     }
 
@@ -220,20 +243,25 @@ public class IMConversation {
         self.isUnique = (rawData[Key.unique.rawValue] as? Bool) ?? false
         self.uniqueID = (rawData[Key.uniqueId.rawValue] as? String)
         if let message = self.decodingLastMessage(data: rawData, client: client) {
-            self.safeUpdatingLastMessage(newMessage: message, client: client, caching: caching, notifying: false)
+            self.safeUpdatingLastMessage(
+                newMessage: message,
+                client: client,
+                caching: caching,
+                notifying: false
+            )
         }
         if caching {
-            client.localStorage?.insertOrReplace(conversationID: ID, rawData: rawData, convType: convType)
+            client.localStorage?.insertOrReplace(
+                conversationID: ID,
+                rawData: rawData,
+                convType: convType
+            )
         }
     }
     
     private(set) var rawData: RawData
     
     let lock: NSLock = NSLock()
-    
-    var notTransientConversation: Bool {
-        return self.convType != .transient
-    }
     
     var notServiceConversation: Bool {
         return self.convType != .system
@@ -450,9 +478,11 @@ extension IMConversation {
         message.update(status: .sending)
         message.isTransient = options.contains(.isTransient)
         message.isWill = options.contains(.isAutoDeliveringWhenOffline)
-        if message.notTransientMessage, self.notTransientConversation, message.dToken == nil {
-            // if not transient message and not transient conversation
-            // then using a token to prevent Message Duplicating.
+        if
+            !message.isTransient,
+            self.convType != .transient,
+            message.dToken == nil
+        {
             message.dToken = UUID().uuidString.replacingOccurrences(of: "-", with: "")
             message.sendingTimestamp = Int64(Date().timeIntervalSince1970 * 1000.0)
         }
@@ -631,11 +661,9 @@ extension IMConversation {
     
     func process(unreadTuple: IMUnreadTuple, client: IMClient) {
         assert(client.specificAssertion)
-        guard
-            self.notTransientConversation,
-            unreadTuple.hasUnread
-            else
-        { return }
+        guard unreadTuple.hasUnread else {
+            return
+        }
         let newUnreadCount: Int = Int(unreadTuple.unread)
         let newUnreadMentioned: Bool? = (unreadTuple.hasMentioned ? unreadTuple.mentioned : nil)
         let newLastMessage: IMMessage? = {
@@ -1921,17 +1949,14 @@ extension IMConversation {
     
     private func needUpdateMembers(members: [String], updatedDateString: String?) -> Bool {
         guard
-            self.notTransientConversation,
+            self.convType != .transient,
             self.notServiceConversation,
-            !members.isEmpty
-            else
+            !members.isEmpty else
         {
             return false
         }
-        if
-            let dateString: String = updatedDateString,
-            let newUpdatedDate: Date = LCDate.dateFromString(dateString)
-        {
+        if let dateString: String = updatedDateString,
+            let newUpdatedDate: Date = LCDate.dateFromString(dateString) {
             if let originUpdatedDate: Date = self.updatedAt {
                 return (newUpdatedDate >= originUpdatedDate)
             } else {
@@ -2094,11 +2119,7 @@ extension IMConversation {
     }
     
     private func safeUpdateMutedMembers(op: IMOpType, udate: String?, client: IMClient) {
-        guard
-            self.notTransientConversation,
-            let udateString: String = udate
-            else
-        {
+        guard let udate: String = udate else {
             return
         }
         let key = Key.mutedMembers
@@ -2126,7 +2147,7 @@ extension IMConversation {
         var rawData: RawData?
         sync {
             self.updatingRawData(key: key, value: newMutedMembers)
-            self.updatingRawData(key: .updatedAt, value: udateString)
+            self.updatingRawData(key: .updatedAt, value: udate)
             rawData = self.rawData
         }
         self.tryUpdateLocalStorageData(client: client, rawData: rawData)
@@ -2144,8 +2165,7 @@ extension IMConversation {
         guard
             newMessage.notTransientMessage,
             newMessage.notWillMessage,
-            self.notTransientConversation
-            else
+            self.convType != .transient else
         {
             return isUnreadMessageIncreased
         }
@@ -2191,10 +2211,9 @@ extension IMConversation {
     
     private func decodingLastMessage(data: RawData, client: IMClient) -> IMMessage? {
         guard
-            self.notTransientConversation,
+            self.convType != .transient,
             let timestamp: Int64 = IMConversation.decoding(key: .lastMessageTimestamp, from: data),
-            let messageID: String = IMConversation.decoding(key: .lastMessageId, from: data)
-            else
+            let messageID: String = IMConversation.decoding(key: .lastMessageId, from: data) else
         {
             return nil
         }
