@@ -243,6 +243,20 @@ public class IMConversation {
         return self.convType != .temporary
     }
     
+    /// Clear unread messages that its sent timestamp less than the sent timestamp of the parameter message.
+    ///
+    /// - Parameter message: The default is the last message.
+    public func read(message: IMMessage? = nil) {
+        self._read(message: message)
+    }
+    
+    /// Get the timestamp flag of message receipt.
+    ///
+    /// - Parameter completion: callback.
+    public func getMessageReceiptFlag(completion: @escaping (LCGenericResult<MessageReceiptFlag>) -> Void) throws {
+        try self._getMessageReceiptFlag(completion: completion)
+    }
+    
     /// Join in this conversation.
     ///
     /// - Parameter completion: callback.
@@ -340,7 +354,12 @@ public class IMConversation {
     ///   - memberID: The ID of the member who will be updated.
     ///   - completion: Result of callback.
     /// - Throws: If role parameter is owner, throw error.
-    public func update(role: MemberRole, ofMember memberID: String, completion: @escaping (LCBooleanResult) -> Void) throws {
+    public func update(
+        role: MemberRole,
+        ofMember memberID: String,
+        completion: @escaping (LCBooleanResult) -> Void)
+        throws
+    {
         try self._update(role: role, ofMember: memberID, completion: completion)
     }
     
@@ -351,8 +370,6 @@ public class IMConversation {
     public func unblock(members: Set<String>, completion: @escaping (MemberResult) -> Void) throws {
         try self.update(blockedMembers: members, op: .unblock, completion: completion)
     }
-    
-    public typealias BlockedMembersResult = (members: [String], next: String?)
     
     public func getBlockedMembers(
         limit: Int = 50,
@@ -589,18 +606,15 @@ extension IMConversation {
 
 extension IMConversation {
     
-    /// Clear unread messages that its sent timestamp less than the sent timestamp of the parameter message.
-    ///
-    /// - Parameter message: The default is the last message.
-    public func read(message: IMMessage? = nil) {
+    private func _read(message: IMMessage?) {
         guard
-            self.notTransientConversation,
             self.unreadMessageCount > 0,
             let readMessage: IMMessage = message ?? self.lastMessage,
             let messageID: String = readMessage.ID,
-            let timestamp: Int64 = readMessage.sentTimestamp
-            else
-        { return }
+            let timestamp: Int64 = readMessage.sentTimestamp else
+        {
+            return
+        }
         self.client?.sendCommand(constructor: { () -> IMGenericCommand in
             var outCommand = IMGenericCommand()
             outCommand.cmd = .read
@@ -885,10 +899,7 @@ extension IMConversation {
         }
     }
     
-    /// Get the timestamp flag of message receipt.
-    ///
-    /// - Parameter completion: callback.
-    public func getMessageReceiptFlag(completion: @escaping (LCGenericResult<MessageReceiptFlag>) -> Void) throws {
+    private func _getMessageReceiptFlag(completion: @escaping (LCGenericResult<MessageReceiptFlag>) -> Void) throws {
         if let options = self.client?.options {
             guard options.isProtobuf3 else {
                 throw LCError(
@@ -1721,6 +1732,8 @@ extension IMConversation {
         }
     }
     
+    public typealias BlockedMembersResult = (members: [String], next: String?)
+    
     private func _getBlockedMembers(
         limit: Int,
         next: String?,
@@ -2300,6 +2313,14 @@ public class IMChatRoom: IMConversation {
         case high = 1
         case normal = 2
         case low = 3
+    }
+    
+    @available(*, unavailable)
+    public override func read(message: IMMessage? = nil) {}
+    
+    @available(*, unavailable)
+    public override func getMessageReceiptFlag(completion: @escaping (LCGenericResult<IMConversation.MessageReceiptFlag>) -> Void) throws {
+        throw LCError.conversationNotSupport(convType: type(of: self))
     }
     
     @available(*, unavailable)
