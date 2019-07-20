@@ -263,10 +263,6 @@ public class IMConversation {
     
     let lock: NSLock = NSLock()
     
-    var notServiceConversation: Bool {
-        return self.convType != .system
-    }
-    
     var notTemporaryConversation: Bool {
         return self.convType != .temporary
     }
@@ -1950,7 +1946,7 @@ extension IMConversation {
     private func needUpdateMembers(members: [String], updatedDateString: String?) -> Bool {
         guard
             self.convType != .transient,
-            self.notServiceConversation,
+            self.convType != .system,
             !members.isEmpty else
         {
             return false
