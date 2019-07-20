@@ -276,6 +276,7 @@ class IMClientTestCase: RTMBaseTestCase {
         let application = LCApplication.default
         let currentDeviceToken = application.currentInstallation.deviceToken?.value
         let client: IMClient = try! IMClient(application: application, ID: uuid)
+        delay()
         XCTAssertEqual(currentDeviceToken, client.currentDeviceToken)
         
         let exp = expectation(description: "client report device token success")
