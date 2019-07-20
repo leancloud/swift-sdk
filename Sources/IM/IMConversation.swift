@@ -114,14 +114,14 @@ public class IMConversation {
     /// after refresh, this property will be false.
     public internal(set) var isOutdated: Bool {
         set {
-            guard self.notTemporaryConversation else {
+            guard self.convType != .temporary else {
                 return
             }
             sync(self.underlyingOutdated = newValue)
         }
         get {
             var value: Bool = false
-            guard self.notTemporaryConversation else {
+            guard self.convType != .temporary else {
                 return value
             }
             sync(value = self.underlyingOutdated)
@@ -262,10 +262,6 @@ public class IMConversation {
     private(set) var rawData: RawData
     
     let lock: NSLock = NSLock()
-    
-    var notTemporaryConversation: Bool {
-        return self.convType != .temporary
-    }
     
     /// Clear unread messages that its sent timestamp less than the sent timestamp of the parameter message.
     ///
@@ -2168,7 +2164,7 @@ extension IMConversation {
         var messageEvent: IMConversationEvent? = nil
         let updatingLastMessageClosure: (Bool) -> Void = { shouldIncreased in
             self.lastMessage = newMessage
-            if caching, self.notTemporaryConversation {
+            if self.convType != .temporary, caching {
                 client.localStorage?.insertOrReplace(conversationID: self.ID, lastMessage: newMessage)
             }
             if notifying {
