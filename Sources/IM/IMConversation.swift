@@ -430,7 +430,31 @@ public class IMConversation {
     {
         self._checkBlocking(member: ID, completion: completion)
     }
-
+    
+    public func mute(members: Set<String>, completion: @escaping (MemberResult) -> Void) throws {
+        try self.update(mutedMembers: members, op: .addShutup, completion: completion)
+    }
+    
+    public func unmute(members: Set<String>, completion: @escaping (MemberResult) -> Void) throws {
+        try self.update(mutedMembers: members, op: .removeShutup, completion: completion)
+    }
+    
+    public func getMutedMembers(
+        limit: Int = 50,
+        next: String? = nil,
+        completion: @escaping (LCGenericResult<MutedMembersResult>) -> Void)
+        throws
+    {
+        try self._getMutedMembers(limit: limit, next: next, completion: completion)
+    }
+    
+    public func checkMuting(
+        member ID: String,
+        completion: @escaping (LCGenericResult<Bool>) -> Void)
+    {
+        self._checkMuting(member: ID, completion: completion)
+    }
+    
 }
 
 extension IMConversation: InternalSynchronizing {
@@ -1848,6 +1872,149 @@ extension IMConversation {
                 let isBlocked = blacklistMessage.blockedPids.contains(ID)
                 client.eventQueue.async {
                     completion(.success(value: isBlocked))
+                }
+            case .error(let error):
+                client.eventQueue.async {
+                    completion(.failure(error: error))
+                }
+            }
+        })
+    }
+    
+}
+
+// MARK: Shutup
+
+extension IMConversation {
+    
+    private func update(
+        mutedMembers members: Set<String>,
+        op: IMOpType,
+        completion: @escaping (MemberResult) -> Void)
+        throws
+    {
+        assert(op == .addShutup || op == .removeShutup)
+        guard !members.isEmpty else {
+            throw LCError(code: .inconsistency, reason: "parameter `members` should not be empty.")
+        }
+        self.client?.sendCommand(constructor: { () -> IMGenericCommand in
+            var outCommand = IMGenericCommand()
+            outCommand.cmd = .conv
+            outCommand.op = op
+            var convCommand = IMConvCommand()
+            convCommand.cid = self.ID
+            convCommand.m = Array(members)
+            outCommand.convMessage = convCommand
+            return outCommand
+        }, completion: { (client, result) in
+            assert(client.specificAssertion)
+            switch result {
+            case .inCommand(let inCommand):
+                guard let convCommand = (inCommand.hasConvMessage ? inCommand.convMessage : nil) else {
+                    client.eventQueue.async {
+                        completion(.failure(error: LCError(code: .commandInvalid)))
+                    }
+                    return
+                }
+                let allowedPids: [String] = convCommand.allowedPids
+                let failedPids: [IMErrorCommand] = convCommand.failedPids
+                
+                let memberResult: MemberResult
+                if failedPids.isEmpty {
+                    memberResult = .allSucceeded
+                } else {
+                    let successIDs = (allowedPids.isEmpty ? nil : allowedPids)
+                    var failures: [([String], LCError)] = []
+                    for errCommand in failedPids {
+                        failures.append((errCommand.pids, errCommand.lcError))
+                    }
+                    memberResult = .slicing(success: successIDs, failure: failures)
+                }
+                
+                client.eventQueue.async {
+                    completion(memberResult)
+                }
+            case .error(let error):
+                client.eventQueue.async {
+                    completion(.failure(error: error))
+                }
+            }
+        })
+    }
+    
+    public typealias MutedMembersResult = (members: [String], next: String?)
+    
+    private func _getMutedMembers(
+        limit: Int,
+        next: String?,
+        completion: @escaping (LCGenericResult<MutedMembersResult>) -> Void)
+        throws
+    {
+        let limitRange: ClosedRange<Int> = 1...100
+        guard limitRange.contains(limit) else {
+            throw LCError(code: .inconsistency, reason: "parameter `limit` should in range \(limitRange)")
+        }
+        self.client?.sendCommand(constructor: { () -> IMGenericCommand in
+            var outCommand = IMGenericCommand()
+            outCommand.cmd = .conv
+            outCommand.op = .queryShutup
+            var convCommand = IMConvCommand()
+            convCommand.cid = self.ID
+            convCommand.limit = Int32(limit)
+            if let next = next {
+                convCommand.next = next
+            }
+            outCommand.convMessage = convCommand
+            return outCommand
+        }, completion: { (client, result) in
+            assert(client.specificAssertion)
+            switch result {
+            case .inCommand(let inCommand):
+                guard let convMessage = (inCommand.hasConvMessage ? inCommand.convMessage : nil) else {
+                    client.eventQueue.async {
+                        completion(.failure(error: LCError(code: .commandInvalid)))
+                    }
+                    return
+                }
+                let members = convMessage.m
+                let next = (convMessage.hasNext ? convMessage.next : nil)
+                client.eventQueue.async {
+                    completion(.success(value: (members, next)))
+                }
+            case .error(let error):
+                client.eventQueue.async {
+                    completion(.failure(error: error))
+                }
+            }
+        })
+    }
+    
+    private func _checkMuting(
+        member ID: String,
+        completion: @escaping (LCGenericResult<Bool>) -> Void)
+    {
+        self.client?.sendCommand(constructor: { () -> IMGenericCommand in
+            var outCommand = IMGenericCommand()
+            outCommand.cmd = .conv
+            outCommand.op = .checkShutup
+            var convCommand = IMConvCommand()
+            convCommand.cid = self.ID
+            convCommand.m = [ID]
+            outCommand.convMessage = convCommand
+            return outCommand
+        }, completion: { (client, result) in
+            assert(client.specificAssertion)
+            switch result {
+            case .inCommand(let inCommand):
+                guard let convMessage = (inCommand.hasConvMessage ? inCommand.convMessage : nil) else {
+                    client.eventQueue.async {
+                        completion(.failure(error: LCError(code: .commandInvalid)))
+                    }
+                    return
+                }
+                let isMuted = convMessage.m.contains(ID)
+                client.eventQueue.async {
+                    completion(.success(value: isMuted))
                 }
             case .error(let error):
                 client.eventQueue.async {
