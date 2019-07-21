@@ -383,14 +383,33 @@ public class IMConversation {
         try self._update(role: role, ofMember: memberID, completion: completion)
     }
     
+    /// Blocking members in the conversation.
+    ///
+    /// - Parameters:
+    ///   - members: The members will be blocked.
+    ///   - completion: Result of callback.
+    /// - Throws: When parameter `members` is empty.
     public func block(members: Set<String>, completion: @escaping (MemberResult) -> Void) throws {
         try self.update(blockedMembers: members, op: .block, completion: completion)
     }
     
+    /// Unblocking members in the conversation.
+    ///
+    /// - Parameters:
+    ///   - members: The members will be unblocked.
+    ///   - completion: Result of callback.
+    /// - Throws: When parameter `members` is empty.
     public func unblock(members: Set<String>, completion: @escaping (MemberResult) -> Void) throws {
         try self.update(blockedMembers: members, op: .unblock, completion: completion)
     }
     
+    /// Get the blocked members in the conversation.
+    ///
+    /// - Parameters:
+    ///   - limit: Count limit.
+    ///   - next: Offset.
+    ///   - completion: Result of callback.
+    /// - Throws: When limit out of range.
     public func getBlockedMembers(
         limit: Int = 50,
         next: String? = nil,
@@ -400,6 +419,11 @@ public class IMConversation {
         try self._getBlockedMembers(limit: limit, next: next, completion: completion)
     }
     
+    /// Check if one member has been blocked in the conversation.
+    ///
+    /// - Parameters:
+    ///   - ID: The ID of member.
+    ///   - completion: Result of callback.
     public func checkBlocking(
         member ID: String,
         completion: @escaping (LCGenericResult<Bool>) -> Void)
