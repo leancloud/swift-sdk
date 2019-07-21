@@ -461,6 +461,38 @@ class LCQueryTestCase: BaseTestCase {
 
         XCTAssertTrue((objectId1.value as NSString).compare(objectId2!.value) == .orderedDescending)
     }
+    
+    func testMultiOrder() {
+        let _ = sharedObject
+        let _ = sharedChild
+        let query = objectQuery()
+        
+        query.whereKey("numberField", .existed)
+        query.whereKey("numberField", .descending)
+        query.whereKey("createdAt", .descending)
+        
+        let (isSuccess, objects) = execute(query)
+        
+        XCTAssertTrue(isSuccess && !objects.isEmpty)
+        
+        var isNumberFieldDescending = true
+        var previousNumber: Double?
+        for object in objects {
+            guard let numberField = object["numberField"] as? LCNumber else {
+                isNumberFieldDescending = false
+                break
+            }
+            let number = numberField.value
+            if let previousNumber = previousNumber {
+                guard previousNumber >= number else {
+                    isNumberFieldDescending = false
+                    break
+                }
+            }
+            previousNumber = number
+        }
+        XCTAssertTrue(isNumberFieldDescending)
+    }
 
     func testLogicAnd() {
         let object  = sharedObject
