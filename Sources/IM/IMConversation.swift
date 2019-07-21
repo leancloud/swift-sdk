@@ -1414,12 +1414,12 @@ extension IMConversation {
                     }
                     switch inCommand.op {
                     case .added:
-                        self.safeChangingRawData(
+                        self.safeExecuting(
                             operation: .append(members: allowedPids, udate: udate),
                             client: client
                         )
                     case .removed:
-                        self.safeChangingRawData(
+                        self.safeExecuting(
                             operation: .remove(members: allowedPids, udate: udate),
                             client: client
                         )
@@ -1460,7 +1460,7 @@ extension IMConversation {
                 assert(client.specificAssertion)
                 if inCommand.hasConvMessage {
                     let convMessage = inCommand.convMessage
-                    self.safeUpdateMutedMembers(
+                    self.safeUpdatingMutedMembers(
                         op: op,
                         udate: (convMessage.hasUdate ? convMessage.udate : nil),
                         client: client
@@ -1888,7 +1888,7 @@ extension IMConversation {
                 do {
                     if let attrModified: [String: Any] = try attrModifiedString.jsonObject(),
                         let udate: String = (convCommand.hasUdate ? convCommand.udate : nil) {
-                        self.safeChangingRawData(
+                        self.safeExecuting(
                             operation: .updated(attr: data, attrModified: attrModified, udate: udate),
                             client: client
                         )
@@ -1915,7 +1915,7 @@ extension IMConversation {
         })
     }
     
-    private func rawDataChangeOperationMerging(data: RawData, client: IMClient) {
+    private func operationRawDataMerging(data: RawData, client: IMClient) {
         guard !data.isEmpty else {
             return
         }
@@ -1927,7 +1927,7 @@ extension IMConversation {
         self.tryUpdateLocalStorageData(client: client, rawData: rawData)
     }
     
-    private func rawDataChangeOperationReplaced(data: RawData, client: IMClient) {
+    private func operationRawDataReplaced(data: RawData, client: IMClient) {
         sync {
             self.rawData = data
             self.underlyingOutdated = false
@@ -1958,7 +1958,7 @@ extension IMConversation {
         }
     }
     
-    private func rawDataChangeOperationAppend(members joinedMembers: [String], udate: String?, client: IMClient) {
+    private func operationAppend(members joinedMembers: [String], udate: String?, client: IMClient) {
         guard self.needUpdateMembers(members: joinedMembers, updatedDateString: udate) else {
             return
         }
@@ -1984,7 +1984,7 @@ extension IMConversation {
         }
     }
     
-    private func rawDataChangeOperationRemove(members leftMembers: [String], udate: String?, client: IMClient) {
+    private func operationRemove(members leftMembers: [String], udate: String?, client: IMClient) {
         guard self.needUpdateMembers(members: leftMembers, updatedDateString: udate) else {
             return
         }
@@ -2011,6 +2011,13 @@ extension IMConversation {
             }
             self.tryUpdateLocalStorageData(client: client, rawData: rawData, outdated: outdated)
         }
+        sync {
+            if let _ = self.underlyingMemberInfoTable {
+                for member in leftMembers {
+                    self.underlyingMemberInfoTable?.removeValue(forKey: member)
+                }
+            }
+        }
     }
     
     private class KeyAndDictionary {
@@ -2022,7 +2029,7 @@ extension IMConversation {
         }
     }
     
-    private func rawDataChangeOperationUpdated(attr: [String: Any], attrModified: [String: Any], udate: String?, client: IMClient) {
+    private func operationRawDataUpdated(attr: [String: Any], attrModified: [String: Any], udate: String?, client: IMClient) {
         guard
             let udateString: String = udate,
             let newUpdatedDate: Date = LCDate.dateFromString(udateString),
@@ -2076,7 +2083,7 @@ extension IMConversation {
         self.tryUpdateLocalStorageData(client: client, rawData: rawDataCopy)
     }
     
-    enum RawDataChangeOperation {
+    enum Operation {
         case rawDataMerging(data: RawData)
         case rawDataReplaced(by: RawData)
         case append(members: [String], udate: String?)
@@ -2085,19 +2092,19 @@ extension IMConversation {
         case memberInfoChanged(info: MemberInfo)
     }
     
-    func safeChangingRawData(operation: RawDataChangeOperation, client: IMClient) {
+    func safeExecuting(operation: Operation, client: IMClient) {
         assert(client.specificAssertion)
         switch operation {
         case let .rawDataMerging(data: data):
-            self.rawDataChangeOperationMerging(data: data, client: client)
+            self.operationRawDataMerging(data: data, client: client)
         case let .rawDataReplaced(by: data):
-            self.rawDataChangeOperationReplaced(data: data, client: client)
+            self.operationRawDataReplaced(data: data, client: client)
         case let .append(members: joinedMembers, udate: udate):
-            self.rawDataChangeOperationAppend(members: joinedMembers, udate: udate, client: client)
+            self.operationAppend(members: joinedMembers, udate: udate, client: client)
         case let .remove(members: leftMembers, udate: udate):
-            self.rawDataChangeOperationRemove(members: leftMembers, udate: udate, client: client)
+            self.operationRemove(members: leftMembers, udate: udate, client: client)
         case let .updated(attr: attr, attrModified: attrModified, udate):
-            self.rawDataChangeOperationUpdated(attr: attr, attrModified: attrModified, udate: udate, client: client)
+            self.operationRawDataUpdated(attr: attr, attrModified: attrModified, udate: udate, client: client)
         case let .memberInfoChanged(info: info):
             sync {
                 if let _ = self.underlyingMemberInfoTable {
@@ -2109,7 +2116,7 @@ extension IMConversation {
         }
     }
     
-    private func safeUpdateMutedMembers(op: IMOpType, udate: String?, client: IMClient) {
+    private func safeUpdatingMutedMembers(op: IMOpType, udate: String?, client: IMClient) {
         guard let udate: String = udate else {
             return
         }
