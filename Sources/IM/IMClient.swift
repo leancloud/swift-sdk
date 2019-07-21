@@ -734,8 +734,8 @@ extension IMClient {
     
     func getConvStartCommand(tuple: ConversationCreationTuple, completion: @escaping (IMClient, IMGenericCommand) -> Void) {
         if let signatureDelegate = self.signatureDelegate {
+            let action: IMSignature.Action = .createConversation(memberIDs: Set(tuple.members))
             self.eventQueue.async {
-                let action: IMSignature.Action = .createConversation(memberIDs: Set(tuple.members))
                 signatureDelegate.client(self, action: action) { (client, signature) in
                     client.serialQueue.async {
                         let command = client.newConvStartCommand(tuple: tuple, signature: signature)

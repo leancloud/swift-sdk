@@ -1353,25 +1353,25 @@ extension IMConversation {
         op: IMOpType,
         completion: @escaping (IMClient, IMGenericCommand) -> Void)
     {
-        guard let client = self.client else {
-            return
-        }
-        if self.convType == .normal, let signatureDelegate = client.signatureDelegate {
-            client.eventQueue.async {
-                let action: IMSignature.Action
-                if op == .add {
-                    action = .add(memberIDs: members, toConversation: self)
-                } else {
-                    action = .remove(memberIDs: members, fromConversation: self)
-                }
-                signatureDelegate.client(client, action: action, signatureHandler: { (client, signature) in
-                    client.serialQueue.async {
-                        let command = self.newConvAddRemoveCommand(members: members, op: op, signature: signature)
-                        completion(client, command)
-                    }
-                })
+        if self.convType == .normal, let signatureDelegate = self.client?.signatureDelegate {
+            let action: IMSignature.Action
+            if op == .add {
+                action = .add(memberIDs: members, toConversation: self)
+            } else {
+                action = .remove(memberIDs: members, fromConversation: self)
             }
-        } else {
+            self.client?.eventQueue.async {
+                if let client = self.client {
+                    signatureDelegate.client(client, action: action, signatureHandler: { (client, signature) in
+                        client.serialQueue.async {
+                            let command = self.newConvAddRemoveCommand(members: members, op: op, signature: signature)
+                            completion(client, command)
+                        }
+                    })
+                }
+            }
+            
+        } else if let client = self.client {
             let command = self.newConvAddRemoveCommand(members: members, op: op)
             completion(client, command)
         }
@@ -1679,25 +1679,24 @@ extension IMConversation {
         op: IMOpType,
         completion: @escaping (IMClient, IMGenericCommand) -> Void)
     {
-        guard let client = self.client else {
-            return
-        }
-        if self.convType == .normal, let signatureDelegate = client.signatureDelegate {
-            client.eventQueue.async {
-                let action: IMSignature.Action
-                if op == .block {
-                    action = .conversationBlocking(self, blockedMemberIDs: members)
-                } else {
-                    action = .conversationUnblocking(self, unblockedMemberIDs: members)
-                }
-                signatureDelegate.client(client, action: action, signatureHandler: { (client, signature) in
-                    client.serialQueue.async {
-                        let command = self.newBlacklistBlockUnblockCommand(members: members, op: op, signature: signature)
-                        completion(client, command)
-                    }
-                })
+        if self.convType == .normal, let signatureDelegate = self.client?.signatureDelegate {
+            let action: IMSignature.Action
+            if op == .block {
+                action = .conversationBlocking(self, blockedMemberIDs: members)
+            } else {
+                action = .conversationUnblocking(self, unblockedMemberIDs: members)
             }
-        } else {
+            self.client?.eventQueue.async {
+                if let client = self.client {
+                    signatureDelegate.client(client, action: action, signatureHandler: { (client, signature) in
+                        client.serialQueue.async {
+                            let command = self.newBlacklistBlockUnblockCommand(members: members, op: op, signature: signature)
+                            completion(client, command)
+                        }
+                    })
+                }
+            }
+        } else if let client = self.client {
             let command = self.newBlacklistBlockUnblockCommand(members: members, op: op)
             completion(client, command)
         }
