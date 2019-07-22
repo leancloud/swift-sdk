@@ -359,7 +359,11 @@ public class LCQuery: NSObject, NSCopying, NSCoding {
      - parameter orderedKey: The ordered key with optional '-' prefixed.
      */
     func appendOrderedKey(_ orderedKey: String) {
-        orderedKeys = orderedKeys?.appending(orderedKey) ?? orderedKey
+        if let orderedKeys: String = self.orderedKeys {
+            self.orderedKeys = "\(orderedKeys),\(orderedKey)"
+        } else {
+            self.orderedKeys = orderedKey
+        }
     }
 
     /**

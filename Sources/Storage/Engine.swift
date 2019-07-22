@@ -23,9 +23,9 @@ public class LCEngine {
         parameters: [String: Any]? = nil)
         -> LCGenericResult<Any>
     {
-        return expect { (fullfill) in
+        return expect { (fulfill) in
             self.run(application: application, function: function, parameters: parameters, completionInBackground: { (result) in
-                fullfill(result)
+                fulfill(result)
             })
         }
     }
@@ -92,9 +92,9 @@ public class LCEngine {
         parameters: LCDictionaryConvertible? = nil)
         -> LCValueOptionalResult
     {
-        return expect { (fullfill) in
+        return expect { (fulfill) in
             self.call(application: application, function: function, parameters: parameters, completionInBackground: { (result) in
-                fullfill(result)
+                fulfill(result)
             })
         }
     }

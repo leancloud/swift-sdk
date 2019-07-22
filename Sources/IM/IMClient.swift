@@ -321,9 +321,7 @@ public class IMClient {
         self.sessionTokenExpiration = date
     }
     func test_change(serverTimestamp timestamp: Int64?) {
-        self.serialQueue.async {
-            self.localRecord.lastServerTimestamp = timestamp
-        }
+        self.localRecord.lastServerTimestamp = timestamp
     }
     #endif
     
@@ -354,7 +352,7 @@ public class IMClient {
     }()
     
     var convCollection: [String: IMConversation] = [:]
-    private(set) var cachedConvMapSnapshot: [String: IMConversation]?
+    private(set) var validInFetchingNotificationsCachedConvMapSnapshot: [String: IMConversation]?
     private(set) var convQueryCallbackCollection: [String: Array<(IMClient, LCGenericResult<IMConversation>) -> Void>] = [:]
     
     /// ref: `https://github.com/leancloud/avoscloud-push/blob/develop/push-server/doc/protocol.md#sessionopen`
@@ -393,21 +391,16 @@ extension IMClient {
             }
         }
         
-        @discardableResult
-        mutating func update(lastServerTimestamp newValue: Int64?) -> Bool {
+        mutating func update(lastServerTimestamp newValue: Int64?) {
             guard let newValue = newValue else {
-                return false
+                return
             }
             if let oldValue = self.lastServerTimestamp {
                 if newValue >= oldValue {
                     self.lastServerTimestamp = newValue
-                    return true
-                } else {
-                    return false
                 }
             } else {
                 self.lastServerTimestamp = newValue
-                return true
             }
         }
     }
@@ -734,8 +727,8 @@ extension IMClient {
     
     func getConvStartCommand(tuple: ConversationCreationTuple, completion: @escaping (IMClient, IMGenericCommand) -> Void) {
         if let signatureDelegate = self.signatureDelegate {
+            let action: IMSignature.Action = .createConversation(memberIDs: Set(tuple.members))
             self.eventQueue.async {
-                let action: IMSignature.Action = .createConversation(memberIDs: Set(tuple.members))
                 signatureDelegate.client(self, action: action) { (client, signature) in
                     client.serialQueue.async {
                         let command = client.newConvStartCommand(tuple: tuple, signature: signature)
@@ -813,7 +806,7 @@ extension IMClient {
         }
         let conversation: IMConversation
         if let conv: IMConversation = self.convCollection[convID] {
-            conv.safeChangingRawData(operation: .rawDataMerging(data: attr), client: self)
+            conv.safeExecuting(operation: .rawDataMerging(data: attr), client: self)
             conversation = conv
         } else {
             let key = IMConversation.Key.self
@@ -965,6 +958,10 @@ extension IMClient {
 
 extension IMClient {
     
+    /// Open database of the local storage.
+    ///
+    /// - Parameter completion: Result of callback
+    /// - Throws: If client not init with `usingLocalStorage`, then throws error.
     public func prepareLocalStorage(completion: @escaping (LCBooleanResult) -> Void) throws {
         guard let localStorage = self.localStorage else {
             throw LCError.clientLocalStorageNotFound
@@ -976,6 +973,11 @@ extension IMClient {
         }
     }
     
+    /// Query Order Option for stored conversations.
+    ///
+    /// - updatedTimestamp: By updated timestamp.
+    /// - createdTimestamp: By created timestamp.
+    /// - lastMessageSentTimestamp: By last message sent timestamp.
     public enum StoredConversationOrder {
         case updatedTimestamp(descending: Bool)
         case createdTimestamp(descending: Bool)
@@ -1012,6 +1014,12 @@ extension IMClient {
         }
     }
     
+    /// Get stored conversations and load them to memory container.
+    ///
+    /// - Parameters:
+    ///   - order: @see `IMClient.StoredConversationOrder`.
+    ///   - completion: Result of callback.
+    /// - Throws: If client not init with `usingLocalStorage`, then throws error.
     public func getAndLoadStoredConversations(
         order: IMClient.StoredConversationOrder = .lastMessageSentTimestamp(descending: true),
         completion: @escaping (LCGenericResult<[IMConversation]>) -> Void)
@@ -1036,6 +1044,12 @@ extension IMClient {
         }
     }
     
+    /// Delete the stored conversations and the messages belong to them.
+    ///
+    /// - Parameters:
+    ///   - IDs: The ID set of the conversations that will be deleted.
+    ///   - completion: Result of callback.
+    /// - Throws: If client not init with `usingLocalStorage`, then throws error.
     public func deleteStoredConversationAndMessages(IDs: Set<String>, completion: @escaping (LCBooleanResult) -> Void) throws {
         guard let localStorage = self.localStorage else {
             throw LCError.clientLocalStorageNotFound
@@ -1137,12 +1151,12 @@ extension IMClient {
         guard let serverTimestamp: Int64 = serverTimestamp else {
             return
         }
-        self.cachedConvMapSnapshot = currentConvCollection
+        self.validInFetchingNotificationsCachedConvMapSnapshot = currentConvCollection
         self.getSessionToken { (client, result) in
             assert(client.specificAssertion)
             switch result {
             case .failure(error: let error):
-                client.cachedConvMapSnapshot = nil
+                client.validInFetchingNotificationsCachedConvMapSnapshot = nil
                 Logger.shared.error(error)
             case .success(value: let token):
                 let parameters: [String: Any] = [
@@ -1161,7 +1175,7 @@ extension IMClient {
                         return
                     }
                     assert(sClient.specificAssertion)
-                    sClient.cachedConvMapSnapshot = nil
+                    sClient.validInFetchingNotificationsCachedConvMapSnapshot = nil
                     if let error = response.error {
                         Logger.shared.error(error)
                     } else if let responseValue: [String: Any] = response.value as? [String: Any] {
@@ -1610,6 +1624,133 @@ extension IMClient {
     
     // MARK: Command Processing
     
+    typealias ConvEventTuple = (operation: IMConversation.Operation?, event: IMConversationEvent?, shouldCheckOutdated: Bool)
+    
+    private func memberChangedEventTuple(
+        command: IMConvCommand,
+        op: IMOpType)
+        -> ConvEventTuple
+    {
+        let operation: IMConversation.Operation
+        let event: IMConversationEvent
+        
+        let byClientID: String? = (command.hasInitBy ? command.initBy : nil)
+        let udate: String? = (command.hasUdate ? command.udate : nil)
+        let atDate: Date? = (command.hasUdate ? LCDate.dateFromString(command.udate) : nil)
+        
+        switch op {
+        case .joined:
+            operation = .append(members: [self.ID], udate: udate)
+            event = .joined(byClientID: byClientID, at: atDate)
+        case .left:
+            operation = .remove(members: [self.ID], udate: udate)
+            event = .left(byClientID: byClientID, at: atDate)
+        case .membersJoined:
+            operation = .append(members: command.m, udate: udate)
+            event = .membersJoined(members: command.m, byClientID: byClientID, at: atDate)
+        case .membersLeft:
+            operation = .remove(members: command.m, udate: udate)
+            event = .membersLeft(members: command.m, byClientID: byClientID, at: atDate)
+        default:
+            fatalError()
+        }
+        
+        return (operation, event, true)
+    }
+    
+    private func conversationDataUpdatedEventTuple(command: IMConvCommand) throws -> ConvEventTuple {
+        let operation: IMConversation.Operation
+        let event: IMConversationEvent
+        
+        if command.hasAttr, command.attr.hasData,
+            let attr: [String: Any] = try command.attr.data.jsonObject(),
+            command.hasAttrModified, command.attrModified.hasData,
+            let attrModified: [String: Any] = try command.attrModified.data.jsonObject() {
+            operation = .updated(
+                attr: attr,
+                attrModified: attrModified,
+                udate: (command.hasUdate ? command.udate : nil)
+            )
+            event = IMConversationEvent.dataUpdated(
+                updatingData: attr,
+                updatedData: attrModified,
+                byClientID: (command.hasInitBy ? command.initBy : nil),
+                at: (command.hasUdate ? LCDate.dateFromString(command.udate) : nil)
+            )
+        } else {
+            throw LCError(code: .commandInvalid)
+        }
+        
+        return (operation, event, true)
+    }
+    
+    private func memberInfoChangedEventTuple(
+        command: IMConvCommand,
+        conversation: IMConversation,
+        serverTimestamp: Int64?)
+        throws
+        -> ConvEventTuple
+    {
+        let operation: IMConversation.Operation
+        let event: IMConversationEvent
+        
+        if let info = (command.hasInfo ? command.info : nil),
+            let memberID = (info.hasPid ? info.pid : nil),
+            let roleRawValue = (info.hasRole ? info.role : nil),
+            let role = IMConversation.MemberRole(rawValue: roleRawValue) {
+            let memberInfo = IMConversation.MemberInfo(
+                ID: memberID,
+                role: role,
+                conversationID: conversation.ID,
+                creator: conversation.creator
+            )
+            let byClientID = (command.hasInitBy ? command.initBy : nil)
+            let atDate = IMClient.date(fromMillisecond: serverTimestamp)
+            operation = .memberInfoChanged(info: memberInfo)
+            event = IMConversationEvent.memberInfoChanged(info: memberInfo, byClientID: byClientID, at: atDate)
+        } else {
+            throw LCError(code: .commandInvalid)
+        }
+        
+        return (operation, event, false)
+    }
+    
+    private func blockedOrMutedMembersChanged(
+        command: IMConvCommand,
+        op: IMOpType,
+        serverTimestamp: Int64?)
+        -> ConvEventTuple
+    {
+        let event: IMConversationEvent
+        
+        let members: [String] = command.m
+        let byClientID: String? = (command.hasInitBy ? command.initBy : nil)
+        let atDate: Date? = IMClient.date(fromMillisecond: serverTimestamp)
+        
+        switch op {
+        case .blocked:
+            event = .blocked(byClientID: byClientID, at: atDate)
+        case .unblocked:
+            event = .unblocked(byClientID: byClientID, at: atDate)
+        case .membersBlocked:
+            event = .membersBlocked(members: members, byClientID: byClientID, at: atDate)
+        case .membersUnblocked:
+            event = .membersUnblocked(members: members, byClientID: byClientID, at: atDate)
+        case .shutuped:
+            event = .muted(byClientID: byClientID, at: atDate)
+        case .unshutuped:
+            event = .unmuted(byClientID: byClientID, at: atDate)
+        case .membersShutuped:
+            event = .membersMuted(members: members, byClientID: byClientID, at: atDate)
+        case .membersUnshutuped:
+            event = .membersUnmuted(members: members, byClientID: byClientID, at: atDate)
+        default:
+            fatalError()
+        }
+        
+        return (nil, event, false)
+    }
+    
     func process(convCommand command: IMConvCommand, op: IMOpType, serverTimestamp: Int64?) {
         assert(self.specificAssertion)
         guard let conversationID: String = (command.hasCid ? command.cid : nil) else {
@@ -1619,71 +1760,52 @@ extension IMClient {
             assert(client.specificAssertion)
             switch result {
             case .success(value: let conversation):
-                var event: IMConversationEvent? = nil
-                var rawDataOperation: IMConversation.RawDataChangeOperation? = nil
+                let tuple: ConvEventTuple
                 switch op {
                 case .joined, .left, .membersJoined, .membersLeft:
-                    let byClientID: String? = (command.hasInitBy ? command.initBy : nil)
-                    let udate: String? = (command.hasUdate ? command.udate : nil)
-                    let atDate: Date? = (command.hasUdate ? LCDate.dateFromString(command.udate) : nil)
-                    switch op {
-                    case .joined:
-                        rawDataOperation = .append(members: [client.ID], udate: udate)
-                        event = .joined(byClientID: byClientID, at: atDate)
-                    case .left:
-                        rawDataOperation = .remove(members: [client.ID], udate: udate)
-                        event = .left(byClientID: byClientID, at: atDate)
-                    case .membersJoined:
-                        rawDataOperation = .append(members: command.m, udate: udate)
-                        event = .membersJoined(members: command.m, byClientID: byClientID, at: atDate)
-                    case .membersLeft:
-                        rawDataOperation = .remove(members: command.m, udate: udate)
-                        event = .membersLeft(members: command.m, byClientID: byClientID, at: atDate)
-                    default:
-                        break
-                    }
+                    tuple = client.memberChangedEventTuple(command: command, op: op)
                 case .updated:
                     do {
-                        if
-                            command.hasAttr,
-                            command.attr.hasData,
-                            let attr: [String: Any] = try command.attr.data.jsonObject(),
-                            command.hasAttrModified,
-                            command.attrModified.hasData,
-                            let attrModified: [String: Any] = try command.attrModified.data.jsonObject()
-                        {
-                            rawDataOperation = .updated(
-                                attr: attr,
-                                attrModified: attrModified,
-                                udate: (command.hasUdate ? command.udate : nil)
-                            )
-                            event = IMConversationEvent.dataUpdated(
-                                updatingData: attr,
-                                updatedData: attrModified,
-                                byClientID: (command.hasInitBy ? command.initBy : nil),
-                                at: (command.hasUdate ? LCDate.dateFromString(command.udate) : nil)
-                            )
-                        } else {
-                            Logger.shared.error("invalid command \(command)")
-                        }
+                        tuple = try client.conversationDataUpdatedEventTuple(command: command)
                     } catch {
                         Logger.shared.error(error)
+                        return
                     }
+                case .memberInfoChanged:
+                    do {
+                        tuple = try client.memberInfoChangedEventTuple(
+                            command: command,
+                            conversation: conversation,
+                            serverTimestamp: serverTimestamp
+                        )
+                    } catch {
+                        Logger.shared.error(error)
+                        return
+                    }
+                case .blocked, .unblocked,
+                     .membersBlocked, .membersUnblocked,
+                     .shutuped, .unshutuped,
+                     .membersShutuped, .membersUnshutuped:
+                    tuple = client.blockedOrMutedMembersChanged(
+                        command: command,
+                        op: op,
+                        serverTimestamp: serverTimestamp
+                    )
                 default:
-                    break
+                    return
                 }
-                if let rawDataOperation = rawDataOperation {
-                    conversation.safeChangingRawData(operation: rawDataOperation, client: client)
-                    let lastServerTimestampUpdated: Bool = client.localRecord.update(lastServerTimestamp: serverTimestamp)
-                    if
-                        lastServerTimestampUpdated,
-                        let _ = self.cachedConvMapSnapshot?[conversationID]
-                    {
-                        conversation.isOutdated = true
-                        conversation.tryUpdateLocalStorageData(client: client, outdated: true)
-                    }
+                if let operation: IMConversation.Operation = tuple.operation {
+                    conversation.safeExecuting(operation: operation, client: client)
                 }
-                if let event = event {
+                client.localRecord.update(lastServerTimestamp: serverTimestamp)
+                if
+                    tuple.shouldCheckOutdated,
+                    let _ = self.validInFetchingNotificationsCachedConvMapSnapshot?[conversationID]
+                {
+                    conversation.isOutdated = true
+                    conversation.tryUpdateLocalStorageData(client: client, outdated: true)
+                }
+                if let event: IMConversationEvent = tuple.event {
                     client.eventQueue.async {
                         client.delegate?.client(client, conversation: conversation, event: event)
                     }
@@ -1697,8 +1819,8 @@ extension IMClient {
     func acknowledging(message: IMMessage, conversation: IMConversation) {
         assert(self.specificAssertion)
         guard
-            message.notTransientMessage,
-            conversation.notTransientConversation,
+            !message.isTransient,
+            conversation.convType != .transient,
             let conversationID: String = message.conversationID,
             let messageID: String = message.ID
             else
@@ -1994,11 +2116,15 @@ extension IMClient {
         case attr = "attr"
         case attrModified = "attrModified"
         case udate = "udate"
+        case info = "info"
         // rcp
         case id = "id"
         case t = "t"
         case read = "read"
         case from = "from"
+        // conv member info
+        case pid = "pid"
+        case role = "role"
     }
     
     enum NotificationCommand: String {
@@ -2012,6 +2138,15 @@ extension IMClient {
         case membersJoined = "members-joined"
         case membersLeft = "members-left"
         case updated = "updated"
+        case memberInfoChanged = "member-info-changed"
+        case blocked = "blocked"
+        case unblocked = "unblocked"
+        case membersBlocked = "members-blocked"
+        case membersUnblocked = "members-unblocked"
+        case shutuped = "shutuped"
+        case membersShutuped = "members-shutuped"
+        case unshutuped = "unshutuped"
+        case membersUnshutuped = "members-unshutuped"
         
         var opType: IMOpType {
             switch self {
@@ -2025,82 +2160,107 @@ extension IMClient {
                 return .membersLeft
             case .updated:
                 return .updated
+            case .memberInfoChanged:
+                return .memberInfoChanged
+            case .blocked:
+                return .blocked
+            case .unblocked:
+                return .unblocked
+            case .membersBlocked:
+                return .membersBlocked
+            case .membersUnblocked:
+                return .membersUnblocked
+            case .shutuped:
+                return .shutuped
+            case .unshutuped:
+                return .unshutuped
+            case .membersShutuped:
+                return .membersShutuped
+            case .membersUnshutuped:
+                return .membersUnshutuped
             }
         }
     }
     
-    // for compatibility, should regard some unknown condition or unsupport message as success and callback with timestamp -1.
     func process(notification: [String: Any], conversationID: String, serverTimestamp: Int64) {
         assert(self.specificAssertion)
+        let key = NotificationKey.self
         guard
-            let cmdValue = notification[NotificationKey.cmd.rawValue] as? String,
-            let cmd = NotificationCommand(rawValue: cmdValue)
-            else
+            let cmdValue = notification[key.cmd.rawValue] as? String,
+            let cmd = NotificationCommand(rawValue: cmdValue) else
         {
             return
         }
         switch cmd {
         case .conv:
             guard
-                let opValue = notification[NotificationKey.op.rawValue] as? String,
-                let op = NotificationOperation(rawValue: opValue)
-                else
+                let opValue = notification[key.op.rawValue] as? String,
+                let op = NotificationOperation(rawValue: opValue) else
             {
                 return
             }
             var convCommand = IMConvCommand()
             convCommand.cid = conversationID
-            if let udate = notification[NotificationKey.udate.rawValue] as? String {
+            if let udate = notification[key.udate.rawValue] as? String {
                 convCommand.udate = udate
             }
-            if let initBy = notification[NotificationKey.initBy.rawValue] as? String {
+            if let initBy = notification[key.initBy.rawValue] as? String {
                 convCommand.initBy = initBy
             }
             switch op {
-            case .joined, .left, .membersJoined, .membersLeft:
-                if let m = notification[NotificationKey.m.rawValue] as? [String] {
+            case .joined, .left, .blocked, .unblocked, .shutuped, .unshutuped:
+                break
+            case .membersJoined, .membersLeft, .membersBlocked, .membersUnblocked, .membersShutuped, .membersUnshutuped:
+                if let m = notification[key.m.rawValue] as? [String] {
                     convCommand.m = m
                 }
             case .updated:
-                do {
-                    if
-                        let attr = notification[NotificationKey.attr.rawValue] as? [String: Any],
-                        let data = try attr.jsonString()
-                    {
-                        var jsonObject = IMJsonObjectMessage()
-                        jsonObject.data = data
-                        convCommand.attr = jsonObject
+                let setAttribution: (NotificationKey) -> Void = { key in
+                    do {
+                        if let attr = notification[key.rawValue] as? [String: Any], let data = try attr.jsonString() {
+                            var jsonObject = IMJsonObjectMessage()
+                            jsonObject.data = data
+                            switch key {
+                            case .attr:
+                                convCommand.attr = jsonObject
+                            case .attrModified:
+                                convCommand.attrModified = jsonObject
+                            default:
+                                fatalError()
+                            }
+                        }
+                    } catch {
+                        Logger.shared.error(error)
                     }
-                } catch {
-                    Logger.shared.error(error)
                 }
-                do {
-                    if
-                        let attrModified = notification[NotificationKey.attrModified.rawValue] as? [String: Any],
-                        let data = try attrModified.jsonString()
-                    {
-                        var jsonObject = IMJsonObjectMessage()
-                        jsonObject.data = data
-                        convCommand.attrModified = jsonObject
-                    }
-                } catch {
-                    Logger.shared.error(error)
+                setAttribution(.attr)
+                setAttribution(.attrModified)
+            case .memberInfoChanged:
+                if
+                    let info = notification[key.info.rawValue] as? [String: Any],
+                    let pid = info[key.pid.rawValue] as? String,
+                    let role = info[key.role.rawValue] as? String
+                {
+                    var memberInfo = IMConvMemberInfo()
+                    memberInfo.pid = pid
+                    memberInfo.role = role
+                    convCommand.info = memberInfo
                 }
             }
             self.process(convCommand: convCommand, op: op.opType, serverTimestamp: serverTimestamp)
         case .rcp:
             var rcpCommand = IMRcpCommand()
             rcpCommand.cid = conversationID
-            if let mid = notification[NotificationKey.id.rawValue] as? String {
+            if let mid = notification[key.id.rawValue] as? String {
                 rcpCommand.id = mid
             }
-            if let timestamp = notification[NotificationKey.t.rawValue] as? Int64 {
+            if let timestamp = notification[key.t.rawValue] as? Int64 {
                 rcpCommand.t = timestamp
             }
-            if let isRead = notification[NotificationKey.read.rawValue] as? Bool {
+            if let isRead = notification[key.read.rawValue] as? Bool {
                 rcpCommand.read = isRead
             }
-            if let fromPeerID = notification[NotificationKey.from.rawValue] as? String {
+            if let fromPeerID = notification[key.from.rawValue] as? String {
                 rcpCommand.from = fromPeerID
             }
             self.process(rcpCommand: rcpCommand, serverTimestamp: serverTimestamp)
@@ -2231,7 +2391,6 @@ public enum IMClientEvent {
     case sessionDidPause(error: LCError)
     
     case sessionDidClose(error: LCError)
-    
 }
 
 /// The event about the conversation that belong to the client.
@@ -2240,6 +2399,15 @@ public enum IMClientEvent {
 /// - left: The client left the conversation.
 /// - membersJoined: The members joined the conversation.
 /// - membersLeft: The members left the conversation.
+/// - memberInfoChanged: The info of the member in the conversaiton has changed.
+/// - blocked: The client has been blocked in the conversation.
+/// - unblocked: The client has been unblocked int the conversation.
+/// - membersBlocked: The members have been blocked in the conversation.
+/// - membersUnblocked: The members have been unblocked in the conversation.
+/// - muted: The client has been muted in the conversation.
+/// - unmuted: The client has been unmuted in the conversation.
+/// - membersMuted: The members have been muted in the conversation.
+/// - membersUnmuted: The members have been unmuted in the conversation.
 /// - dataUpdated: The data of the conversation updated.
 /// - lastMessageUpdated: The last message of the conversation updated.
 /// - unreadMessageCountUpdated: The unread message count of the conversation updated.
@@ -2247,12 +2415,21 @@ public enum IMClientEvent {
 public enum IMConversationEvent {
     
     case joined(byClientID: String?, at: Date?)
-    
     case left(byClientID: String?, at: Date?)
-    
     case membersJoined(members: [String], byClientID: String?, at: Date?)
-    
     case membersLeft(members: [String], byClientID: String?, at: Date?)
+    
+    case memberInfoChanged(info: IMConversation.MemberInfo, byClientID: String?, at: Date?)
+    
+    case blocked(byClientID: String?, at: Date?)
+    case unblocked(byClientID: String?, at: Date?)
+    case membersBlocked(members: [String], byClientID: String?, at: Date?)
+    case membersUnblocked(members: [String], byClientID: String?, at: Date?)
+    
+    case muted(byClientID: String?, at: Date?)
+    case unmuted(byClientID: String?, at: Date?)
+    case membersMuted(members: [String], byClientID: String?, at: Date?)
+    case membersUnmuted(members: [String], byClientID: String?, at: Date?)
     
     case dataUpdated(updatingData: [String: Any]?, updatedData: [String: Any]?, byClientID: String?, at: Date?)
     
@@ -2261,7 +2438,6 @@ public enum IMConversationEvent {
     case unreadMessageCountUpdated
     
     case message(event: IMMessageEvent)
-    
 }
 
 /// The event about the message that belong to the conversation.
@@ -2279,7 +2455,6 @@ public enum IMMessageEvent {
     case delivered(toClientID: String?, messageID: String, deliveredTimestamp: Int64)
     
     case read(byClientID: String?, messageID: String, readTimestamp: Int64)
-    
 }
 
 /// IM Client Delegate
@@ -2304,34 +2479,54 @@ public protocol IMClientDelegate: class {
 
 // MARK: - Signature
 
+/// IM Signature Delegate
 public protocol IMSignatureDelegate: class {
     
+    /// Delegate function of the signature action
+    ///
+    /// - Parameters:
+    ///   - client: The signature action belong to.
+    ///   - action: @see `IMSignature.Action`.
+    ///   - signatureHandler: The handler for the signature.
     func client(_ client: IMClient, action: IMSignature.Action, signatureHandler: @escaping (IMClient, IMSignature?) -> Void)
     
 }
 
 public struct IMSignature {
     
+    
+    /// Actions need signature.
+    ///
+    /// - open: Open client.
+    /// - createConversation: Create conversation.
+    /// - add: Add members to conversation.
+    /// - remove: Remove members from conversation.
+    /// - conversationBlocking: Conversation blocking client.
+    /// - conversationUnblocking: Conversation unblocking client.
     public enum Action {
-        
         case open
-        
         case createConversation(memberIDs: Set<String>)
         case add(memberIDs: Set<String>, toConversation: IMConversation)
         case remove(memberIDs: Set<String>, fromConversation: IMConversation)
-        
-        case block(conversation: IMConversation)
-        case unblock(conversation: IMConversation)
-        case conversation(_: IMConversation, blockingMemberIDs: Set<String>)
-        case conversation(_: IMConversation, unblockingMemberIDs: Set<String>)
+        case conversationBlocking(_: IMConversation, blockedMemberIDs: Set<String>)
+        case conversationUnblocking(_: IMConversation, unblockedMemberIDs: Set<String>)
     }
     
+    /// signature
     public let signature: String
     
+    /// timestamp
     public let timestamp: Int64
     
+    /// nonce
     public let nonce: String
     
+    /// Initialization.
+    ///
+    /// - Parameters:
+    ///   - signature: signature.
+    ///   - timestamp: timestamp.
+    ///   - nonce: nonce.
     public init(signature: String, timestamp: Int64, nonce: String) {
         self.signature = signature
         self.timestamp = timestamp
