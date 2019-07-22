@@ -1715,7 +1715,7 @@ extension IMClient {
         return (operation, event, false)
     }
     
-    private func blockedMembersChanged(
+    private func blockedOrMutedMembersChanged(
         command: IMConvCommand,
         op: IMOpType,
         serverTimestamp: Int64?)
@@ -1728,10 +1728,22 @@ extension IMClient {
         let atDate: Date? = IMClient.date(fromMillisecond: serverTimestamp)
         
         switch op {
+        case .blocked:
+            event = .blocked(byClientID: byClientID, at: atDate)
+        case .unblocked:
+            event = .unblocked(byClientID: byClientID, at: atDate)
         case .membersBlocked:
             event = .membersBlocked(members: members, byClientID: byClientID, at: atDate)
         case .membersUnblocked:
             event = .membersUnblocked(members: members, byClientID: byClientID, at: atDate)
+        case .shutuped:
+            event = .muted(byClientID: byClientID, at: atDate)
+        case .unshutuped:
+            event = .unmuted(byClientID: byClientID, at: atDate)
+        case .membersShutuped:
+            event = .membersMuted(members: members, byClientID: byClientID, at: atDate)
+        case .membersUnshutuped:
+            event = .membersUnmuted(members: members, byClientID: byClientID, at: atDate)
         default:
             fatalError()
         }
@@ -1770,8 +1782,11 @@ extension IMClient {
                         Logger.shared.error(error)
                         return
                     }
-                case .membersBlocked, .membersUnblocked:
-                    tuple = client.blockedMembersChanged(
+                case .blocked, .unblocked,
+                     .membersBlocked, .membersUnblocked,
+                     .shutuped, .unshutuped,
+                     .membersShutuped, .membersUnshutuped:
+                    tuple = client.blockedOrMutedMembersChanged(
                         command: command,
                         op: op,
                         serverTimestamp: serverTimestamp
@@ -2124,8 +2139,14 @@ extension IMClient {
         case membersLeft = "members-left"
         case updated = "updated"
         case memberInfoChanged = "member-info-changed"
+        case blocked = "blocked"
+        case unblocked = "unblocked"
         case membersBlocked = "members-blocked"
         case membersUnblocked = "members-unblocked"
+        case shutuped = "shutuped"
+        case membersShutuped = "members-shutuped"
+        case unshutuped = "unshutuped"
+        case membersUnshutuped = "members-unshutuped"
         
         var opType: IMOpType {
             switch self {
@@ -2141,10 +2162,22 @@ extension IMClient {
                 return .updated
             case .memberInfoChanged:
                 return .memberInfoChanged
+            case .blocked:
+                return .blocked
+            case .unblocked:
+                return .unblocked
             case .membersBlocked:
                 return .membersBlocked
             case .membersUnblocked:
                 return .membersUnblocked
+            case .shutuped:
+                return .shutuped
+            case .unshutuped:
+                return .unshutuped
+            case .membersShutuped:
+                return .membersShutuped
+            case .membersUnshutuped:
+                return .membersUnshutuped
             }
         }
     }
@@ -2175,7 +2208,9 @@ extension IMClient {
                 convCommand.initBy = initBy
             }
             switch op {
-            case .joined, .left, .membersJoined, .membersLeft, .membersBlocked, .membersUnblocked:
+            case .joined, .left, .blocked, .unblocked, .shutuped, .unshutuped:
+                break
+            case .membersJoined, .membersLeft, .membersBlocked, .membersUnblocked, .membersShutuped, .membersUnshutuped:
                 if let m = notification[key.m.rawValue] as? [String] {
                     convCommand.m = m
                 }
@@ -2365,8 +2400,14 @@ public enum IMClientEvent {
 /// - membersJoined: The members joined the conversation.
 /// - membersLeft: The members left the conversation.
 /// - memberInfoChanged: The info of the member in the conversaiton has changed.
+/// - blocked: The client has been blocked in the conversation.
+/// - unblocked: The client has been unblocked int the conversation.
 /// - membersBlocked: The members have been blocked in the conversation.
 /// - membersUnblocked: The members have been unblocked in the conversation.
+/// - muted: The client has been muted in the conversation.
+/// - unmuted: The client has been unmuted in the conversation.
+/// - membersMuted: The members have been muted in the conversation.
+/// - membersUnmuted: The members have been unmuted in the conversation.
 /// - dataUpdated: The data of the conversation updated.
 /// - lastMessageUpdated: The last message of the conversation updated.
 /// - unreadMessageCountUpdated: The unread message count of the conversation updated.
@@ -2374,18 +2415,21 @@ public enum IMClientEvent {
 public enum IMConversationEvent {
     
     case joined(byClientID: String?, at: Date?)
-    
     case left(byClientID: String?, at: Date?)
-    
     case membersJoined(members: [String], byClientID: String?, at: Date?)
-    
     case membersLeft(members: [String], byClientID: String?, at: Date?)
     
     case memberInfoChanged(info: IMConversation.MemberInfo, byClientID: String?, at: Date?)
     
+    case blocked(byClientID: String?, at: Date?)
+    case unblocked(byClientID: String?, at: Date?)
     case membersBlocked(members: [String], byClientID: String?, at: Date?)
-    
     case membersUnblocked(members: [String], byClientID: String?, at: Date?)
+    
+    case muted(byClientID: String?, at: Date?)
+    case unmuted(byClientID: String?, at: Date?)
+    case membersMuted(members: [String], byClientID: String?, at: Date?)
+    case membersUnmuted(members: [String], byClientID: String?, at: Date?)
     
     case dataUpdated(updatingData: [String: Any]?, updatedData: [String: Any]?, byClientID: String?, at: Date?)
     
