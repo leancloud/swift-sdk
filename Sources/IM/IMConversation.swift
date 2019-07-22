@@ -431,14 +431,33 @@ public class IMConversation {
         self._checkBlocking(member: ID, completion: completion)
     }
     
+    /// Muting members in the conversation.
+    ///
+    /// - Parameters:
+    ///   - members: The members will be muted.
+    ///   - completion: Result of callback.
+    /// - Throws: When parameter `members` is empty.
     public func mute(members: Set<String>, completion: @escaping (MemberResult) -> Void) throws {
         try self.update(mutedMembers: members, op: .addShutup, completion: completion)
     }
     
+    /// Unmuting members in the conversation.
+    ///
+    /// - Parameters:
+    ///   - members: The members will be unmuted.
+    ///   - completion: Result of callback.
+    /// - Throws: When parameter `members` is empty.
     public func unmute(members: Set<String>, completion: @escaping (MemberResult) -> Void) throws {
         try self.update(mutedMembers: members, op: .removeShutup, completion: completion)
     }
     
+    /// Get the muted members in the conversation.
+    ///
+    /// - Parameters:
+    ///   - limit: Count limit.
+    ///   - next: Offset.
+    ///   - completion: Result of callback.
+    /// - Throws: When parameter `limit` out of range.
     public func getMutedMembers(
         limit: Int = 50,
         next: String? = nil,
@@ -448,6 +467,11 @@ public class IMConversation {
         try self._getMutedMembers(limit: limit, next: next, completion: completion)
     }
     
+    /// Check if one member has been muted in the conversation.
+    ///
+    /// - Parameters:
+    ///   - ID: The ID of member.
+    ///   - completion: Result of callback.
     public func checkMuting(
         member ID: String,
         completion: @escaping (LCGenericResult<Bool>) -> Void)
@@ -2571,6 +2595,26 @@ public class IMChatRoom: IMConversation {
         completion(.failure(error: LCError.conversationNotSupport(convType: type(of: self))))
     }
     
+    @available(*, unavailable)
+    public override func mute(members: Set<String>, completion: @escaping (IMConversation.MemberResult) -> Void) throws {
+        throw LCError.conversationNotSupport(convType: type(of: self))
+    }
+    
+    @available(*, unavailable)
+    public override func unmute(members: Set<String>, completion: @escaping (IMConversation.MemberResult) -> Void) throws {
+        throw LCError.conversationNotSupport(convType: type(of: self))
+    }
+    
+    @available(*, unavailable)
+    public override func getMutedMembers(limit: Int = 50, next: String? = nil, completion: @escaping (LCGenericResult<IMConversation.MutedMembersResult>) -> Void) throws {
+        throw LCError.conversationNotSupport(convType: type(of: self))
+    }
+    
+    @available(*, unavailable)
+    public override func checkMuting(member ID: String, completion: @escaping (LCGenericResult<Bool>) -> Void) {
+        completion(.failure(error: LCError.conversationNotSupport(convType: type(of: self))))
+    }
+    
     /// Get count of online clients in this Chat Room.
     ///
     /// - Parameter completion: callback.
@@ -2685,6 +2729,26 @@ public class IMServiceConversation: IMConversation {
     
     @available(*, unavailable)
     public override func checkBlocking(member ID: String, completion: @escaping (LCGenericResult<Bool>) -> Void) {
+        completion(.failure(error: LCError.conversationNotSupport(convType: type(of: self))))
+    }
+    
+    @available(*, unavailable)
+    public override func mute(members: Set<String>, completion: @escaping (IMConversation.MemberResult) -> Void) throws {
+        throw LCError.conversationNotSupport(convType: type(of: self))
+    }
+    
+    @available(*, unavailable)
+    public override func unmute(members: Set<String>, completion: @escaping (IMConversation.MemberResult) -> Void) throws {
+        throw LCError.conversationNotSupport(convType: type(of: self))
+    }
+    
+    @available(*, unavailable)
+    public override func getMutedMembers(limit: Int = 50, next: String? = nil, completion: @escaping (LCGenericResult<IMConversation.MutedMembersResult>) -> Void) throws {
+        throw LCError.conversationNotSupport(convType: type(of: self))
+    }
+    
+    @available(*, unavailable)
+    public override func checkMuting(member ID: String, completion: @escaping (LCGenericResult<Bool>) -> Void) {
         completion(.failure(error: LCError.conversationNotSupport(convType: type(of: self))))
     }
     
@@ -2834,6 +2898,26 @@ public class IMTemporaryConversation: IMConversation {
     
     @available(*, unavailable)
     public override func checkBlocking(member ID: String, completion: @escaping (LCGenericResult<Bool>) -> Void) {
+        completion(.failure(error: LCError.conversationNotSupport(convType: type(of: self))))
+    }
+    
+    @available(*, unavailable)
+    public override func mute(members: Set<String>, completion: @escaping (IMConversation.MemberResult) -> Void) throws {
+        throw LCError.conversationNotSupport(convType: type(of: self))
+    }
+    
+    @available(*, unavailable)
+    public override func unmute(members: Set<String>, completion: @escaping (IMConversation.MemberResult) -> Void) throws {
+        throw LCError.conversationNotSupport(convType: type(of: self))
+    }
+    
+    @available(*, unavailable)
+    public override func getMutedMembers(limit: Int = 50, next: String? = nil, completion: @escaping (LCGenericResult<IMConversation.MutedMembersResult>) -> Void) throws {
+        throw LCError.conversationNotSupport(convType: type(of: self))
+    }
+    
+    @available(*, unavailable)
+    public override func checkMuting(member ID: String, completion: @escaping (LCGenericResult<Bool>) -> Void) {
         completion(.failure(error: LCError.conversationNotSupport(convType: type(of: self))))
     }
     
