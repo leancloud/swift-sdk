@@ -1268,8 +1268,8 @@ class IMConversationTestCase: RTMBaseTestCase {
             return
         }
         
-        RTMConnectionRefMap_protobuf1.removeAll()
-        RTMConnectionRefMap_protobuf3.removeAll()
+        RTMConnectionManager.default.protobuf1Map.removeAll()
+        RTMConnectionManager.default.protobuf3Map.removeAll()
         
         guard let clientB = newOpenedClient() else {
             XCTFail()
@@ -1372,8 +1372,8 @@ class IMConversationTestCase: RTMBaseTestCase {
         let delegatorA = IMClientTestCase.Delegator()
         clientA.delegate = delegatorA
         
-        RTMConnectionRefMap_protobuf1.removeAll()
-        RTMConnectionRefMap_protobuf3.removeAll()
+        RTMConnectionManager.default.protobuf1Map.removeAll()
+        RTMConnectionManager.default.protobuf3Map.removeAll()
         
         guard let clientB = newOpenedClient() else {
             return
