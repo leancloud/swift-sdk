@@ -220,10 +220,9 @@ public class IMClient {
         
         // directly init `connection` is better, lazy init is not a good choice.
         // because connection should get App State in main thread.
-        self.connection = try RTMConnectionRegistering(
+        self.connection = try RTMConnectionManager.default.register(
             application: application,
-            peerID: ID,
-            lcimProtocol: options.lcimProtocol
+            service: .instantMessaging(ID: ID, protocol: options.lcimProtocol)
         )
         self.rtmDelegator = RTMConnection.Delegator(queue: self.serialQueue)
         
@@ -284,10 +283,9 @@ public class IMClient {
     deinit {
         Logger.shared.verbose("\(IMClient.self) with Peer ID <\"\(self.ID)\"> deinit.")
         self.connection.removeDelegator(peerID: self.ID)
-        RTMConnectionReleasing(
+        RTMConnectionManager.default.unregister(
             application: self.application,
-            peerID: self.ID,
-            lcimProtocol: self.options.lcimProtocol
+            service: .instantMessaging(ID: self.ID, protocol: self.options.lcimProtocol)
         )
     }
     

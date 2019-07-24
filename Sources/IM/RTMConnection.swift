@@ -13,104 +13,117 @@ import UIKit
 import Starscream
 import Alamofire
 
-private let RTMMutex = NSLock()
-
-var RTMConnectionRefMap_protobuf1: [String: [String: RTMConnection]] = [:]
-var RTMConnectionRefMap_protobuf3: [String: [String: RTMConnection]] = [:]
-
-func RTMConnectionRegistering(
-    application: LCApplication,
-    peerID: String,
-    lcimProtocol: RTMConnection.LCIMProtocol)
-    throws -> RTMConnection
-{
-    RTMMutex.lock()
-    defer { RTMMutex.unlock() }
+class RTMConnectionManager {
     
-    var connectionRefMap: [String: [String: RTMConnection]]
-    switch lcimProtocol {
-    case .protobuf1:
-        connectionRefMap = RTMConnectionRefMap_protobuf1
-    case .protobuf3:
-        connectionRefMap = RTMConnectionRefMap_protobuf3
+    static let `default` = RTMConnectionManager()
+    
+    private init() {}
+    
+    let mutex = NSLock()
+    
+    var protobuf1Map: [String: [String: RTMConnection]] = [:]
+    var protobuf3Map: [String: [String: RTMConnection]] = [:]
+    var liveQueryMap: [String: RTMConnection] = [:]
+    
+    enum Service {
+        case instantMessaging(ID: String, protocol: RTMConnection.LCIMProtocol)
+        case liveQuery
     }
     
-    let appID: String = application.id
-    let connection: RTMConnection
+    func getMap(protocol lcimProtocol: RTMConnection.LCIMProtocol) -> [String: [String: RTMConnection]] {
+        let map: [String: [String: RTMConnection]]
+        switch lcimProtocol {
+        case .protobuf3:
+            map = self.protobuf3Map
+        case .protobuf1:
+            map = self.protobuf1Map
+        }
+        return map
+    }
     
-    if var sharedConnectionMap: [String: RTMConnection] = connectionRefMap[appID] {
-        if let _ = sharedConnectionMap[peerID] {
-            throw LCError(
-                code: .inconsistency,
-                reason:
-                """
-                \((#file as NSString).lastPathComponent): duplicate registered.
-                
-                The RTM Connection which use \(lcimProtocol.rawValue) has been referred by one exist instance,
-                That instance's Application-ID is \(appID) and Peer-ID is \(peerID).
-                
-                Suggestion: Releasing that instance or Using other `Application-ID + Peer-ID` to register.
-                """
-            )
+    func setMap(_ map: [String: [String: RTMConnection]], lcimProtocol: RTMConnection.LCIMProtocol) {
+        switch lcimProtocol {
+        case .protobuf3:
+            self.protobuf3Map = map
+        case .protobuf1:
+            self.protobuf1Map = map
+        }
+    }
+    
+    func getConnectionFromMapForLiveQuery(applicationID: String) -> RTMConnection? {
+        if let connection = self.liveQueryMap[applicationID] {
+            return connection
         } else {
-            if let existConnection: RTMConnection = sharedConnectionMap.values.first {
-                connection = existConnection
-                sharedConnectionMap[peerID] = connection
+            return (self.getMap(protocol: .protobuf3)[applicationID]?.values.first)
+                ?? (self.getMap(protocol: .protobuf1)[applicationID]?.values.first)
+        }
+    }
+    
+    func register(application: LCApplication, service: Service) throws -> RTMConnection {
+        self.mutex.lock()
+        defer {
+            self.mutex.unlock()
+        }
+        let returnValue: RTMConnection
+        let appID: String = application.id
+        switch service {
+        case let .instantMessaging(ID: clientID, protocol: lcimProtocol):
+            var map: [String: [String: RTMConnection]] = self.getMap(protocol: lcimProtocol)
+            if var connectionMapInAppContext = map[appID], let connection = connectionMapInAppContext.values.first {
+                if let _ = connectionMapInAppContext[clientID] {
+                    throw LCError(
+                        code: .inconsistency,
+                        reason:"\(RTMConnectionManager.self): duplicate registered"
+                    )
+                } else {
+                    connectionMapInAppContext[clientID] = connection
+                    map[appID] = connectionMapInAppContext
+                    returnValue = connection
+                }
+            } else if let connection = self.liveQueryMap[appID], connection.lcimProtocol == lcimProtocol {
+                map[appID] = [clientID: connection]
+                returnValue = connection
             } else {
-                connection = try RTMConnection(
+                returnValue = try RTMConnection(
                     application: application,
                     lcimProtocol: lcimProtocol
                 )
-                sharedConnectionMap[peerID] = connection
+                map[appID] = [clientID: returnValue]
             }
-            connectionRefMap[appID] = sharedConnectionMap
+            self.setMap(map, lcimProtocol: lcimProtocol)
+        case .liveQuery:
+            if let connection = self.getConnectionFromMapForLiveQuery(applicationID: appID) {
+                returnValue = connection
+            } else {
+                returnValue = try RTMConnection(
+                    application: application,
+                    lcimProtocol: .protobuf3
+                )
+                self.liveQueryMap[appID] = returnValue
+            }
         }
-    } else {
-        connection = try RTMConnection(
-            application: application,
-            lcimProtocol: lcimProtocol
-        )
-        connectionRefMap[appID] = [peerID: connection]
+        return returnValue
     }
     
-    switch lcimProtocol {
-    case .protobuf1:
-        RTMConnectionRefMap_protobuf1 = connectionRefMap
-    case .protobuf3:
-        RTMConnectionRefMap_protobuf3 = connectionRefMap
-    }
-    
-    return connection
-}
-
-func RTMConnectionReleasing(
-    application: LCApplication,
-    peerID: String,
-    lcimProtocol: RTMConnection.LCIMProtocol)
-{
-    RTMMutex.lock()
-    defer { RTMMutex.unlock() }
-    
-    var connectionRefMap: [String: [String: RTMConnection]]
-    switch lcimProtocol {
-    case .protobuf1:
-        connectionRefMap = RTMConnectionRefMap_protobuf1
-    case .protobuf3:
-        connectionRefMap = RTMConnectionRefMap_protobuf3
-    }
-    
-    let appID: String = application.id
-    
-    if var sharedConnectionMap: [String: RTMConnection] = connectionRefMap[appID] {
-        sharedConnectionMap.removeValue(forKey: peerID)
-        connectionRefMap[appID] = sharedConnectionMap
-        switch lcimProtocol {
-        case .protobuf1:
-            RTMConnectionRefMap_protobuf1 = connectionRefMap
-        case .protobuf3:
-            RTMConnectionRefMap_protobuf3 = connectionRefMap
+    func unregister(application: LCApplication, service: Service) {
+        self.mutex.lock()
+        defer {
+            self.mutex.unlock()
+        }
+        let appID: String = application.id
+        switch service {
+        case let .instantMessaging(ID: clientID, protocol: lcimProtocol):
+            var map: [String: [String: RTMConnection]] = self.getMap(protocol: lcimProtocol)
+            if var connectionMapInAppContext = map[appID] {
+                connectionMapInAppContext.removeValue(forKey: clientID)
+                map[appID] = connectionMapInAppContext
+            }
+            self.setMap(map, lcimProtocol: lcimProtocol)
+        case .liveQuery:
+            self.liveQueryMap.removeValue(forKey: appID)
         }
     }
+    
 }
 
 protocol RTMConnectionDelegate: class {
