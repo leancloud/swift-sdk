@@ -706,8 +706,7 @@ class IMConversationTestCase: RTMBaseTestCase {
     func testMembersChange() {
         guard
             let clientA = newOpenedClient(),
-            let clientB = newOpenedClient()
-            else
+            let clientB = newOpenedClient() else
         {
             XCTFail()
             return
@@ -717,132 +716,218 @@ class IMConversationTestCase: RTMBaseTestCase {
         clientA.delegate = delegatorA
         let delegatorB = IMClientTestCase.Delegator()
         clientB.delegate = delegatorB
-        var convA: IMConversation? = nil
         
-        let createConvExp = expectation(description: "create conversation")
-        createConvExp.expectedFulfillmentCount = 5
-        delegatorA.conversationEvent = { client, conv, event in
-            switch event {
-            case .joined(byClientID: let byClientID, at: _):
-                XCTAssertEqual(byClientID, clientA.ID)
-                createConvExp.fulfill()
-            case .membersJoined(members: let members, byClientID: let byClientID, at: _):
-                XCTAssertEqual(byClientID, clientA.ID)
-                XCTAssertEqual(Set(members), Set([clientA.ID, clientB.ID]))
-                createConvExp.fulfill()
-            default:
-                break
+        var convA: IMConversation?
+        
+        multiExpecting(expectations: { () -> [XCTestExpectation] in
+            let exp = self.expectation(description: "create conversation")
+            exp.expectedFulfillmentCount = 5
+            return [exp]
+        }) { (exps) in
+            let exp = exps[0]
+            
+            delegatorA.conversationEvent = { client, conv, event in
+                switch event {
+                case let .joined(byClientID: byClientID, at: at):
+                    XCTAssertEqual(byClientID, clientA.ID)
+                    XCTAssertNotNil(at)
+                    exp.fulfill()
+                case let .membersJoined(members: members, byClientID: byClientID, at: at):
+                    XCTAssertEqual(members.count, 2)
+                    XCTAssertTrue(members.contains(clientA.ID))
+                    XCTAssertTrue(members.contains(clientB.ID))
+                    XCTAssertEqual(byClientID, clientA.ID)
+                    XCTAssertNotNil(at)
+                    exp.fulfill()
+                default:
+                    break
+                }
+            }
+            
+            delegatorB.conversationEvent = { client, conv, event in
+                switch event {
+                case let .joined(byClientID: byClientID, at: at):
+                    XCTAssertEqual(byClientID, clientA.ID)
+                    XCTAssertNotNil(at)
+                    exp.fulfill()
+                case let .membersJoined(members: members, byClientID: byClientID, at: at):
+                    XCTAssertEqual(members.count, 2)
+                    XCTAssertTrue(members.contains(clientA.ID))
+                    XCTAssertTrue(members.contains(clientB.ID))
+                    XCTAssertEqual(byClientID, clientA.ID)
+                    XCTAssertNotNil(at)
+                    exp.fulfill()
+                default:
+                    break
+                }
+            }
+            
+            try! clientA.createConversation(clientIDs: [clientB.ID]) { (result) in
+                XCTAssertTrue(result.isSuccess)
+                XCTAssertNil(result.error)
+                convA = result.value
+                exp.fulfill()
             }
         }
-        delegatorB.conversationEvent = { client, conv, event in
-            switch event {
-            case .joined(byClientID: let byClientID, at: _):
-                XCTAssertEqual(byClientID, clientA.ID)
-                createConvExp.fulfill()
-            case .membersJoined(members: let members, byClientID: let byClientID, at: _):
-                XCTAssertEqual(byClientID, clientA.ID)
-                XCTAssertEqual(Set(members), Set([clientA.ID, clientB.ID]))
-                createConvExp.fulfill()
-            default:
-                break
-            }
-        }
-        try? clientA.createConversation(clientIDs: [clientA.ID, clientB.ID], isUnique: false) { (result) in
-            XCTAssertTrue(result.isSuccess)
-            XCTAssertNil(result.error)
-            convA = result.value
-            createConvExp.fulfill()
-        }
-        wait(for: [createConvExp], timeout: timeout)
         
         let convB = clientB.convCollection[convA?.ID ?? ""]
+        XCTAssertNotNil(convB)
         
-        let leaveAndJoinExp = expectation(description: "leave and join")
-        leaveAndJoinExp.expectedFulfillmentCount = 6
-        delegatorA.conversationEvent = { client, conv, event in
-            if conv === convA {
+        multiExpecting(expectations: { () -> [XCTestExpectation] in
+            let exp = self.expectation(description: "leave")
+            exp.expectedFulfillmentCount = 3
+            return [exp]
+        }) { (exps) in
+            let exp = exps[0]
+            
+            delegatorA.conversationEvent = { client, conv, event in
+                switch event {
+                case let .membersLeft(members: members, byClientID: byClientID, at: at):
+                    XCTAssertEqual(byClientID, clientB.ID)
+                    XCTAssertEqual(members.count, 1)
+                    XCTAssertTrue(members.contains(clientB.ID))
+                    XCTAssertEqual(conv.members?.count, 1)
+                    XCTAssertEqual(conv.members?.first, clientA.ID)
+                    XCTAssertNotNil(at)
+                    XCTAssertEqual(at, conv.updatedAt)
+                    exp.fulfill()
+                default:
+                    break
+                }
+            }
+            
+            delegatorB.conversationEvent = { client, conv, event in
+                switch event {
+                case let .left(byClientID: byClientID, at: at):
+                    XCTAssertEqual(byClientID, clientB.ID)
+                    XCTAssertEqual(conv.members?.count, 1)
+                    XCTAssertEqual(conv.members?.first, clientA.ID)
+                    XCTAssertNotNil(at)
+                    XCTAssertEqual(at, conv.updatedAt)
+                    exp.fulfill()
+                default:
+                    break
+                }
+            }
+            
+            try! convB?.leave(completion: { (result) in
+                XCTAssertTrue(Thread.isMainThread)
+                XCTAssertTrue(result.isSuccess)
+                XCTAssertNil(result.error)
+                exp.fulfill()
+            })
+        }
+        
+        multiExpecting(expectations: { () -> [XCTestExpectation] in
+            let exp = self.expectation(description: "join")
+            exp.expectedFulfillmentCount = 4
+            return [exp]
+        }) { (exps) in
+            let exp = exps[0]
+            
+            delegatorA.conversationEvent = { client, conv, event in
                 switch event {
                 case let .membersJoined(members: members, byClientID: byClientID, at: at):
                     XCTAssertEqual(byClientID, clientB.ID)
                     XCTAssertEqual(members.count, 1)
-                    XCTAssertEqual(members.first, clientB.ID)
+                    XCTAssertTrue(members.contains(clientB.ID))
                     XCTAssertEqual(conv.members?.count, 2)
                     XCTAssertEqual(conv.members?.contains(clientA.ID), true)
                     XCTAssertEqual(conv.members?.contains(clientB.ID), true)
-                    if let updatedAt = conv.updatedAt, let at = at {
-                        XCTAssertGreaterThanOrEqual(updatedAt, at)
-                    } else {
-                        XCTFail()
-                    }
-                    leaveAndJoinExp.fulfill()
-                case let .membersLeft(members: members, byClientID: byClientID, at: at):
+                    XCTAssertNotNil(at)
+                    XCTAssertEqual(at, conv.updatedAt)
+                    exp.fulfill()
+                default:
+                    break
+                }
+            }
+            
+            delegatorB.conversationEvent = { client, conv, event in
+                switch event {
+                case let .joined(byClientID: byClientID, at: at):
                     XCTAssertEqual(byClientID, clientB.ID)
+                    XCTAssertEqual(conv.members?.count, 2)
+                    XCTAssertEqual(conv.members?.contains(clientA.ID), true)
+                    XCTAssertEqual(conv.members?.contains(clientB.ID), true)
+                    XCTAssertNotNil(at)
+                    XCTAssertEqual(at, conv.updatedAt)
+                    exp.fulfill()
+                case let .membersJoined(members: members, byClientID: byClientID, at: at):
+                    XCTAssertEqual(byClientID, clientB.ID)
+                    XCTAssertEqual(members.count, 1)
+                    XCTAssertTrue(members.contains(clientB.ID))
+                    XCTAssertEqual(conv.members?.count, 2)
+                    XCTAssertEqual(conv.members?.contains(clientA.ID), true)
+                    XCTAssertEqual(conv.members?.contains(clientB.ID), true)
+                    XCTAssertNotNil(at)
+                    XCTAssertEqual(at, conv.updatedAt)
+                    exp.fulfill()
+                default:
+                    break
+                }
+            }
+            
+            try! convB?.join(completion: { (result) in
+                XCTAssertTrue(Thread.isMainThread)
+                XCTAssertTrue(result.isSuccess)
+                XCTAssertNil(result.error)
+                exp.fulfill()
+            })
+        }
+        
+        multiExpecting(expectations: { () -> [XCTestExpectation] in
+            let exp = self.expectation(description: "remove")
+            exp.expectedFulfillmentCount = 3
+            return [exp]
+        }) { (exps) in
+            let exp = exps[0]
+            
+            delegatorA.conversationEvent = { client, conv, event in
+                switch event {
+                case let .membersLeft(members: members, byClientID: byClientID, at: at):
+                    XCTAssertEqual(byClientID, clientA.ID)
                     XCTAssertEqual(members.count, 1)
                     XCTAssertEqual(members.first, clientB.ID)
                     XCTAssertEqual(conv.members?.count, 1)
                     XCTAssertEqual(conv.members?.first, clientA.ID)
                     XCTAssertNotNil(at)
-                    if let updatedAt = conv.updatedAt, let at = at {
-                        XCTAssertGreaterThanOrEqual(updatedAt, at)
-                    } else {
-                        XCTFail()
-                    }
-                    leaveAndJoinExp.fulfill()
+                    XCTAssertEqual(at, conv.updatedAt)
+                    exp.fulfill()
                 default:
                     break
                 }
             }
-        }
-        delegatorB.conversationEvent = { client, conv, event in
-            if conv === convB {
+            
+            delegatorB.conversationEvent = { client, conv, event in
                 switch event {
-                case let .joined(byClientID: byClientID, at: at):
-                    XCTAssertEqual(byClientID, clientB.ID)
-                    XCTAssertEqual(conv.members?.count, 2)
-                    XCTAssertEqual(conv.members?.contains(clientA.ID), true)
-                    XCTAssertEqual(conv.members?.contains(clientB.ID), true)
-                    if let updatedAt = conv.updatedAt, let at = at {
-                        XCTAssertGreaterThanOrEqual(updatedAt, at)
-                    } else {
-                        XCTFail()
-                    }
-                    leaveAndJoinExp.fulfill()
                 case let .left(byClientID: byClientID, at: at):
-                    XCTAssertEqual(byClientID, clientB.ID)
+                    XCTAssertEqual(byClientID, clientA.ID)
                     XCTAssertEqual(conv.members?.count, 1)
                     XCTAssertEqual(conv.members?.first, clientA.ID)
-                    if let updatedAt = conv.updatedAt, let at = at {
-                        XCTAssertGreaterThanOrEqual(updatedAt, at)
-                    } else {
-                        XCTFail()
-                    }
-                    leaveAndJoinExp.fulfill()
+                    XCTAssertNotNil(at)
+                    XCTAssertEqual(at, conv.updatedAt)
+                    exp.fulfill()
                 default:
                     break
                 }
             }
-        }
-        ((try? convB?.leave(completion: { (result) in
-            XCTAssertTrue(result.isSuccess)
-            XCTAssertNil(result.error)
-            XCTAssertEqual(convB?.members?.count, 1)
-            XCTAssertEqual(convB?.members?.first, clientA.ID)
-            leaveAndJoinExp.fulfill()
-            try? convB?.join(completion: { (result) in
+            
+            try! convA?.remove(members: [clientB.ID], completion: { (result) in
+                XCTAssertTrue(Thread.isMainThread)
                 XCTAssertTrue(result.isSuccess)
                 XCTAssertNil(result.error)
-                XCTAssertEqual(convB?.members?.count, 2)
-                XCTAssertEqual(convB?.members?.contains(clientA.ID), true)
-                XCTAssertEqual(convB?.members?.contains(clientB.ID), true)
-                leaveAndJoinExp.fulfill()
+                exp.fulfill()
             })
-        })) as ()??)
-        wait(for: [leaveAndJoinExp], timeout: timeout)
+        }
         
-        let removeAndAddExp = expectation(description: "remove and add")
-        removeAndAddExp.expectedFulfillmentCount = 6
-        delegatorA.conversationEvent = { client, conv, event in
-            if conv === convA {
+        multiExpecting(expectations: { () -> [XCTestExpectation] in
+            let exp = self.expectation(description: "add")
+            exp.expectedFulfillmentCount = 4
+            return [exp]
+        }) { (exps) in
+            let exp = exps[0]
+            
+            delegatorA.conversationEvent = { client, conv, event in
                 switch event {
                 case let .membersJoined(members: members, byClientID: byClientID, at: at):
                     XCTAssertEqual(byClientID, clientA.ID)
@@ -851,74 +936,46 @@ class IMConversationTestCase: RTMBaseTestCase {
                     XCTAssertEqual(conv.members?.count, 2)
                     XCTAssertEqual(conv.members?.contains(clientA.ID), true)
                     XCTAssertEqual(conv.members?.contains(clientB.ID), true)
-                    if let updatedAt = conv.updatedAt, let at = at {
-                        XCTAssertGreaterThanOrEqual(updatedAt, at)
-                    } else {
-                        XCTFail()
-                    }
-                    removeAndAddExp.fulfill()
-                case let .membersLeft(members: members, byClientID: byClientID, at: at):
-                    XCTAssertEqual(byClientID, clientA.ID)
-                    XCTAssertEqual(members.count, 1)
-                    XCTAssertEqual(members.first, clientB.ID)
-                    XCTAssertEqual(conv.members?.count, 1)
-                    XCTAssertEqual(conv.members?.first, clientA.ID)
-                    if let updatedAt = conv.updatedAt, let at = at {
-                        XCTAssertGreaterThanOrEqual(updatedAt, at)
-                    } else {
-                        XCTFail()
-                    }
-                    removeAndAddExp.fulfill()
+                    XCTAssertNotNil(at)
+                    XCTAssertEqual(at, conv.updatedAt)
+                    exp.fulfill()
                 default:
                     break
                 }
             }
-        }
-        delegatorB.conversationEvent = { client, conv, event in
-            if conv === convB {
+            
+            delegatorB.conversationEvent = { client, conv, event in
                 switch event {
                 case let .joined(byClientID: byClientID, at: at):
                     XCTAssertEqual(byClientID, clientA.ID)
                     XCTAssertEqual(conv.members?.count, 2)
                     XCTAssertEqual(conv.members?.contains(clientA.ID), true)
                     XCTAssertEqual(conv.members?.contains(clientB.ID), true)
-                    if let updatedAt = conv.updatedAt, let at = at {
-                        XCTAssertGreaterThanOrEqual(updatedAt, at)
-                    } else {
-                        XCTFail()
-                    }
-                    removeAndAddExp.fulfill()
-                case let .left(byClientID: byClientID, at: at):
+                    XCTAssertNotNil(at)
+                    XCTAssertEqual(at, conv.updatedAt)
+                    exp.fulfill()
+                case let .membersJoined(members: members, byClientID: byClientID, at: at):
                     XCTAssertEqual(byClientID, clientA.ID)
-                    XCTAssertEqual(conv.members?.count, 1)
-                    XCTAssertEqual(conv.members?.first, clientA.ID)
-                    if let updatedAt = conv.updatedAt, let at = at {
-                        XCTAssertGreaterThanOrEqual(updatedAt, at)
-                    } else {
-                        XCTFail()
-                    }
-                    removeAndAddExp.fulfill()
+                    XCTAssertEqual(members.count, 1)
+                    XCTAssertEqual(members.first, clientB.ID)
+                    XCTAssertEqual(conv.members?.count, 2)
+                    XCTAssertEqual(conv.members?.contains(clientA.ID), true)
+                    XCTAssertEqual(conv.members?.contains(clientB.ID), true)
+                    XCTAssertNotNil(at)
+                    XCTAssertEqual(at, conv.updatedAt)
+                    exp.fulfill()
                 default:
                     break
                 }
             }
-        }
-        ((try? convA?.remove(members: [clientB.ID], completion: { (result) in
-            XCTAssertTrue(result.isSuccess)
-            XCTAssertNil(result.error)
-            XCTAssertEqual(convA?.members?.count, 1)
-            XCTAssertEqual(convA?.members?.first, clientA.ID)
-            removeAndAddExp.fulfill()
-            try? convA?.add(members: [clientB.ID], completion: { (result) in
+            
+            try! convA?.add(members: [clientB.ID], completion: { (result) in
+                XCTAssertTrue(Thread.isMainThread)
                 XCTAssertTrue(result.isSuccess)
                 XCTAssertNil(result.error)
-                XCTAssertEqual(convA?.members?.count, 2)
-                XCTAssertEqual(convA?.members?.contains(clientA.ID), true)
-                XCTAssertEqual(convA?.members?.contains(clientB.ID), true)
-                removeAndAddExp.fulfill()
+                exp.fulfill()
             })
-        })) as ()??)
-        wait(for: [removeAndAddExp], timeout: timeout)
+        }
     }
     
     func testGetChatRoomOnlineMembers() {
