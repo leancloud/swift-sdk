@@ -7,6 +7,11 @@
 //
 
 import Foundation
+#if os(iOS) || os(tvOS)
+import UIKit
+#elseif os(macOS)
+import IOKit
+#endif
 
 class Utility {
     static func uuid() -> String {
@@ -35,6 +40,30 @@ class Utility {
                 completion(result)
             }
         }
+    }
+    
+    static var UDID: String {
+        var udid: String?
+        #if os(iOS) || os(tvOS)
+        if let identifierForVendor: String = UIDevice.current.identifierForVendor?.uuidString {
+            udid = identifierForVendor
+        }
+        #elseif os(macOS)
+        let platformExpert: io_service_t = IOServiceGetMatchingService(
+            kIOMasterPortDefault,
+            IOServiceMatching("IOPlatformExpertDevice")
+        )
+        if let serialNumber: String = IORegistryEntryCreateCFProperty(
+            platformExpert,
+            kIOPlatformSerialNumberKey as CFString,
+            kCFAllocatorDefault,
+            0).takeRetainedValue() as? String
+        {
+            udid = serialNumber
+        }
+        IOObjectRelease(platformExpert)
+        #endif
+        return (udid ?? UUID().uuidString).lowercased()
     }
 }
 

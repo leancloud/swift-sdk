@@ -7,11 +7,6 @@
 //
 
 import Foundation
-#if os(iOS) || os(tvOS)
-import UIKit
-#elseif os(macOS)
-import IOKit
-#endif
 import FMDB
 
 /// IM Client
@@ -325,29 +320,6 @@ public class IMClient {
     
     private(set) var deviceTokenObservation: NSKeyValueObservation?
     private(set) var currentDeviceToken: String?
-    private(set) lazy var fallbackUDID: String = {
-        var udid: String = UUID().uuidString
-        #if os(iOS) || os(tvOS)
-        if let identifierForVendor: String = UIDevice.current.identifierForVendor?.uuidString {
-            udid = identifierForVendor
-        }
-        #elseif os(macOS)
-        let platformExpert: io_service_t = IOServiceGetMatchingService(
-            kIOMasterPortDefault,
-            IOServiceMatching("IOPlatformExpertDevice")
-        )
-        if let serialNumber: String = IORegistryEntryCreateCFProperty(
-            platformExpert,
-            kIOPlatformSerialNumberKey as CFString,
-            kCFAllocatorDefault,
-            0).takeUnretainedValue() as? String
-        {
-            udid = serialNumber
-        }
-        IOObjectRelease(platformExpert)
-        #endif
-        return udid
-    }()
     
     var convCollection: [String: IMConversation] = [:]
     private(set) var validInFetchingNotificationsCachedConvMapSnapshot: [String: IMConversation]?
@@ -1330,7 +1302,7 @@ extension IMClient {
         outCommand.peerID = self.ID
         var sessionCommand = IMSessionCommand()
         sessionCommand.configBitmap = SessionConfigs.support.rawValue
-        sessionCommand.deviceToken = self.currentDeviceToken ?? self.fallbackUDID
+        sessionCommand.deviceToken = self.currentDeviceToken ?? Utility.UDID
         sessionCommand.ua = self.application.httpClient.configuration.userAgent
         if let tag: String = self.tag {
             sessionCommand.tag = tag
