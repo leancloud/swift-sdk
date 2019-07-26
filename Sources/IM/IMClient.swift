@@ -276,7 +276,7 @@ public class IMClient {
     }
     
     deinit {
-        Logger.shared.verbose("\(IMClient.self) with Peer ID <\"\(self.ID)\"> deinit.")
+        Logger.shared.verbose("\(IMClient.self)<ID: \"\(self.ID)\"> deinit.")
         self.connection.removeDelegator(peerID: self.ID)
         RTMConnectionManager.default.unregister(
             application: self.application,
@@ -284,7 +284,7 @@ public class IMClient {
         )
     }
     
-    let serialQueue = DispatchQueue(label: "LeanCloud.IMClient.serialQueue")
+    let serialQueue = DispatchQueue(label: "\(IMClient.self).serialQueue")
     
     let lock = NSLock()
     
