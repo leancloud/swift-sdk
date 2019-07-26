@@ -47,7 +47,6 @@ class IMClientTestCase: RTMBaseTestCase {
         do {
             var client: IMClient? = try IMClient(ID: "qweasd", tag: "mobile")
             XCTAssertNotNil(client?.deviceTokenObservation)
-            XCTAssertNotNil(client?.fallbackUDID)
             client = nil
             XCTAssertNil(client)
         } catch {
