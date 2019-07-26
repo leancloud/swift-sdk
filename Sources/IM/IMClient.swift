@@ -52,7 +52,7 @@ public class IMClient {
     
     let connection: RTMConnection
     
-    let rtmDelegator: RTMConnection.Delegator
+    let connectionDelegator: RTMConnection.Delegator
     
     private(set) var localStorage: IMLocalStorage?
     
@@ -219,7 +219,7 @@ public class IMClient {
             application: application,
             service: .instantMessaging(ID: ID, protocol: options.lcimProtocol)
         )
-        self.rtmDelegator = RTMConnection.Delegator(queue: self.serialQueue)
+        self.connectionDelegator = RTMConnection.Delegator(queue: self.serialQueue)
         
         self.deviceTokenObservation = self.installation.observe(
             \.deviceToken,
@@ -451,8 +451,8 @@ extension IMClient {
             self.openingCompletion = completion
             self.openingOptions = options
             
-            self.rtmDelegator.delegate = self
-            self.connection.connect(peerID: self.ID, delegator: self.rtmDelegator)
+            self.connectionDelegator.delegate = self
+            self.connection.connect(peerID: self.ID, delegator: self.connectionDelegator)
         }
     }
     
@@ -1464,7 +1464,7 @@ extension IMClient {
     
     func sessionClosed(with result: LCBooleanResult, completion: ((LCBooleanResult) -> Void)? = nil) {
         assert(self.specificAssertion)
-        self.rtmDelegator.delegate = nil
+        self.connectionDelegator.delegate = nil
         self.connection.removeDelegator(peerID: self.ID)
         self.sessionToken = nil
         self.sessionTokenExpiration = nil
