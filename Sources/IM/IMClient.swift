@@ -1146,7 +1146,7 @@ extension IMClient {
                     }
                     assert(sClient.specificAssertion)
                     sClient.validInFetchingNotificationsCachedConvMapSnapshot = nil
-                    if let error = response.error {
+                    if let error = LCError(response: response) {
                         Logger.shared.error(error)
                     } else if let responseValue: [String: Any] = response.value as? [String: Any] {
                         sClient.handleOfflineEvents(

@@ -64,7 +64,7 @@ public class LCEngine {
         let httpClient: HTTPClient = application.httpClient
         
         let request = httpClient.request(.post, "functions/\(function)", parameters: parameters) { (response) in
-            if let error: Error = response.error {
+            if let error: Error = LCError(response: response) {
                 completion(.failure(error: LCError(error: error)))
             } else {
                 if let value = response.value as? [String: Any], let result = value["result"] {
