@@ -13,6 +13,11 @@ import UIKit
 import Starscream
 import Alamofire
 
+enum RTMService: Int32 {
+    case liveQuery = 1
+    case instantMessaging = 2
+}
+
 class RTMConnectionManager {
     
     static let `default` = RTMConnectionManager()
@@ -801,8 +806,7 @@ extension RTMConnection: WebSocketDelegate, WebSocketPongDelegate {
         if inCommand.hasI {
             self.timer?.handle(callbackCommand: inCommand)
         } else {
-            if inCommand.hasPeerID {
-                let peerID = inCommand.peerID
+            let mapping: (String) -> Void = { peerID in
                 if let delegator: Delegator = self.delegatorMap[peerID] {
                     delegator.queue.async {
                         delegator.delegate?.connection(self, didReceiveCommand: inCommand)
@@ -810,6 +814,11 @@ extension RTMConnection: WebSocketDelegate, WebSocketPongDelegate {
                 } else {
                     Logger.shared.error("\(type(of: self)) not found delegator for peer ID: \(peerID)")
                 }
+            }
+            if let peerID = (inCommand.hasPeerID ? inCommand.peerID : nil) {
+                mapping(peerID)
+            } else if let installationID = (inCommand.hasInstallationID ? inCommand.installationID : nil) {
+                mapping(installationID)
             } else {
                 self.handleGoaway(inCommand: inCommand)
             }

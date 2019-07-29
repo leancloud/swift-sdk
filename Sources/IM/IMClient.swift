@@ -2303,6 +2303,9 @@ extension IMClient: RTMConnectionDelegate {
     
     func connection(_ connection: RTMConnection, didReceiveCommand inCommand: IMGenericCommand) {
         assert(self.specificAssertion)
+        guard inCommand.service == RTMService.instantMessaging.rawValue else {
+            return
+        }
         let serverTimestamp: Int64? = (inCommand.hasServerTs ? inCommand.serverTs : nil)
         switch inCommand.cmd {
         case .session:
