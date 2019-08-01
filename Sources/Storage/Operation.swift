@@ -14,6 +14,9 @@ import Foundation
  Used to present an action of object update.
  */
 class Operation {
+    
+    static let key: String = "__op"
+    
     /**
      Operation Name.
      */
@@ -51,14 +54,14 @@ class Operation {
             return lconValue
         case .delete:
             return [
-                "__op": name.rawValue
+                Operation.key: name.rawValue
             ]
         case .increment:
             guard let lconValue = lconValue else {
                 return nil
             }
             return [
-                "__op": name.rawValue,
+                Operation.key: name.rawValue,
                 "amount": lconValue
             ]
         case .add,
@@ -70,7 +73,7 @@ class Operation {
                 return nil
             }
             return [
-                "__op": name.rawValue,
+                Operation.key: name.rawValue,
                 "objects": lconValue
             ]
         }

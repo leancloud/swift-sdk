@@ -1256,7 +1256,7 @@ open class LCUser: LCObject {
         }
         
         let path: String = "users/\(objectID)"
-        let parameters: [String: Any] = ["authData.\(platform.key)": ["__op": "Delete"]]
+        let parameters: [String: Any] = ["authData.\(platform.key)": [Operation.key: Operation.Name.delete.rawValue]]
         let headers: [String: String] = [HTTPClient.HeaderFieldName.session: sessionToken]
         
         let request = self.application.httpClient.request(.put, path, parameters: parameters, headers: headers) { response in
