@@ -1102,8 +1102,7 @@ extension IMClient {
     func getSessionToken(completion: @escaping (IMClient, LCGenericResult<String>) -> Void) {
         assert(self.specificAssertion)
         if let token: String = self.sessionToken {
-            if let expiration = self.sessionTokenExpiration,
-                expiration > Date() {
+            if let expiration = self.sessionTokenExpiration, expiration > Date() {
                 completion(self, .success(value: token))
             } else {
                 self.refresh(sessionToken: token, completion: completion)
@@ -1330,32 +1329,85 @@ extension IMClient {
         return outCommand
     }
     
+    func getOpenSignature(userSessionToken token: String, completion: @escaping (IMClient, LCGenericResult<IMSignature>) -> Void) {
+        let parameters: [String: Any] = ["session_token": token]
+        _ = self.application.httpClient.request(.post, "/rtm/sign", parameters: parameters, completionHandler: { [weak self] (response) in
+            guard let self = self else {
+                return
+            }
+            if let error = LCError(response: response) {
+                self.serialQueue.async {
+                    completion(self, .failure(error: error))
+                }
+            } else {
+                guard
+                    let value = response.value as? [String: Any],
+                    let signature = value["signature"] as? String,
+                    let timestamp = value["timestamp"] as? Int64,
+                    let nonce = value["nonce"] as? String else
+                {
+                    let error = LCError(code: .malformedData, reason: "response value: \(response.value ?? "nil")")
+                    self.serialQueue.async {
+                        completion(self, .failure(error: error))
+                    }
+                    return
+                }
+                let sign = IMSignature(signature: signature, timestamp: timestamp, nonce: nonce)
+                self.serialQueue.async {
+                    completion(self, .success(value: sign))
+                }
+            }
+        })
+    }
+    
     func getSessionOpenCommand(
         token: String? = nil,
         isReopen: Bool? = nil,
         completion: @escaping (IMClient, IMGenericCommand) -> Void)
     {
-        if let signatureDelegate = self.signatureDelegate {
-            self.eventQueue.async {
-                signatureDelegate.client(self, action: .open, signatureHandler: { (client, signature) in
-                    client.serialQueue.async {
-                        let sessionCommand = client.newSessionCommand(
-                            op: .open,
-                            token: token,
-                            isReopen: isReopen,
-                            signature: signature
-                        )
-                        completion(client, sessionCommand)
+        if let userSessionToken = self.user?.sessionToken?.value {
+            self.getOpenSignature(userSessionToken: userSessionToken) { (client, result) in
+                assert(client.specificAssertion)
+                switch result {
+                case .success(value: let signature):
+                    let sessionCommand = client.newSessionCommand(
+                        op: .open,
+                        token: token,
+                        isReopen: isReopen,
+                        signature: signature
+                    )
+                    completion(client, sessionCommand)
+                case .failure(error: let error):
+                    if error.code == LCError.InternalErrorCode.underlyingError.rawValue {
+                        Logger.shared.error(error)
+                    } else {
+                        client.sessionClosed(with: .failure(error: error), completion: client.openingCompletion)
                     }
-                })
+                }
             }
         } else {
-            let sessionCommand = self.newSessionCommand(
-                op: .open,
-                token: token,
-                isReopen: isReopen
-            )
-            completion(self, sessionCommand)
+            if let signatureDelegate = self.signatureDelegate {
+                self.eventQueue.async {
+                    signatureDelegate.client(self, action: .open, signatureHandler: { (client, signature) in
+                        client.serialQueue.async {
+                            let sessionCommand = client.newSessionCommand(
+                                op: .open,
+                                token: token,
+                                isReopen: isReopen,
+                                signature: signature
+                            )
+                            completion(client, sessionCommand)
+                        }
+                    })
+                }
+            } else {
+                let sessionCommand = self.newSessionCommand(
+                    op: .open,
+                    token: token,
+                    isReopen: isReopen
+                )
+                completion(self, sessionCommand)
+            }
         }
     }
     
