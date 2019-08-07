@@ -172,7 +172,7 @@ public class IMConversation {
     /// The table of member infomation.
     public var memberInfoTable: [String: MemberInfo]? {
         var value: [String: MemberInfo]?
-        sync(value = self.underlyingMemberInfoTable)
+        self.sync(value = self.underlyingMemberInfoTable)
         return value
     }
     private var underlyingMemberInfoTable: [String: MemberInfo]?
@@ -364,7 +364,39 @@ public class IMConversation {
     ///
     /// - Parameter completion: Result of callback.
     public func fetchMemberInfoTable(completion: @escaping (LCBooleanResult) -> Void) {
-        self._fetchMemberInfoTable(completion: completion)
+        self._fetchMemberInfoTable { (client, result) in
+            client.eventQueue.async {
+                completion(result)
+            }
+        }
+    }
+    
+    /// Get infomation of one member in the conversation.
+    ///
+    /// - Parameters:
+    ///   - memberID: The ID of the member.
+    ///   - completion: Result of callback.
+    public func getMemberInfo(by memberID: String, completion: @escaping (LCGenericResult<MemberInfo?>) -> Void) {
+        if let table = self.memberInfoTable {
+            let memberInfo = table[memberID]
+            self.client?.eventQueue.async {
+                completion(.success(value: memberInfo))
+            }
+        } else {
+            self._fetchMemberInfoTable { (client, result) in
+                switch result {
+                case .success:
+                    let memberInfo = self.memberInfoTable?[memberID]
+                    client.eventQueue.async {
+                        completion(.success(value: memberInfo))
+                    }
+                case .failure(error: let error):
+                    client.eventQueue.async {
+                        completion(.failure(error: error))
+                    }
+                }
+            }
+        }
     }
     
     /// Updating role of the member in the conversaiton.
@@ -1616,7 +1648,7 @@ extension IMConversation {
         }
     }
     
-    private func _fetchMemberInfoTable(completion: @escaping (LCBooleanResult) -> Void) {
+    private func _fetchMemberInfoTable(completion: @escaping (IMClient, LCBooleanResult) -> Void) {
         self.client?.serialQueue.async {
             self.client?.getSessionToken(completion: { (client, result) in
                 assert(client.specificAssertion)
@@ -1637,9 +1669,7 @@ extension IMConversation {
                         headers: header)
                     { (response) in
                         if let error = LCError(response: response) {
-                            client.eventQueue.async {
-                                completion(.failure(error: error))
-                            }
+                            completion(client, .failure(error: error))
                         } else if let results = response.results as? [[String: Any]] {
                             let creator = self.creator
                             var table: [String: MemberInfo] = [:]
@@ -1649,19 +1679,13 @@ extension IMConversation {
                                 }
                             }
                             self.sync(self.underlyingMemberInfoTable = table)
-                            client.eventQueue.async {
-                                completion(.success)
-                            }
+                            completion(client, .success)
                         } else {
-                            client.eventQueue.async {
-                                completion(.failure(error: LCError(code: .malformedData)))
-                            }
+                            completion(client, .failure(error: LCError(code: .malformedData)))
                         }
                     }
                 case .failure(error: let error):
-                    client.eventQueue.async {
-                        completion(.failure(error: error))
-                    }
+                    completion(client, .failure(error: error))
                 }
             })
         }
@@ -1700,13 +1724,7 @@ extension IMConversation {
                     conversationID: self.ID,
                     creator: self.creator
                 )
-                self.sync {
-                    if let _ = self.underlyingMemberInfoTable {
-                        self.underlyingMemberInfoTable?[info.ID] = info
-                    } else {
-                        self.underlyingMemberInfoTable = [info.ID: info]
-                    }
-                }
+                self.sync { self.underlyingMemberInfoTable?[info.ID] = info }
                 client.eventQueue.async {
                     completion(.success)
                 }
@@ -2220,13 +2238,13 @@ extension IMConversation {
         if let _ = client.localStorage {
             var rawData: RawData?
             var outdated: Bool?
-            sync {
+            self.sync {
                 rawData = self.rawData
                 outdated = self.underlyingOutdated
             }
             self.tryUpdateLocalStorageData(client: client, rawData: rawData, outdated: outdated)
         }
-        sync {
+        self.sync {
             if let _ = self.underlyingMemberInfoTable {
                 for member in leftMembers {
                     self.underlyingMemberInfoTable?.removeValue(forKey: member)
@@ -2321,13 +2339,7 @@ extension IMConversation {
         case let .updated(attr: attr, attrModified: attrModified, udate):
             self.operationRawDataUpdated(attr: attr, attrModified: attrModified, udate: udate, client: client)
         case let .memberInfoChanged(info: info):
-            sync {
-                if let _ = self.underlyingMemberInfoTable {
-                    self.underlyingMemberInfoTable?[info.ID] = info
-                } else {
-                    self.underlyingMemberInfoTable = [info.ID: info]
-                }
-            }
+            self.sync { self.underlyingMemberInfoTable?[info.ID] = info }
         }
     }
     
@@ -2571,6 +2583,11 @@ public class IMChatRoom: IMConversation {
     }
     
     @available(*, unavailable)
+    public override func getMemberInfo(by memberID: String, completion: @escaping (LCGenericResult<IMConversation.MemberInfo?>) -> Void) {
+        completion(.failure(error: LCError.conversationNotSupport(convType: type(of: self))))
+    }
+    
+    @available(*, unavailable)
     public override func update(role: IMConversation.MemberRole, ofMember memberID: String, completion: @escaping (LCBooleanResult) -> Void) throws {
         throw LCError.conversationNotSupport(convType: type(of: self))
     }
@@ -2704,6 +2721,11 @@ public class IMServiceConversation: IMConversation {
     
     @available(*, unavailable)
     public override func fetchMemberInfoTable(completion: @escaping (LCBooleanResult) -> Void) {
+        completion(.failure(error: LCError.conversationNotSupport(convType: type(of: self))))
+    }
+    
+    @available(*, unavailable)
+    public override func getMemberInfo(by memberID: String, completion: @escaping (LCGenericResult<IMConversation.MemberInfo?>) -> Void) {
         completion(.failure(error: LCError.conversationNotSupport(convType: type(of: self))))
     }
     
@@ -2873,6 +2895,11 @@ public class IMTemporaryConversation: IMConversation {
     
     @available(*, unavailable)
     public override func fetchMemberInfoTable(completion: @escaping (LCBooleanResult) -> Void) {
+        completion(.failure(error: LCError.conversationNotSupport(convType: type(of: self))))
+    }
+    
+    @available(*, unavailable)
+    public override func getMemberInfo(by memberID: String, completion: @escaping (LCGenericResult<IMConversation.MemberInfo?>) -> Void) {
         completion(.failure(error: LCError.conversationNotSupport(convType: type(of: self))))
     }
     
