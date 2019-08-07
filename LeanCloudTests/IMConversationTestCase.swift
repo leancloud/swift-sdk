@@ -1654,6 +1654,17 @@ class IMConversationTestCase: RTMBaseTestCase {
             XCTAssertTrue(error is LCError)
         }
         
+        expecting { (exp) in
+            convA?.fetchMemberInfoTable(completion: { (result) in
+                XCTAssertTrue(Thread.isMainThread)
+                XCTAssertTrue(result.isSuccess)
+                XCTAssertNil(result.error)
+                XCTAssertNotNil(convA?.memberInfoTable)
+                XCTAssertEqual(convA?.memberInfoTable?.isEmpty, true)
+                exp.fulfill()
+            })
+        }
+        
         multiExpecting(expectations: { () -> [XCTestExpectation] in
             let exp = self.expectation(description: "change member role to manager")
             exp.expectedFulfillmentCount = 2
@@ -1670,7 +1681,7 @@ class IMConversationTestCase: RTMBaseTestCase {
                     XCTAssertEqual(info.conversationID, conv.ID)
                     XCTAssertEqual(byClientID, clientA.ID)
                     XCTAssertNotNil(at)
-                    XCTAssertEqual(conv.memberInfoTable?[info.ID]?.role, .manager)
+                    XCTAssertNil(conv.memberInfoTable)
                     exp.fulfill()
                 default:
                     break
@@ -1687,12 +1698,17 @@ class IMConversationTestCase: RTMBaseTestCase {
         }
         
         expecting { (exp) in
-            convA?.fetchMemberInfoTable(completion: { (result) in
+            let convB = clientB.convCollection.values.first
+            XCTAssertNil(convB?.memberInfoTable)
+            convB?.getMemberInfo(by: clientB.ID, completion: { (result) in
                 XCTAssertTrue(Thread.isMainThread)
                 XCTAssertTrue(result.isSuccess)
                 XCTAssertNil(result.error)
-                XCTAssertNotNil(convA?.memberInfoTable)
-                XCTAssertEqual(convA?.memberInfoTable?[clientB.ID]?.role, .manager)
+                if let value = result.value {
+                    XCTAssertNotNil(value)
+                    XCTAssertEqual(value?.role, .manager)
+                }
+                XCTAssertEqual(convB?.memberInfoTable?[clientB.ID]?.role, .manager)
                 exp.fulfill()
             })
         }
@@ -1712,7 +1728,7 @@ class IMConversationTestCase: RTMBaseTestCase {
                     XCTAssertEqual(info.conversationID, conv.ID)
                     XCTAssertEqual(byClientID, clientA.ID)
                     XCTAssertNotNil(at)
-                    XCTAssertEqual(conv.memberInfoTable?[info.ID]?.role, .member)
+                    XCTAssertEqual(conv.memberInfoTable?[clientB.ID]?.role, .member)
                     exp.fulfill()
                 default:
                     break
@@ -1726,49 +1742,6 @@ class IMConversationTestCase: RTMBaseTestCase {
                 exp.fulfill()
             })
         }
-        
-        expecting { (exp) in
-            convA?.fetchMemberInfoTable(completion: { (result) in
-                XCTAssertTrue(Thread.isMainThread)
-                XCTAssertTrue(result.isSuccess)
-                XCTAssertNil(result.error)
-                XCTAssertNotNil(convA?.memberInfoTable)
-                XCTAssertEqual(convA?.memberInfoTable?.isEmpty, true)
-                exp.fulfill()
-            })
-        }
-        
-//        let delegatorC = IMClientTestCase.Delegator()
-//        let clientC = try! IMClient(ID: clientCID, delegate: delegatorC)
-//        clientC.test_change(serverTimestamp: 1)
-//
-//        multiExpecting(expectations: { () -> [XCTestExpectation] in
-//            let exp = self.expectation(description: "client received offline event")
-//            exp.expectedFulfillmentCount = 3
-//            return [exp]
-//        }) { (exps) in
-//            let exp = exps[0]
-//
-//            delegatorC.conversationEvent = { client, conv, event in
-//                switch event {
-//                case let .memberInfoChanged(info: info, byClientID: byClientID, at: at):
-//                    XCTAssertEqual(info.ID, clientB.ID)
-//                    XCTAssertEqual(info.conversationID, conv.ID)
-//                    XCTAssertEqual(byClientID, clientA.ID)
-//                    XCTAssertNotNil(at)
-//                    XCTAssertNotNil(conv.memberInfoTable?[info.ID])
-//                    exp.fulfill()
-//                default:
-//                    break
-//                }
-//            }
-//
-//            clientC.open(completion: { (result) in
-//                XCTAssertTrue(result.isSuccess)
-//                XCTAssertNil(result.error)
-//                exp.fulfill()
-//            })
-//        }
     }
     
     func testMemberBlock() {
