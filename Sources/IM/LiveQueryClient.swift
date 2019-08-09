@@ -60,17 +60,11 @@ class LiveQueryClient {
     enum SessionState {
         case loggingIn
         case loggedIn(clientTimestamp: Int64)
-        case loggingOut
-        case loggedOut
         case disconnected(error: LCError?)
         case failure(error: LCError?)
     }
     
     let application: LCApplication
-    
-    weak var delegate: LiveQueryClientDelegate?
-    
-    var eventQueue: DispatchQueue = .main
     
     let connection: RTMConnection
     
@@ -80,23 +74,11 @@ class LiveQueryClient {
     
     let serialQueue: DispatchQueue = DispatchQueue(label: "\(LiveQueryClient.self).serialQueue")
     
-    var subscribingMap: [String: LiveQuery.WeakWrapper] = [:]
+    var subscribingCallbackMap: [LiveQuery.LocalInstanceID: (LCGenericResult<Int64>) -> Void] = [:]
+    var retainedLiveQueryMap: [LiveQuery.LocalInstanceID: LiveQuery.WeakWrapper] = [:]
+    var subscribedLiveQueryMap: [LiveQuery.RemoteQueryID: LiveQuery.WeakWrapper] = [:]
     
-    var subscribedMap: [String: LiveQuery.WeakWrapper] = [:]
-    
-    var sessionState: SessionState {
-        set {
-            sync(self.underlyingSessionState = newValue)
-        }
-        get {
-            var value: SessionState!
-            sync(value = self.underlyingSessionState)
-            return value
-        }
-    }
-    var underlyingSessionState: SessionState = .disconnected(error: nil)
-    
-    let lock = NSLock()
+    var sessionState: SessionState = .disconnected(error: nil)
     
     deinit {
         self.connection.removeDelegator(peerID: self.ID)
@@ -118,29 +100,19 @@ class LiveQueryClient {
         self.connectionDelegator = RTMConnection.Delegator(queue: self.serialQueue)
     }
     
-    func login(liveQuery: LiveQuery) {
+    func insertSubscribeCallback(localInstanceID: LiveQuery.LocalInstanceID, callback: @escaping (LCGenericResult<Int64>) -> Void) {
         self.serialQueue.async {
-            
-            self.subscribingMap[liveQuery.uuid] = LiveQuery.WeakWrapper(liveQuery: liveQuery)
-            
-            switch self.sessionState {
-            case .loggingIn, .loggingOut:
-                break
+            let sessionState = self.sessionState
+            switch sessionState {
             case .loggedIn(clientTimestamp: let clientTimestamp):
-                liveQuery.subscribe(clientID: self.ID, clientTimestamp: clientTimestamp)
-            case .loggedOut, .disconnected, .failure:
+                callback(.success(value: clientTimestamp))
+            case .loggingIn, .disconnected, .failure:
+                self.subscribingCallbackMap[localInstanceID] = callback
+            }
+            switch sessionState {
+            case .disconnected, .failure:
                 self.connectionDelegator.delegate = self
                 self.connection.connect(peerID: self.ID, delegator: self.connectionDelegator)
-            }
-        }
-    }
-    
-    func logout() {
-        self.serialQueue.async {
-            switch self.sessionState {
-            case .loggedIn:
-                self.sessionState = .loggingOut
-                self.sendLogoutCommand()
             default:
                 break
             }
@@ -148,7 +120,7 @@ class LiveQueryClient {
     }
     
     func newLiveQueryCommand(type: IMCommandType) -> IMGenericCommand {
-        assert(type == .login || type == .logout)
+        assert(type == .login)
         var outCommand = IMGenericCommand()
         outCommand.cmd = type
         if type == .login {
@@ -162,24 +134,11 @@ class LiveQueryClient {
     
     func sendLoginCommand() {
         assert(self.specificAssertion)
-        guard !self.subscribingMap.isEmpty else {
+        guard !self.subscribingCallbackMap.isEmpty || !self.retainedLiveQueryMap.isEmpty else {
             return
         }
+        self.sessionState = .loggingIn
         let outCommand = self.newLiveQueryCommand(type: .login)
-        self.connection.send(command: outCommand, callingQueue: self.serialQueue) { [weak self] (result) in
-            assert(self?.specificAssertion ?? true)
-            switch result {
-            case .inCommand(let inCommand):
-                self?.handle(callbackCommand: inCommand, outCommand: outCommand)
-            case .error(let error):
-                self?.handle(callbackError: error, outCommand: outCommand)
-            }
-        }
-    }
-    
-    func sendLogoutCommand() {
-        assert(self.specificAssertion)
-        let outCommand = self.newLiveQueryCommand(type: .logout)
         self.connection.send(command: outCommand, callingQueue: self.serialQueue) { [weak self] (result) in
             assert(self?.specificAssertion ?? true)
             switch result {
@@ -193,31 +152,28 @@ class LiveQueryClient {
     
     func handle(callbackCommand command: IMGenericCommand, outCommand: IMGenericCommand) {
         assert(self.specificAssertion)
-        let sessionState: SessionState
         switch command.cmd {
         case .loggedin:
             let clientTimestamp = outCommand.clientTs
-            sessionState = .loggedIn(clientTimestamp: clientTimestamp)
+            self.sessionState = .loggedIn(clientTimestamp: clientTimestamp)
             
-            for item in self.subscribingMap.values {
-                item.reference?.subscribe(clientID: self.ID, clientTimestamp: clientTimestamp)
+            var localInstanceIDSet: Set<LiveQuery.LocalInstanceID> = []
+            for (key, value) in self.subscribingCallbackMap {
+                localInstanceIDSet.insert(key)
+                value(.success(value: clientTimestamp))
             }
-            self.subscribingMap.removeAll()
-        case .loggedout:
-            sessionState = .loggedOut
+            self.subscribingCallbackMap.removeAll()
             
-            self.subscribingMap.removeAll()
-            self.subscribedMap.removeAll()
-            
-            self.connectionDelegator.delegate = nil
-            self.connection.removeDelegator(peerID: self.ID)
+            for (key, value) in self.retainedLiveQueryMap {
+                if let liveQuery = value.reference, !localInstanceIDSet.contains(key) {
+                    liveQuery.subscribing(clientTimestamp: clientTimestamp)
+                }
+            }
+            self.retainedLiveQueryMap.removeAll()
         default:
             let error = LCError(code: .commandInvalid)
-            sessionState = .failure(error: error)
-        }
-        self.sessionState = sessionState
-        self.eventQueue.async {
-            self.delegate?.client(self, sessionState: sessionState)
+            self.sessionState = .failure(error: error)
+            self.purgeContainers(error: error)
         }
     }
     
@@ -228,42 +184,47 @@ class LiveQueryClient {
             switch outCommand.cmd {
             case .login:
                 self.sendLoginCommand()
-            case .logout:
-                self.sendLogoutCommand()
             default:
                 break
             }
         case LCError.InternalErrorCode.connectionLost.rawValue:
             break
         default:
-            let sessionState: SessionState = .failure(error: error)
-            self.sessionState = sessionState
-            self.eventQueue.async {
-                self.delegate?.client(self, sessionState: sessionState)
-            }
+            self.sessionState = .failure(error: error)
+            self.purgeContainers(error: error)
         }
     }
     
-}
-
-extension LiveQueryClient: InternalSynchronizing {
+    func purgeContainers(error: LCError) {
+        assert(self.specificAssertion)
+        for item in self.subscribingCallbackMap.values {
+            item(.failure(error: error))
+        }
+        self.subscribingCallbackMap.removeAll()
+        self.retainedLiveQueryMap.removeAll()
+    }
     
-    var mutex: NSLock {
-        return self.lock
+    func insertSubscribedLiveQuery(instance: LiveQuery, queryID: LiveQuery.RemoteQueryID) {
+        self.serialQueue.async {
+            self.subscribedLiveQueryMap[queryID] = LiveQuery.WeakWrapper(instance: instance)
+        }
+    }
+    
+    func removeSubscribedLiveQuery(
+        localInstanceID: LiveQuery.LocalInstanceID,
+        remoteQueryID: LiveQuery.RemoteQueryID)
+    {
+        self.serialQueue.async {
+            self.retainedLiveQueryMap.removeValue(forKey: localInstanceID)
+            self.subscribedLiveQueryMap.removeValue(forKey: remoteQueryID)
+        }
     }
     
 }
 
 extension LiveQueryClient: RTMConnectionDelegate {
     
-    func connection(inConnecting connection: RTMConnection) {
-        assert(self.specificAssertion)
-        let sessionState: SessionState = .loggingIn
-        self.sessionState = sessionState
-        self.eventQueue.async {
-            self.delegate?.client(self, sessionState: sessionState)
-        }
-    }
+    func connection(inConnecting connection: RTMConnection) {}
     
     func connection(didConnect connection: RTMConnection) {
         assert(self.specificAssertion)
@@ -272,19 +233,29 @@ extension LiveQueryClient: RTMConnectionDelegate {
     
     func connection(_ connection: RTMConnection, didDisconnect error: LCError) {
         assert(self.specificAssertion)
-        let sessionState: SessionState = .disconnected(error: error)
-        self.sessionState = sessionState
+        assert(self.retainedLiveQueryMap.isEmpty)
         
-        for item in self.subscribedMap.values {
-            if let liveQuery = item.reference {
-                liveQuery.queryID = nil
-                self.subscribingMap[liveQuery.uuid] = item
+        self.sessionState = .disconnected(error: error)
+        
+        for item in self.subscribingCallbackMap.values {
+            item(.failure(error: error))
+        }
+        self.subscribingCallbackMap.removeAll()
+        
+        for item in self.subscribedLiveQueryMap.values {
+            guard let liveQuery = item.reference else {
+                continue
+            }
+            self.retainedLiveQueryMap[liveQuery.localInstanceID] = item
+            liveQuery.eventQueue.async {
+                liveQuery.eventHandler(liveQuery, .state(.disconnected))
             }
         }
-        self.subscribedMap.removeAll()
+        self.subscribedLiveQueryMap.removeAll()
         
-        self.eventQueue.async {
-            self.delegate?.client(self, sessionState: sessionState)
+        if self.retainedLiveQueryMap.isEmpty {
+            self.connectionDelegator.delegate = nil
+            self.connection.removeDelegator(peerID: self.ID)
         }
     }
     
@@ -304,7 +275,7 @@ extension LiveQueryClient: RTMConnectionDelegate {
                     if
                         let jsonObject: [String: Any] = try data.jsonObject(),
                         let queryID = jsonObject["query_id"] as? String,
-                        let liveQuery = self.subscribedMap[queryID]?.reference
+                        let liveQuery = self.subscribedLiveQueryMap[queryID]?.reference
                     {
                         liveQuery.process(jsonObject: jsonObject)
                     }
@@ -316,11 +287,5 @@ extension LiveQueryClient: RTMConnectionDelegate {
             break
         }
     }
-    
-}
-
-protocol LiveQueryClientDelegate: class {
-    
-    func client(_ client: LiveQueryClient, sessionState: LiveQueryClient.SessionState)
     
 }

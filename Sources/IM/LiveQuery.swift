@@ -8,9 +8,9 @@
 
 import Foundation
 
-class LiveQuery {
+public class LiveQuery {
     
-    enum Event {
+    public enum Event {
         case create(object: LCObject)
         case update(object: LCObject, updatedKeys: [String])
         case enter(object: LCObject, updatedKeys: [String])
@@ -19,133 +19,143 @@ class LiveQuery {
         
         case login(user: LCUser)
         
-        case subscribing
-        case subscribed
-        case failureOnSubscribe(error: LCError)
+        public enum State {
+            case disconnected
+            case subscribing
+            case subscribed
+            case failureOnSubscribe(error: LCError)
+        }
+        
+        case state(State)
     }
     
     class WeakWrapper {
         weak var reference: LiveQuery?
         
-        init(liveQuery: LiveQuery) {
-            self.reference = liveQuery
+        init(instance: LiveQuery) {
+            self.reference = instance
         }
     }
     
-    let application: LCApplication
+    public let application: LCApplication
     
-    let query: LCQuery
+    public let query: LCQuery
     
-    let eventHandler: (LiveQuery, Event) -> Void
+    public let eventQueue: DispatchQueue
+    
+    public let eventHandler: (LiveQuery, Event) -> Void
     
     let client: LiveQueryClient
     
-    let uuid = UUID().uuidString
+    typealias LocalInstanceID = String
+    let localInstanceID: LocalInstanceID = UUID().uuidString
     
-    let lock = NSLock()
+    typealias RemoteQueryID = String
+    var queryID: RemoteQueryID?
     
-    var queryID: String? {
-        set {
-            sync(self.underlyingQueryID = newValue)
-        }
-        get {
-            var value: String?
-            sync(value = self.underlyingQueryID)
-            return value
-        }
-    }
-    var underlyingQueryID: String?
-    
-    init(application: LCApplication = .default, query: LCQuery, eventHandler: @escaping (LiveQuery, Event) -> Void) throws {
+    public init(
+        application: LCApplication = .default,
+        query: LCQuery,
+        eventQueue: DispatchQueue = .main,
+        eventHandler: @escaping (LiveQuery, Event) -> Void)
+        throws
+    {
         self.application = application
         self.query = query
-        self.client = try LiveQueryClientManager.default.register(application: application)
+        self.eventQueue = eventQueue
         self.eventHandler = eventHandler
+        self.client = try LiveQueryClientManager.default.register(application: application)
     }
     
-    func subscribe() throws {
-        guard self.queryID == nil else {
-            throw LCError(code: .inconsistency, reason: "has subscribed.")
+    public func subscribe(completion: @escaping (LCBooleanResult) -> Void) {
+        self.client.insertSubscribeCallback(localInstanceID: self.localInstanceID) { [weak self] (result) in
+            switch result {
+            case .success(value: let clientTimestamp):
+                self?.subscribing(
+                    clientTimestamp: clientTimestamp,
+                    completion: completion
+                )
+            case .failure(error: let error):
+                self?.eventQueue.async {
+                    completion(.failure(error: error))
+                }
+            }
         }
-        self.client.login(liveQuery: self)
     }
     
-    func subscribe(clientID: String, clientTimestamp: Int64) {
-        self.client.eventQueue.async {
-            self.eventHandler(self, .subscribing)
+    func subscribing(clientTimestamp: Int64, completion: ((LCBooleanResult) -> Void)? = nil) {
+        if completion == nil {
+            self.eventQueue.async {
+                self.eventHandler(self, .state(.subscribing))
+            }
         }
-        
         var parameter: [String: Any] = [
             "query": self.query.lconValue,
-            "id": clientID,
+            "id": self.client.ID,
             "clientTimestamp": clientTimestamp
         ]
-        if let sessionToken: String = self.application.currentUser?.sessionToken?.stringValue {
+        if let sessionToken: String = self.application.currentUser?.sessionToken?.value {
             parameter["sessionToken"] = sessionToken
         }
-        
         _ = self.application.httpClient.request(
             .post,
             "LiveQuery/subscribe",
             parameters: parameter)
         { (response) in
-            self.client.serialQueue.async {
-                self.client.subscribingMap.removeValue(forKey: self.uuid)
+            let handleError: (LCError) -> Void = { error in
+                self.eventQueue.async {
+                    if let completion = completion {
+                        completion(.failure(error: error))
+                    } else {
+                        self.eventHandler(self, .state(.failureOnSubscribe(error: error)))
+                    }
+                }
             }
             if let error = LCError(response: response) {
-                self.client.eventQueue.async {
-                    self.eventHandler(self, .failureOnSubscribe(error: error))
-                }
+                handleError(error)
             } else {
-                if let result = response.value as? [String: Any],
-                    let queryID = result["query_id"] as? String {
+                if let result = response.value as? [String: Any], let queryID = result["query_id"] as? String {
                     self.queryID = queryID
-                    self.client.serialQueue.async {
-                        self.client.subscribedMap[queryID] = LiveQuery.WeakWrapper(liveQuery: self)
-                    }
-                    self.client.eventQueue.async {
-                        self.eventHandler(self, .subscribed)
+                    self.client.insertSubscribedLiveQuery(instance: self, queryID: queryID)
+                    self.eventQueue.async {
+                        if let completion = completion {
+                            completion(.success)
+                        } else {
+                            self.eventHandler(self, .state(.subscribed))
+                        }
                     }
                 } else {
-                    self.client.eventQueue.async {
-                        let error = LCError(code: .malformedData, reason: "response value invalid.")
-                        self.eventHandler(self, .failureOnSubscribe(error: error))
-                    }
+                    handleError(LCError(code: .malformedData))
                 }
             }
         }
     }
     
-    func unsubscribe(completion: @escaping (LCBooleanResult) -> Void) {
+    public func unsubscribe(completion: @escaping (LCBooleanResult) -> Void) {
         guard let queryID = self.queryID else {
-            self.client.eventQueue.async {
+            self.eventQueue.async {
                 let error = LCError(code: .inconsistency, reason: "Query ID not found.")
                 completion(.failure(error: error))
             }
             return
         }
-        
+        self.client.removeSubscribedLiveQuery(localInstanceID: self.localInstanceID, remoteQueryID: queryID)
         let parameter: [String: Any] = [
             "id": self.client.ID,
             "query_id": queryID
         ]
-        
         _ = self.application.httpClient.request(
             .post,
             "LiveQuery/unsubscribe",
             parameters: parameter)
         { (response) in
             if let error = LCError(response: response) {
-                self.client.eventQueue.async {
+                self.eventQueue.async {
                     completion(.failure(error: error))
                 }
             } else {
                 self.queryID = nil
-                self.client.serialQueue.async {
-                    self.client.subscribingMap.removeValue(forKey: self.uuid)
-                    self.client.subscribedMap.removeValue(forKey: queryID)
-                }
-                self.client.eventQueue.async {
+                self.eventQueue.async {
                     completion(.success)
                 }
             }
@@ -185,21 +195,13 @@ class LiveQuery {
                 break
             }
             if let event = event {
-                self.client.eventQueue.async {
+                self.eventQueue.async {
                     self.eventHandler(self, event)
                 }
             }
         } catch {
             Logger.shared.error(error)
         }
-    }
-    
-}
-
-extension LiveQuery: InternalSynchronizing {
-    
-    var mutex: NSLock {
-        return self.lock
     }
     
 }
