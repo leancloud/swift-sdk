@@ -233,7 +233,6 @@ extension LiveQueryClient: RTMConnectionDelegate {
     
     func connection(_ connection: RTMConnection, didDisconnect error: LCError) {
         assert(self.specificAssertion)
-        assert(self.retainedLiveQueryMap.isEmpty)
         
         self.sessionState = .disconnected(error: error)
         
