@@ -165,9 +165,11 @@ public class LCApplication {
             }
         }
     }
+    
+    public typealias Identifier = String
 
     /// Application ID.
-    public private(set) var id: String!
+    public private(set) var id: LCApplication.Identifier!
 
     /// Application key.
     public private(set) var key: String!

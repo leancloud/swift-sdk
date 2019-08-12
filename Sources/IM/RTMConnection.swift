@@ -26,17 +26,20 @@ class RTMConnectionManager {
     
     let mutex = NSLock()
     
-    var protobuf1Map: [String: [String: RTMConnection]] = [:]
-    var protobuf3Map: [String: [String: RTMConnection]] = [:]
-    var liveQueryMap: [String: RTMConnection] = [:]
+    typealias InstantMessagingReferenceMap = [LCApplication.Identifier: [String: RTMConnection]]
+    typealias LiveQueryReferenceMap = [LCApplication.Identifier: RTMConnection]
+    
+    var protobuf1Map: InstantMessagingReferenceMap = [:]
+    var protobuf3Map: InstantMessagingReferenceMap = [:]
+    var liveQueryMap: LiveQueryReferenceMap = [:]
     
     enum Service {
         case instantMessaging(ID: String, protocol: RTMConnection.LCIMProtocol)
         case liveQuery
     }
     
-    func getMap(protocol lcimProtocol: RTMConnection.LCIMProtocol) -> [String: [String: RTMConnection]] {
-        let map: [String: [String: RTMConnection]]
+    func getMap(protocol lcimProtocol: RTMConnection.LCIMProtocol) -> InstantMessagingReferenceMap {
+        let map: InstantMessagingReferenceMap
         switch lcimProtocol {
         case .protobuf3:
             map = self.protobuf3Map
@@ -46,7 +49,7 @@ class RTMConnectionManager {
         return map
     }
     
-    func setMap(_ map: [String: [String: RTMConnection]], lcimProtocol: RTMConnection.LCIMProtocol) {
+    func setMap(_ map: InstantMessagingReferenceMap, lcimProtocol: RTMConnection.LCIMProtocol) {
         switch lcimProtocol {
         case .protobuf3:
             self.protobuf3Map = map
@@ -55,7 +58,7 @@ class RTMConnectionManager {
         }
     }
     
-    func getConnectionFromMapForLiveQuery(applicationID: String) -> RTMConnection? {
+    func getConnectionFromMapForLiveQuery(applicationID: LCApplication.Identifier) -> RTMConnection? {
         if let connection = self.liveQueryMap[applicationID] {
             return connection
         } else {
@@ -69,11 +72,11 @@ class RTMConnectionManager {
         defer {
             self.mutex.unlock()
         }
+        let appID: LCApplication.Identifier = application.id
         let returnValue: RTMConnection
-        let appID: String = application.id
         switch service {
         case let .instantMessaging(ID: clientID, protocol: lcimProtocol):
-            var map: [String: [String: RTMConnection]] = self.getMap(protocol: lcimProtocol)
+            var map: InstantMessagingReferenceMap = self.getMap(protocol: lcimProtocol)
             if var connectionMapInAppContext = map[appID], let connection = connectionMapInAppContext.values.first {
                 if let _ = connectionMapInAppContext[clientID] {
                     throw LCError(
@@ -115,10 +118,10 @@ class RTMConnectionManager {
         defer {
             self.mutex.unlock()
         }
-        let appID: String = application.id
+        let appID: LCApplication.Identifier = application.id
         switch service {
         case let .instantMessaging(ID: clientID, protocol: lcimProtocol):
-            var map: [String: [String: RTMConnection]] = self.getMap(protocol: lcimProtocol)
+            var map: InstantMessagingReferenceMap = self.getMap(protocol: lcimProtocol)
             if var connectionMapInAppContext = map[appID] {
                 connectionMapInAppContext.removeValue(forKey: clientID)
                 map[appID] = connectionMapInAppContext

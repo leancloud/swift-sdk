@@ -16,7 +16,7 @@ class LiveQueryClientManager {
     
     private let mutex = NSLock()
     
-    private var registry: [String: LiveQueryClient] = [:]
+    private var registry: [LCApplication.Identifier: LiveQueryClient] = [:]
     
     private var localInstanceIDSet: Set<LiveQuery.LocalInstanceID> = []
     
@@ -25,7 +25,7 @@ class LiveQueryClientManager {
         defer {
             self.mutex.unlock()
         }
-        let appID: String = application.id
+        let appID: LCApplication.Identifier = application.id
         if let client = self.registry[appID] {
             return client
         } else {
