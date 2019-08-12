@@ -33,8 +33,10 @@ public class IMClient {
     /// Reserved value of the tag.
     public static let reservedValueOfTag: String = "default"
     
+    public typealias Identifier = String
+    
     /// The client identifier.
-    public let ID: String
+    public let ID: IMClient.Identifier
     
     /// The client tag.
     public let tag: String?
@@ -163,7 +165,7 @@ public class IMClient {
     /// - Throws: Error.
     public init(
         application: LCApplication = LCApplication.default,
-        ID: String,
+        ID: IMClient.Identifier,
         tag: String? = nil,
         options: Options = .default,
         delegate: IMClientDelegate? = nil,
@@ -277,10 +279,11 @@ public class IMClient {
     
     deinit {
         Logger.shared.verbose("\(IMClient.self)<ID: \"\(self.ID)\"> deinit.")
-        self.connection.removeDelegator(peerID: self.ID)
+        let service: RTMConnection.Service = .instantMessaging(ID: self.ID, protocol: self.options.lcimProtocol)
+        self.connection.removeDelegator(service: service)
         RTMConnectionManager.default.unregister(
             application: self.application,
-            service: .instantMessaging(ID: self.ID, protocol: self.options.lcimProtocol)
+            service: service
         )
     }
     
@@ -452,7 +455,10 @@ extension IMClient {
             self.openingOptions = options
             
             self.connectionDelegator.delegate = self
-            self.connection.connect(peerID: self.ID, delegator: self.connectionDelegator)
+            self.connection.connect(
+                service: .instantMessaging(ID: self.ID, protocol: self.options.lcimProtocol),
+                delegator: self.connectionDelegator
+            )
         }
     }
     
@@ -1517,7 +1523,7 @@ extension IMClient {
     func sessionClosed(with result: LCBooleanResult, completion: ((LCBooleanResult) -> Void)? = nil) {
         assert(self.specificAssertion)
         self.connectionDelegator.delegate = nil
-        self.connection.removeDelegator(peerID: self.ID)
+        self.connection.removeDelegator(service: .instantMessaging(ID: self.ID, protocol: self.options.lcimProtocol))
         self.sessionToken = nil
         self.sessionTokenExpiration = nil
         self.openingCompletion = nil

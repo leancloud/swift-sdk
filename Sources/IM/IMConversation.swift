@@ -55,7 +55,7 @@ public class IMConversation {
     public let ID: String
     
     /// The ID of the client.
-    public let clientID: String
+    public let clientID: IMClient.Identifier
     
     /// Indicates whether the conversation is unique.
     public let isUnique: Bool

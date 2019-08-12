@@ -26,17 +26,12 @@ class RTMConnectionManager {
     
     let mutex = NSLock()
     
-    typealias InstantMessagingReferenceMap = [LCApplication.Identifier: [String: RTMConnection]]
+    typealias InstantMessagingReferenceMap = [LCApplication.Identifier: [IMClient.Identifier: RTMConnection]]
     typealias LiveQueryReferenceMap = [LCApplication.Identifier: RTMConnection]
     
     var protobuf1Map: InstantMessagingReferenceMap = [:]
     var protobuf3Map: InstantMessagingReferenceMap = [:]
     var liveQueryMap: LiveQueryReferenceMap = [:]
-    
-    enum Service {
-        case instantMessaging(ID: String, protocol: RTMConnection.LCIMProtocol)
-        case liveQuery
-    }
     
     func getMap(protocol lcimProtocol: RTMConnection.LCIMProtocol) -> InstantMessagingReferenceMap {
         let map: InstantMessagingReferenceMap
@@ -67,7 +62,7 @@ class RTMConnectionManager {
         }
     }
     
-    func register(application: LCApplication, service: Service) throws -> RTMConnection {
+    func register(application: LCApplication, service: RTMConnection.Service) throws -> RTMConnection {
         self.mutex.lock()
         defer {
             self.mutex.unlock()
@@ -113,7 +108,7 @@ class RTMConnectionManager {
         return returnValue
     }
     
-    func unregister(application: LCApplication, service: Service) {
+    func unregister(application: LCApplication, service: RTMConnection.Service) {
         self.mutex.lock()
         defer {
             self.mutex.unlock()
@@ -155,6 +150,11 @@ class RTMConnection {
     enum LCIMProtocol: String {
         case protobuf1 = "lc.protobuf2.1"
         case protobuf3 = "lc.protobuf2.3"
+    }
+    
+    enum Service {
+        case instantMessaging(ID: IMClient.Identifier, protocol: RTMConnection.LCIMProtocol)
+        case liveQuery(ID: LiveQueryClient.Identifier)
     }
     
     class CommandCallback {
@@ -360,7 +360,12 @@ class RTMConnection {
     
     let serialQueue: DispatchQueue = DispatchQueue(label: "\(RTMConnection.self).serialQueue")
     
-    private(set) var delegatorMap: [String: Delegator] = [:]
+    private(set) var instantMessagingDelegatorMap: [IMClient.Identifier: Delegator] = [:]
+    private(set) var liveQueryDelegatorMap: [LiveQueryClient.Identifier: Delegator] = [:]
+    private var allDelegators: [Delegator] {
+        assert(self.specificAssertion)
+        return Array(self.instantMessagingDelegatorMap.values) + Array(self.liveQueryDelegatorMap.values)
+    }
     private(set) var socket: WebSocket? = nil
     private(set) var timer: Timer? = nil
     private(set) var previousConnectingWorkItem: DispatchWorkItem?
@@ -472,16 +477,26 @@ class RTMConnection {
         self.socket?.disconnect()
     }
     
-    func removeDelegator(peerID: String) {
+    func removeDelegator(service: Service) {
         self.serialQueue.async {
-            self.delegatorMap.removeValue(forKey: peerID)
+            switch service {
+            case let .instantMessaging(ID: ID, protocol: _):
+                self.instantMessagingDelegatorMap.removeValue(forKey: ID)
+            case let .liveQuery(ID: ID):
+                self.liveQueryDelegatorMap.removeValue(forKey: ID)
+            }
         }
     }
     
-    func connect(peerID: String? = nil, delegator: Delegator? = nil) {
+    func connect(service: Service? = nil, delegator: Delegator? = nil) {
         self.serialQueue.async {
-            if let peerID = peerID, let delegator = delegator {
-                self.delegatorMap[peerID] = delegator
+            if let service = service, let delegator = delegator {
+                switch service {
+                case let .instantMessaging(ID: ID, protocol: _):
+                    self.instantMessagingDelegatorMap[ID] = delegator
+                case let .liveQuery(ID: ID):
+                    self.liveQueryDelegatorMap[ID] = delegator
+                }
             }
             if let _ = self.socket, let _ = self.timer {
                 delegator?.queue.async {
@@ -613,15 +628,9 @@ extension RTMConnection {
     
     private func canConnecting() -> Bool {
         assert(self.specificAssertion)
-        if
-            (self.socket == nil),
-            (!self.delegatorMap.isEmpty),
-            (self.checkEnvironment() == nil)
-        {
-            return true
-        } else {
-            return false
-        }
+        return self.socket == nil
+            && !self.allDelegators.isEmpty
+            && self.checkEnvironment() == nil
     }
     
     private func connectingWorkItem() -> DispatchWorkItem {
@@ -647,7 +656,7 @@ extension RTMConnection {
                     self.socket = socket
                     Logger.shared.verbose("\(socket) connecting URL<\"\(url)\"> with protocol<\"\(self.lcimProtocol.rawValue)\">")
                 case .failure(error: let error):
-                    for item in self.delegatorMap.values {
+                    for item in self.allDelegators {
                         item.queue.async {
                             item.delegate?.connection(self, didDisconnect: error)
                         }
@@ -670,7 +679,7 @@ extension RTMConnection {
         let workItem: DispatchWorkItem = self.connectingWorkItem()
         self.previousConnectingWorkItem = workItem
         
-        for item in self.delegatorMap.values {
+        for item in self.allDelegators {
             item.queue.async {
                 item.delegate?.connection(inConnecting: self)
             }
@@ -700,7 +709,7 @@ extension RTMConnection {
             socket.disconnect()
             self.socket = nil
         }
-        for item in self.delegatorMap.values {
+        for item in self.allDelegators {
             item.queue.async {
                 item.delegate?.connection(self, didDisconnect: error)
             }
@@ -728,13 +737,7 @@ extension RTMConnection {
                             callback(.failure(error: LCError.RTMRouterResponseDataMalformed))
                         }
                     case .failure(error: let error):
-                        let routerError = LCError.RTMRouterResponseDataMalformed
-                        if error.code == routerError.code, error.reason == routerError.reason {
-                            self.delegatorMap.removeAll()
-                            self.tryClearConnection(with: error)
-                        } else {
-                            callback(.failure(error: error))
-                        }
+                        callback(.failure(error: error))
                     }
                 }
                 if direct {
@@ -779,7 +782,7 @@ extension RTMConnection: WebSocketDelegate, WebSocketPongDelegate {
         self.reconnectingDelay = .second1
         self.rtmRouter?.updateFailureCount(reset: true)
         self.timer = Timer(connection: self, socket: socket)
-        for item in self.delegatorMap.values {
+        for item in self.allDelegators {
             item.queue.async {
                 item.delegate?.connection(didConnect: self)
             }
@@ -809,21 +812,16 @@ extension RTMConnection: WebSocketDelegate, WebSocketPongDelegate {
         if inCommand.hasI {
             self.timer?.handle(callbackCommand: inCommand)
         } else {
-            let mapping: (String) -> Void = { peerID in
-                if let delegator: Delegator = self.delegatorMap[peerID] {
-                    delegator.queue.async {
-                        delegator.delegate?.connection(self, didReceiveCommand: inCommand)
-                    }
-                } else {
-                    Logger.shared.error("\(type(of: self)) not found delegator for peer ID: \(peerID)")
-                }
-            }
+            var delegator: Delegator?
             if let peerID = (inCommand.hasPeerID ? inCommand.peerID : nil) {
-                mapping(peerID)
+                delegator = self.instantMessagingDelegatorMap[peerID]
             } else if let installationID = (inCommand.hasInstallationID ? inCommand.installationID : nil) {
-                mapping(installationID)
+                delegator = self.liveQueryDelegatorMap[installationID]
             } else {
                 self.handleGoaway(inCommand: inCommand)
+            }
+            delegator?.queue.async {
+                delegator?.delegate?.connection(self, didReceiveCommand: inCommand)
             }
         }
     }

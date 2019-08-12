@@ -84,7 +84,9 @@ class LiveQueryClient {
     
     let connectionDelegator: RTMConnection.Delegator
     
-    let ID: String = "livequery-\(Utility.UDID)"
+    typealias Identifier = String
+    
+    let ID: LiveQueryClient.Identifier = "livequery-\(Utility.UDID)"
     
     let serialQueue: DispatchQueue = DispatchQueue(label: "\(LiveQueryClient.self).serialQueue")
     
@@ -95,10 +97,11 @@ class LiveQueryClient {
     var sessionState: SessionState = .disconnected(error: nil)
     
     deinit {
-        self.connection.removeDelegator(peerID: self.ID)
+        let service: RTMConnection.Service = .liveQuery(ID: self.ID)
+        self.connection.removeDelegator(service: service)
         RTMConnectionManager.default.unregister(
             application: self.application,
-            service: .liveQuery
+            service: service
         )
     }
     
@@ -109,7 +112,7 @@ class LiveQueryClient {
         self.application = application
         self.connection = try RTMConnectionManager.default.register(
             application: application,
-            service: .liveQuery
+            service: .liveQuery(ID: self.ID)
         )
         self.connectionDelegator = RTMConnection.Delegator(queue: self.serialQueue)
     }
@@ -126,7 +129,7 @@ class LiveQueryClient {
             switch sessionState {
             case .disconnected, .failure:
                 self.connectionDelegator.delegate = self
-                self.connection.connect(peerID: self.ID, delegator: self.connectionDelegator)
+                self.connection.connect(service: .liveQuery(ID: self.ID), delegator: self.connectionDelegator)
             default:
                 break
             }
@@ -268,7 +271,7 @@ extension LiveQueryClient: RTMConnectionDelegate {
         
         if self.retainedLiveQueryMap.isEmpty {
             self.connectionDelegator.delegate = nil
-            self.connection.removeDelegator(peerID: self.ID)
+            self.connection.removeDelegator(service: .liveQuery(ID: self.ID))
         }
     }
     
