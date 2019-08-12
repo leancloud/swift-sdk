@@ -48,10 +48,14 @@ public class LiveQuery {
     let client: LiveQueryClient
     
     typealias LocalInstanceID = String
-    let localInstanceID: LocalInstanceID = UUID().uuidString
+    let localInstanceID: LocalInstanceID
     
     typealias RemoteQueryID = String
     var queryID: RemoteQueryID?
+    
+    deinit {
+        LiveQueryClientManager.default.releaseLocalInstanceID(self.localInstanceID)
+    }
     
     public init(
         application: LCApplication = .default,
@@ -65,6 +69,7 @@ public class LiveQuery {
         self.eventQueue = eventQueue
         self.eventHandler = eventHandler
         self.client = try LiveQueryClientManager.default.register(application: application)
+        self.localInstanceID = LiveQueryClientManager.default.newLocalInstanceID()
     }
     
     public func subscribe(completion: @escaping (LCBooleanResult) -> Void) {

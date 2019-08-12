@@ -18,6 +18,8 @@ class LiveQueryClientManager {
     
     private var registry: [String: LiveQueryClient] = [:]
     
+    private var localInstanceIDSet: Set<LiveQuery.LocalInstanceID> = []
+    
     func register(application: LCApplication) throws -> LiveQueryClient {
         self.mutex.lock()
         defer {
@@ -33,12 +35,24 @@ class LiveQueryClientManager {
         }
     }
     
-    func unregister(application: LCApplication) {
+    func newLocalInstanceID() -> LiveQuery.LocalInstanceID {
         self.mutex.lock()
         defer {
             self.mutex.unlock()
         }
-        self.registry.removeValue(forKey: application.id)
+        var uuid = UUID().uuidString
+        while self.localInstanceIDSet.contains(uuid) {
+            uuid = UUID().uuidString
+        }
+        return uuid
+    }
+    
+    func releaseLocalInstanceID(_ uuid: LiveQuery.LocalInstanceID) {
+        self.mutex.lock()
+        defer {
+            self.mutex.unlock()
+        }
+        self.localInstanceIDSet.remove(uuid)
     }
     
 }
