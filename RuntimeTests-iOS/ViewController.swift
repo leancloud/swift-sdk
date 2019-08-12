@@ -64,7 +64,7 @@ class ViewController: UITableViewController {
     }
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return 7
+        return 8
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -84,6 +84,8 @@ class ViewController: UITableViewController {
             cell.textLabel?.text = "update"
         case 6:
             cell.textLabel?.text = "user login"
+        case 7:
+            cell.textLabel?.text = "release live query"
         default:
             fatalError()
         }
@@ -239,6 +241,10 @@ class ViewController: UITableViewController {
                 print(error)
             }
             tableView.isUserInteractionEnabled = true
+        case 7:
+            if !self.liveQueryArray.isEmpty {            
+                self.liveQueryArray.removeLast()
+            }
         default:
             fatalError()
         }
