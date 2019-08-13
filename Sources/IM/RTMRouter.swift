@@ -198,14 +198,14 @@ extension LCError {
     static var RTMRouterURLNotFound: LCError {
         return LCError(
             code: .inconsistency,
-            reason: "\((#file as NSString).lastPathComponent): RTM router URL not found."
+            reason: "\(RTMRouter.self): URL not found."
         )
     }
 
     static var RTMRouterResponseDataMalformed: LCError {
         return LCError(
             code: .malformedData,
-            reason: "\((#file as NSString).lastPathComponent): RTM router response data malformed."
+            reason: "\(RTMRouter.self): response data malformed."
         )
     }
 

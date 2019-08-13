@@ -2477,6 +2477,24 @@ struct IMGenericCommand {
   /// Clears the value of `serverTs`. Subsequent reads from it will return its default value.
   mutating func clearServerTs() {_uniqueStorage()._serverTs = nil}
 
+  var clientTs: Int64 {
+    get {return _storage._clientTs ?? 0}
+    set {_uniqueStorage()._clientTs = newValue}
+  }
+  /// Returns true if `clientTs` has been explicitly set.
+  var hasClientTs: Bool {return _storage._clientTs != nil}
+  /// Clears the value of `clientTs`. Subsequent reads from it will return its default value.
+  mutating func clearClientTs() {_uniqueStorage()._clientTs = nil}
+
+  var notificationType: Int32 {
+    get {return _storage._notificationType ?? 0}
+    set {_uniqueStorage()._notificationType = newValue}
+  }
+  /// Returns true if `notificationType` has been explicitly set.
+  var hasNotificationType: Bool {return _storage._notificationType != nil}
+  /// Clears the value of `notificationType`. Subsequent reads from it will return its default value.
+  mutating func clearNotificationType() {_uniqueStorage()._notificationType = nil}
+
   var dataMessage: IMDataCommand {
     get {return _storage._dataMessage ?? IMDataCommand()}
     set {_uniqueStorage()._dataMessage = newValue}
@@ -4819,6 +4837,8 @@ extension IMGenericCommand: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
     7: .same(proto: "priority"),
     8: .same(proto: "service"),
     9: .same(proto: "serverTs"),
+    10: .same(proto: "clientTs"),
+    11: .same(proto: "notificationType"),
     101: .same(proto: "dataMessage"),
     102: .same(proto: "sessionMessage"),
     103: .same(proto: "errorMessage"),
@@ -4847,6 +4867,8 @@ extension IMGenericCommand: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
     var _priority: Int32? = nil
     var _service: Int32? = nil
     var _serverTs: Int64? = nil
+    var _clientTs: Int64? = nil
+    var _notificationType: Int32? = nil
     var _dataMessage: IMDataCommand? = nil
     var _sessionMessage: IMSessionCommand? = nil
     var _errorMessage: IMErrorCommand? = nil
@@ -4878,6 +4900,8 @@ extension IMGenericCommand: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
       _priority = source._priority
       _service = source._service
       _serverTs = source._serverTs
+      _clientTs = source._clientTs
+      _notificationType = source._notificationType
       _dataMessage = source._dataMessage
       _sessionMessage = source._sessionMessage
       _errorMessage = source._errorMessage
@@ -4931,6 +4955,8 @@ extension IMGenericCommand: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
         case 7: try decoder.decodeSingularInt32Field(value: &_storage._priority)
         case 8: try decoder.decodeSingularInt32Field(value: &_storage._service)
         case 9: try decoder.decodeSingularInt64Field(value: &_storage._serverTs)
+        case 10: try decoder.decodeSingularInt64Field(value: &_storage._clientTs)
+        case 11: try decoder.decodeSingularInt32Field(value: &_storage._notificationType)
         case 101: try decoder.decodeSingularMessageField(value: &_storage._dataMessage)
         case 102: try decoder.decodeSingularMessageField(value: &_storage._sessionMessage)
         case 103: try decoder.decodeSingularMessageField(value: &_storage._errorMessage)
@@ -4981,6 +5007,12 @@ extension IMGenericCommand: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
       }
       if let v = _storage._serverTs {
         try visitor.visitSingularInt64Field(value: v, fieldNumber: 9)
+      }
+      if let v = _storage._clientTs {
+        try visitor.visitSingularInt64Field(value: v, fieldNumber: 10)
+      }
+      if let v = _storage._notificationType {
+        try visitor.visitSingularInt32Field(value: v, fieldNumber: 11)
       }
       if let v = _storage._dataMessage {
         try visitor.visitSingularMessageField(value: v, fieldNumber: 101)
@@ -5048,6 +5080,8 @@ extension IMGenericCommand: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
         if _storage._priority != rhs_storage._priority {return false}
         if _storage._service != rhs_storage._service {return false}
         if _storage._serverTs != rhs_storage._serverTs {return false}
+        if _storage._clientTs != rhs_storage._clientTs {return false}
+        if _storage._notificationType != rhs_storage._notificationType {return false}
         if _storage._dataMessage != rhs_storage._dataMessage {return false}
         if _storage._sessionMessage != rhs_storage._sessionMessage {return false}
         if _storage._errorMessage != rhs_storage._errorMessage {return false}

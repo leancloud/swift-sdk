@@ -13,13 +13,13 @@ class RTMConnectionTestCase: RTMBaseTestCase {
     
     override func setUp() {
         super.setUp()
-        RTMConnectionRefMap_protobuf1.removeAll()
-        RTMConnectionRefMap_protobuf3.removeAll()
+        RTMConnectionManager.default.protobuf1Map.removeAll()
+        RTMConnectionManager.default.protobuf3Map.removeAll()
     }
     
     override func tearDown() {
-        RTMConnectionRefMap_protobuf1.removeAll()
-        RTMConnectionRefMap_protobuf3.removeAll()
+        RTMConnectionManager.default.protobuf1Map.removeAll()
+        RTMConnectionManager.default.protobuf3Map.removeAll()
         super.tearDown()
     }
     
@@ -30,43 +30,57 @@ class RTMConnectionTestCase: RTMBaseTestCase {
              RTMConnection.LCIMProtocol.protobuf3]
         {
             let connectionMap: () -> [String : [String : RTMConnection]] = {
-                switch imProtocol {
-                case .protobuf1:
-                    return RTMConnectionRefMap_protobuf1
-                case .protobuf3:
-                    return RTMConnectionRefMap_protobuf3
-                }
+                RTMConnectionManager.default.getMap(protocol: imProtocol)
             }
             let peerID1 = "peerID1"
             let peerID2 = "peerID2"
             do {
-                _ = try RTMConnectionRegistering(application: application, peerID: peerID1, lcimProtocol: imProtocol)
+                _ = try RTMConnectionManager.default.register(
+                    application: application,
+                    service: .instantMessaging(ID: peerID1, protocol: imProtocol)
+                )
                 XCTAssertNotNil(connectionMap()[application.id]?[peerID1])
                 XCTAssertEqual(connectionMap()[application.id]?.count, 1)
             } catch {
                 XCTFail("\(error)")
             }
             do {
-                _ = try RTMConnectionRegistering(application: application, peerID: peerID1, lcimProtocol: imProtocol)
+                _ = try RTMConnectionManager.default.register(
+                    application: application,
+                    service: .instantMessaging(ID: peerID1, protocol: imProtocol)
+                )
                 XCTFail()
             } catch {
                 XCTAssertTrue(error is LCError)
             }
             
-            _ = try! RTMConnectionRegistering(application: application, peerID: peerID2, lcimProtocol: imProtocol)
+            _ = try! RTMConnectionManager.default.register(
+                application: application,
+                service: .instantMessaging(ID: peerID2, protocol: imProtocol)
+            )
             XCTAssertTrue(connectionMap()[application.id]?[peerID1] === connectionMap()[application.id]?[peerID2])
             XCTAssertEqual(connectionMap()[application.id]?.count, 2)
             
-            RTMConnectionReleasing(application: application, peerID: peerID1, lcimProtocol: imProtocol)
-            RTMConnectionReleasing(application: application, peerID: peerID2, lcimProtocol: imProtocol)
+            RTMConnectionManager.default.unregister(
+                application: application,
+                service: .instantMessaging(ID: peerID1, protocol: imProtocol)
+            )
+            RTMConnectionManager.default.unregister(
+                application: application,
+                service: .instantMessaging(ID: peerID2, protocol: imProtocol)
+            )
+            
             XCTAssertEqual(connectionMap()[application.id]?.count, 0)
             
-            _ = try! RTMConnectionRegistering(application: application, peerID: peerID1, lcimProtocol: imProtocol)
+            _ = try! RTMConnectionManager.default.register(
+                application: application,
+                service: .instantMessaging(ID: peerID1, protocol: imProtocol)
+            )
             XCTAssertNotNil(connectionMap()[application.id]?[peerID1])
             XCTAssertEqual(connectionMap()[application.id]?.count, 1)
         }
-        XCTAssertEqual(RTMConnectionRefMap_protobuf1[application.id]?.count, 1)
-        XCTAssertEqual(RTMConnectionRefMap_protobuf3[application.id]?.count, 1)
+        XCTAssertEqual(RTMConnectionManager.default.protobuf1Map[application.id]?.count, 1)
+        XCTAssertEqual(RTMConnectionManager.default.protobuf3Map[application.id]?.count, 1)
     }
     
     func testDeinit() {
@@ -82,7 +96,10 @@ class RTMConnectionTestCase: RTMBaseTestCase {
         })
         connection?.serialQueue.async {
             connection?.timer?.insert(commandCallback: commandCallback, index: 0)
-            RTMConnectionReleasing(application: .default, peerID: peerID, lcimProtocol: .protobuf1)
+            RTMConnectionManager.default.unregister(
+                application: .default,
+                service: .instantMessaging(ID: peerID, protocol: .protobuf1)
+            )
             connection = nil
             tuple = nil
         }
@@ -280,10 +297,9 @@ extension RTMConnectionTestCase {
         peerID: String = uuid)
         -> (RTMConnection, Delegator)
     {
-        let connection = try! RTMConnectionRegistering(
+        let connection = try! RTMConnectionManager.default.register(
             application: application,
-            peerID: peerID,
-            lcimProtocol: .protobuf1
+            service: .instantMessaging(ID: peerID, protocol: .protobuf1)
         )
         let delegator = Delegator()
         let connectionDelegator = RTMConnection.Delegator(queue: .main)

@@ -40,10 +40,10 @@ open class IMMessage {
     }
     
     /// The ID of the client which sent this message.
-    public private(set) var fromClientID: String?
+    public private(set) var fromClientID: IMClient.Identifier?
     
     /// The ID of the current client.
-    public private(set) var currentClientID: String?
+    public private(set) var currentClientID: IMClient.Identifier?
     
     /// Message Status.
     public enum Status: Int {
@@ -190,8 +190,8 @@ open class IMMessage {
         application: LCApplication,
         isTransient: Bool,
         conversationID: String,
-        currentClientID: String,
-        fromClientID: String?,
+        currentClientID: IMClient.Identifier,
+        fromClientID: IMClient.Identifier?,
         timestamp: Int64,
         patchedTimestamp: Int64?,
         messageID: String,

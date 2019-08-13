@@ -7,11 +7,6 @@
 //
 
 import Foundation
-#if os(iOS) || os(tvOS)
-import UIKit
-#elseif os(macOS)
-import IOKit
-#endif
 import FMDB
 
 /// IM Client
@@ -38,8 +33,10 @@ public class IMClient {
     /// Reserved value of the tag.
     public static let reservedValueOfTag: String = "default"
     
+    public typealias Identifier = String
+    
     /// The client identifier.
-    public let ID: String
+    public let ID: IMClient.Identifier
     
     /// The client tag.
     public let tag: String?
@@ -57,7 +54,7 @@ public class IMClient {
     
     let connection: RTMConnection
     
-    let rtmDelegator: RTMConnection.Delegator
+    let connectionDelegator: RTMConnection.Delegator
     
     private(set) var localStorage: IMLocalStorage?
     
@@ -168,7 +165,7 @@ public class IMClient {
     /// - Throws: Error.
     public init(
         application: LCApplication = LCApplication.default,
-        ID: String,
+        ID: IMClient.Identifier,
         tag: String? = nil,
         options: Options = .default,
         delegate: IMClientDelegate? = nil,
@@ -220,12 +217,11 @@ public class IMClient {
         
         // directly init `connection` is better, lazy init is not a good choice.
         // because connection should get App State in main thread.
-        self.connection = try RTMConnectionRegistering(
+        self.connection = try RTMConnectionManager.default.register(
             application: application,
-            peerID: ID,
-            lcimProtocol: options.lcimProtocol
+            service: .instantMessaging(ID: ID, protocol: options.lcimProtocol)
         )
-        self.rtmDelegator = RTMConnection.Delegator(queue: self.serialQueue)
+        self.connectionDelegator = RTMConnection.Delegator(queue: self.serialQueue)
         
         self.deviceTokenObservation = self.installation.observe(
             \.deviceToken,
@@ -282,16 +278,16 @@ public class IMClient {
     }
     
     deinit {
-        Logger.shared.verbose("\(IMClient.self) with Peer ID <\"\(self.ID)\"> deinit.")
-        self.connection.removeDelegator(peerID: self.ID)
-        RTMConnectionReleasing(
+        Logger.shared.verbose("\(IMClient.self)<ID: \"\(self.ID)\"> deinit.")
+        let service: RTMConnection.Service = .instantMessaging(ID: self.ID, protocol: self.options.lcimProtocol)
+        self.connection.removeDelegator(service: service)
+        RTMConnectionManager.default.unregister(
             application: self.application,
-            peerID: self.ID,
-            lcimProtocol: self.options.lcimProtocol
+            service: service
         )
     }
     
-    let serialQueue = DispatchQueue(label: "LeanCloud.IMClient.serialQueue")
+    let serialQueue = DispatchQueue(label: "\(IMClient.self).serialQueue")
     
     let lock = NSLock()
     
@@ -327,29 +323,6 @@ public class IMClient {
     
     private(set) var deviceTokenObservation: NSKeyValueObservation?
     private(set) var currentDeviceToken: String?
-    private(set) lazy var fallbackUDID: String = {
-        var udid: String = UUID().uuidString
-        #if os(iOS) || os(tvOS)
-        if let identifierForVendor: String = UIDevice.current.identifierForVendor?.uuidString {
-            udid = identifierForVendor
-        }
-        #elseif os(macOS)
-        let platformExpert: io_service_t = IOServiceGetMatchingService(
-            kIOMasterPortDefault,
-            IOServiceMatching("IOPlatformExpertDevice")
-        )
-        if let serialNumber: String = IORegistryEntryCreateCFProperty(
-            platformExpert,
-            kIOPlatformSerialNumberKey as CFString,
-            kCFAllocatorDefault,
-            0).takeUnretainedValue() as? String
-        {
-            udid = serialNumber
-        }
-        IOObjectRelease(platformExpert)
-        #endif
-        return udid
-    }()
     
     var convCollection: [String: IMConversation] = [:]
     private(set) var validInFetchingNotificationsCachedConvMapSnapshot: [String: IMConversation]?
@@ -481,8 +454,11 @@ extension IMClient {
             self.openingCompletion = completion
             self.openingOptions = options
             
-            self.rtmDelegator.delegate = self
-            self.connection.connect(peerID: self.ID, delegator: self.rtmDelegator)
+            self.connectionDelegator.delegate = self
+            self.connection.connect(
+                service: .instantMessaging(ID: self.ID, protocol: self.options.lcimProtocol),
+                delegator: self.connectionDelegator
+            )
         }
     }
     
@@ -1132,8 +1108,7 @@ extension IMClient {
     func getSessionToken(completion: @escaping (IMClient, LCGenericResult<String>) -> Void) {
         assert(self.specificAssertion)
         if let token: String = self.sessionToken {
-            if let expiration = self.sessionTokenExpiration,
-                expiration > Date() {
+            if let expiration = self.sessionTokenExpiration, expiration > Date() {
                 completion(self, .success(value: token))
             } else {
                 self.refresh(sessionToken: token, completion: completion)
@@ -1176,7 +1151,7 @@ extension IMClient {
                     }
                     assert(sClient.specificAssertion)
                     sClient.validInFetchingNotificationsCachedConvMapSnapshot = nil
-                    if let error = response.error {
+                    if let error = LCError(response: response) {
                         Logger.shared.error(error)
                     } else if let responseValue: [String: Any] = response.value as? [String: Any] {
                         sClient.handleOfflineEvents(
@@ -1332,7 +1307,7 @@ extension IMClient {
         outCommand.peerID = self.ID
         var sessionCommand = IMSessionCommand()
         sessionCommand.configBitmap = SessionConfigs.support.rawValue
-        sessionCommand.deviceToken = self.currentDeviceToken ?? self.fallbackUDID
+        sessionCommand.deviceToken = self.currentDeviceToken ?? Utility.UDID
         sessionCommand.ua = self.application.httpClient.configuration.userAgent
         if let tag: String = self.tag {
             sessionCommand.tag = tag
@@ -1360,32 +1335,85 @@ extension IMClient {
         return outCommand
     }
     
+    func getOpenSignature(userSessionToken token: String, completion: @escaping (IMClient, LCGenericResult<IMSignature>) -> Void) {
+        let parameters: [String: Any] = ["session_token": token]
+        _ = self.application.httpClient.request(.post, "/rtm/sign", parameters: parameters, completionHandler: { [weak self] (response) in
+            guard let self = self else {
+                return
+            }
+            if let error = LCError(response: response) {
+                self.serialQueue.async {
+                    completion(self, .failure(error: error))
+                }
+            } else {
+                guard
+                    let value = response.value as? [String: Any],
+                    let signature = value["signature"] as? String,
+                    let timestamp = value["timestamp"] as? Int64,
+                    let nonce = value["nonce"] as? String else
+                {
+                    let error = LCError(code: .malformedData, reason: "response value: \(response.value ?? "nil")")
+                    self.serialQueue.async {
+                        completion(self, .failure(error: error))
+                    }
+                    return
+                }
+                let sign = IMSignature(signature: signature, timestamp: timestamp, nonce: nonce)
+                self.serialQueue.async {
+                    completion(self, .success(value: sign))
+                }
+            }
+        })
+    }
+    
     func getSessionOpenCommand(
         token: String? = nil,
         isReopen: Bool? = nil,
         completion: @escaping (IMClient, IMGenericCommand) -> Void)
     {
-        if let signatureDelegate = self.signatureDelegate {
-            self.eventQueue.async {
-                signatureDelegate.client(self, action: .open, signatureHandler: { (client, signature) in
-                    client.serialQueue.async {
-                        let sessionCommand = client.newSessionCommand(
-                            op: .open,
-                            token: token,
-                            isReopen: isReopen,
-                            signature: signature
-                        )
-                        completion(client, sessionCommand)
+        if let userSessionToken = self.user?.sessionToken?.value {
+            self.getOpenSignature(userSessionToken: userSessionToken) { (client, result) in
+                assert(client.specificAssertion)
+                switch result {
+                case .success(value: let signature):
+                    let sessionCommand = client.newSessionCommand(
+                        op: .open,
+                        token: token,
+                        isReopen: isReopen,
+                        signature: signature
+                    )
+                    completion(client, sessionCommand)
+                case .failure(error: let error):
+                    if error.code == LCError.InternalErrorCode.underlyingError.rawValue {
+                        Logger.shared.error(error)
+                    } else {
+                        client.sessionClosed(with: .failure(error: error), completion: client.openingCompletion)
                     }
-                })
+                }
             }
         } else {
-            let sessionCommand = self.newSessionCommand(
-                op: .open,
-                token: token,
-                isReopen: isReopen
-            )
-            completion(self, sessionCommand)
+            if let signatureDelegate = self.signatureDelegate {
+                self.eventQueue.async {
+                    signatureDelegate.client(self, action: .open, signatureHandler: { (client, signature) in
+                        client.serialQueue.async {
+                            let sessionCommand = client.newSessionCommand(
+                                op: .open,
+                                token: token,
+                                isReopen: isReopen,
+                                signature: signature
+                            )
+                            completion(client, sessionCommand)
+                        }
+                    })
+                }
+            } else {
+                let sessionCommand = self.newSessionCommand(
+                    op: .open,
+                    token: token,
+                    isReopen: isReopen
+                )
+                completion(self, sessionCommand)
+            }
         }
     }
     
@@ -1494,8 +1522,8 @@ extension IMClient {
     
     func sessionClosed(with result: LCBooleanResult, completion: ((LCBooleanResult) -> Void)? = nil) {
         assert(self.specificAssertion)
-        self.rtmDelegator.delegate = nil
-        self.connection.removeDelegator(peerID: self.ID)
+        self.connectionDelegator.delegate = nil
+        self.connection.removeDelegator(service: .instantMessaging(ID: self.ID, protocol: self.options.lcimProtocol))
         self.sessionToken = nil
         self.sessionTokenExpiration = nil
         self.openingCompletion = nil
@@ -2321,16 +2349,6 @@ extension IMClient: RTMConnectionDelegate {
     
     func connection(_ connection: RTMConnection, didDisconnect error: LCError) {
         assert(self.specificAssertion)
-        
-        let routerError = LCError.RTMRouterResponseDataMalformed
-        if
-            error.code == routerError.code,
-            error.reason == routerError.reason
-        {
-            self.sessionClosed(with: .failure(error: error), completion: self.openingCompletion)
-            return
-        }
-        
         if let openingCompletion = self.openingCompletion {
             self.sessionClosed(with: .failure(error: error), completion: openingCompletion)
         } else if let _ = self.sessionToken, self.sessionState != .paused {
@@ -2343,6 +2361,9 @@ extension IMClient: RTMConnectionDelegate {
     
     func connection(_ connection: RTMConnection, didReceiveCommand inCommand: IMGenericCommand) {
         assert(self.specificAssertion)
+        guard inCommand.service == RTMService.instantMessaging.rawValue else {
+            return
+        }
         let serverTimestamp: Int64? = (inCommand.hasServerTs ? inCommand.serverTs : nil)
         switch inCommand.cmd {
         case .session:

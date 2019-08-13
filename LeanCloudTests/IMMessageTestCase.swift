@@ -1372,8 +1372,8 @@ extension IMMessageTestCase {
             delegatorMap[client.ID] = delegator
             clientIDs.append(client.ID)
             if !shouldConnectionShared {
-                RTMConnectionRefMap_protobuf1.removeAll()
-                RTMConnectionRefMap_protobuf3.removeAll()
+                RTMConnectionManager.default.protobuf1Map.removeAll()
+                RTMConnectionManager.default.protobuf3Map.removeAll()
             }
         }
         if let clientID: String = clientIDs.first,

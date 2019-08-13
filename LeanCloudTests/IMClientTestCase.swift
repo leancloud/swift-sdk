@@ -11,23 +11,7 @@ import XCTest
 
 class IMClientTestCase: RTMBaseTestCase {
     
-    func testInitWithUser() {
-        let user = LCUser()
-        user.username = UUID().uuidString.lcString
-        user.password = UUID().uuidString.lcString
-        
-        XCTAssertTrue(user.signUp().isSuccess)
-        
-        do {
-            let client = try IMClient(user: user)
-            XCTAssertNotNil(client.user)
-            XCTAssertEqual(client.ID, user.objectId?.stringValue)
-        } catch {
-            XCTFail("\(error)")
-        }
-    }
-    
-    func testDeinit() {
+    func testInit() {
         do {
             let invalidID: String = Array<String>.init(repeating: "a", count: 65).joined()
             let _ = try IMClient(ID: invalidID)
@@ -45,23 +29,42 @@ class IMClientTestCase: RTMBaseTestCase {
         }
         
         do {
-            var client: IMClient? = try IMClient(ID: "qweasd", tag: "mobile")
-            XCTAssertNotNil(client?.deviceTokenObservation)
-            XCTAssertNotNil(client?.fallbackUDID)
-            client = nil
-            XCTAssertNil(client)
+            let _ = try IMClient(ID: uuid)
+            let _ = try IMClient(ID: uuid, tag: uuid)
         } catch {
-            XCTFail()
+            XCTFail("\(error)")
         }
+    }
+    
+    func testInitWithUser() {
+        let user = LCUser()
+        user.username = UUID().uuidString.lcString
+        user.password = UUID().uuidString.lcString
+        
+        XCTAssertTrue(user.signUp().isSuccess)
+        
+        do {
+            let client = try IMClient(user: user)
+            XCTAssertNotNil(client.user)
+            XCTAssertEqual(client.ID, user.objectId?.stringValue)
+        } catch {
+            XCTFail("\(error)")
+        }
+    }
+    
+    func testDeinit() {
+        var client: IMClient? = try! IMClient(ID: uuid, tag: uuid)
+        weak var wClient: IMClient? = client
+        client = nil
+        delay()
+        XCTAssertNil(wClient)
     }
 
     func testOpenAndClose() {
         let client: IMClient = try! IMClient(ID: uuid)
         
-        for _ in 0..<3 {
-            let exp = expectation(description: "open and close")
-            exp.expectedFulfillmentCount = 3
-            client.open { (result) in
+        expecting { (exp) in
+            client.open(completion: { (result) in
                 XCTAssertTrue(Thread.isMainThread)
                 XCTAssertTrue(result.isSuccess)
                 XCTAssertNil(result.error)
@@ -70,24 +73,66 @@ class IMClientTestCase: RTMBaseTestCase {
                 XCTAssertNil(client.openingOptions)
                 XCTAssertNil(client.openingCompletion)
                 XCTAssertEqual(client.sessionState, .opened)
+                XCTAssertNotNil(client.connectionDelegator.delegate)
                 exp.fulfill()
-                client.open { (result) in
-                    XCTAssertNotNil(result.error)
-                    exp.fulfill()
-                    client.close() { (result) in
-                        XCTAssertTrue(Thread.isMainThread)
-                        XCTAssertTrue(result.isSuccess)
-                        XCTAssertNil(result.error)
-                        XCTAssertNil(client.sessionToken)
-                        XCTAssertNil(client.sessionTokenExpiration)
-                        XCTAssertNil(client.openingOptions)
-                        XCTAssertNil(client.openingCompletion)
-                        XCTAssertEqual(client.sessionState, .closed)
-                        exp.fulfill()
-                    }
-                }
+            })
+        }
+        
+        expecting { (exp) in
+            client.open { (result) in
+                XCTAssertTrue(result.isFailure)
+                XCTAssertNotNil(result.error)
+                exp.fulfill()
             }
-            waitForExpectations(timeout: timeout, handler: nil)
+        }
+        
+        expecting { (exp) in
+            client.close() { (result) in
+                XCTAssertTrue(Thread.isMainThread)
+                XCTAssertTrue(result.isSuccess)
+                XCTAssertNil(result.error)
+                XCTAssertNil(client.sessionToken)
+                XCTAssertNil(client.sessionTokenExpiration)
+                XCTAssertNil(client.openingOptions)
+                XCTAssertNil(client.openingCompletion)
+                XCTAssertEqual(client.sessionState, .closed)
+                XCTAssertNil(client.connectionDelegator.delegate)
+                exp.fulfill()
+            }
+        }
+    }
+    
+    func testOpenWithSignature() {
+        let user = LCUser()
+        user.username = UUID().uuidString.lcString
+        user.password = UUID().uuidString.lcString
+        
+        XCTAssertTrue(user.signUp().isSuccess)
+        
+        if let objectID = user.objectId?.value, let sessionToken = user.sessionToken?.value {
+            
+            var clientWithUser: IMClient! = try! IMClient(user: user)
+            expecting { (exp) in
+                clientWithUser.open(completion: { (result) in
+                    XCTAssertTrue(result.isSuccess)
+                    XCTAssertNil(result.error)
+                    exp.fulfill()
+                })
+            }
+            
+            clientWithUser = nil
+            delay()
+            
+            let signatureDelegator = SignatureDelegator()
+            signatureDelegator.sessionToken = sessionToken
+            let clientWithID = try! IMClient(ID: objectID, signatureDelegate: signatureDelegator)
+            expecting { (exp) in
+                clientWithID.open(completion: { (result) in
+                    XCTAssertTrue(result.isSuccess)
+                    XCTAssertNil(result.error)
+                    exp.fulfill()
+                })
+            }
         }
     }
     
@@ -166,8 +211,8 @@ class IMClientTestCase: RTMBaseTestCase {
         }
         wait(for: [exp1], timeout: timeout)
         
-        RTMConnectionRefMap_protobuf1.removeAll()
-        RTMConnectionRefMap_protobuf3.removeAll()
+        RTMConnectionManager.default.protobuf1Map.removeAll()
+        RTMConnectionManager.default.protobuf3Map.removeAll()
         
         applicationRegistry.removeAll()
         let application2: LCApplication = try! LCApplication(
@@ -501,30 +546,6 @@ class IMClientTestCase: RTMBaseTestCase {
         
         XCTAssertEqual(client.convCollection.count, 2)
     }
-    
-    func testInitWithUserAndOpenWithSignature() {
-        let user = LCUser()
-        user.username = UUID().uuidString.lcString
-        user.password = UUID().uuidString.lcString
-        
-        XCTAssertTrue(user.signUp().isSuccess)
-        
-        if let sessionToken = user.sessionToken?.stringValue {
-            
-            let signatureDelegator = SignatureDelegator()
-            signatureDelegator.sessionToken = sessionToken
-            
-            let client = try! IMClient(user: user, signatureDelegate: signatureDelegator)
-            
-            expecting { (exp) in
-                client.open(completion: { (result) in
-                    XCTAssertTrue(result.isSuccess)
-                    XCTAssertNil(result.error)
-                    exp.fulfill()
-                })
-            }
-        }
-    }
 
 }
 
@@ -564,37 +585,40 @@ extension IMClientTestCase {
         
         var sessionToken: String?
         
+        func getOpenSignature(client: IMClient, completion: @escaping (IMSignature) -> Void) {
+            guard let sessionToken = self.sessionToken else {
+                return
+            }
+            let application = client.application
+            let httpClient: HTTPClient = application.httpClient
+            let url = application.v2router.route(path: "rtm/clients/sign", module: .api)!
+            let parameters: [String: Any] = ["session_token": sessionToken]
+            _ = httpClient.request(url: url, method: .get, parameters: parameters) { (response) in
+                guard
+                    let value = response.value as? [String: Any],
+                    let client_id = value["client_id"] as? String,
+                    client_id == client.ID,
+                    let signature = value["signature"] as? String,
+                    let timestamp = value["timestamp"] as? Int64,
+                    let nonce = value["nonce"] as? String else
+                {
+                    return
+                }
+                completion(IMSignature(signature: signature, timestamp: timestamp, nonce: nonce))
+            }
+        }
+        
         func client(_ client: IMClient, action: IMSignature.Action, signatureHandler: @escaping (IMClient, IMSignature?) -> Void) {
             XCTAssertTrue(Thread.isMainThread)
             switch action {
             case .open:
-                guard let sessionToken = self.sessionToken else {
-                    break
-                }
-                
-                let application = client.application
-                let httpClient: HTTPClient = application.httpClient
-                let url = application.v2router.route(path: "rtm/clients/sign", module: .api)!
-                let parameters: [String: Any] = ["session_token": sessionToken]
-                
-                let _ = httpClient.request(url: url, method: .get, parameters: parameters) { (response) in
-                    guard
-                        let value = response.value as? [String: Any],
-                        let client_id = value["client_id"] as? String,
-                        client_id == client.ID,
-                        let signature = value["signature"] as? String,
-                        let timestamp = value["timestamp"] as? Int64,
-                        let nonce = value["nonce"] as? String else
-                    {
-                        return
-                    }
-                    signatureHandler(client, IMSignature(signature: signature, timestamp: timestamp, nonce: nonce))
+                self.getOpenSignature(client: client) { (signature) in
+                    signatureHandler(client, signature)
                 }
             default:
                 break
             }
         }
-        
     }
     
 }

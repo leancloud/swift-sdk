@@ -58,6 +58,14 @@ public struct LCError: Error {
                 return "Message is not sent"
             case .ownerPromotionNotAllowed:
                 return "Updating a member's role to owner is not allowed"
+            case .notFound:
+                return "Not found"
+            case .invalidType:
+                return "Data type invalid"
+            case .malformedData:
+                return "Data format invalid"
+            case .inconsistency:
+                return "Internal inconsistency exception"
             default:
                 return nil
             }
