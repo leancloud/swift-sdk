@@ -183,11 +183,14 @@ class RTMConnectionTestCase: RTMBaseTestCase {
         delegator.didConnect = { con in
             exp.fulfill()
         }
-        connection.connect(peerID: peerID, delegator: connectionDelegator)
+        connection.connect(
+            service: .instantMessaging(ID: peerID, protocol: .protobuf3),
+            delegator: connectionDelegator
+        )
         wait(for: [exp, unexp1], timeout: 5)
         
-        XCTAssertEqual(connection.delegatorMap.count, 2)
-        connection.removeDelegator(peerID: peerID)
+        XCTAssertEqual(connection.allDelegators.count, 2)
+        connection.removeDelegator(service: .instantMessaging(ID: peerID, protocol: .protobuf3))
         
         let unexp2 = expectation(description: "unexpect")
         unexp2.isInverted = true
@@ -196,7 +199,7 @@ class RTMConnectionTestCase: RTMBaseTestCase {
         }
         wait(for: [unexp2], timeout: 5)
         
-        XCTAssertEqual(connection.delegatorMap.count, 1)
+        XCTAssertEqual(connection.allDelegators.count, 1)
     }
     
     func testCommandSending() {
@@ -310,7 +313,10 @@ extension RTMConnectionTestCase {
             XCTAssertTrue(connection === con)
             connectExp.fulfill()
         }
-        connection.connect(peerID: peerID, delegator: connectionDelegator)
+        connection.connect(
+            service: .instantMessaging(ID: peerID, protocol: .protobuf3),
+            delegator: connectionDelegator
+        )
         wait(for: [connectExp], timeout: timeout)
         return (connection, delegator)
     }
