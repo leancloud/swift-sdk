@@ -616,40 +616,33 @@ class IMMessageTestCase: RTMBaseTestCase {
     }
     
     func testImageMessageSendingAndReceiving() {
-        for i in 0..<2 {
-            let message = IMImageMessage()
-            let fileURL: URL
-            let format: String
-            if i == 0 {
-                format = "png"
-                fileURL = resourceURL(name: "test", ext: format)
-            } else {
-                format = "jpg"
-                fileURL = resourceURL(name: "test", ext: format)
-            }
-            message.file = LCFile(payload: .fileURL(fileURL: fileURL))
-            let success = sendingAndReceiving(sentMessage: message) { (rMessage) in
-                XCTAssertNotNil(rMessage?.file?.objectId?.value)
-                XCTAssertEqual(rMessage?.format, format)
-                XCTAssertNotNil(rMessage?.size)
-                XCTAssertNotNil(rMessage?.height)
-                XCTAssertNotNil(rMessage?.width)
-                XCTAssertNotNil(rMessage?.url)
-                XCTAssertEqual(rMessage?.file?.objectId?.value, message.file?.objectId?.value)
-                XCTAssertEqual(rMessage?.format, message.format)
-                XCTAssertEqual(rMessage?.size, message.size)
-                XCTAssertEqual(rMessage?.height, message.height)
-                XCTAssertEqual(rMessage?.width, message.width)
-                XCTAssertEqual(rMessage?.url, message.url)
-            }
-            XCTAssertTrue(success)
+        for i in 0...1 {
+            let format: String = (i == 0) ? "png" : "jpg"
+            let outMessage = IMImageMessage(
+                filePath: bundleResourceURL(name: "test", ext: format).path,
+                format: format
+            )
+            XCTAssertTrue(sendingAndReceiving(sentMessage: outMessage) { (inMessage) in
+                XCTAssertNotNil(inMessage?.file?.objectId?.value)
+                XCTAssertEqual(inMessage?.format, format)
+                XCTAssertNotNil(inMessage?.size)
+                XCTAssertNotNil(inMessage?.height)
+                XCTAssertNotNil(inMessage?.width)
+                XCTAssertNotNil(inMessage?.url)
+                XCTAssertEqual(inMessage?.file?.objectId?.value, outMessage.file?.objectId?.value)
+                XCTAssertEqual(inMessage?.format, outMessage.format)
+                XCTAssertEqual(inMessage?.size, outMessage.size)
+                XCTAssertEqual(inMessage?.height, outMessage.height)
+                XCTAssertEqual(inMessage?.width, outMessage.width)
+                XCTAssertEqual(inMessage?.url, outMessage.url)
+            })
         }
     }
     
     func testAudioMessageSendingAndReceiving() {
         let message = IMAudioMessage()
         let format: String = "mp3"
-        message.file = LCFile(payload: .fileURL(fileURL: resourceURL(name: "test", ext: format)))
+        message.file = LCFile(payload: .fileURL(fileURL: bundleResourceURL(name: "test", ext: format)))
         var progress = 0.0
         let success = sendingAndReceiving(sentMessage: message, progress: { p in
             progress = p
@@ -672,7 +665,7 @@ class IMMessageTestCase: RTMBaseTestCase {
     func testVideoMessageSendingAndReceiving() {
         let message = IMVideoMessage()
         let format: String = "mp4"
-        message.file = LCFile(payload: .fileURL(fileURL: resourceURL(name: "test", ext: format)))
+        message.file = LCFile(payload: .fileURL(fileURL: bundleResourceURL(name: "test", ext: format)))
         var progress = 0.0
         let success = sendingAndReceiving(sentMessage: message, progress: { p in
             progress = p
@@ -695,7 +688,7 @@ class IMMessageTestCase: RTMBaseTestCase {
     func testFileMessageSendingAndReceiving() {
         let message = IMFileMessage()
         let format: String = "zip"
-        message.file = LCFile(payload: .fileURL(fileURL: resourceURL(name: "test", ext: format)))
+        message.file = LCFile(payload: .fileURL(fileURL: bundleResourceURL(name: "test", ext: format)))
         let success = sendingAndReceiving(sentMessage: message) { (rMessage) in
             XCTAssertNotNil(rMessage?.file?.objectId?.value)
             XCTAssertEqual(rMessage?.format, format)
@@ -1137,16 +1130,16 @@ class IMMessageTestCase: RTMBaseTestCase {
                 (message as! IMTextMessage).text = "text"
             case 3:
                 message = IMImageMessage()
-                (message as! IMImageMessage).file = LCFile(payload: .fileURL(fileURL: resourceURL(name: "test", ext: "jpg")))
+                (message as! IMImageMessage).file = LCFile(payload: .fileURL(fileURL: bundleResourceURL(name: "test", ext: "jpg")))
             case 4:
                 message = IMAudioMessage()
-                (message as! IMAudioMessage).file = LCFile(payload: .fileURL(fileURL: resourceURL(name: "test", ext: "mp3")))
+                (message as! IMAudioMessage).file = LCFile(payload: .fileURL(fileURL: bundleResourceURL(name: "test", ext: "mp3")))
             case 5:
                 message = IMVideoMessage()
-                (message as! IMVideoMessage).file = LCFile(payload: .fileURL(fileURL: resourceURL(name: "test", ext: "mp4")))
+                (message as! IMVideoMessage).file = LCFile(payload: .fileURL(fileURL: bundleResourceURL(name: "test", ext: "mp4")))
             case 6:
                 message = IMFileMessage()
-                (message as! IMFileMessage).file = LCFile(payload: .fileURL(fileURL: resourceURL(name: "test", ext: "zip")))
+                (message as! IMFileMessage).file = LCFile(payload: .fileURL(fileURL: bundleResourceURL(name: "test", ext: "zip")))
             case 7:
                 message = IMLocationMessage()
                 (message as! IMLocationMessage).location = LCGeoPoint(latitude: 90.0, longitude: 180.0)

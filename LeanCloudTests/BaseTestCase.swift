@@ -40,9 +40,9 @@ class BaseTestCase: XCTestCase {
         wait(for: [exp], timeout: seconds)
     }
     
-    func resourceURL(name: String, ext: String) -> URL {
-        let bundle = Bundle(for: type(of: self))
-        return bundle.url(forResource: name, withExtension: ext)!
+    func bundleResourceURL(name: String, ext: String) -> URL {
+        return Bundle(for: type(of: self))
+            .url(forResource: name, withExtension: ext)!
     }
     
     func expecting(
