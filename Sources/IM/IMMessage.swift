@@ -198,7 +198,7 @@ open class IMMessage {
         content: Content?,
         isAllMembersMentioned: Bool?,
         mentionedMembers: [String]?,
-        status: Status = .sent)
+        underlyingStatus: Status = .sent)
         -> IMMessage
     {
         var message = IMMessage()
@@ -227,19 +227,12 @@ open class IMMessage {
         message.mentionedMembers = mentionedMembers
         message.fromClientID = fromClientID
         message.currentClientID = currentClientID
-        message.underlyingStatus = status
+        message.underlyingStatus = underlyingStatus
         return message
     }
     
     var isTransient: Bool = false
-    var notTransientMessage: Bool {
-        return !self.isTransient
-    }
-    
     var isWill: Bool = false
-    var notWillMessage: Bool {
-        return !self.isWill
-    }
     
     /// ref: https://github.com/leancloud/avoscloud-push/blob/develop/push-server/doc/protocol.md#客户端发起-3
     /// parameter: `dt`
