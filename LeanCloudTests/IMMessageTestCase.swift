@@ -1142,8 +1142,8 @@ class IMMessageTestCase: RTMBaseTestCase {
             XCTFail("\(error)")
         }
         guard
-            let clientA = newOpenedClient(),
-            let clientB = newOpenedClient(),
+            let clientA = newOpenedClient(options: [.receiveUnreadMessageCountAfterSessionDidOpen]),
+            let clientB = newOpenedClient(options: [.receiveUnreadMessageCountAfterSessionDidOpen]),
             let conversation = createConversation(client: clientA, clientIDs: [clientA.ID, clientB.ID])
             else
         {
