@@ -10,3 +10,6 @@
 [submodule "fmdb"]
 	path = fmdb
 	url = https://github.com/ccgus/fmdb.git
+[submodule "GRDB.swift"]
+	path = GRDB.swift
+	url = https://github.com/groue/GRDB.swift.git
