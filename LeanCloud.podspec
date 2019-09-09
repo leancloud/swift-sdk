@@ -22,7 +22,7 @@ Pod::Spec.new do |s|
   s.subspec 'IM' do |ss|
     ss.dependency 'SwiftProtobuf', '~> 1.6.0'
     ss.dependency 'Starscream', '~> 3.1.0'
-    ss.dependency 'FMDB', '~> 2.7.0'
+    ss.dependency 'GRDB.swift', '~> 4.4.0'
 
     ss.dependency 'LeanCloud/Storage'
 
