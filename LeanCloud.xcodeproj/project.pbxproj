@@ -81,8 +81,6 @@
 		D33D36D822017DAC008C9BDA /* test.jpg in Resources */ = {isa = PBXBuildFile; fileRef = D33D36C922017DAC008C9BDA /* test.jpg */; };
 		D33D36D922017DAC008C9BDA /* test.png in Resources */ = {isa = PBXBuildFile; fileRef = D33D36D722017DAC008C9BDA /* test.png */; };
 		D33D36DC22019197008C9BDA /* test.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = D33D36DA22019197008C9BDA /* test.mp4 */; };
-		D34F1BB42268242300251BC8 /* FMDB.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D3AF1CA422681EF500A97566 /* FMDB.framework */; };
-		D34F1BB52268242300251BC8 /* FMDB.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = D3AF1CA422681EF500A97566 /* FMDB.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		D34F1BB92268263000251BC8 /* IMLocalStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D34F1BB82268263000251BC8 /* IMLocalStorage.swift */; };
 		D357B46522632A210002D14C /* Starscream.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D30A2F81224A069100C000D5 /* Starscream.framework */; };
 		D357B46722632A510002D14C /* Starscream.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = D30A2F81224A069100C000D5 /* Starscream.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
@@ -98,7 +96,6 @@
 		D39C50AA22D47BA700CFCB43 /* LCPushTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = D39C50A922D47BA700CFCB43 /* LCPushTestCase.swift */; };
 		D3AB32D8227D983E00DCE794 /* CaptchaClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3AB32D7227D983E00DCE794 /* CaptchaClient.swift */; };
 		D3AC7BA821AE9C1A00C6C557 /* IMClientTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3AC7BA721AE9C1A00C6C557 /* IMClientTestCase.swift */; };
-		D3AF1CB722681F1200A97566 /* FMDB.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D3AF1CA422681EF500A97566 /* FMDB.framework */; };
 		D3B600842281679400F2E556 /* LCApplicationTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B600832281679400F2E556 /* LCApplicationTestCase.swift */; };
 		D3BBFB41225D944100B75BA1 /* LCLocalStorageContextTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3BBFB40225D944100B75BA1 /* LCLocalStorageContextTestCase.swift */; };
 		D3C3782F21E48D3C00EA9AC9 /* IMConversationQuery.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3C3782E21E48D3C00EA9AC9 /* IMConversationQuery.swift */; };
@@ -188,13 +185,6 @@
 			proxyType = 1;
 			remoteGlobalIDString = 8342FCBA1C7B13A700C3CF15;
 			remoteInfo = LeanCloud;
-		};
-		D34F1BB62268242300251BC8 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = D3AF1C8A22681EF500A97566 /* fmdb.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = 83C73EFD1C326AB000FFC730;
-			remoteInfo = "FMDB iOS";
 		};
 		D357B46822632A510002D14C /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -308,55 +298,6 @@
 			remoteGlobalIDString = F44F93FE1DAEB13F00BC5B85;
 			remoteInfo = SwiftProtobuf_watchOS;
 		};
-		D3AF1C9B22681EF500A97566 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = D3AF1C8A22681EF500A97566 /* fmdb.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 8DD76FA10486AA7600D96B5E;
-			remoteInfo = fmdb;
-		};
-		D3AF1C9D22681EF500A97566 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = D3AF1C8A22681EF500A97566 /* fmdb.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = EE4290EF12B42F870088BD94;
-			remoteInfo = FMDB;
-		};
-		D3AF1C9F22681EF500A97566 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = D3AF1C8A22681EF500A97566 /* fmdb.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = BF5D041618416BB2008C5AA9;
-			remoteInfo = Tests;
-		};
-		D3AF1CA122681EF500A97566 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = D3AF1C8A22681EF500A97566 /* fmdb.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 6290CBB5188FE836009790F8;
-			remoteInfo = "FMDB-IOS";
-		};
-		D3AF1CA322681EF500A97566 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = D3AF1C8A22681EF500A97566 /* fmdb.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 83C73EFE1C326AB000FFC730;
-			remoteInfo = "FMDB iOS";
-		};
-		D3AF1CA522681EF500A97566 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = D3AF1C8A22681EF500A97566 /* fmdb.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 83C73F0B1C326ADA00FFC730;
-			remoteInfo = "FMDB MacOS";
-		};
-		D3AF1CA722681EF500A97566 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = D3AF1C8A22681EF500A97566 /* fmdb.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 2CD2426D1FCC09CA00479FDE;
-			remoteInfo = "FMDB watchOS";
-		};
 		D3E1F4B021940E8E007B6FFB /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = D387262A217726B500DD8FBF /* SwiftProtobuf.xcodeproj */;
@@ -383,7 +324,6 @@
 				D3E1F4AF21940E8E007B6FFB /* SwiftProtobuf.framework in Embed Frameworks */,
 				D357B46722632A510002D14C /* Starscream.framework in Embed Frameworks */,
 				D3E1F4B421940E95007B6FFB /* Alamofire.framework in Embed Frameworks */,
-				D34F1BB52268242300251BC8 /* FMDB.framework in Embed Frameworks */,
 				D314AFA5219540A700C9C146 /* LeanCloud.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
@@ -484,7 +424,6 @@
 		D39C50A922D47BA700CFCB43 /* LCPushTestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCPushTestCase.swift; sourceTree = "<group>"; };
 		D3AB32D7227D983E00DCE794 /* CaptchaClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptchaClient.swift; sourceTree = "<group>"; };
 		D3AC7BA721AE9C1A00C6C557 /* IMClientTestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IMClientTestCase.swift; sourceTree = "<group>"; };
-		D3AF1C8A22681EF500A97566 /* fmdb.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = fmdb.xcodeproj; path = fmdb/fmdb.xcodeproj; sourceTree = "<group>"; };
 		D3B600832281679400F2E556 /* LCApplicationTestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCApplicationTestCase.swift; sourceTree = "<group>"; };
 		D3BBFB40225D944100B75BA1 /* LCLocalStorageContextTestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCLocalStorageContextTestCase.swift; sourceTree = "<group>"; };
 		D3C3782E21E48D3C00EA9AC9 /* IMConversationQuery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IMConversationQuery.swift; sourceTree = "<group>"; };
@@ -500,7 +439,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				D37349842306A7EB0070A803 /* GRDB.framework in Frameworks */,
-				D3AF1CB722681F1200A97566 /* FMDB.framework in Frameworks */,
 				D30A2F84224A08CB00C000D5 /* Starscream.framework in Frameworks */,
 				113D23C721900CEB006B53EC /* SwiftProtobuf.framework in Frameworks */,
 				837E04FB1CABA694008CC3FF /* Alamofire.framework in Frameworks */,
@@ -522,7 +460,6 @@
 				D357B46522632A210002D14C /* Starscream.framework in Frameworks */,
 				D3E1F4AE21940E8E007B6FFB /* SwiftProtobuf.framework in Frameworks */,
 				D3E1F4B321940E95007B6FFB /* Alamofire.framework in Frameworks */,
-				D34F1BB42268242300251BC8 /* FMDB.framework in Frameworks */,
 				D314AFA4219540A700C9C146 /* LeanCloud.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -567,7 +504,6 @@
 			children = (
 				D30A2F85224A092300C000D5 /* LeanCloud.podspec */,
 				D37349542306A77D0070A803 /* GRDB.xcodeproj */,
-				D3AF1C8A22681EF500A97566 /* fmdb.xcodeproj */,
 				D387262A217726B500DD8FBF /* SwiftProtobuf.xcodeproj */,
 				D30A2F7B224A069100C000D5 /* Starscream.xcodeproj */,
 				837E04E31CABA688008CC3FF /* Alamofire.xcodeproj */,
@@ -759,20 +695,6 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		D3AF1C8B22681EF500A97566 /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				D3AF1C9C22681EF500A97566 /* fmdb */,
-				D3AF1C9E22681EF500A97566 /* libFMDB.a */,
-				D3AF1CA022681EF500A97566 /* Tests.xctest */,
-				D3AF1CA222681EF500A97566 /* libFMDB-IOS.a */,
-				D3AF1CA422681EF500A97566 /* FMDB.framework */,
-				D3AF1CA622681EF500A97566 /* FMDB.framework */,
-				D3AF1CA822681EF500A97566 /* FMDB.framework */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
 		D3CA1116216DD77400629343 /* IM */ = {
 			isa = PBXGroup;
 			children = (
@@ -864,7 +786,6 @@
 				D3E1F4B621940E95007B6FFB /* PBXTargetDependency */,
 				D314AFA7219540A700C9C146 /* PBXTargetDependency */,
 				D357B46922632A510002D14C /* PBXTargetDependency */,
-				D34F1BB72268242300251BC8 /* PBXTargetDependency */,
 			);
 			name = "RuntimeTests-iOS";
 			productName = "RuntimeTests-iOS";
@@ -920,10 +841,6 @@
 				{
 					ProductGroup = 837E04E41CABA688008CC3FF /* Products */;
 					ProjectRef = 837E04E31CABA688008CC3FF /* Alamofire.xcodeproj */;
-				},
-				{
-					ProductGroup = D3AF1C8B22681EF500A97566 /* Products */;
-					ProjectRef = D3AF1C8A22681EF500A97566 /* fmdb.xcodeproj */;
 				},
 				{
 					ProductGroup = D37349552306A77D0070A803 /* Products */;
@@ -1116,55 +1033,6 @@
 			remoteRef = D3872648217726B500DD8FBF /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
-		D3AF1C9C22681EF500A97566 /* fmdb */ = {
-			isa = PBXReferenceProxy;
-			fileType = "compiled.mach-o.executable";
-			path = fmdb;
-			remoteRef = D3AF1C9B22681EF500A97566 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		D3AF1C9E22681EF500A97566 /* libFMDB.a */ = {
-			isa = PBXReferenceProxy;
-			fileType = archive.ar;
-			path = libFMDB.a;
-			remoteRef = D3AF1C9D22681EF500A97566 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		D3AF1CA022681EF500A97566 /* Tests.xctest */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.cfbundle;
-			path = Tests.xctest;
-			remoteRef = D3AF1C9F22681EF500A97566 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		D3AF1CA222681EF500A97566 /* libFMDB-IOS.a */ = {
-			isa = PBXReferenceProxy;
-			fileType = archive.ar;
-			path = "libFMDB-IOS.a";
-			remoteRef = D3AF1CA122681EF500A97566 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		D3AF1CA422681EF500A97566 /* FMDB.framework */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.framework;
-			path = FMDB.framework;
-			remoteRef = D3AF1CA322681EF500A97566 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		D3AF1CA622681EF500A97566 /* FMDB.framework */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.framework;
-			path = FMDB.framework;
-			remoteRef = D3AF1CA522681EF500A97566 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		D3AF1CA822681EF500A97566 /* FMDB.framework */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.framework;
-			path = FMDB.framework;
-			remoteRef = D3AF1CA722681EF500A97566 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
 /* End PBXReferenceProxy section */
 
 /* Begin PBXResourcesBuildPhase section */
@@ -1310,11 +1178,6 @@
 			isa = PBXTargetDependency;
 			target = 8342FCBA1C7B13A700C3CF15 /* LeanCloud */;
 			targetProxy = D314AFA6219540A700C9C146 /* PBXContainerItemProxy */;
-		};
-		D34F1BB72268242300251BC8 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = "FMDB iOS";
-			targetProxy = D34F1BB62268242300251BC8 /* PBXContainerItemProxy */;
 		};
 		D357B46922632A510002D14C /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
