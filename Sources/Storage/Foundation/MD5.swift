@@ -134,7 +134,7 @@ class MD5 {
 
         for chunk in 0..<totalChunks {
             let index = chunk*chunkLengthInBytes
-            var chunk: [Byte] = Array(message[index..<index+chunkLengthInBytes]) // 512-bit/64-byte chunk
+            let chunk: [Byte] = Array(message[index..<index+chunkLengthInBytes]) // 512-bit/64-byte chunk
 
             // break chunk into sixteen 32-bit words
             var M: [Word] = []
