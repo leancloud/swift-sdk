@@ -66,7 +66,7 @@
 		83D0DE6F1CC7B3FF00FC204E /* LCQueryTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83D0DE6E1CC7B3FF00FC204E /* LCQueryTestCase.swift */; };
 		83FAF0931CC4D1E400A84063 /* LCObjectTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83FAF0921CC4D1E400A84063 /* LCObjectTestCase.swift */; };
 		D303BD752328CB1C004AE13D /* SwiftProtobuf in Frameworks */ = {isa = PBXBuildFile; productRef = D303BD742328CB1C004AE13D /* SwiftProtobuf */; };
-		D30A2F84224A08CB00C000D5 /* Starscream.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D30A2F81224A069100C000D5 /* Starscream.framework */; };
+		D303BD782328CDFC004AE13D /* Starscream in Frameworks */ = {isa = PBXBuildFile; productRef = D303BD772328CDFC004AE13D /* Starscream */; };
 		D314AFA4219540A700C9C146 /* LeanCloud.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8342FCBB1C7B13A700C3CF15 /* LeanCloud.framework */; };
 		D314AFA5219540A700C9C146 /* LeanCloud.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 8342FCBB1C7B13A700C3CF15 /* LeanCloud.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		D317983B2193DC860037DE57 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D317983A2193DC860037DE57 /* AppDelegate.swift */; };
@@ -81,8 +81,6 @@
 		D33D36D922017DAC008C9BDA /* test.png in Resources */ = {isa = PBXBuildFile; fileRef = D33D36D722017DAC008C9BDA /* test.png */; };
 		D33D36DC22019197008C9BDA /* test.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = D33D36DA22019197008C9BDA /* test.mp4 */; };
 		D34F1BB92268263000251BC8 /* IMLocalStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D34F1BB82268263000251BC8 /* IMLocalStorage.swift */; };
-		D357B46522632A210002D14C /* Starscream.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D30A2F81224A069100C000D5 /* Starscream.framework */; };
-		D357B46722632A510002D14C /* Starscream.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = D30A2F81224A069100C000D5 /* Starscream.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		D35EB5BD2328A6E000763E4E /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = D35EB5BC2328A6E000763E4E /* Alamofire */; };
 		D363342022CD9EC300995DC1 /* Engine.swift in Sources */ = {isa = PBXBuildFile; fileRef = D363341F22CD9EC300995DC1 /* Engine.swift */; };
 		D363343622CDB0D300995DC1 /* LCEngineTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = D363343522CDB0D300995DC1 /* LCEngineTestCase.swift */; };
@@ -112,33 +110,12 @@
 			remoteGlobalIDString = 8342FCBA1C7B13A700C3CF15;
 			remoteInfo = LeanCloud;
 		};
-		D30A2F80224A069100C000D5 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = D30A2F7B224A069100C000D5 /* Starscream.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 33CCF0921F5DDC030099B092;
-			remoteInfo = Starscream;
-		};
-		D30A2F82224A069100C000D5 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = D30A2F7B224A069100C000D5 /* Starscream.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 335FA2021F5DF71D00F6D2EC;
-			remoteInfo = "Starscream Tests";
-		};
 		D314AFA6219540A700C9C146 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 8342FCB21C7B13A600C3CF15 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = 8342FCBA1C7B13A700C3CF15;
 			remoteInfo = LeanCloud;
-		};
-		D357B46822632A510002D14C /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = D30A2F7B224A069100C000D5 /* Starscream.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = 33CCF0841F5DDC030099B092;
-			remoteInfo = Starscream;
 		};
 		D373496D2306A77D0070A803 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -219,7 +196,6 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				D357B46722632A510002D14C /* Starscream.framework in Embed Frameworks */,
 				D314AFA5219540A700C9C146 /* LeanCloud.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
@@ -290,7 +266,6 @@
 		83D0DE6E1CC7B3FF00FC204E /* LCQueryTestCase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LCQueryTestCase.swift; sourceTree = "<group>"; };
 		83D5923D1CD88846007177C5 /* BridgingHeader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BridgingHeader.h; sourceTree = "<group>"; };
 		83FAF0921CC4D1E400A84063 /* LCObjectTestCase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LCObjectTestCase.swift; sourceTree = "<group>"; };
-		D30A2F7B224A069100C000D5 /* Starscream.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Starscream.xcodeproj; path = Starscream/Starscream.xcodeproj; sourceTree = "<group>"; };
 		D30A2F85224A092300C000D5 /* LeanCloud.podspec */ = {isa = PBXFileReference; lastKnownFileType = text; path = LeanCloud.podspec; sourceTree = "<group>"; };
 		D31798382193DC860037DE57 /* RuntimeTests-iOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "RuntimeTests-iOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		D317983A2193DC860037DE57 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -334,8 +309,8 @@
 			files = (
 				D37349842306A7EB0070A803 /* GRDB.framework in Frameworks */,
 				D35EB5BD2328A6E000763E4E /* Alamofire in Frameworks */,
-				D30A2F84224A08CB00C000D5 /* Starscream.framework in Frameworks */,
 				D303BD752328CB1C004AE13D /* SwiftProtobuf in Frameworks */,
+				D303BD782328CDFC004AE13D /* Starscream in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -351,7 +326,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D357B46522632A210002D14C /* Starscream.framework in Frameworks */,
 				D314AFA4219540A700C9C146 /* LeanCloud.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -396,7 +370,6 @@
 			children = (
 				D30A2F85224A092300C000D5 /* LeanCloud.podspec */,
 				D37349542306A77D0070A803 /* GRDB.xcodeproj */,
-				D30A2F7B224A069100C000D5 /* Starscream.xcodeproj */,
 				835F5D3F1D7E6808004D1A0E /* Sources */,
 				8342FCBD1C7B13A700C3CF15 /* LeanCloud */,
 				8342FCC91C7B13A700C3CF15 /* LeanCloudTests */,
@@ -519,15 +492,6 @@
 			path = DataType;
 			sourceTree = "<group>";
 		};
-		D30A2F7C224A069100C000D5 /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				D30A2F81224A069100C000D5 /* Starscream.framework */,
-				D30A2F83224A069100C000D5 /* Starscream Tests.xctest */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
 		D31798392193DC860037DE57 /* RuntimeTests-iOS */ = {
 			isa = PBXGroup;
 			children = (
@@ -614,6 +578,7 @@
 			packageProductDependencies = (
 				D35EB5BC2328A6E000763E4E /* Alamofire */,
 				D303BD742328CB1C004AE13D /* SwiftProtobuf */,
+				D303BD772328CDFC004AE13D /* Starscream */,
 			);
 			productName = LeanCloud;
 			productReference = 8342FCBB1C7B13A700C3CF15 /* LeanCloud.framework */;
@@ -651,7 +616,6 @@
 			);
 			dependencies = (
 				D314AFA7219540A700C9C146 /* PBXTargetDependency */,
-				D357B46922632A510002D14C /* PBXTargetDependency */,
 			);
 			name = "RuntimeTests-iOS";
 			productName = "RuntimeTests-iOS";
@@ -704,6 +668,7 @@
 			packageReferences = (
 				D35EB5BB2328A6E000763E4E /* XCRemoteSwiftPackageReference "Alamofire" */,
 				D303BD732328CB1C004AE13D /* XCRemoteSwiftPackageReference "swift-protobuf" */,
+				D303BD762328CDFC004AE13D /* XCRemoteSwiftPackageReference "Starscream" */,
 			);
 			productRefGroup = 8342FCBC1C7B13A700C3CF15 /* Products */;
 			projectDirPath = "";
@@ -711,10 +676,6 @@
 				{
 					ProductGroup = D37349552306A77D0070A803 /* Products */;
 					ProjectRef = D37349542306A77D0070A803 /* GRDB.xcodeproj */;
-				},
-				{
-					ProductGroup = D30A2F7C224A069100C000D5 /* Products */;
-					ProjectRef = D30A2F7B224A069100C000D5 /* Starscream.xcodeproj */;
 				},
 			);
 			projectRoot = "";
@@ -727,20 +688,6 @@
 /* End PBXProject section */
 
 /* Begin PBXReferenceProxy section */
-		D30A2F81224A069100C000D5 /* Starscream.framework */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.framework;
-			path = Starscream.framework;
-			remoteRef = D30A2F80224A069100C000D5 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		D30A2F83224A069100C000D5 /* Starscream Tests.xctest */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.cfbundle;
-			path = "Starscream Tests.xctest";
-			remoteRef = D30A2F82224A069100C000D5 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
 		D373496E2306A77D0070A803 /* GRDB.framework */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.framework;
@@ -956,11 +903,6 @@
 			isa = PBXTargetDependency;
 			target = 8342FCBA1C7B13A700C3CF15 /* LeanCloud */;
 			targetProxy = D314AFA6219540A700C9C146 /* PBXContainerItemProxy */;
-		};
-		D357B46922632A510002D14C /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = Starscream;
-			targetProxy = D357B46822632A510002D14C /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -1317,6 +1259,14 @@
 				minimumVersion = 1.6.0;
 			};
 		};
+		D303BD762328CDFC004AE13D /* XCRemoteSwiftPackageReference "Starscream" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/daltoniam/Starscream";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 3.1.0;
+			};
+		};
 		D35EB5BB2328A6E000763E4E /* XCRemoteSwiftPackageReference "Alamofire" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/Alamofire/Alamofire";
@@ -1332,6 +1282,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = D303BD732328CB1C004AE13D /* XCRemoteSwiftPackageReference "swift-protobuf" */;
 			productName = SwiftProtobuf;
+		};
+		D303BD772328CDFC004AE13D /* Starscream */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D303BD762328CDFC004AE13D /* XCRemoteSwiftPackageReference "Starscream" */;
+			productName = Starscream;
 		};
 		D35EB5BC2328A6E000763E4E /* Alamofire */ = {
 			isa = XCSwiftPackageProductDependency;
