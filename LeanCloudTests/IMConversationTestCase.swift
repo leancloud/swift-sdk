@@ -2181,13 +2181,17 @@ extension IMConversationTestCase {
             "X-LC-Key": LCApplication.default.key,
             "Content-Type": "application/json"
         ]
-        let request: URLRequest = Alamofire.request(
+        let afRequest = AF.request(
             url,
             method: .post,
             parameters: parameters,
             encoding: JSONEncoding.default,
             headers: headers)
-            .request!
+        
+        RunLoop.current.run(mode: .default, before: Date(timeIntervalSinceNow: 3.0))
+        
+        let request = afRequest.request!
+        
         print("------\n\(request.url!)\n\(parameters)\n------\n")
         var loop = true
         let task = URLSession.shared.dataTask(with: request) { (data, response, error) in
@@ -2219,13 +2223,17 @@ extension IMConversationTestCase {
             "X-LC-Key": LCApplication.default.masterKey,
             "Content-Type": "application/json"
         ]
-        let request: URLRequest = Alamofire.request(
+        let afRequest = AF.request(
             url,
             method: .post,
             parameters: parameters,
             encoding: JSONEncoding.default,
             headers: headers)
-            .request!
+        
+        RunLoop.current.run(mode: .default, before: Date(timeIntervalSinceNow: 3.0))
+        
+        let request = afRequest.request!
+        
         print("------\n\(request.url!)\n\(parameters)\n------\n")
         var loop = true
         let task = URLSession.shared.dataTask(with: request) { (data, response, error) in
@@ -2261,13 +2269,17 @@ extension IMConversationTestCase {
             "X-LC-Key": LCApplication.default.masterKey,
             "Content-Type": "application/json"
         ]
-        let request: URLRequest = Alamofire.request(
+        let afRequest = AF.request(
             url,
             method: .post,
             parameters: parameters,
             encoding: JSONEncoding.default,
             headers: headers)
-            .request!
+        
+        RunLoop.current.run(mode: .default, before: Date(timeIntervalSinceNow: 3.0))
+        
+        let request = afRequest.request!
+        
         print("------\n\(request.url!)\n\(parameters)\n------\n")
         var loop = true
         let task = URLSession.shared.dataTask(with: request) { (data, response, error) in
