@@ -33,13 +33,13 @@ class FileUploader {
     init(file: LCFile, payload: LCFile.Payload) {
         self.file = file
         self.payload = payload
-        let sessionManager = SessionManager(configuration: .default)
-        sessionManager.startRequestsImmediately = false
-        self.sessionManager = sessionManager
+        self.session = Session(
+            configuration: .default,
+            startRequestsImmediately: false)
     }
 
     /// Session manager for uploading file.
-    private let sessionManager: SessionManager
+    private let session: Alamofire.Session
 
     /**
      File tokens.
@@ -328,47 +328,42 @@ class FileUploader {
                 completion(result)
             }
         }
-
-        let sequenceRequest = LCSequenceRequest()
-
-        sessionManager.upload(
-            multipartFormData: { multipartFormData in
-                /*
-                 Qiniu multipart format:
-                 https://developer.qiniu.com/kodo/manual/1272/form-upload
-                 */
-                multipartFormData.append(tokenData, withName: "token")
-                multipartFormData.append(resourceKeyData, withName: "key")
-
-                switch payload {
-                case .data(let data):
-                    multipartFormData.append(data, withName: "file", fileName: fileName, mimeType: mimeType)
-                case .fileURL(let fileURL):
-                    multipartFormData.append(fileURL, withName: "file", fileName: fileName, mimeType: mimeType)
-                }
-            },
+        
+        let multipartFormData: (MultipartFormData) -> Void = { multipartFormData in
+            /*
+             Qiniu multipart format:
+             https://developer.qiniu.com/kodo/manual/1272/form-upload
+             */
+            multipartFormData.append(tokenData, withName: "token")
+            multipartFormData.append(resourceKeyData, withName: "key")
+            
+            switch payload {
+            case .data(let data):
+                multipartFormData.append(data, withName: "file", fileName: fileName, mimeType: mimeType)
+            case .fileURL(let fileURL):
+                multipartFormData.append(fileURL, withName: "file", fileName: fileName, mimeType: mimeType)
+            }
+        }
+         
+        let request = self.session.upload(
+            multipartFormData: multipartFormData,
             to: tokens.uploadingURLString,
-            method: .post, // We assume that Qiniu *always* use POST method to upload file.
-            encodingCompletion: { result in
-                switch result {
-                case let .success(request, _, _):
-                    request.validate()
-                    request.uploadProgress { object in
-                        progress(object.fractionCompleted)
-                    }
-                    request.response { response in
-                        if let error = response.error {
-                            completion(.failure(error: LCError(error: error)))
-                        } else {
-                            completion(.success)
-                        }
-                    }
-                    sequenceRequest.setCurrentRequest(request)
-                    request.resume()
-                case let .failure(error):
+            method: .post)
+            .validate()
+            .uploadProgress(closure: { (object) in
+                progress(object.fractionCompleted)
+            })
+            .response(completionHandler: { (response) in
+                if let error = response.error {
                     completion(.failure(error: LCError(error: error)))
+                } else {
+                    completion(.success)
                 }
             })
+        
+        let sequenceRequest = LCSequenceRequest()
+        sequenceRequest.setCurrentRequest(request)
+        request.resume()
 
         return sequenceRequest
     }
@@ -382,43 +377,38 @@ class FileUploader {
         let payload  = self.payload
         let mimeType = attributes.mimeType
         let fileName = attributes.name
+        
+        let multipartFormData: (MultipartFormData) -> Void = { multipartFormData in
+            switch payload {
+            case .data(let data):
+                multipartFormData.append(data, withName: "filecontent", fileName: fileName, mimeType: mimeType)
+            case .fileURL(let fileURL):
+                multipartFormData.append(fileURL, withName: "filecontent", fileName: fileName, mimeType: mimeType)
+            }
+            
+            multipartFormData.append("upload".data(using: .utf8)!, withName: "op")
+        }
 
-        let sequenceRequest = LCSequenceRequest()
-
-        sessionManager.upload(
-            multipartFormData: { multipartFormData in
-                switch payload {
-                case .data(let data):
-                    multipartFormData.append(data, withName: "filecontent", fileName: fileName, mimeType: mimeType)
-                case .fileURL(let fileURL):
-                    multipartFormData.append(fileURL, withName: "filecontent", fileName: fileName, mimeType: mimeType)
-                }
-
-                multipartFormData.append("upload".data(using: .utf8)!, withName: "op")
-            },
+        let request = self.session.upload(
+            multipartFormData: multipartFormData,
             to: tokens.uploadingURLString,
-            method: .post, // We assume that Qiniu *always* use POST method to upload file.
-            headers: ["Authorization": tokens.token],
-            encodingCompletion: { result in
-                switch result {
-                case let .success(request, _, _):
-                    request.validate()
-                    request.uploadProgress { object in
-                        progress(object.fractionCompleted)
-                    }
-                    request.response { response in
-                        if let error = response.error {
-                            completion(.failure(error: LCError(error: error)))
-                        } else {
-                            completion(.success)
-                        }
-                    }
-                    sequenceRequest.setCurrentRequest(request)
-                    request.resume()
-                case let .failure(error):
+            method: .post,
+            headers: HTTPHeaders(["Authorization": tokens.token]))
+            .validate()
+            .uploadProgress(closure: { object in
+                progress(object.fractionCompleted)
+            })
+            .response(completionHandler: { response in
+                if let error = response.error {
                     completion(.failure(error: LCError(error: error)))
+                } else {
+                    completion(.success)
                 }
             })
+        
+        let sequenceRequest = LCSequenceRequest()
+        sequenceRequest.setCurrentRequest(request)
+        request.resume()
 
         return sequenceRequest
     }
@@ -429,7 +419,6 @@ class FileUploader {
         progress: @escaping (Double) -> Void,
         completion: @escaping (LCBooleanResult) -> Void) -> LCRequest
     {
-        var uploadRequest: UploadRequest
         let uploadingURLString = tokens.uploadingURLString
 
         var headers: [String: String] = [:]
@@ -438,11 +427,13 @@ class FileUploader {
         headers["Content-Length"] = String(attributes.size)
         headers["Cache-Control"] = "public, max-age=31536000"
 
+        let uploadRequest: UploadRequest
+        
         switch payload {
         case .data(let data):
-            uploadRequest = sessionManager.upload(data, to: uploadingURLString, method: .put, headers: headers)
+            uploadRequest = self.session.upload(data, to: uploadingURLString, method: .put, headers: HTTPHeaders(headers))
         case .fileURL(let fileURL):
-            uploadRequest = sessionManager.upload(fileURL, to: uploadingURLString, method: .put, headers: headers)
+            uploadRequest = self.session.upload(fileURL, to: uploadingURLString, method: .put, headers: HTTPHeaders(headers))
         }
 
         uploadRequest.validate()
@@ -457,9 +448,8 @@ class FileUploader {
             }
         }
 
-        uploadRequest.resume()
-
         let request = LCSingleRequest(request: uploadRequest)
+        uploadRequest.resume()
 
         return request
     }

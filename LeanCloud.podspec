@@ -8,13 +8,13 @@ Pod::Spec.new do |s|
   s.source       = { :git => 'https://github.com/leancloud/swift-sdk.git', :tag => s.version }
   s.swift_version = '5.0'
 
-  s.ios.deployment_target     = '9.0'
+  s.ios.deployment_target     = '10.0'
   s.osx.deployment_target     = '10.12'
   s.tvos.deployment_target    = '10.0'
   s.watchos.deployment_target = '3.0'
 
   s.subspec 'Storage' do |ss|
-    ss.dependency 'Alamofire', '~> 4.8.0'
+    ss.dependency 'Alamofire', '~> 5.0.0-rc.2'
 
     ss.source_files = 'Sources/Storage/**/*.{swift}'
   end

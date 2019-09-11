@@ -66,16 +66,16 @@ class HTTPClient {
 
     let application: LCApplication
     let configuration: Configuration
-    let sessionManager: SessionManager
+    let session: Alamofire.Session
 
     init(application: LCApplication, configuration: Configuration) {
         self.application = application
         self.configuration = configuration
-        self.sessionManager = {
+        self.session = {
             let sessionConfiguration = URLSessionConfiguration.default
             sessionConfiguration.timeoutIntervalForRequest = application.configuration.HTTPRequestTimeoutInterval
-            let sessionManager = SessionManager(configuration: sessionConfiguration)
-            return sessionManager
+            let session = Session(configuration: sessionConfiguration)
+            return session
         }()
     }
 
@@ -226,10 +226,12 @@ class HTTPClient {
 
             let response = LCResponse(
                 application: self.application,
-                response: DataResponse<Any>(
+                response: DataResponse<Any, Error>(
                     request: nil,
                     response: nil,
                     data: nil,
+                    metrics: nil,
+                    serializationDuration: 0,
                     result: .failure(error)
                 )
             )
@@ -242,7 +244,7 @@ class HTTPClient {
         }
 
         let method    = method.alamofireMethod
-        let headers   = mergeCommonHeaders(headers)
+        let headers   = HTTPHeaders(mergeCommonHeaders(headers))
         var encoding: ParameterEncoding
 
         switch method {
@@ -250,12 +252,12 @@ class HTTPClient {
         default:   encoding = JSONEncoding.default
         }
 
-        let request = sessionManager.request(url, method: method, parameters: parameters, encoding: encoding, headers: headers).validate()
+        let request = session.request(url, method: method, parameters: parameters, encoding: encoding, headers: headers).validate()
         log(request: request)
 
         request.responseJSON(queue: completionDispatchQueue) { response in
-            self.log(response: response, request: request)
-            completionHandler(LCResponse(application: self.application, response: response))
+            self.log(afDataResponse: response, request: request)
+            completionHandler(LCResponse(application: self.application, afDataResponse: response))
         }
 
         return LCSingleRequest(request: request)
@@ -283,7 +285,7 @@ class HTTPClient {
         -> LCRequest
     {
         let method    = method.alamofireMethod
-        let headers   = mergeCommonHeaders(headers)
+        let headers   = HTTPHeaders(mergeCommonHeaders(headers))
         var encoding: ParameterEncoding!
 
         switch method {
@@ -291,14 +293,14 @@ class HTTPClient {
         default:   encoding = JSONEncoding.default
         }
 
-        let request = sessionManager.request(url, method: method, parameters: parameters, encoding: encoding, headers: headers).validate()
+        let request = session.request(url, method: method, parameters: parameters, encoding: encoding, headers: headers).validate()
         log(request: request)
 
         let completionDispatchQueue = completionDispatchQueue ?? defaultCompletionDispatchQueue
 
         request.responseJSON(queue: completionDispatchQueue) { response in
-            self.log(response: response, request: request)
-            completionHandler(LCResponse(application: self.application, response: response))
+            self.log(afDataResponse: response, request: request)
+            completionHandler(LCResponse(application: self.application, afDataResponse: response))
         }
 
         return LCSingleRequest(request: request)
@@ -337,7 +339,11 @@ class HTTPClient {
         return LCSingleRequest(request: nil)
     }
 
-    func log(response: DataResponse<Any>, request: Request) {
+    func log(response: DataResponse<Any, Error>, request: Request) {
+        Logger.shared.debug("\n\n\(response.lcDebugDescription(application: self.application, request))\n")
+    }
+    
+    func log(afDataResponse response: AFDataResponse<Any>, request: Request) {
         Logger.shared.debug("\n\n\(response.lcDebugDescription(application: self.application, request))\n")
     }
 
@@ -349,7 +355,7 @@ class HTTPClient {
 extension Request {
 
     var lcDebugDescription : String {
-        var curl: String = debugDescription
+        var curl: String = cURLDescription()
 
         if curl.hasPrefix("$ ") {
             let startIndex: String.Index = curl.index(curl.startIndex, offsetBy: 2)

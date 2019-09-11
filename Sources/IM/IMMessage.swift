@@ -556,10 +556,11 @@ open class IMCategorizedMessage: IMMessage, IMMessageCategorizing {
                 }
                 if let fileURL: URL = avURL {
                     #if !os(watchOS)
-                    let options = [AVURLAssetPreferPreciseDurationAndTimingKey: true]
-                    let URLAsset = AVURLAsset(url: fileURL, options: options)
-                    let duration: Double = URLAsset.duration.seconds
-                    metaData[FileKey.duration.rawValue] = duration
+                    metaData[FileKey.duration.rawValue] = AVURLAsset(
+                        url: fileURL,
+                        options: [AVURLAssetPreferPreciseDurationAndTimingKey: true])
+                        .duration
+                        .seconds
                     #endif
                 }
             }

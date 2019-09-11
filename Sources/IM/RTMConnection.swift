@@ -449,13 +449,11 @@ class RTMConnection {
         
         #if !os(watchOS)
         self.reachabilityManager = NetworkReachabilityManager()
-        self.previousReachabilityStatus = self.reachabilityManager?.networkReachabilityStatus ?? .unknown
-        self.reachabilityManager?.listenerQueue = self.serialQueue
-        self.reachabilityManager?.listener = { [weak self] newStatus in
+        self.previousReachabilityStatus = self.reachabilityManager?.status ?? .unknown
+        self.reachabilityManager?.startListening(onQueue: self.serialQueue) { [weak self] newStatus in
             Logger.shared.verbose("Network status change to \(newStatus)")
             self?.networkReachabilityStatusChanged(with: newStatus)
         }
-        self.reachabilityManager?.startListening()
         #endif
     }
     
