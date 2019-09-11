@@ -1,6 +1,3 @@
-[submodule "Alamofire"]
-	path = Alamofire
-	url = https://github.com/Alamofire/Alamofire.git
 [submodule "SwiftProtobuf"]
 	path = SwiftProtobuf
 	url = https://github.com/apple/swift-protobuf.git
