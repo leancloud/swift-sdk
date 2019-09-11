@@ -47,10 +47,16 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
     var hasObjectId: Bool {
         return objectId != nil
     }
+    
+    private(set) var objectClassName: String?
 
     var actualClassName: String {
-        let className = get("className") as? LCString
-        return (className?.value) ?? type(of: self).objectClassName()
+        if let className = (self.get("className") as? LCString)?.value {
+            return className
+        } else if let className = self.objectClassName {
+            return className
+        }
+        return type(of: self).objectClassName()
     }
 
     /// The temp in-memory object identifier.
@@ -104,7 +110,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
         className: LCStringConvertible)
     {
         self.init(application: application)
-        self.propertyTable["className"] = className.lcString
+        self.objectClassName = className.lcString.value
     }
 
     public convenience init(
@@ -113,7 +119,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
         objectId: LCStringConvertible)
     {
         self.init(application: application)
-        self.propertyTable["className"] = className.lcString
+        self.objectClassName = className.lcString.value
         self.objectId = objectId.lcString
     }
 
@@ -135,6 +141,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
             application = LCApplication.default
         }
         self.init(application: application)
+        self.objectClassName = aDecoder.decodeObject(forKey: "objectClassName") as? String
         let dictionary: LCDictionary = (aDecoder.decodeObject(forKey: "propertyTable") as? LCDictionary) ?? [:]
         for (key, value) in dictionary {
             self.propertyTable[key] = value
@@ -147,6 +154,10 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
         
         aCoder.encode(applicationID, forKey: "applicationID")
         aCoder.encode(propertyTable, forKey: "propertyTable")
+        
+        if let objectClassName = self.objectClassName {
+            aCoder.encode(objectClassName, forKey: "objectClassName")
+        }
     }
 
     open func copy(with zone: NSZone?) -> Any {

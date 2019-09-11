@@ -7,7 +7,6 @@
 //
 
 import Foundation
-import FMDB
 
 /// IM Client
 public class IMClient {
@@ -210,7 +209,7 @@ public class IMClient {
                     module: .IM(clientID: ID),
                     file: .database
                 )
-                self.localStorage = IMLocalStorage(url: databaseURL)
+                self.localStorage = try IMLocalStorage(path: databaseURL.path, clientID: ID)
                 Logger.shared.verbose("\(IMClient.self)<ID: \"\(ID)\"> initialize database<URL: \"\(databaseURL)\"> success.")
             }
         }
@@ -240,8 +239,6 @@ public class IMClient {
                 self.report(deviceToken: token)
             }
         }
-        
-        self.localStorage?.client = self
     }
     
     /// Initialization.
@@ -942,9 +939,16 @@ extension IMClient {
         guard let localStorage = self.localStorage else {
             throw LCError.clientLocalStorageNotFound
         }
-        localStorage.open { [weak self] (result) in
-            self?.eventQueue.async {
-                completion(result)
+        self.serialQueue.async {
+            do {
+                try localStorage.createTablesIfNotExists()
+                self.eventQueue.async {
+                    completion(.success)
+                }
+            } catch {
+                self.eventQueue.async {
+                    completion(.failure(error: LCError(error: error)))
+                }
             }
         }
     }
@@ -1004,17 +1008,16 @@ extension IMClient {
         guard let localStorage = self.localStorage else {
             throw LCError.clientLocalStorageNotFound
         }
-        localStorage.selectConversations(order: order) { (client, result) in
-            assert(client.specificAssertion)
-            switch result {
-            case .success(value: let tuple):
-                client.convCollection.merge(tuple.conversationMap) { (old, new) in old }
-                client.eventQueue.async {
-                    completion(.success(value: tuple.conversations))
+        self.serialQueue.async {
+            do {
+                let result = try localStorage.selectConversations(order: order, client: self)
+                self.convCollection.merge(result.conversationMap) { (current, _) in current }
+                self.eventQueue.async {
+                    completion(.success(value: result.conversations))
                 }
-            case .failure(error: let error):
-                client.eventQueue.async {
-                    completion(.failure(error: error))
+            } catch {
+                self.eventQueue.async {
+                    completion(.failure(error: LCError(error: error)))
                 }
             }
         }
@@ -1026,13 +1029,24 @@ extension IMClient {
     ///   - IDs: The ID set of the conversations that will be deleted.
     ///   - completion: Result of callback.
     /// - Throws: If client not init with `usingLocalStorage`, then throws error.
-    public func deleteStoredConversationAndMessages(IDs: Set<String>, completion: @escaping (LCBooleanResult) -> Void) throws {
+    public func deleteStoredConversationAndMessages(
+        IDs: Set<String>,
+        completion: @escaping (LCBooleanResult) -> Void)
+        throws
+    {
         guard let localStorage = self.localStorage else {
             throw LCError.clientLocalStorageNotFound
         }
-        localStorage.deleteConversationAndMessages(IDs: IDs) { [weak self] (result) in
-            self?.eventQueue.async {
-                completion(result)
+        self.serialQueue.async {
+            do {
+                try localStorage.deleteConversationAndMessages(IDs: IDs)
+                self.eventQueue.async {
+                    completion(.success)
+                }
+            } catch {
+                self.eventQueue.async {
+                    completion(.failure(error: LCError(error: error)))
+                }
             }
         }
     }
