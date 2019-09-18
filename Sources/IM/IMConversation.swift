@@ -1184,7 +1184,6 @@ extension IMConversation {
                 limit: limit,
                 type: type)
             { (client, result) in
-                assert(client.specificAssertion)
                 client.eventQueue.async {
                     completion(result)
                 }
@@ -1201,7 +1200,6 @@ extension IMConversation {
                 direction: direction,
                 limit: limit)
             { (client, result, _) in
-                assert(client.specificAssertion)
                 client.eventQueue.async {
                     completion(result)
                 }
@@ -1218,7 +1216,6 @@ extension IMConversation {
                 direction: direction,
                 limit: limit)
             { (client, result, hasBreakpoint) in
-                assert(client.specificAssertion)
                 var shouldUseNetwork: Bool = (hasBreakpoint || result.isFailure)
                 if !shouldUseNetwork, let value = result.value {
                     shouldUseNetwork = (value.count != limit)
@@ -1723,9 +1720,9 @@ extension IMConversation {
             outCommand.convMessage = convCommand
             return outCommand
         }, completion: { (client, result) in
-            assert(client.specificAssertion)
             switch result {
             case .inCommand(let inCommand):
+                assert(client.specificAssertion)
                 guard inCommand.cmd == .conv, inCommand.op == .memberInfoUpdated else {
                     client.eventQueue.async {
                         completion(.failure(error: LCError(code: .commandInvalid)))
@@ -1819,9 +1816,9 @@ extension IMConversation {
             client.sendCommand(constructor: { () -> IMGenericCommand in
                 outCommand
             }, completion: { (client, result) in
-                assert(client.specificAssertion)
                 switch result {
                 case .inCommand(let inCommand):
+                    assert(client.specificAssertion)
                     guard let blacklistMessage = (inCommand.hasBlacklistMessage ? inCommand.blacklistMessage : nil) else {
                         client.eventQueue.async {
                             completion(.failure(error: LCError(code: .commandInvalid)))
@@ -1880,9 +1877,9 @@ extension IMConversation {
             outCommand.blacklistMessage = blacklistCommand
             return outCommand
         }, completion: { (client, result) in
-            assert(client.specificAssertion)
             switch result {
             case .inCommand(let inCommand):
+                assert(client.specificAssertion)
                 guard let blacklistMessage = (inCommand.hasBlacklistMessage ? inCommand.blacklistMessage : nil) else {
                     client.eventQueue.async {
                         completion(.failure(error: LCError(code: .commandInvalid)))
@@ -1916,9 +1913,9 @@ extension IMConversation {
             outCommand.blacklistMessage = blacklistCommand
             return outCommand
         }, completion: { (client, result) in
-            assert(client.specificAssertion)
             switch result {
             case .inCommand(let inCommand):
+                assert(client.specificAssertion)
                 guard let blacklistMessage = (inCommand.hasBlacklistMessage ? inCommand.blacklistMessage : nil) else {
                     client.eventQueue.async {
                         completion(.failure(error: LCError(code: .commandInvalid)))
@@ -1963,9 +1960,9 @@ extension IMConversation {
             outCommand.convMessage = convCommand
             return outCommand
         }, completion: { (client, result) in
-            assert(client.specificAssertion)
             switch result {
             case .inCommand(let inCommand):
+                assert(client.specificAssertion)
                 guard let convCommand = (inCommand.hasConvMessage ? inCommand.convMessage : nil) else {
                     client.eventQueue.async {
                         completion(.failure(error: LCError(code: .commandInvalid)))
@@ -2023,9 +2020,9 @@ extension IMConversation {
             outCommand.convMessage = convCommand
             return outCommand
         }, completion: { (client, result) in
-            assert(client.specificAssertion)
             switch result {
             case .inCommand(let inCommand):
+                assert(client.specificAssertion)
                 guard let convMessage = (inCommand.hasConvMessage ? inCommand.convMessage : nil) else {
                     client.eventQueue.async {
                         completion(.failure(error: LCError(code: .commandInvalid)))
@@ -2059,9 +2056,9 @@ extension IMConversation {
             outCommand.convMessage = convCommand
             return outCommand
         }, completion: { (client, result) in
-            assert(client.specificAssertion)
             switch result {
             case .inCommand(let inCommand):
+                assert(client.specificAssertion)
                 guard let convMessage = (inCommand.hasConvMessage ? inCommand.convMessage : nil) else {
                     client.eventQueue.async {
                         completion(.failure(error: LCError(code: .commandInvalid)))
