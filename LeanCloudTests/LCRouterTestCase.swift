@@ -26,10 +26,10 @@ class LCRouterTestCase: BaseTestCase {
     static let usApplication       = try! LCApplication(id: "eX7urCufwLd6X5mHxt7V12nL-MdYXbMMI", key: "PrmzHPnRXjXezS54KryuHMG6")
     static let earlyCnApplication  = try! LCApplication(id: "uay57kigwe0b6f5n0e1d4z4xhydsml3dor24bzwvzr57wdap", key: "kfgz7jjfsk55r5a8a3y4ttd3je1ko11bkibcikonk32oozww")
 
-    lazy var cnRouter       = HTTPRouter(application: LCRouterTestCase.cnApplication, configuration: .default)
-    lazy var ceRouter       = HTTPRouter(application: LCRouterTestCase.ceApplication, configuration: .default)
-    lazy var usRouter       = HTTPRouter(application: LCRouterTestCase.usApplication, configuration: .default)
-    lazy var earlyCnRouter  = HTTPRouter(application: LCRouterTestCase.earlyCnApplication, configuration: .default)
+    lazy var cnRouter       = AppRouter(application: LCRouterTestCase.cnApplication, configuration: .default)
+    lazy var ceRouter       = AppRouter(application: LCRouterTestCase.ceApplication, configuration: .default)
+    lazy var usRouter       = AppRouter(application: LCRouterTestCase.usApplication, configuration: .default)
+    lazy var earlyCnRouter  = AppRouter(application: LCRouterTestCase.earlyCnApplication, configuration: .default)
 
     func testAbsoluteUrl() {
         XCTAssertEqual(
@@ -63,11 +63,11 @@ class LCRouterTestCase: BaseTestCase {
 
     func testFallbackUrl() {
         for item in
-            [HTTPRouter.Module.api,
-             HTTPRouter.Module.engine,
-             HTTPRouter.Module.push,
-             HTTPRouter.Module.rtm,
-             HTTPRouter.Module.stats]
+            [AppRouter.Module.api,
+             AppRouter.Module.engine,
+             AppRouter.Module.push,
+             AppRouter.Module.rtm,
+             AppRouter.Module.stats]
         {
             switch item {
             case .api:

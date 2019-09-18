@@ -20,10 +20,10 @@ extension LCApplication {
         }
     }
     
-    var v2router: HTTPRouter {
-        return HTTPRouter(
+    var v2router: AppRouter {
+        return AppRouter(
             application: self,
-            configuration: HTTPRouter.Configuration(apiVersion: "1.2")
+            configuration: AppRouter.Configuration(apiVersion: "1.2")
         )
     }
     
