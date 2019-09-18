@@ -176,7 +176,7 @@ class HTTPClient {
             path = getClassEndpoint(object: object)
         }
 
-        return self.application.httpRouter.batchRequestPath(for: path)
+        return self.application.appRouter.batchRequestPath(for: path)
     }
 
     /**
@@ -221,7 +221,7 @@ class HTTPClient {
             completionDispatchQueue ??
             defaultCompletionDispatchQueue)
 
-        guard let url = self.application.httpRouter.route(path: path) else {
+        guard let url = self.application.appRouter.route(path: path) else {
             let error = LCError(code: .notFound, reason: "URL not found.")
 
             let response = LCResponse(

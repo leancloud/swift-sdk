@@ -1,5 +1,5 @@
 //
-//  HTTPRouter.swift
+//  AppRouter.swift
 //  LeanCloud
 //
 //  Created by Tianyong Tang on 2018/9/5.
@@ -11,7 +11,7 @@ import Foundation
 /**
  HTTP router for application.
  */
-class HTTPRouter {
+class AppRouter {
 
     /**
      Application API module.
@@ -396,7 +396,7 @@ class HTTPRouter {
 
 }
 
-extension HTTPRouter {
+extension AppRouter {
     
     struct CacheTable: Codable {
         let apiServer: String?

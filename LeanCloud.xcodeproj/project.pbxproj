@@ -15,7 +15,7 @@
 		114E1E852153A3ED00DA7DB0 /* LCFileTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 114E1E842153A3ED00DA7DB0 /* LCFileTestCase.swift */; };
 		116A682621427442004141A5 /* LCRouterTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 116A682521427442004141A5 /* LCRouterTestCase.swift */; };
 		1178D10F213F7B9600429131 /* LCAPITestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1178D10E213F7B9600429131 /* LCAPITestCase.swift */; };
-		1178D132214019F800429131 /* HTTPRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1178D131214019F800429131 /* HTTPRouter.swift */; };
+		1178D132214019F800429131 /* AppRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1178D131214019F800429131 /* AppRouter.swift */; };
 		117A2D0C21704620007C509A /* Installation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 117A2D0B21704620007C509A /* Installation.swift */; };
 		118763AF2176EA3A0078645B /* LCInstallationTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 118763AE2176EA3A0078645B /* LCInstallationTestCase.swift */; };
 		119D16AF219A7FCE0023BFEF /* IMClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 119D16AE219A7FCE0023BFEF /* IMClient.swift */; };
@@ -142,7 +142,7 @@
 		114E1E842153A3ED00DA7DB0 /* LCFileTestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCFileTestCase.swift; sourceTree = "<group>"; };
 		116A682521427442004141A5 /* LCRouterTestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCRouterTestCase.swift; sourceTree = "<group>"; };
 		1178D10E213F7B9600429131 /* LCAPITestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCAPITestCase.swift; sourceTree = "<group>"; };
-		1178D131214019F800429131 /* HTTPRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HTTPRouter.swift; sourceTree = "<group>"; };
+		1178D131214019F800429131 /* AppRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppRouter.swift; sourceTree = "<group>"; };
 		117A2D0B21704620007C509A /* Installation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Installation.swift; sourceTree = "<group>"; };
 		118763AE2176EA3A0078645B /* LCInstallationTestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCInstallationTestCase.swift; sourceTree = "<group>"; };
 		119D16AE219A7FCE0023BFEF /* IMClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IMClient.swift; sourceTree = "<group>"; };
@@ -382,7 +382,7 @@
 				835F5D621D7E6808004D1A0E /* Runtime.swift */,
 				835F5D641D7E6808004D1A0E /* Utility.swift */,
 				835F5D601D7E6808004D1A0E /* HTTPClient.swift */,
-				1178D131214019F800429131 /* HTTPRouter.swift */,
+				1178D131214019F800429131 /* AppRouter.swift */,
 				835F5D5C1D7E6808004D1A0E /* Operation.swift */,
 				835F5D5A1D7E6808004D1A0E /* ObjectProfiler.swift */,
 				835F5D5B1D7E6808004D1A0E /* ObjectUpdater.swift */,
@@ -662,7 +662,7 @@
 				835F5D661D7E6808004D1A0E /* BatchRequest.swift in Sources */,
 				835F5D851D7E6808004D1A0E /* Runtime.swift in Sources */,
 				835F5D721D7E6808004D1A0E /* Object.swift in Sources */,
-				1178D132214019F800429131 /* HTTPRouter.swift in Sources */,
+				1178D132214019F800429131 /* AppRouter.swift in Sources */,
 				11D9C0FF216DF91A00A620B7 /* Logger.swift in Sources */,
 				835F5D811D7E6808004D1A0E /* Request.swift in Sources */,
 				835F5D681D7E6808004D1A0E /* CQLClient.swift in Sources */,

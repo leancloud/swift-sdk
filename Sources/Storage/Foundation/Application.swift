@@ -155,13 +155,13 @@ public class LCApplication {
         var moduleKeyAndHost: (key: String, host: String) {
             switch self {
             case .api(let host):
-                return (HTTPRouter.Module.api.key, host)
+                return (AppRouter.Module.api.key, host)
             case .engine(let host):
-                return (HTTPRouter.Module.engine.key, host)
+                return (AppRouter.Module.engine.key, host)
             case .push(let host):
-                return (HTTPRouter.Module.push.key, host)
+                return (AppRouter.Module.push.key, host)
             case .rtm(let host):
-                return (HTTPRouter.Module.rtm.key, host)
+                return (AppRouter.Module.rtm.key, host)
             }
         }
     }
@@ -220,7 +220,7 @@ public class LCApplication {
     
     private(set) var httpClient: HTTPClient!
     
-    private(set) var httpRouter: HTTPRouter!
+    private(set) var appRouter: AppRouter!
 
     /**
      Create an application.
@@ -291,7 +291,7 @@ public class LCApplication {
             application: self,
             configuration: .default
         )
-        self.httpRouter = HTTPRouter(
+        self.appRouter = AppRouter(
             application: self,
             configuration: .default
         )
