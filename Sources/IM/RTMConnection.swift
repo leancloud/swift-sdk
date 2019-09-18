@@ -362,8 +362,7 @@ class RTMConnection {
     
     private(set) var instantMessagingDelegatorMap: [IMClient.Identifier: Delegator] = [:]
     private(set) var liveQueryDelegatorMap: [LiveQueryClient.Identifier: Delegator] = [:]
-    private var allDelegators: [Delegator] {
-        assert(self.specificAssertion)
+    var allDelegators: [Delegator] {
         return Array(self.instantMessagingDelegatorMap.values) + Array(self.liveQueryDelegatorMap.values)
     }
     private(set) var socket: WebSocket? = nil
