@@ -8,7 +8,7 @@
 
 import Foundation
 
-public let version = "16.5.0"
+public let version = "16.5.1"
 
 /// `version` is a common word, so use `__LeanCloudVersion` to wrap it to avoid conflict.
 var __LeanCloudVersion: String {
