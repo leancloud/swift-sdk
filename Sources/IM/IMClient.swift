@@ -1083,9 +1083,9 @@ extension IMClient {
         self.sendCommand(constructor: { () -> IMGenericCommand in
             return self.newSessionCommand(op: .refresh, token: oldToken)
         }) { (client, result) in
-            assert(client.specificAssertion)
             switch result {
             case .inCommand(let inCommand):
+                assert(client.specificAssertion)
                 guard
                     let sessionMessage = (inCommand.hasSessionMessage ? inCommand.sessionMessage : nil),
                     let token = (sessionMessage.hasSt ? sessionMessage.st : nil),
