@@ -147,21 +147,21 @@ public class LCApplication {
     }
     
     public enum ServerCustomizableModule {
-        case api(_ host: String)
-        case push(_ host: String)
-        case engine(_ host: String)
-        case rtm(_ host: String)
+        case api(_ url: String)
+        case push(_ url: String)
+        case engine(_ url: String)
+        case rtm(_ url: String)
         
-        var moduleKeyAndHost: (key: String, host: String) {
+        var values: (AppRouter.Module, String) {
             switch self {
-            case .api(let host):
-                return (AppRouter.Module.api.key, host)
-            case .engine(let host):
-                return (AppRouter.Module.engine.key, host)
-            case .push(let host):
-                return (AppRouter.Module.push.key, host)
-            case .rtm(let host):
-                return (AppRouter.Module.rtm.key, host)
+            case let .api(url):
+                return (.api, url)
+            case let .engine(url):
+                return (.engine, url)
+            case let .push(url):
+                return (.push, url)
+            case let .rtm(url):
+                return (.rtm, url)
             }
         }
     }
@@ -234,9 +234,16 @@ public class LCApplication {
 
      - parameter id: Application ID.
      - parameter key: Application key.
+     - parameter serverURL: Application server URL string.
      - parameter configuration: Application Configuration.
      */
-    public init(id: String, key: String, configuration: Configuration = .default) throws {
+    public init(
+        id: String,
+        key: String,
+        serverURL: String? = nil,
+        configuration: Configuration = .default)
+        throws
+    {
         if let _ = applicationRegistry[id] {
             throw LCError.applicationDidRegister(id: id)
         }
@@ -245,17 +252,26 @@ public class LCApplication {
         self.configuration = configuration
         applicationRegistry[id] = self
         
-        self.doInitializing(configuration: configuration)
+        self.doInitializing(
+            serverURL: serverURL,
+            configuration: configuration)
     }
 
     /**
      Initialize default application.
 
-     - parameter id:    Application ID.
-     - parameter key:   Application key.
+     - parameter id: Application ID.
+     - parameter key: Application key.
+     - parameter serverURL: Application server URL string.
      - parameter configuration: Application Configuration.
      */
-    public func set(id: String, key: String, configuration: Configuration = .default) throws {
+    public func set(
+        id: String,
+        key: String,
+        serverURL: String? = nil,
+        configuration: Configuration = .default)
+        throws
+    {
         guard self === LCApplication.default else {
             throw LCError(code: .inconsistency, reason: "Only LCApplication.default can call this function.")
         }
@@ -274,10 +290,12 @@ public class LCApplication {
         self.configuration = configuration
         applicationRegistry[id] = self
         
-        self.doInitializing(configuration: configuration)
+        self.doInitializing(
+            serverURL: serverURL,
+            configuration: configuration)
     }
     
-    func doInitializing(configuration: Configuration) {
+    func doInitializing(serverURL: String?, configuration: Configuration) {
         // init local storage context
         do {
             self.localStorageContext = try LocalStorageContext(applicationID: self.id)
