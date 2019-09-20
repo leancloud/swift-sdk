@@ -176,7 +176,7 @@ class HTTPClient {
             path = getClassEndpoint(object: object)
         }
 
-        return self.application.appRouter.batchRequestPath(for: path)
+        return self.application.appRouter.batchRequestPath(path)
     }
 
     /**
@@ -253,7 +253,6 @@ class HTTPClient {
         }
 
         let request = session.request(url, method: method, parameters: parameters, encoding: encoding, headers: headers).validate()
-        log(request: request)
 
         request.responseJSON(queue: completionDispatchQueue) { response in
             self.log(afDataResponse: response, request: request)
@@ -294,7 +293,6 @@ class HTTPClient {
         }
 
         let request = session.request(url, method: method, parameters: parameters, encoding: encoding, headers: headers).validate()
-        log(request: request)
 
         let completionDispatchQueue = completionDispatchQueue ?? defaultCompletionDispatchQueue
 
@@ -340,10 +338,12 @@ class HTTPClient {
     }
 
     func log(response: DataResponse<Any, Error>, request: Request) {
+        self.log(request: request)
         Logger.shared.debug("\n\n\(response.lcDebugDescription(application: self.application, request))\n")
     }
     
     func log(afDataResponse response: AFDataResponse<Any>, request: Request) {
+        self.log(request: request)
         Logger.shared.debug("\n\n\(response.lcDebugDescription(application: self.application, request))\n")
     }
 
