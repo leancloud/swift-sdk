@@ -125,6 +125,13 @@ class AppRouter: InternalSynchronizing {
     var mutex: NSLock {
         return self.lock
     }
+
+    private(set) var isRequesting: Bool = false
+}
+
+// MARK: Private
+
+extension AppRouter {
     
     // MARK: Module
 
@@ -231,8 +238,6 @@ class AppRouter: InternalSynchronizing {
             completionHandler: { completion($0) })
     }
     
-    private(set) var isRequesting: Bool = false
-    
     func requestAppRouter() {
         guard self.sync({
             if self.isRequesting {
@@ -250,7 +255,11 @@ class AppRouter: InternalSynchronizing {
         }
     }
     
-    // MARK: Main
+}
+
+// MARK: Public
+
+extension AppRouter {
     
     func batchRequestPath(_ path: String) -> String {
         return self.absolutePath(self.versionizedPath(path))
@@ -274,5 +283,5 @@ class AppRouter: InternalSynchronizing {
         
         return nil
     }
-
+    
 }
