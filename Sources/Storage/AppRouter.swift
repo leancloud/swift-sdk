@@ -10,6 +10,8 @@ import Foundation
 
 class AppRouter: InternalSynchronizing {
     
+    // MARK: Constant
+    
     static let url: URL = URL(string: "https://app-router.com/2/route")!
     static let rtmRouterPath: String = "v1/route"
     static let pathToModuleTable: [String: Module] = [
@@ -68,19 +70,36 @@ class AppRouter: InternalSynchronizing {
             }
         }
     }
+    
+    // MARK: Property
 
     let application: LCApplication
     let configuration: Configuration
     let customizedServerTable: [String: String]
     
-    private(set) var cacheTable: CacheTable? {
+    var cacheTable: CacheTable? {
         set { self.sync(self._cacheTable = newValue) }
         get { self.sync({ self._cacheTable }) }
     }
     private var _cacheTable: CacheTable?
-    private(set) var cacheFileURL: URL?
     
-    init(application: LCApplication, configuration: Configuration) {
+    var cacheFileURL: URL? {
+        do {
+            return try self.application
+                .localStorageContext?
+                .fileURL(
+                    place: .systemCaches,
+                    module: .router,
+                    file: .appServer)
+        } catch {
+            Logger.shared.error(error)
+            return nil
+        }
+    }
+    
+    // MARK: Init
+    
+    init(application: LCApplication, configuration: Configuration = .default) {
         self.application = application
         self.configuration = configuration
         self.customizedServerTable = application.configuration.customizedServers
@@ -89,14 +108,11 @@ class AppRouter: InternalSynchronizing {
                 map[module.rawValue] = url
             })
         
-        if let context = application.localStorageContext {
+        if let fileURL = self.cacheFileURL {
             do {
-                let fileURL = try context.fileURL(
-                    place: .systemCaches,
-                    module: .router,
-                    file: .appServer)
-                self.cacheTable = try context.table(from: fileURL)
-                self.cacheFileURL = fileURL
+                self.cacheTable = try self.application
+                    .localStorageContext?
+                    .table(from: fileURL)
             } catch {
                 Logger.shared.error(error)
             }
@@ -215,7 +231,7 @@ class AppRouter: InternalSynchronizing {
             completionHandler: { completion($0) })
     }
     
-    private var isRequesting: Bool = false
+    private(set) var isRequesting: Bool = false
     
     func requestAppRouter() {
         guard self.sync({
@@ -225,9 +241,7 @@ class AppRouter: InternalSynchronizing {
                 self.isRequesting = true
                 return true
             }
-        }) else {
-            return
-        }
+        }) else { return }
         self.getAppRouter { (response) in
             if response.isSuccess, let data = response.data {
                 self.cacheAppRouter(data: data)
@@ -244,9 +258,10 @@ class AppRouter: InternalSynchronizing {
     
     func route(path: String, module: Module? = nil) -> URL? {
         let module = module ?? self.module(path)
-        let path = (module != .rtm) ? versionizedPath(path) : path
+        let path = (module != .rtm) ? self.versionizedPath(path) : path
         
-        if let host = self.customizedServerTable[module.rawValue] {
+        if let host = self.customizedServerTable[module.rawValue] ??
+            self.application.serverURL {
             return self.absoluteURL(host, path: path)
         }
         
