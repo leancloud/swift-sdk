@@ -195,16 +195,17 @@ public class LCApplication {
     // MARK: Current Installation
     
     /// Current Installation.
-    public internal(set) lazy var currentInstallation: LCInstallation = {
-        do {
-            if let installation = try LCInstallation.currentInstallation(application: self) {
-                return installation
-            }
-        } catch {
-            Logger.shared.error(error)
+    public var currentInstallation: LCInstallation {
+        if let installation = self._currentInstallation {
+            return installation
+        } else {
+            let installation = LCInstallation.currentInstallation(application: self)
+                ?? LCInstallation(application: self)
+            self._currentInstallation = installation
+            return installation
         }
-        return LCInstallation(application: self)
-    }()
+    }
+    var _currentInstallation: LCInstallation?
     
     var currentInstallationFileURL: URL? {
         do {
@@ -254,7 +255,7 @@ public class LCApplication {
         LCApplication.registry[id] = self
     }
     
-    /// Initialize default application.
+    /// Setup the application.
     /// - Parameter id: The ID.
     /// - Parameter key: The Key.
     /// - Parameter serverURL: The server URL string.
@@ -267,6 +268,7 @@ public class LCApplication {
         throws
     {
         if let oldID = self.id {
+            self._currentInstallation = nil
             LCApplication.registry.removeValue(forKey: oldID)
         }
         
