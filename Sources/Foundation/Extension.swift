@@ -166,8 +166,13 @@ extension Dictionary {
         }
     }
     
-    func jsonString(using encoding: String.Encoding = .utf8, options: JSONSerialization.WritingOptions = []) throws -> String? {
-        let data = try JSONSerialization.data(withJSONObject: self, options: options)
+    func jsonString(
+        using encoding: String.Encoding = .utf8,
+        options: JSONSerialization.WritingOptions = [])
+        throws
+        -> String?
+    {
+        let data: Data = try JSONSerialization.data(withJSONObject: self, options: options)
         return String(data: data, encoding: encoding)
     }
 }
@@ -214,15 +219,21 @@ extension String {
         return String(prefix(upTo: index(startIndex, offsetBy: end)))
     }
     
-    func jsonObject<T>(using encoding: String.Encoding = .utf8, options: JSONSerialization.ReadingOptions = []) throws -> T? {
-        guard !self.isEmpty else { return nil }
+    func jsonObject<T>(
+        using encoding: String.Encoding = .utf8,
+        options: JSONSerialization.ReadingOptions = [])
+        throws
+        -> T?
+    {
+        guard !self.isEmpty else {
+            return nil
+        }
         if let data: Data = self.data(using: encoding) {
             return try JSONSerialization.jsonObject(with: data, options: options) as? T
         } else {
             return nil
         }
     }
-    
 }
 
 extension Sequence {
@@ -230,7 +241,16 @@ extension Sequence {
     var unique: [Element] {
         return NSOrderedSet(array: Array(self)).array as? [Element] ?? []
     }
-
+    
+    func jsonString(
+        using encoding: String.Encoding = .utf8,
+        options: JSONSerialization.WritingOptions = [])
+        throws
+        -> String?
+    {
+        let data: Data = try JSONSerialization.data(withJSONObject: self, options: options)
+        return String(data: data, encoding: encoding)
+    }
 }
 
 extension LCError {

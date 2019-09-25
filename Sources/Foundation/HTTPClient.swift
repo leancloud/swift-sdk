@@ -61,21 +61,21 @@ class HTTPClient {
         
         let userAgent: String
         
-        static let `default` = Configuration(userAgent: "LeanCloud-Swift-SDK/\(__LeanCloudVersion)")
+        static let `default` = Configuration(userAgent: "LeanCloud-Swift-SDK/\(Version.versionString)")
     }
 
     let application: LCApplication
     let configuration: Configuration
-    let sessionManager: SessionManager
+    let session: Alamofire.Session
 
-    init(application: LCApplication, configuration: Configuration) {
+    init(application: LCApplication, configuration: Configuration = .default) {
         self.application = application
         self.configuration = configuration
-        self.sessionManager = {
+        self.session = {
             let sessionConfiguration = URLSessionConfiguration.default
             sessionConfiguration.timeoutIntervalForRequest = application.configuration.HTTPRequestTimeoutInterval
-            let sessionManager = SessionManager(configuration: sessionConfiguration)
-            return sessionManager
+            let session = Session(configuration: sessionConfiguration)
+            return session
         }()
     }
 
@@ -97,7 +97,7 @@ class HTTPClient {
             HeaderFieldName.signature: createRequestSignature(),
             HeaderFieldName.userAgent: configuration.userAgent,
             HeaderFieldName.accept:    "application/json",
-            HeaderFieldName.production: (self.application.configuration.environment.contains(.cloudEngineDevelopment) ? "0" : "1")
+            HeaderFieldName.production: self.application.cloudEngineMode
         ]
 
         if let sessionToken = self.application.currentUser?.sessionToken {
@@ -176,7 +176,7 @@ class HTTPClient {
             path = getClassEndpoint(object: object)
         }
 
-        return self.application.httpRouter.batchRequestPath(for: path)
+        return self.application.appRouter.batchRequestPath(path)
     }
 
     /**
@@ -221,15 +221,17 @@ class HTTPClient {
             completionDispatchQueue ??
             defaultCompletionDispatchQueue)
 
-        guard let url = self.application.httpRouter.route(path: path) else {
+        guard let url = self.application.appRouter.route(path: path) else {
             let error = LCError(code: .notFound, reason: "URL not found.")
 
             let response = LCResponse(
                 application: self.application,
-                response: DataResponse<Any>(
+                response: DataResponse<Any, Error>(
                     request: nil,
                     response: nil,
                     data: nil,
+                    metrics: nil,
+                    serializationDuration: 0,
                     result: .failure(error)
                 )
             )
@@ -242,7 +244,7 @@ class HTTPClient {
         }
 
         let method    = method.alamofireMethod
-        let headers   = mergeCommonHeaders(headers)
+        let headers   = HTTPHeaders(mergeCommonHeaders(headers))
         var encoding: ParameterEncoding
 
         switch method {
@@ -250,12 +252,11 @@ class HTTPClient {
         default:   encoding = JSONEncoding.default
         }
 
-        let request = sessionManager.request(url, method: method, parameters: parameters, encoding: encoding, headers: headers).validate()
-        log(request: request)
+        let request = session.request(url, method: method, parameters: parameters, encoding: encoding, headers: headers).validate()
 
         request.responseJSON(queue: completionDispatchQueue) { response in
-            self.log(response: response, request: request)
-            completionHandler(LCResponse(application: self.application, response: response))
+            self.log(afDataResponse: response, request: request)
+            completionHandler(LCResponse(application: self.application, afDataResponse: response))
         }
 
         return LCSingleRequest(request: request)
@@ -283,7 +284,7 @@ class HTTPClient {
         -> LCRequest
     {
         let method    = method.alamofireMethod
-        let headers   = mergeCommonHeaders(headers)
+        let headers   = HTTPHeaders(mergeCommonHeaders(headers))
         var encoding: ParameterEncoding!
 
         switch method {
@@ -291,14 +292,13 @@ class HTTPClient {
         default:   encoding = JSONEncoding.default
         }
 
-        let request = sessionManager.request(url, method: method, parameters: parameters, encoding: encoding, headers: headers).validate()
-        log(request: request)
+        let request = session.request(url, method: method, parameters: parameters, encoding: encoding, headers: headers).validate()
 
         let completionDispatchQueue = completionDispatchQueue ?? defaultCompletionDispatchQueue
 
         request.responseJSON(queue: completionDispatchQueue) { response in
-            self.log(response: response, request: request)
-            completionHandler(LCResponse(application: self.application, response: response))
+            self.log(afDataResponse: response, request: request)
+            completionHandler(LCResponse(application: self.application, afDataResponse: response))
         }
 
         return LCSingleRequest(request: request)
@@ -337,7 +337,13 @@ class HTTPClient {
         return LCSingleRequest(request: nil)
     }
 
-    func log(response: DataResponse<Any>, request: Request) {
+    func log(response: DataResponse<Any, Error>, request: Request) {
+        self.log(request: request)
+        Logger.shared.debug("\n\n\(response.lcDebugDescription(application: self.application, request))\n")
+    }
+    
+    func log(afDataResponse response: AFDataResponse<Any>, request: Request) {
+        self.log(request: request)
         Logger.shared.debug("\n\n\(response.lcDebugDescription(application: self.application, request))\n")
     }
 
@@ -349,7 +355,7 @@ class HTTPClient {
 extension Request {
 
     var lcDebugDescription : String {
-        var curl: String = debugDescription
+        var curl: String = cURLDescription()
 
         if curl.hasPrefix("$ ") {
             let startIndex: String.Index = curl.index(curl.startIndex, offsetBy: 2)

@@ -71,10 +71,8 @@ public final class LCRelation: NSObject, LCValue, LCValueExtension, Sequence {
     }
 
     public required init?(coder aDecoder: NSCoder) {
-        if
-            let applicationID: String = aDecoder.decodeObject(forKey: "applicationID") as? String,
-            let registeredApplication = applicationRegistry[applicationID]
-        {
+        if let applicationID = aDecoder.decodeObject(forKey: "applicationID") as? String,
+            let registeredApplication = LCApplication.registry[applicationID] {
             self.application = registeredApplication
         } else {
             self.application = LCApplication.default

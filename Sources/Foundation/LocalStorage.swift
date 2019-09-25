@@ -1,5 +1,5 @@
 //
-//  LocalStorageContext.swift
+//  LocalStorage.swift
 //  LeanCloud
 //
 //  Created by Tianyong Tang on 2018/9/17.

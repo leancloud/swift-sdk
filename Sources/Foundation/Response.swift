@@ -11,11 +11,29 @@ import Alamofire
 
 final class LCResponse {
     let application: LCApplication
-    let response: Alamofire.DataResponse<Any>
+    let response: Alamofire.DataResponse<Any, Error>
 
-    init(application: LCApplication, response: Alamofire.DataResponse<Any>) {
+    init(application: LCApplication, response: Alamofire.DataResponse<Any, Error>) {
         self.application = application
         self.response = response
+    }
+    
+    init(application: LCApplication, afDataResponse: AFDataResponse<Any>) {
+        self.application = application
+        let result: Result<Any, Error>
+        switch afDataResponse.result {
+        case let .success(v):
+            result = .success(v)
+        case let .failure(e):
+            result = .failure(e)
+        }
+        self.response = DataResponse<Any, Error>(
+            request: afDataResponse.request,
+            response: afDataResponse.response,
+            data: afDataResponse.data,
+            metrics: afDataResponse.metrics,
+            serializationDuration: afDataResponse.serializationDuration,
+            result: result)
     }
 
     var error: Error? {
@@ -34,7 +52,7 @@ final class LCResponse {
     }
 
     var value: Any? {
-        return response.result.value
+        return response.value
     }
 
     subscript<T>(key: String) -> T? {

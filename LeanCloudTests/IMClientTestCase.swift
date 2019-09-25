@@ -183,90 +183,96 @@ class IMClientTestCase: RTMBaseTestCase {
     }
     
     func testSessionConflict() {
+        if let fileURL = LCApplication.default.currentInstallationFileURL,
+            FileManager.default.fileExists(atPath: fileURL.path) {
+            try! FileManager.default.removeItem(at: fileURL)
+        }
+        
         let clientID: String = uuid
         let tag: String = "tag"
         
-        applicationRegistry.removeAll()
-        let application1: LCApplication = try! LCApplication(
-            id: LCApplication.default.id,
-            key: LCApplication.default.key
-        )
-        application1.currentInstallation.set(
+        let installation1 = LCApplication.default.currentInstallation
+        installation1.set(
             deviceToken: uuid,
-            apnsTeamId: ""
-        )
-        XCTAssertTrue(application1.currentInstallation.save().isSuccess)
+            apnsTeamId: "LeanCloud")
+        
         let delegator1: Delegator = Delegator()
         let client1: IMClient = try! IMClient(
-            application: application1,
             ID: clientID,
             tag: tag,
-            delegate: delegator1
-        )
+            delegate: delegator1)
         
-        let exp1 = expectation(description: "client1 open success")
-        client1.open { (result) in
-            XCTAssertTrue(result.isSuccess)
-            exp1.fulfill()
+        expecting { (exp) in
+            client1.open { (result) in
+                XCTAssertTrue(result.isSuccess)
+                XCTAssertNil(result.error)
+                exp.fulfill()
+            }
         }
-        wait(for: [exp1], timeout: timeout)
         
         RTMConnectionManager.default.protobuf1Map.removeAll()
         RTMConnectionManager.default.protobuf3Map.removeAll()
+        LCApplication.default._currentInstallation = nil
         
-        applicationRegistry.removeAll()
-        let application2: LCApplication = try! LCApplication(
-            id: LCApplication.default.id,
-            key: LCApplication.default.key
-        )
-        application2.currentInstallation.set(
+        let installation2 = LCApplication.default.currentInstallation
+        installation2.set(
             deviceToken: uuid,
-            apnsTeamId: ""
-        )
-        XCTAssertTrue(application2.currentInstallation.save().isSuccess)
+            apnsTeamId: "LeanCloud")
+        
         let delegator2: Delegator = Delegator()
         let client2: IMClient = try! IMClient(
-            application: application2,
             ID: clientID,
             tag: tag,
-            delegate: delegator2
-        )
+            delegate: delegator2)
         
-        let exp2 = expectation(description: "client2 open success & kick client1 success")
-        exp2.expectedFulfillmentCount = 2
-        delegator1.clientEvent = { client, event in
-            if client === client1 {
+        expecting(
+            description: "client2 open success & kick client1 success",
+            count: 2)
+        { (exp) in
+            delegator1.clientEvent = { client, event in
                 switch event {
                 case let .sessionDidClose(error: error):
-                    XCTAssertEqual(error.code, LCError.ServerErrorCode.sessionConflict.rawValue)
-                    exp2.fulfill()
+                    XCTAssertEqual(
+                        error.code,
+                        LCError.ServerErrorCode.sessionConflict.rawValue)
+                    exp.fulfill()
                 default:
                     break
                 }
             }
-        }
-        client2.open { (result) in
-            XCTAssertTrue(result.isSuccess)
-            exp2.fulfill()
-        }
-        wait(for: [exp2], timeout: timeout)
-        
-        let exp3 = expectation(description: "client1 resume with deviceToken1 fail, and set deviceToken2 then resume success")
-        exp3.expectedFulfillmentCount = 2
-        client1.open(options: []) { (result) in
-            XCTAssertEqual(result.error?.code, LCError.ServerErrorCode.sessionConflict.rawValue)
-            application1.currentInstallation.set(
-                deviceToken: application2.currentInstallation.deviceToken!.value,
-                apnsTeamId: ""
-            )
-            self.delay()
-            client1.open(options: []) { (result) in
+            client2.open { (result) in
+                XCTAssertTrue(result.isSuccess)
                 XCTAssertNil(result.error)
-                exp3.fulfill()
+                exp.fulfill()
             }
-            exp3.fulfill()
         }
-        wait(for: [exp3], timeout: timeout)
+        
+        expecting(
+            description: "client1 resume with deviceToken1 fail, and set deviceToken2 then resume success",
+            count: 2)
+        { (exp) in
+            client1.open(options: []) { (result) in
+                XCTAssertEqual(
+                    result.error?.code,
+                    LCError.ServerErrorCode.sessionConflict.rawValue)
+                installation1.set(
+                    deviceToken: installation2.deviceToken!.value,
+                    apnsTeamId: "LeanCloud"
+                )
+                self.delay()
+                client1.open(options: []) { (result) in
+                    XCTAssertTrue(result.isSuccess)
+                    XCTAssertNil(result.error)
+                    exp.fulfill()
+                }
+                exp.fulfill()
+            }
+        }
+        
+        if let fileURL = LCApplication.default.currentInstallationFileURL,
+            FileManager.default.fileExists(atPath: fileURL.path) {
+            try! FileManager.default.removeItem(at: fileURL)
+        }
     }
     
     func testSessionTokenExpired() {

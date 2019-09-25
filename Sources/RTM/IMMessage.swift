@@ -198,7 +198,7 @@ open class IMMessage {
         content: Content?,
         isAllMembersMentioned: Bool?,
         mentionedMembers: [String]?,
-        status: Status = .sent)
+        underlyingStatus: Status = .sent)
         -> IMMessage
     {
         var message = IMMessage()
@@ -227,19 +227,12 @@ open class IMMessage {
         message.mentionedMembers = mentionedMembers
         message.fromClientID = fromClientID
         message.currentClientID = currentClientID
-        message.underlyingStatus = status
+        message.underlyingStatus = underlyingStatus
         return message
     }
     
     var isTransient: Bool = false
-    var notTransientMessage: Bool {
-        return !self.isTransient
-    }
-    
     var isWill: Bool = false
-    var notWillMessage: Bool {
-        return !self.isWill
-    }
     
     /// ref: https://github.com/leancloud/avoscloud-push/blob/develop/push-server/doc/protocol.md#客户端发起-3
     /// parameter: `dt`
@@ -563,10 +556,11 @@ open class IMCategorizedMessage: IMMessage, IMMessageCategorizing {
                 }
                 if let fileURL: URL = avURL {
                     #if !os(watchOS)
-                    let options = [AVURLAssetPreferPreciseDurationAndTimingKey: true]
-                    let URLAsset = AVURLAsset(url: fileURL, options: options)
-                    let duration: Double = URLAsset.duration.seconds
-                    metaData[FileKey.duration.rawValue] = duration
+                    metaData[FileKey.duration.rawValue] = AVURLAsset(
+                        url: fileURL,
+                        options: [AVURLAssetPreferPreciseDurationAndTimingKey: true])
+                        .duration
+                        .seconds
                     #endif
                 }
             }
@@ -637,7 +631,7 @@ open class IMCategorizedMessage: IMMessage, IMMessageCategorizing {
 }
 
 /// IM Text Message
-public class IMTextMessage: IMCategorizedMessage {
+open class IMTextMessage: IMCategorizedMessage {
     
     public class override var messageType: MessageType {
         return ReservedType.text.rawValue
@@ -670,7 +664,7 @@ public class IMTextMessage: IMCategorizedMessage {
 }
 
 /// IM Image Message
-public class IMImageMessage: IMCategorizedMessage {
+open class IMImageMessage: IMCategorizedMessage {
     
     public class override var messageType: MessageType {
         return ReservedType.image.rawValue
@@ -709,7 +703,7 @@ public class IMImageMessage: IMCategorizedMessage {
 }
 
 /// IM Audio Message
-public class IMAudioMessage: IMCategorizedMessage {
+open class IMAudioMessage: IMCategorizedMessage {
     
     public class override var messageType: MessageType {
         return ReservedType.audio.rawValue
@@ -743,7 +737,7 @@ public class IMAudioMessage: IMCategorizedMessage {
 }
 
 /// IM Video Message
-public class IMVideoMessage: IMCategorizedMessage {
+open class IMVideoMessage: IMCategorizedMessage {
     
     public class override var messageType: MessageType {
         return ReservedType.video.rawValue
@@ -777,7 +771,7 @@ public class IMVideoMessage: IMCategorizedMessage {
 }
 
 /// IM File Message
-public class IMFileMessage: IMCategorizedMessage {
+open class IMFileMessage: IMCategorizedMessage {
     
     public class override var messageType: MessageType {
         return ReservedType.file.rawValue
@@ -806,7 +800,7 @@ public class IMFileMessage: IMCategorizedMessage {
 }
 
 /// IM Location Message
-public class IMLocationMessage: IMCategorizedMessage {
+open class IMLocationMessage: IMCategorizedMessage {
     
     public class override var messageType: MessageType {
         return ReservedType.location.rawValue
@@ -849,7 +843,7 @@ public class IMLocationMessage: IMCategorizedMessage {
 }
 
 /// IM Recalled Message
-public class IMRecalledMessage: IMCategorizedMessage {
+open class IMRecalledMessage: IMCategorizedMessage {
     
     public class override var messageType: MessageType {
         return ReservedType.recalled.rawValue
