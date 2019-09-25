@@ -107,54 +107,47 @@ public class LCFile: LCObject {
         return "_File"
     }
     
-    @available(*, unavailable)
-    public override func save(options: [LCObject.SaveOption] = []) -> LCBooleanResult {
-        fatalError("not support")
-    }
-    
-    @available(*, unavailable)
-    public override func save(options: [LCObject.SaveOption] = [], completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
-        fatalError("not support")
-    }
-
+    /// Save file synchronously.
     public func save() -> LCBooleanResult {
         return expect { fulfill in
             self.save(
-            progressInBackground: { _ in /* Nop */ },
-            completion: { result in
-                fulfill(result)
-            })
+                progressInBackground: { _ in },
+                completion: { result in fulfill(result) })
         }
     }
-
-    public func save(_ completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
-        return save(
-            progress: { _ in /* Nop */ },
-            completion: completion)
-    }
-
-    /**
-     Save current file.
-
-     - parameter progress: The progress handler.
-     - parameter completion: The completion handler.
-
-     - returns: The request of saving.
-     */
+    
+    /// Save file asynchronously.
+    /// - Parameter completionQueue: The queue where the completion on.
+    /// - Parameter completion: The callback of result.
+    @discardableResult
     public func save(
-        progress: @escaping (Double) -> Void,
-        completion: @escaping (LCBooleanResult) -> Void) -> LCRequest
+        completionQueue: DispatchQueue = .main,
+        completion: @escaping (LCBooleanResult) -> Void)
+        -> LCRequest
     {
         return save(
-        progressInBackground: { value in
-            mainQueueAsync {
-                progress(value)
-            }
-        },
-        completion: { result in
-            mainQueueAsync {
-                completion(result)
-            }
+            progress: { _ in },
+            completionQueue: completionQueue,
+            completion: completion)
+    }
+    
+    /// Save file asynchronously.
+    /// - Parameter progress: The progress of saving.
+    /// - Parameter completionQueue: The queue where the completion on.
+    /// - Parameter completion: The callback of result.
+    @discardableResult
+    public func save(
+        progress: @escaping (Double) -> Void,
+        completionQueue: DispatchQueue = .main,
+        completion: @escaping (LCBooleanResult) -> Void)
+        -> LCRequest
+    {
+        return save(
+            progressInBackground: progress,
+            completion: { result in
+                completionQueue.async {
+                    completion(result)
+                }
         })
     }
 
@@ -284,5 +277,43 @@ public class LCFile: LCObject {
             completion(.failure(error: error))
         }
     }
-
+    
+    // MARK: Unavailable
+    
+    @available(*, unavailable)
+    public override class func save(
+        _ objects: [LCObject],
+        options: [LCObject.SaveOption] = [])
+        -> LCBooleanResult
+    {
+        fatalError("not support")
+    }
+    
+    @available(*, unavailable)
+    public override class func save(
+        _ objects: [LCObject],
+        options: [LCObject.SaveOption] = [],
+        completion: @escaping (LCBooleanResult) -> Void)
+        -> LCRequest
+    {
+        fatalError("not support")
+    }
+    
+    @available(*, unavailable)
+    public override func save(
+        options: [LCObject.SaveOption] = [])
+        -> LCBooleanResult
+    {
+        fatalError("not support")
+    }
+    
+    @available(*, unavailable)
+    public override func save(
+        options: [LCObject.SaveOption] = [],
+        completion: @escaping (LCBooleanResult) -> Void)
+        -> LCRequest
+    {
+        fatalError("not support")
+    }
+    
 }
