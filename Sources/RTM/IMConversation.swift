@@ -710,24 +710,25 @@ extension IMConversation {
             try normallyCompletedClosure()
             return
         }
-        let _ = file.save(progress: { (value) in
-            // TODO: maybe should support custom callback dispatch queue
-            progress?(value)
-        }) { (result) in
-            // TODO: maybe should support custom callback dispatch queue
-            switch result {
-            case .success:
-                DispatchQueue.global(qos: .background).async {
+        // TODO: progress queue
+        file.save(
+            progress: { (value) in progress?(value) },
+            completionQueue: client
+                .application
+                .httpClient
+                .defaultCompletionDispatchQueue,
+            completion:  { (result) in
+                switch result {
+                case .success:
                     do {
                         try normallyCompletedClosure()
                     } catch {
                         completion(nil, LCError(error: error))
                     }
+                case .failure(error: let error):
+                    completion(nil, error)
                 }
-            case .failure(error: let error):
-                completion(nil, error)
-            }
-        }
+        })
     }
     
 }
