@@ -84,7 +84,7 @@ public class LCPush {
         let httpClient: HTTPClient = application.httpClient
         
         var parameters: [String: Any] = [
-            "prod": (application.configuration.environment.contains(.pushDevelopment) ? "dev" : "prod"),
+            "prod": application.pushMode,
             "data": data
         ]
         if let query: LCQuery = query {

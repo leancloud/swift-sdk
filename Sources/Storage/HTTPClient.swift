@@ -68,7 +68,7 @@ class HTTPClient {
     let configuration: Configuration
     let session: Alamofire.Session
 
-    init(application: LCApplication, configuration: Configuration) {
+    init(application: LCApplication, configuration: Configuration = .default) {
         self.application = application
         self.configuration = configuration
         self.session = {
@@ -97,7 +97,7 @@ class HTTPClient {
             HeaderFieldName.signature: createRequestSignature(),
             HeaderFieldName.userAgent: configuration.userAgent,
             HeaderFieldName.accept:    "application/json",
-            HeaderFieldName.production: (self.application.configuration.environment.contains(.cloudEngineDevelopment) ? "0" : "1")
+            HeaderFieldName.production: self.application.cloudEngineMode
         ]
 
         if let sessionToken = self.application.currentUser?.sessionToken {
