@@ -78,7 +78,7 @@ class RTMRouter {
     
     @discardableResult
     private func request(completion: @escaping (LCGenericResult<RTMRouter.Table>) -> Void) -> LCRequest {
-        guard let routerURL = self.application.httpRouter.route(path: "v1/route") else {
+        guard let routerURL = self.application.appRouter.route(path: "v1/route") else {
             return self.application.httpClient.request(
                 error: LCError.RTMRouterURLNotFound,
                 completionHandler: completion

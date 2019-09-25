@@ -70,21 +70,20 @@ class Utility {
 protocol InternalSynchronizing {
     
     var mutex: NSLock { get }
-    
 }
 
 extension InternalSynchronizing {
     
-    func sync(_ autoClosure: @autoclosure () -> Void) {
-        sync { autoClosure() }
+    func sync(_ closure: @autoclosure () -> Void) {
+        self.sync { closure() }
     }
     
-    func sync(_ closure: () -> Void) {
+    @discardableResult
+    func sync<T>(_ closure: () -> T) -> T {
         self.mutex.lock()
         defer {
             self.mutex.unlock()
         }
-        closure()
+        return closure()
     }
-    
 }

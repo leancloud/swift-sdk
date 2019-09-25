@@ -132,10 +132,8 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
 
     public required convenience init?(coder aDecoder: NSCoder) {
         let application: LCApplication
-        if
-            let applicationID: String = aDecoder.decodeObject(forKey: "applicationID") as? String,
-            let registeredApplication: LCApplication = applicationRegistry[applicationID]
-        {
+        if let applicationID = aDecoder.decodeObject(forKey: "applicationID") as? String,
+            let registeredApplication = LCApplication.registry[applicationID] {
             application = registeredApplication
         } else {
             application = LCApplication.default

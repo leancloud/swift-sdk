@@ -136,23 +136,14 @@ public class LCInstallation: LCObject {
     override func objectDidSave() {
         super.objectDidSave()
         
-        if
-            self.application.currentInstallation === self,
-            let url: URL = self.application.currentInstallationCacheURL
-        {
-            let table = CacheTable(
-                jsonString: self.jsonString,
-                applicationID: self.application.id
-            )
-            do {
-                try self.application.localStorageContext?.save(table: table, to: url)
-            } catch {
-                Logger.shared.error(error)
-            }
+        if self === self.application._currentInstallation {
+            LCInstallation.saveCurrentInstallation(self)
         }
     }
 
 }
+
+// MARK: Cache
 
 extension LCInstallation {
     
@@ -166,7 +157,48 @@ extension LCInstallation {
         }
     }
     
+    static func currentInstallation(application: LCApplication) -> LCInstallation? {
+        do {
+            guard let fileURL = application.currentInstallationFileURL,
+                let context = application.localStorageContext,
+                let table: CacheTable = try context.table(from: fileURL),
+                table.applicationID == application.id,
+                let data = table.jsonString.data(using: .utf8),
+                let jsonObject = try JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+                    return nil
+            }
+            let dictionary = try LCDictionary(
+                application: application,
+                unsafeObject: jsonObject)
+            return LCInstallation(
+                application: application,
+                dictionary: dictionary)
+        } catch {
+            Logger.shared.error(error)
+            return nil
+        }
+    }
+    
+    static func saveCurrentInstallation(_ installation: LCInstallation) {
+        let application = installation.application
+        guard let context = application.localStorageContext,
+            let fileURL = application.currentInstallationFileURL else {
+                return
+        }
+        do {
+            try context.save(
+                table: CacheTable(
+                    jsonString: installation.jsonString,
+                    applicationID: application.id),
+                to: fileURL)
+        } catch {
+            Logger.shared.error(error)
+        }
+    }
+    
 }
+
+// MARK: Device Token Conversion
 
 public protocol LCDeviceTokenConvertible {
 

@@ -9,27 +9,19 @@
 import XCTest
 @testable import LeanCloud
 
-extension LCApplication {
-    
-    var masterKey: String {
-        switch self.id {
-        case "S5vDI3IeCk1NLLiM1aFg3262-gzGzoHsz":
-            return "Q26gTodbyi1Ki7lM9vtncF6U,master"
-        default:
-            fatalError()
-        }
-    }
-    
-    var v2router: HTTPRouter {
-        return HTTPRouter(
-            application: self,
-            configuration: HTTPRouter.Configuration(apiVersion: "1.2")
-        )
-    }
-    
-}
-
 class BaseTestCase: XCTestCase {
+    
+    struct AppInfo {
+        let id: String
+        let key: String
+        let serverURL: String
+    }
+    
+    static let cnApp = AppInfo(
+        id: "S5vDI3IeCk1NLLiM1aFg3262-gzGzoHsz",
+        key: "7g5pPsI55piz2PRLPWK5MPz0",
+        serverURL: "https://s5vdi3ie.lc-cn-n1-shared.com"
+    )
     
     static let timeout: TimeInterval = 60.0
     
@@ -37,27 +29,25 @@ class BaseTestCase: XCTestCase {
     
     override class func setUp() {
         super.setUp()
-
+        
         TestObject.register()
         
         LCApplication.logLevel = .all
         
         try! LCApplication.default.set(
-            id: "S5vDI3IeCk1NLLiM1aFg3262-gzGzoHsz",
-            key: "7g5pPsI55piz2PRLPWK5MPz0"
-        )
+            id: BaseTestCase.cnApp.id,
+            key: BaseTestCase.cnApp.key,
+            serverURL: BaseTestCase.cnApp.serverURL)
     }
     
     override class func tearDown() {
-        let localDataURLs = [
-            LCApplication.default.localStorageContext!.applicationSupportDirectoryPath,
-            LCApplication.default.localStorageContext!.cachesDirectoryPath
-        ]
-        localDataURLs.forEach { (url) in
-            if FileManager.default.fileExists(atPath: url.path) {
-                try! FileManager.default.removeItem(at: url)
-            }
-        }
+        [LCApplication.default.localStorageContext!.applicationSupportDirectoryPath,
+         LCApplication.default.localStorageContext!.cachesDirectoryPath]
+            .forEach({ (url) in
+                if FileManager.default.fileExists(atPath: url.path) {
+                    try! FileManager.default.removeItem(at: url)
+                }
+            })
     }
     
 }
@@ -135,6 +125,26 @@ extension BaseTestCase {
         let exps = expectations()
         testcase(exps)
         wait(for: exps, timeout: timeout)
+    }
+    
+}
+
+extension LCApplication {
+    
+    var masterKey: String {
+        switch self.id {
+        case "S5vDI3IeCk1NLLiM1aFg3262-gzGzoHsz":
+            return "Q26gTodbyi1Ki7lM9vtncF6U,master"
+        default:
+            fatalError()
+        }
+    }
+    
+    var v2router: AppRouter {
+        return AppRouter(
+            application: self,
+            configuration: AppRouter.Configuration(apiVersion: "1.2")
+        )
     }
     
 }

@@ -10,113 +10,173 @@ import XCTest
 @testable import LeanCloud
 
 class LCRouterTestCase: BaseTestCase {
-
-    override func setUp() {
-        super.setUp()
-        // Put setup code here. This method is called before the invocation of each test method in the class.
+    
+    static let usApplication = try! LCApplication(
+        id: "Aexzfa0OETv4wzLpAb44E48Y-MdYXbMMI",
+        key: "4u1YuP1Oz4AW2WScKb5RJN4f"
+    )
+    
+    var appRouter: AppRouter {
+        return LCRouterTestCase.usApplication.appRouter
     }
-
-    override func tearDown() {
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
-        super.tearDown()
-    }
-
-    static let cnApplication       = LCApplication.default
-    static let ceApplication       = try! LCApplication(id: "uwWkfssEBRtrxVpQWEnFtqfr-9Nh9j0Va", key: "9OaLpoW21lIQtRYzJya4WHUR")
-    static let usApplication       = try! LCApplication(id: "eX7urCufwLd6X5mHxt7V12nL-MdYXbMMI", key: "PrmzHPnRXjXezS54KryuHMG6")
-    static let earlyCnApplication  = try! LCApplication(id: "uay57kigwe0b6f5n0e1d4z4xhydsml3dor24bzwvzr57wdap", key: "kfgz7jjfsk55r5a8a3y4ttd3je1ko11bkibcikonk32oozww")
-
-    lazy var cnRouter       = HTTPRouter(application: LCRouterTestCase.cnApplication, configuration: .default)
-    lazy var ceRouter       = HTTPRouter(application: LCRouterTestCase.ceApplication, configuration: .default)
-    lazy var usRouter       = HTTPRouter(application: LCRouterTestCase.usApplication, configuration: .default)
-    lazy var earlyCnRouter  = HTTPRouter(application: LCRouterTestCase.earlyCnApplication, configuration: .default)
-
-    func testAbsoluteUrl() {
-        XCTAssertEqual(
-            cnRouter.absoluteUrl(host: "example.com", path: "foo"),
-            URL(string: "https://example.com/foo"))
-        XCTAssertEqual(
-            cnRouter.absoluteUrl(host: "example.com:8000", path: "foo"),
-            URL(string: "https://example.com:8000/foo"))
-        XCTAssertEqual(
-            cnRouter.absoluteUrl(host: "https://example.com", path: "foo"),
-            URL(string: "https://example.com/foo"))
-        XCTAssertEqual(
-            cnRouter.absoluteUrl(host: "hello://example.com", path: "foo"),
-            URL(string: "hello://example.com/foo"))
-        XCTAssertEqual(
-            cnRouter.absoluteUrl(host: "https://example.com:8000", path: "foo"),
-            URL(string: "https://example.com:8000/foo"))
-        XCTAssertEqual(
-            cnRouter.absoluteUrl(host: "https://example.com:8000/", path: "foo"),
-            URL(string: "https://example.com:8000/foo"))
-        XCTAssertEqual(
-            cnRouter.absoluteUrl(host: "https://example.com:8000", path: "/foo"),
-            URL(string: "https://example.com:8000/foo"))
-        XCTAssertEqual(
-            cnRouter.absoluteUrl(host: "https://example.com:8000/", path: "/foo"),
-            URL(string: "https://example.com:8000/foo"))
-        XCTAssertEqual(
-            cnRouter.absoluteUrl(host: "https://example.com:8000/foo", path: "bar"),
-            URL(string: "https://example.com:8000/foo/bar"))
-    }
-
-    func testFallbackUrl() {
-        for item in
-            [HTTPRouter.Module.api,
-             HTTPRouter.Module.engine,
-             HTTPRouter.Module.push,
-             HTTPRouter.Module.rtm,
-             HTTPRouter.Module.stats]
-        {
-            switch item {
-            case .api:
-                XCTAssertEqual("\(item)", "api")
-            case .engine:
-                XCTAssertEqual("\(item)", "engine")
-            case .push:
-                XCTAssertEqual("\(item)", "push")
-            case .rtm:
-                XCTAssertEqual("\(item)", "rtm")
-            case .stats:
-                XCTAssertEqual("\(item)", "stats")
-            }
-            XCTAssertEqual(
-                cnRouter.fallbackUrl(path: "1.1/foo", module: item),
-                URL(string: "https://s5vdi3ie.\(item).lncld.net/1.1/foo"))
-            XCTAssertEqual(
-                ceRouter.fallbackUrl(path: "1.1/foo", module: item),
-                URL(string: "https://uwwkfsse.\(item).lncldapi.com/1.1/foo"))
-            XCTAssertEqual(
-                usRouter.fallbackUrl(path: "1.1/foo", module: item),
-                URL(string: "https://ex7urcuf.\(item).lncldglobal.com/1.1/foo"))
-            XCTAssertEqual(
-                earlyCnRouter.fallbackUrl(path: "1.1/foo", module: item),
-                URL(string: "https://uay57kig.\(item).lncld.net/1.1/foo"))
+    
+    func testModule() {
+        Array<(String, AppRouter.Module)>([
+            ("v1/route", .rtm),
+            ("/v1/route", .rtm),
+            ("push", .push),
+            ("/push", .push),
+            ("installations", .push),
+            ("/installations", .push),
+            ("call", .engine),
+            ("/call", .engine),
+            ("functions", .engine),
+            ("/functions", .engine),
+            ("user", .api),
+            ("/user", .api)
+        ]).forEach { (path, module) in
+            XCTAssertEqual(appRouter.module(path), module)
         }
     }
-
-    func testAppRouterThrottle() {
-        var requestSet = Set<LCRequest>()
-        var resultArray: [LCBooleanResult] = []
-
-        let dispatchGroup = DispatchGroup()
-
-        for _ in 0..<100 {
-            dispatchGroup.enter()
-            let request = cnRouter.requestAppRouter { result in
-                synchronize(on: resultArray) {
-                    resultArray.append(result)
-                }
-                dispatchGroup.leave()
-            }
-            requestSet.insert(request)
+    
+    func testVersionizedPath() {
+        let constant = "\(AppRouter.Configuration.default.apiVersion)/foo"
+        ["foo", "/foo"].forEach { (path) in
+            XCTAssertEqual(
+                appRouter.versionizedPath(path),
+                constant)
         }
-
-        dispatchGroup.wait()
-
-        XCTAssertEqual(resultArray.count, 100)
-        XCTAssertEqual(requestSet.count, 1)
+    }
+    
+    func testAbsolutePath() {
+        let constant = "/foo"
+        ["foo", "/foo"].forEach { (path) in
+            XCTAssertEqual(
+                appRouter.absolutePath(path),
+                constant)
+        }
+    }
+    
+    func testSchemingURL() {
+        Array<(String, String)>([
+            ("example.com", "https://example.com"),
+            ("http://example.com", "http://example.com"),
+            ("https://example.com", "https://example.com"),
+            ("example.com:8000", "https://example.com:8000"),
+            ("http://example.com:8000", "http://example.com:8000"),
+            ("https://example.com:8000", "https://example.com:8000")
+        ]).forEach { (url, result) in
+            XCTAssertEqual(
+                appRouter.schemingURL(url),
+                result)
+        }
+    }
+    
+    func testAbsoluteURL() {
+        Array<(String, String, String)>([
+            ("example.com", "foo", "https://example.com/foo"),
+            ("example.com/", "foo", "https://example.com/foo"),
+            ("example.com/foo", "bar", "https://example.com/foo/bar"),
+            ("example.com:8000", "foo", "https://example.com:8000/foo"),
+            ("example.com:8000/", "foo", "https://example.com:8000/foo"),
+            ("example.com:8000/foo", "bar", "https://example.com:8000/foo/bar"),
+            
+            ("https://example.com", "foo", "https://example.com/foo"),
+            ("https://example.com/", "foo", "https://example.com/foo"),
+            ("https://example.com/foo", "bar", "https://example.com/foo/bar"),
+            ("https://example.com:8000", "foo", "https://example.com:8000/foo"),
+            ("https://example.com:8000/", "foo", "https://example.com:8000/foo"),
+            ("https://example.com:8000/foo", "bar", "https://example.com:8000/foo/bar"),
+            
+            ("http://example.com", "foo", "http://example.com/foo"),
+            ("http://example.com/", "foo", "http://example.com/foo"),
+            ("http://example.com/foo", "bar", "http://example.com/foo/bar"),
+            ("http://example.com:8000", "foo", "http://example.com:8000/foo"),
+            ("http://example.com:8000/", "foo", "http://example.com:8000/foo"),
+            ("http://example.com:8000/foo", "bar", "http://example.com:8000/foo/bar"),
+        ]).forEach { (host, path, result) in
+            XCTAssertEqual(
+                appRouter.absoluteURL(host, path: path),
+                URL(string: result))
+        }
+    }
+    
+    func testFallbackURL() {
+        XCTAssertEqual(
+            appRouter.fallbackURL(module: .api, path: "foo"),
+            URL(string: "https://\("Aexzfa0O".lowercased()).api.lncldglobal.com/foo"))
+        XCTAssertEqual(
+            appRouter.fallbackURL(module: .api, path: "/foo"),
+            URL(string: "https://\("Aexzfa0O".lowercased()).api.lncldglobal.com/foo"))
+        XCTAssertEqual(
+            appRouter.fallbackURL(module: .rtm, path: "foo"),
+            URL(string: "https://\("Aexzfa0O".lowercased()).rtm.lncldglobal.com/foo"))
+        XCTAssertEqual(
+            appRouter.fallbackURL(module: .rtm, path: "/foo"),
+            URL(string: "https://\("Aexzfa0O".lowercased()).rtm.lncldglobal.com/foo"))
+        XCTAssertEqual(
+            appRouter.fallbackURL(module: .push, path: "foo"),
+            URL(string: "https://\("Aexzfa0O".lowercased()).push.lncldglobal.com/foo"))
+        XCTAssertEqual(
+            appRouter.fallbackURL(module: .push, path: "/foo"),
+            URL(string: "https://\("Aexzfa0O".lowercased()).push.lncldglobal.com/foo"))
+        XCTAssertEqual(
+            appRouter.fallbackURL(module: .engine, path: "foo"),
+            URL(string: "https://\("Aexzfa0O".lowercased()).engine.lncldglobal.com/foo"))
+        XCTAssertEqual(
+            appRouter.fallbackURL(module: .engine, path: "/foo"),
+            URL(string: "https://\("Aexzfa0O".lowercased()).engine.lncldglobal.com/foo"))
+    }
+    
+    func testCachedHost() {
+        appRouter.cacheTable = nil
+        XCTAssertNil(appRouter.cachedHost(module: .api))
+        
+        delay()
+        
+        Array<AppRouter.Module>([.api, .push, .rtm, .engine]).forEach { (module) in
+            XCTAssertNotNil(appRouter.cachedHost(module: module))
+        }
+        
+        appRouter.cacheTable!.createdTimestamp =
+            appRouter.cacheTable!.createdTimestamp! -
+            appRouter.cacheTable!.ttl!
+        XCTAssertNil(appRouter.cachedHost(module: .api))
+    }
+    
+    func testGetAppRouter() {
+        expecting { (exp) in
+            appRouter.getAppRouter { (response) in
+                XCTAssertTrue(response.isSuccess)
+                exp.fulfill()
+            }
+        }
+    }
+    
+    func testRequestAppRouter() {
+        for i in 0...1 {
+            if i == 1 {
+                XCTAssertTrue(appRouter.isRequesting)
+            }
+            appRouter.requestAppRouter()
+        }
+        
+        delay()
+        
+        XCTAssertTrue(FileManager.default.fileExists(atPath: appRouter.cacheFileURL!.path))
+        try! LCRouterTestCase.usApplication.set(
+            id: LCRouterTestCase.usApplication.id,
+            key: LCRouterTestCase.usApplication.key)
+        XCTAssertNotNil(appRouter.cacheTable)
+    }
+    
+    func testBatchRequestPath() {
+        let constant = "/\(AppRouter.Configuration.default.apiVersion)/foo"
+        ["foo", "/foo"].forEach { (path) in
+            XCTAssertEqual(
+                appRouter.batchRequestPath(path),
+                constant)
+        }
     }
 
 }

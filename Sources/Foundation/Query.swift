@@ -171,10 +171,8 @@ public class LCQuery: NSObject, NSCopying, NSCoding {
     }
 
     public required init?(coder aDecoder: NSCoder) {
-        if
-            let applicationID = aDecoder.decodeObject(forKey: "applicationID") as? String,
-            let registeredApplication = applicationRegistry[applicationID]
-        {
+        if let applicationID = aDecoder.decodeObject(forKey: "applicationID") as? String,
+            let registeredApplication = LCApplication.registry[applicationID] {
             self.application = registeredApplication
         } else {
             self.application = LCApplication.default
