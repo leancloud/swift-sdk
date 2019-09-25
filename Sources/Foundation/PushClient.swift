@@ -1,5 +1,5 @@
 //
-//  Push.swift
+//  PushClient.swift
 //  LeanCloud
 //
 //  Created by zapcannon87 on 2019/7/9.
