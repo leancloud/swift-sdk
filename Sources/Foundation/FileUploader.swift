@@ -353,12 +353,17 @@ class FileUploader {
             .uploadProgress(closure: { (object) in
                 progress(object.fractionCompleted)
             })
-            .response(completionHandler: { (response) in
-                if let error = response.error {
-                    completion(.failure(error: LCError(error: error)))
-                } else {
-                    completion(.success)
-                }
+            .response(
+                queue: self.file
+                    .application
+                    .httpClient
+                    .defaultCompletionDispatchQueue,
+                completionHandler: { (response) in
+                    if let error = response.error {
+                        completion(.failure(error: LCError(error: error)))
+                    } else {
+                        completion(.success)
+                    }
             })
         
         let sequenceRequest = LCSequenceRequest()
@@ -398,12 +403,17 @@ class FileUploader {
             .uploadProgress(closure: { object in
                 progress(object.fractionCompleted)
             })
-            .response(completionHandler: { response in
-                if let error = response.error {
-                    completion(.failure(error: LCError(error: error)))
-                } else {
-                    completion(.success)
-                }
+            .response(
+                queue: self.file
+                    .application
+                    .httpClient
+                    .defaultCompletionDispatchQueue,
+                completionHandler: { response in
+                    if let error = response.error {
+                        completion(.failure(error: LCError(error: error)))
+                    } else {
+                        completion(.success)
+                    }
             })
         
         let sequenceRequest = LCSequenceRequest()
@@ -436,17 +446,23 @@ class FileUploader {
             uploadRequest = self.session.upload(fileURL, to: uploadingURLString, method: .put, headers: HTTPHeaders(headers))
         }
 
-        uploadRequest.validate()
-        uploadRequest.uploadProgress { object in
-            progress(object.fractionCompleted)
-        }
-        uploadRequest.response { response in
-            if let error = response.error {
-                completion(.failure(error: LCError(error: error)))
-            } else {
-                completion(.success)
-            }
-        }
+        uploadRequest
+            .validate()
+            .uploadProgress(closure: { object in
+                progress(object.fractionCompleted)
+            })
+            .response(
+                queue: self.file
+                    .application
+                    .httpClient
+                    .defaultCompletionDispatchQueue,
+                completionHandler: { response in
+                    if let error = response.error {
+                        completion(.failure(error: LCError(error: error)))
+                    } else {
+                        completion(.success)
+                    }
+            })
 
         let request = LCSingleRequest(request: uploadRequest)
         uploadRequest.resume()
