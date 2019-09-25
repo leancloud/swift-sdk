@@ -716,7 +716,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
 
      - returns: The result of deletion request.
      */
-    public static func save(_ objects: [LCObject], options: [SaveOption] = []) -> LCBooleanResult {
+    public class func save(_ objects: [LCObject], options: [SaveOption] = []) -> LCBooleanResult {
         assert(self.assertObjectsApplication(objects), "objects with multiple applications.")
         return expect { fulfill in
             save(objects, options: options, completionInBackground: { result in
@@ -734,7 +734,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
      - returns: The request of saving.
      */
     @discardableResult
-    public static func save(_ objects: [LCObject], options: [SaveOption] = [], completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
+    public class func save(_ objects: [LCObject], options: [SaveOption] = [], completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
         assert(self.assertObjectsApplication(objects), "objects with multiple applications.")
         return save(objects, options: options, completionInBackground: { result in
             mainQueueAsync {
