@@ -155,5 +155,29 @@ class LCApplicationTestCase: BaseTestCase {
             XCTFail("\(error)")
         }
     }
+    
+    func testCurrentInstallation() {
+        let installation1 = LCApplication.default.currentInstallation
+        installation1.set(
+            deviceToken: UUID().uuidString,
+            apnsTeamId: "LeanCloud")
+        XCTAssertTrue(installation1.save().isSuccess)
+        
+        try! LCApplication.default.set(
+            id: LCApplication.default.id,
+            key: LCApplication.default.key,
+            serverURL: LCApplication.default.serverURL)
+        let installation2 = LCApplication.default.currentInstallation
+        
+        XCTAssertTrue(installation1 !== installation2)
+        XCTAssertEqual(
+            installation1.deviceToken?.value,
+            installation2.deviceToken?.value)
+        
+        if let fileURL = LCApplication.default.currentInstallationFileURL,
+            FileManager.default.fileExists(atPath: fileURL.path) {
+            try! FileManager.default.removeItem(at: fileURL)
+        }
+    }
 
 }
