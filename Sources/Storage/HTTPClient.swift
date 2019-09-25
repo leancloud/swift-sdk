@@ -61,7 +61,7 @@ class HTTPClient {
         
         let userAgent: String
         
-        static let `default` = Configuration(userAgent: "LeanCloud-Swift-SDK/\(__LeanCloudVersion)")
+        static let `default` = Configuration(userAgent: "LeanCloud-Swift-SDK/\(Version.versionString)")
     }
 
     let application: LCApplication

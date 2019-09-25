@@ -315,7 +315,7 @@ public class LCApplication {
     func logInitializationInfo() {
         Logger.shared.debug("""
             \n------ LCApplication Initialization Infomation\n
-            Version: \(__LeanCloudVersion)
+            Version: \(Version.versionString)
             ID: \(self.id!)
             Server URL: \(self.serverURL ?? "")
             Configuration: \(self.configuration)

@@ -48,7 +48,7 @@
 		835F5D761D7E6808004D1A0E /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D521D7E6808004D1A0E /* User.swift */; };
 		835F5D791D7E6808004D1A0E /* Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D551D7E6808004D1A0E /* Extension.swift */; };
 		835F5D7A1D7E6808004D1A0E /* LeanCloud.h in Headers */ = {isa = PBXBuildFile; fileRef = 835F5D561D7E6808004D1A0E /* LeanCloud.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		835F5D7B1D7E6808004D1A0E /* LeanCloud.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D571D7E6808004D1A0E /* LeanCloud.swift */; };
+		835F5D7B1D7E6808004D1A0E /* Version.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D571D7E6808004D1A0E /* Version.swift */; };
 		835F5D7D1D7E6808004D1A0E /* ObjectProfiler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D5A1D7E6808004D1A0E /* ObjectProfiler.swift */; };
 		835F5D7E1D7E6808004D1A0E /* ObjectUpdater.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D5B1D7E6808004D1A0E /* ObjectUpdater.swift */; };
 		835F5D7F1D7E6808004D1A0E /* Operation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835F5D5C1D7E6808004D1A0E /* Operation.swift */; };
@@ -178,7 +178,7 @@
 		835F5D521D7E6808004D1A0E /* User.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
 		835F5D551D7E6808004D1A0E /* Extension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Extension.swift; sourceTree = "<group>"; };
 		835F5D561D7E6808004D1A0E /* LeanCloud.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LeanCloud.h; sourceTree = "<group>"; };
-		835F5D571D7E6808004D1A0E /* LeanCloud.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LeanCloud.swift; sourceTree = "<group>"; };
+		835F5D571D7E6808004D1A0E /* Version.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Version.swift; sourceTree = "<group>"; };
 		835F5D5A1D7E6808004D1A0E /* ObjectProfiler.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ObjectProfiler.swift; sourceTree = "<group>"; };
 		835F5D5B1D7E6808004D1A0E /* ObjectUpdater.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ObjectUpdater.swift; sourceTree = "<group>"; };
 		835F5D5C1D7E6808004D1A0E /* Operation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Operation.swift; sourceTree = "<group>"; };
@@ -274,7 +274,7 @@
 		11D9C0F7216DF63B00A620B7 /* Foundation */ = {
 			isa = PBXGroup;
 			children = (
-				835F5D571D7E6808004D1A0E /* LeanCloud.swift */,
+				835F5D571D7E6808004D1A0E /* Version.swift */,
 				11D9C100216DFB2D00A620B7 /* MD5.swift */,
 				11D9C0F8216DF63B00A620B7 /* Error.swift */,
 				11D9C0F9216DF63B00A620B7 /* Application.swift */,
@@ -684,7 +684,7 @@
 				835F5D6B1D7E6808004D1A0E /* Bool.swift in Sources */,
 				835F5D751D7E6808004D1A0E /* String.swift in Sources */,
 				D36E6C7022EC56A800CC1989 /* LiveQuery.swift in Sources */,
-				835F5D7B1D7E6808004D1A0E /* LeanCloud.swift in Sources */,
+				835F5D7B1D7E6808004D1A0E /* Version.swift in Sources */,
 				835F5D741D7E6808004D1A0E /* Role.swift in Sources */,
 				D3301279217727870007286A /* Command.pb.swift in Sources */,
 			);
