@@ -24,7 +24,11 @@ class RTMConnectionTestCase: RTMBaseTestCase {
     }
     
     func testConnectionReference() {
-        let application = try! LCApplication(id: uuid, key: uuid)
+        let application = try! LCApplication(
+            id: uuid,
+            key: uuid,
+            serverURL: "leancloud.cn")
+        
         for imProtocol in
             [RTMConnection.LCIMProtocol.protobuf1,
              RTMConnection.LCIMProtocol.protobuf3]
@@ -81,6 +85,8 @@ class RTMConnectionTestCase: RTMBaseTestCase {
         }
         XCTAssertEqual(RTMConnectionManager.default.protobuf1Map[application.id]?.count, 1)
         XCTAssertEqual(RTMConnectionManager.default.protobuf3Map[application.id]?.count, 1)
+        
+        LCApplication.registry.removeValue(forKey: application.id)
     }
     
     func testDeinit() {
