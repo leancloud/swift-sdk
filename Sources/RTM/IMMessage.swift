@@ -631,7 +631,7 @@ open class IMCategorizedMessage: IMMessage, IMMessageCategorizing {
 }
 
 /// IM Text Message
-public class IMTextMessage: IMCategorizedMessage {
+open class IMTextMessage: IMCategorizedMessage {
     
     public class override var messageType: MessageType {
         return ReservedType.text.rawValue
@@ -664,7 +664,7 @@ public class IMTextMessage: IMCategorizedMessage {
 }
 
 /// IM Image Message
-public class IMImageMessage: IMCategorizedMessage {
+open class IMImageMessage: IMCategorizedMessage {
     
     public class override var messageType: MessageType {
         return ReservedType.image.rawValue
@@ -703,7 +703,7 @@ public class IMImageMessage: IMCategorizedMessage {
 }
 
 /// IM Audio Message
-public class IMAudioMessage: IMCategorizedMessage {
+open class IMAudioMessage: IMCategorizedMessage {
     
     public class override var messageType: MessageType {
         return ReservedType.audio.rawValue
@@ -737,7 +737,7 @@ public class IMAudioMessage: IMCategorizedMessage {
 }
 
 /// IM Video Message
-public class IMVideoMessage: IMCategorizedMessage {
+open class IMVideoMessage: IMCategorizedMessage {
     
     public class override var messageType: MessageType {
         return ReservedType.video.rawValue
@@ -771,7 +771,7 @@ public class IMVideoMessage: IMCategorizedMessage {
 }
 
 /// IM File Message
-public class IMFileMessage: IMCategorizedMessage {
+open class IMFileMessage: IMCategorizedMessage {
     
     public class override var messageType: MessageType {
         return ReservedType.file.rawValue
@@ -800,7 +800,7 @@ public class IMFileMessage: IMCategorizedMessage {
 }
 
 /// IM Location Message
-public class IMLocationMessage: IMCategorizedMessage {
+open class IMLocationMessage: IMCategorizedMessage {
     
     public class override var messageType: MessageType {
         return ReservedType.location.rawValue
@@ -843,7 +843,7 @@ public class IMLocationMessage: IMCategorizedMessage {
 }
 
 /// IM Recalled Message
-public class IMRecalledMessage: IMCategorizedMessage {
+open class IMRecalledMessage: IMCategorizedMessage {
     
     public class override var messageType: MessageType {
         return ReservedType.recalled.rawValue
