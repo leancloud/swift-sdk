@@ -2615,61 +2615,6 @@ public class IMChatRoom: IMConversation {
         completion(.failure(error: LCError.conversationNotSupport(convType: type(of: self))))
     }
     
-    @available(*, unavailable)
-    public override func fetchMemberInfoTable(completion: @escaping (LCBooleanResult) -> Void) {
-        completion(.failure(error: LCError.conversationNotSupport(convType: type(of: self))))
-    }
-    
-    @available(*, unavailable)
-    public override func getMemberInfo(by memberID: String, completion: @escaping (LCGenericResult<IMConversation.MemberInfo?>) -> Void) {
-        completion(.failure(error: LCError.conversationNotSupport(convType: type(of: self))))
-    }
-    
-    @available(*, unavailable)
-    public override func update(role: IMConversation.MemberRole, ofMember memberID: String, completion: @escaping (LCBooleanResult) -> Void) throws {
-        throw LCError.conversationNotSupport(convType: type(of: self))
-    }
-    
-    @available(*, unavailable)
-    public override func block(members: Set<String>, completion: @escaping (IMConversation.MemberResult) -> Void) throws {
-        throw LCError.conversationNotSupport(convType: type(of: self))
-    }
-    
-    @available(*, unavailable)
-    public override func unblock(members: Set<String>, completion: @escaping (IMConversation.MemberResult) -> Void) throws {
-        throw LCError.conversationNotSupport(convType: type(of: self))
-    }
-    
-    @available(*, unavailable)
-    public override func getBlockedMembers(limit: Int = 50, next: String? = nil, completion: @escaping (LCGenericResult<IMConversation.BlockedMembersResult>) -> Void) throws {
-        throw LCError.conversationNotSupport(convType: type(of: self))
-    }
-    
-    @available(*, unavailable)
-    public override func checkBlocking(member ID: String, completion: @escaping (LCGenericResult<Bool>) -> Void) {
-        completion(.failure(error: LCError.conversationNotSupport(convType: type(of: self))))
-    }
-    
-    @available(*, unavailable)
-    public override func mute(members: Set<String>, completion: @escaping (IMConversation.MemberResult) -> Void) throws {
-        throw LCError.conversationNotSupport(convType: type(of: self))
-    }
-    
-    @available(*, unavailable)
-    public override func unmute(members: Set<String>, completion: @escaping (IMConversation.MemberResult) -> Void) throws {
-        throw LCError.conversationNotSupport(convType: type(of: self))
-    }
-    
-    @available(*, unavailable)
-    public override func getMutedMembers(limit: Int = 50, next: String? = nil, completion: @escaping (LCGenericResult<IMConversation.MutedMembersResult>) -> Void) throws {
-        throw LCError.conversationNotSupport(convType: type(of: self))
-    }
-    
-    @available(*, unavailable)
-    public override func checkMuting(member ID: String, completion: @escaping (LCGenericResult<Bool>) -> Void) {
-        completion(.failure(error: LCError.conversationNotSupport(convType: type(of: self))))
-    }
-    
     /// Get count of online clients in this Chat Room.
     ///
     /// - Parameter completion: callback.
