@@ -20,7 +20,7 @@ Pod::Spec.new do |s|
   end
 
   s.subspec 'RTM' do |ss|
-    ss.dependency 'SwiftProtobuf', '~> 1.6.0'
+    ss.dependency 'SwiftProtobuf', '~> 1.7.0'
     ss.dependency 'Starscream', '~> 3.1'
     ss.dependency 'GRDB.swift', '~> 4.4'
 
