@@ -12,23 +12,45 @@ import XCTest
 class LCInstallationTestCase: BaseTestCase {
 
     func testCurrentInstallation() {
-        let installation = LCApplication.default.currentInstallation
+        let fileURL = LCApplication.default.currentInstallationFileURL!
         
-        installation.set(deviceToken: UUID().uuidString.replacingOccurrences(of: "-", with: ""), apnsTeamId: "LeanCloud")
+        if FileManager.default.fileExists(atPath: fileURL.path) {
+            try! FileManager.default.removeItem(at: fileURL)
+        }
         
-        XCTAssertTrue(installation.hasDataToUpload)
-
+        let installation = LCInstallation()
+        installation.set(
+            deviceToken: UUID().uuidString,
+            apnsTeamId: "LeanCloud")
         XCTAssertTrue(installation.save().isSuccess)
         
-        XCTAssertFalse(installation.hasDataToUpload)
+        XCTAssertNil(LCInstallation.currentInstallation(application: .default))
+        LCInstallation.saveCurrentInstallation(installation)
+        XCTAssertTrue(FileManager.default.fileExists(atPath: fileURL.path))
         
-        try? installation.append("channels", element: "test", unique: true)
+        let currentInstallation = LCInstallation.currentInstallation(application: .default)
+        XCTAssertEqual(
+            currentInstallation?.objectId?.value,
+            installation.objectId?.value)
+        XCTAssertEqual(
+            currentInstallation?.deviceToken?.value,
+            installation.deviceToken?.value)
+        XCTAssertEqual(
+            currentInstallation?.apnsTeamId?.value,
+            installation.apnsTeamId?.value)
+        XCTAssertEqual(
+            currentInstallation?.apnsTopic?.value,
+            installation.apnsTopic?.value)
+        XCTAssertEqual(
+            currentInstallation?.deviceType?.value,
+            installation.deviceType?.value)
+        XCTAssertEqual(
+            currentInstallation?.timeZone?.value,
+            installation.timeZone?.value)
         
-        XCTAssertTrue(installation.hasDataToUpload)
-        
-        XCTAssertTrue(installation.save().isSuccess)
-        
-        XCTAssertFalse(installation.hasDataToUpload)
+        if FileManager.default.fileExists(atPath: fileURL.path) {
+            try! FileManager.default.removeItem(at: fileURL)
+        }
     }
 
 }
