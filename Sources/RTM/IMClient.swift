@@ -1306,30 +1306,26 @@ extension IMClient {
     // MARK: Session Command
     
     func newSessionCommand(
-        op: IMOpType,
+        op: IMOpType = .open,
         token: String? = nil,
-        isReopen: Bool? = nil,
-        signature: IMSignature? = nil)
+        signature: IMSignature? = nil,
+        isReopen: Bool? = nil)
         -> IMGenericCommand
     {
         assert(self.specificAssertion)
-        assert(op == .open || op == .refresh)
         var outCommand = IMGenericCommand()
         outCommand.cmd = .session
         outCommand.op = op
         outCommand.appID = self.application.id
         outCommand.peerID = self.ID
         var sessionCommand = IMSessionCommand()
-        sessionCommand.configBitmap = SessionConfigs.support.rawValue
-        sessionCommand.deviceToken = self.currentDeviceToken ?? Utility.UDID
-        sessionCommand.ua = self.application.httpClient.configuration.userAgent
-        if let tag: String = self.tag {
-            sessionCommand.tag = tag
-        }
-        if let token = token {
-            sessionCommand.st = token
-        }
         if op == .open {
+            sessionCommand.configBitmap = SessionConfigs.support.rawValue
+            sessionCommand.deviceToken = self.currentDeviceToken ?? Utility.UDID
+            sessionCommand.ua = self.application.httpClient.configuration.userAgent
+            if let tag: String = self.tag {
+                sessionCommand.tag = tag
+            }
             if let r = isReopen {
                 sessionCommand.r = r
             }
@@ -1339,11 +1335,17 @@ extension IMClient {
             if let lastPatchTime: Int64 = self.localRecord.lastPatchTimestamp {
                 sessionCommand.lastPatchTime = lastPatchTime
             }
-            if let signature = signature {
+            if let token = token {
+                sessionCommand.st = token
+            } else if let signature = signature {
                 sessionCommand.s = signature.signature
                 sessionCommand.t = signature.timestamp
                 sessionCommand.n = signature.nonce
             }
+        } else if op == .refresh {
+            sessionCommand.st = token!
+        } else {
+            assertionFailure()
         }
         outCommand.sessionMessage = sessionCommand
         return outCommand
@@ -1382,52 +1384,43 @@ extension IMClient {
     
     func getSessionOpenCommand(
         token: String? = nil,
-        isReopen: Bool? = nil,
+        isReopen: Bool,
         completion: @escaping (IMClient, IMGenericCommand) -> Void)
     {
-        if let userSessionToken = self.user?.sessionToken?.value {
+        if let sessionToken = token {
+            completion(self, self.newSessionCommand(
+                token: sessionToken,
+                isReopen: isReopen))
+        } else if let userSessionToken = self.user?.sessionToken?.value {
             self.getOpenSignature(userSessionToken: userSessionToken) { (client, result) in
                 assert(client.specificAssertion)
                 switch result {
                 case .success(value: let signature):
-                    let sessionCommand = client.newSessionCommand(
-                        op: .open,
-                        token: token,
-                        isReopen: isReopen,
-                        signature: signature
-                    )
-                    completion(client, sessionCommand)
+                    completion(client, client.newSessionCommand(
+                        signature: signature,
+                        isReopen: isReopen))
                 case .failure(error: let error):
                     if error.code == LCError.InternalErrorCode.underlyingError.rawValue {
                         Logger.shared.error(error)
                     } else {
-                        client.sessionClosed(with: .failure(error: error), completion: client.openingCompletion)
+                        client.sessionClosed(
+                            with: .failure(error: error),
+                            completion: client.openingCompletion)
                     }
                 }
             }
-        } else {
-            if let signatureDelegate = self.signatureDelegate {
-                self.eventQueue.async {
-                    signatureDelegate.client(self, action: .open, signatureHandler: { (client, signature) in
-                        client.serialQueue.async {
-                            let sessionCommand = client.newSessionCommand(
-                                op: .open,
-                                token: token,
-                                isReopen: isReopen,
-                                signature: signature
-                            )
-                            completion(client, sessionCommand)
-                        }
-                    })
-                }
-            } else {
-                let sessionCommand = self.newSessionCommand(
-                    op: .open,
-                    token: token,
-                    isReopen: isReopen
-                )
-                completion(self, sessionCommand)
+        } else if let signatureDelegate = self.signatureDelegate {
+            self.eventQueue.async {
+                signatureDelegate.client(self, action: .open, signatureHandler: { (client, signature) in
+                    client.serialQueue.async {
+                        completion(client, client.newSessionCommand(
+                            signature: signature,
+                            isReopen: isReopen))
+                    }
+                })
             }
+        } else {
+            completion(self, self.newSessionCommand(isReopen: isReopen))
         }
     }
     
@@ -2328,10 +2321,8 @@ extension IMClient: RTMConnectionDelegate {
     
     func connection(didConnect connection: RTMConnection) {
         assert(self.specificAssertion)
-        if
-            let openingCompletion = self.openingCompletion,
-            let openingOptions = self.openingOptions
-        {
+        if let openingCompletion = self.openingCompletion,
+            let openingOptions = self.openingOptions {
             self.getSessionOpenCommand(isReopen: openingOptions.r) { (client, openCommand) in
                 weak var wClient = client
                 client.connection.send(command: openCommand, callingQueue: client.serialQueue) { (result) in
