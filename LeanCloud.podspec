@@ -24,7 +24,7 @@ Pod::Spec.new do |s|
     ss.dependency 'Starscream', '~> 3.1'
     ss.dependency 'GRDB.swift', '~> 4.4'
 
-    ss.dependency 'LeanCloud/Foundation'
+    ss.dependency 'LeanCloud/Foundation', "#{s.version}"
 
     ss.source_files = 'Sources/RTM/**/*.{swift}'
   end
