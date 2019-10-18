@@ -100,7 +100,7 @@ class HTTPClient {
             HeaderFieldName.production: self.application.cloudEngineMode
         ]
 
-        if let sessionToken = self.application.currentUser?.sessionToken {
+        if let sessionToken = self.application._currentUser?.sessionToken {
             headers[HeaderFieldName.session] = sessionToken.value
         }
 

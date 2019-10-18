@@ -99,7 +99,7 @@ public class LiveQuery {
             "id": self.client.ID,
             "clientTimestamp": clientTimestamp
         ]
-        if let sessionToken: String = self.application.currentUser?.sessionToken?.value {
+        if let sessionToken: String = self.application._currentUser?.sessionToken?.value {
             parameter["sessionToken"] = sessionToken
         }
         _ = self.application.httpClient.request(

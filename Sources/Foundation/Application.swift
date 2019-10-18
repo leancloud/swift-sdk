@@ -222,7 +222,31 @@ public class LCApplication {
     // MARK: Current User
     
     /// Current User.
-    public var currentUser: LCUser?
+    public var currentUser: LCUser? {
+        set {
+            self._currentUser = newValue
+            LCUser.saveCurrentUser(application: self, user: newValue)
+        }
+        get {
+            if self._currentUser == nil {
+                self._currentUser = LCUser.currentUser(application: self)
+            }
+            return self._currentUser
+        }
+    }
+    var _currentUser: LCUser?
+    
+    var currentUserFileURL: URL? {
+        do {
+            return try self.localStorageContext?.fileURL(
+                place: .persistentData,
+                module: .storage,
+                file: .user)
+        } catch {
+            Logger.shared.error(error)
+            return nil
+        }
+    }
     
     // MARK: Internal Context
     
@@ -269,6 +293,7 @@ public class LCApplication {
     {
         if let oldID = self.id {
             self._currentInstallation = nil
+            self._currentUser = nil
             LCApplication.registry.removeValue(forKey: oldID)
         }
         
@@ -305,7 +330,7 @@ public class LCApplication {
         // register LeanCloud Object Classes if needed.
         _ = ObjectProfiler.shared
         
-        self.localStorageContext = try LocalStorageContext(applicationID: self.id)
+        self.localStorageContext = LocalStorageContext(application: self)
         self.httpClient = HTTPClient(application: self)
         self.appRouter = AppRouter(application: self)
         
@@ -323,5 +348,16 @@ public class LCApplication {
             \n------ END\n
             """)
     }
-
+    
+    // MARK: Deinit
+    
+    /// should unregister the application before releasing it's memory.
+    public func unregister() {
+        LCApplication.registry.removeValue(forKey: self.id)
+        self._currentInstallation = nil
+        self._currentUser = nil
+        self.localStorageContext = nil
+        self.httpClient = nil
+        self.appRouter = nil
+    }
 }
