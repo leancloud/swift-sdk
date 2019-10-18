@@ -11,16 +11,6 @@ import XCTest
 
 class LCUserTestCase: BaseTestCase {
     
-    override func setUp() {
-        super.setUp()
-        // Put setup code here. This method is called before the invocation of each test method in the class.
-    }
-    
-    override func tearDown() {
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
-        super.tearDown()
-    }
-    
     func testSignUpAndLogIn() {
         let user = LCUser()
         let application = user.application
@@ -133,6 +123,28 @@ class LCUserTestCase: BaseTestCase {
         } catch {
             XCTFail("\(error)")
         }
+    }
+    
+    func testCache() {
+        let username = UUID().uuidString
+        let password = UUID().uuidString
+        let signUpUser = LCUser()
+        signUpUser.username = username.lcString
+        signUpUser.password = password.lcString
+        XCTAssertTrue(signUpUser.signUp()
+            .isSuccess)
+        XCTAssertTrue(LCUser.logIn(
+            username: username,
+            password: password)
+            .isSuccess)
+        XCTAssertNotNil(LCApplication.default.currentUser?.sessionToken?.value)
+        let sessionToken = LCApplication.default.currentUser?.sessionToken?.value
+        LCApplication.default._currentUser = nil
+        XCTAssertEqual(
+            sessionToken,
+            LCApplication.default.currentUser?.sessionToken?.value)
+        LCUser.logOut()
+        XCTAssertNil(LCApplication.default.currentUser)
     }
 
 }
