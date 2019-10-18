@@ -9,26 +9,25 @@
 import Foundation
 
 class LocalStorageContext {
+    static let domain: String = "com.leancloud.swift"
     
     enum Place {
         case systemCaches
         case persistentData
+        
+        var searchPathDirectory: FileManager.SearchPathDirectory {
+            switch self {
+            case .systemCaches:
+                return .cachesDirectory
+            case .persistentData:
+                return .applicationSupportDirectory
+            }
+        }
     }
-    
-    /*
-     This struct is used to record which domain has been deprecated.
-     
-     !!! Should Never Use Deprecated Domain !!!
-     */
-    private struct DeprecatedDomain {
-        /// due to need a tag to identify objc-sdk and swift-sdk.
-        static let domain1 = "LeanCloud"
-    }
-    
-    static let domain: String = "com.leancloud.swift"
     
     enum Module {
         case router
+        case storage
         case push
         case IM(clientID: String)
         
@@ -36,20 +35,30 @@ class LocalStorageContext {
             switch self {
             case .router:
                 return "router"
+            case .storage:
+                return "storage"
             case .push:
                 return "push"
             case .IM(clientID: let clientID):
-                let md5: String = clientID.md5.lowercased()
-                return ("IM" as NSString).appendingPathComponent(md5)
+                return ("IM" as NSString)
+                    .appendingPathComponent(
+                        clientID.md5.lowercased())
             }
         }
     }
     
     enum File: String {
+        // App Router Data
         case appServer = "app_server"
+        // RTM Router Data
         case rtmServer = "rtm_server"
+        // Application's Current User
+        case user = "user"
+        // Application's Current Installation
         case installation = "installation"
+        // IMClient's local data
         case clientRecord = "client_record"
+        // Database for IMConversation and IMMessage
         case database = "database.sqlite"
         
         var name: String {
@@ -57,91 +66,65 @@ class LocalStorageContext {
         }
     }
     
-    let cachesDirectoryPath: URL
-    let applicationSupportDirectoryPath: URL
+    let application: LCApplication
     
-    init(applicationID: String) throws {
-        let directoryInUserDomain: (FileManager.SearchPathDirectory) throws -> URL = {
-            return try FileManager.default.url(
-                for: $0,
-                in: .userDomainMask,
-                appropriateFor: nil,
-                create: true
-            )
-        }
-        let systemCachesDirectory: URL = try directoryInUserDomain(.cachesDirectory)
-        let systemApplicationSupportDirectory: URL = try directoryInUserDomain(.applicationSupportDirectory)
-        
-        let appIDMD5: String = applicationID.md5.lowercased()
-        
-        let appDirectoryPath: (URL) throws -> URL = {
-            let pathURL: URL = $0
-                .appendingPathComponent(LocalStorageContext.domain, isDirectory: true)
-                .appendingPathComponent(appIDMD5, isDirectory: true)
-            try FileManager.default.createDirectory(
-                at: pathURL,
-                withIntermediateDirectories: true,
-                attributes: nil
-            )
-            return pathURL
-        }
-        self.cachesDirectoryPath = try appDirectoryPath(systemCachesDirectory)
-        self.applicationSupportDirectoryPath = try appDirectoryPath(systemApplicationSupportDirectory)
+    init(application: LCApplication) {
+        self.application = application
     }
     
     func fileURL(place: Place, module: Module, file: File) throws -> URL {
-        var rootDirectory: URL
-        switch place {
-        case .systemCaches:
-            rootDirectory = self.cachesDirectoryPath
-        case .persistentData:
-            rootDirectory = self.applicationSupportDirectoryPath
-        }
-        let directoryURL = rootDirectory.appendingPathComponent(module.path, isDirectory: true)
+        let moduleDirectoryURL = (
+            try FileManager.default.url(
+                for: place.searchPathDirectory,
+                in: .userDomainMask,
+                appropriateFor: nil,
+                create: true))
+            .appendingPathComponent(
+                LocalStorageContext.domain,
+                isDirectory: true)
+            .appendingPathComponent(
+                self.application.id.md5.lowercased(),
+                isDirectory: true)
+            .appendingPathComponent(
+                module.path,
+                isDirectory: true)
         try FileManager.default.createDirectory(
-            at: directoryURL,
-            withIntermediateDirectories: true,
-            attributes: nil
-        )
-        return directoryURL.appendingPathComponent(file.name)
+            at: moduleDirectoryURL,
+            withIntermediateDirectories: true)
+        return moduleDirectoryURL.appendingPathComponent(
+            file.name)
     }
     
     func save<T: Codable>(table: T, to fileURL: URL, encoder: JSONEncoder = JSONEncoder()) throws {
-        let filePath = fileURL.path
-        let data: Data = try encoder.encode(table)
-        let tmpFileURL: URL = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(UUID().uuidString)
-        try data.write(to: tmpFileURL)
-        if FileManager.default.fileExists(atPath: filePath) {
+        let tempFileURL: URL = URL(fileURLWithPath: NSTemporaryDirectory())
+            .appendingPathComponent(
+                UUID().uuidString)
+        try (try encoder.encode(table))
+            .write(to: tempFileURL)
+        if FileManager.default.fileExists(atPath: fileURL.path) {
             try FileManager.default.replaceItem(
                 at: fileURL,
-                withItemAt: tmpFileURL,
+                withItemAt: tempFileURL,
                 backupItemName: nil,
-                resultingItemURL: nil
-            )
+                resultingItemURL: nil)
         } else {
             try FileManager.default.moveItem(
-                atPath: tmpFileURL.path,
-                toPath: filePath
-            )
+                atPath: tempFileURL.path,
+                toPath: fileURL.path)
         }
     }
     
     func table<T: Codable>(from fileURL: URL, decoder: JSONDecoder = JSONDecoder()) throws -> T? {
-        let filePath = fileURL.path
-        guard
-            FileManager.default.fileExists(atPath: filePath),
-            let data = FileManager.default.contents(atPath: filePath)
-            else
-        {
-            return nil
+        guard FileManager.default.fileExists(atPath: fileURL.path),
+            let data = FileManager.default.contents(atPath: fileURL.path) else {
+                return nil
         }
         return try decoder.decode(T.self, from: data)
     }
     
     func clear(file fileURL: URL) throws {
-        let filePath = fileURL.path
-        if FileManager.default.fileExists(atPath: filePath) {
-            try FileManager.default.removeItem(atPath: filePath)
+        if FileManager.default.fileExists(atPath: fileURL.path) {
+            try FileManager.default.removeItem(atPath: fileURL.path)
         }
     }
     
