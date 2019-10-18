@@ -11,83 +11,100 @@ import XCTest
 
 class LCLocalStorageTestCase: BaseTestCase {
     
-    func testInitAndDeinit() {
-        var instance: LocalStorageContext!
-        
-        do {
-            let applicationID: String = "test"
-            instance = try LocalStorageContext(applicationID: applicationID)
-            
-            print(instance.applicationSupportDirectoryPath.path)
-            print(instance.cachesDirectoryPath.path)
-            
-            XCTAssertTrue(instance.applicationSupportDirectoryPath.path.contains("Library/Application Support"))
-            XCTAssertTrue(instance.cachesDirectoryPath.path.contains("Library/Caches"))
-            XCTAssertTrue(instance.applicationSupportDirectoryPath.path.contains(LocalStorageContext.domain))
-            XCTAssertTrue(instance.cachesDirectoryPath.path.contains(LocalStorageContext.domain))
-            XCTAssertTrue(instance.applicationSupportDirectoryPath.path.contains(applicationID.md5.lowercased()))
-            XCTAssertTrue(instance.cachesDirectoryPath.path.contains(applicationID.md5.lowercased()))
-            
-            var objcBool: ObjCBool = false
-            
-            XCTAssertTrue(FileManager.default.fileExists(atPath: instance.applicationSupportDirectoryPath.path, isDirectory: &objcBool))
-            XCTAssertTrue(objcBool.boolValue)
-            
-            objcBool = false
-            
-            XCTAssertTrue(FileManager.default.fileExists(atPath: instance.cachesDirectoryPath.path, isDirectory: &objcBool))
-            XCTAssertTrue(objcBool.boolValue)
-        } catch {
-            XCTFail("\(error)")
+    var application: LCApplication!
+    var localStorage: LocalStorageContext {
+        return application.localStorageContext!
+    }
+    
+    let tuples: [(LocalStorageContext.Place, LocalStorageContext.Module, LocalStorageContext.File)] = [
+        (.systemCaches, .router, .appServer),
+        (.systemCaches, .router, .rtmServer),
+        (.systemCaches, .push, .installation),
+        (.persistentData, .storage, .user),
+        (.persistentData, .IM(clientID: UUID().uuidString), .clientRecord),
+        (.persistentData, .IM(clientID: UUID().uuidString), .database)
+    ]
+    
+    override func setUp() {
+        super.setUp()
+        self.application = try! LCApplication(
+            id: UUID().uuidString,
+            key: UUID().uuidString,
+            serverURL: "leancloud.cn")
+    }
+    
+    override func tearDown() {
+        [self.application.applicationSupportDirectoryURL,
+         self.application.cachesDirectoryURL]
+            .forEach { (url) in
+                if FileManager.default.fileExists(atPath: url.path) {
+                    try! FileManager.default.removeItem(at: url)
+                }
         }
-        
-        weak var weakRef: LocalStorageContext? = instance
-        instance = nil
+        self.application.unregister()
+        super.tearDown()
+    }
+    
+    func testInitAndDeinit() {
+        var ref: LocalStorageContext? = LocalStorageContext(application: self.application)
+        weak var weakRef: LocalStorageContext? = ref
+        ref = nil
         XCTAssertNil(weakRef)
     }
     
     func testFileURL() {
-        let localStorage = try! LocalStorageContext(applicationID: "test")
-        
-        let clientID = "clientID"
-        let persistentPath = try! localStorage.fileURL(place: .persistentData, module: .IM(clientID: clientID), file: .clientRecord).path
-        print(persistentPath)
-        XCTAssertTrue(persistentPath.contains("Library/Application Support"))
-        XCTAssertTrue(persistentPath.contains("IM"))
-        XCTAssertTrue(persistentPath.contains(clientID.md5.lowercased()))
-        XCTAssertTrue(persistentPath.contains(LocalStorageContext.File.clientRecord.name))
-        
-        let systemCachesPath = try! localStorage.fileURL(place: .systemCaches, module: .push, file: .installation).path
-        print(systemCachesPath)
-        XCTAssertTrue(systemCachesPath.contains("Library/Caches"))
-        XCTAssertTrue(systemCachesPath.contains(LocalStorageContext.Module.push.path))
-        XCTAssertTrue(systemCachesPath.contains(LocalStorageContext.File.installation.name))
+        self.tuples.forEach { (place, module, file)  in
+            let fileURL = try! self.localStorage.fileURL(
+                place: place,
+                module: module,
+                file: file)
+            let systemPath: String
+            switch place {
+            case .systemCaches:
+                systemPath = "Library/Caches/"
+            case .persistentData:
+                systemPath = "Library/Application Support/"
+            }
+            XCTAssertTrue(fileURL.path.hasSuffix(systemPath
+                + LocalStorageContext.domain + "/"
+                + self.localStorage.application.id.md5.lowercased() + "/"
+                + module.path + "/"
+                + file.name))
+            var isDirectory: ObjCBool = false
+            XCTAssertTrue(FileManager.default.fileExists(
+                atPath: fileURL.deletingLastPathComponent().path,
+                isDirectory: &isDirectory))
+            XCTAssertTrue(isDirectory.boolValue)
+        }
     }
     
     func testSaveAndGet() {
-        let localStorage = try! LocalStorageContext(applicationID: "test")
-        
-        let persistentURL = try! localStorage.fileURL(place: .persistentData, module: .IM(clientID: "clientID"), file: .clientRecord)
-        
-        let testCodable = TestCodable(string: "string")
-        
-        try! localStorage.save(table: testCodable, to: persistentURL)
-        
-        var objcBool: ObjCBool = true
-        XCTAssertTrue(FileManager.default.fileExists(atPath: persistentURL.path, isDirectory: &objcBool))
-        XCTAssertFalse(objcBool.boolValue)
-        
-        let table: TestCodable? = try! localStorage.table(from: persistentURL)
-        XCTAssertEqual(table?.string, "string")
+        self.tuples.forEach { (place, module, file) in
+            let fileURL = try! self.localStorage.fileURL(
+                place: place,
+                module: module,
+                file: file)
+            let saveTable = TestTable(string: UUID().uuidString)
+            try! self.localStorage.save(table: saveTable, to: fileURL)
+            var isDirectory: ObjCBool = true
+            XCTAssertTrue(FileManager.default.fileExists(
+                atPath: fileURL.path,
+                isDirectory: &isDirectory))
+            XCTAssertFalse(isDirectory.boolValue)
+            let getTable: TestTable? = try! self.localStorage.table(from: fileURL)
+            XCTAssertNotNil(getTable)
+            XCTAssertEqual(getTable?.string, saveTable.string)
+            try! self.localStorage.clear(file: fileURL)
+            XCTAssertFalse(FileManager.default.fileExists(
+                atPath: fileURL.path))
+        }
     }
 
 }
 
 extension LCLocalStorageTestCase {
     
-    struct TestCodable: Codable {
-        
+    struct TestTable: Codable {
         var string: String?
     }
-    
 }

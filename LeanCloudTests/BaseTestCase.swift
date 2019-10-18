@@ -24,7 +24,6 @@ class BaseTestCase: XCTestCase {
     )
     
     static let timeout: TimeInterval = 60.0
-    
     let timeout: TimeInterval = 60.0
     
     override class func setUp() {
@@ -41,13 +40,15 @@ class BaseTestCase: XCTestCase {
     }
     
     override class func tearDown() {
-        [LCApplication.default.localStorageContext!.applicationSupportDirectoryPath,
-         LCApplication.default.localStorageContext!.cachesDirectoryPath]
-            .forEach({ (url) in
+        [LCApplication.default.applicationSupportDirectoryURL,
+         LCApplication.default.cachesDirectoryURL]
+            .forEach { (url) in
                 if FileManager.default.fileExists(atPath: url.path) {
                     try! FileManager.default.removeItem(at: url)
                 }
-            })
+        }
+        LCApplication.default.unregister()
+        super.tearDown()
     }
     
 }
@@ -145,6 +146,36 @@ extension LCApplication {
             application: self,
             configuration: AppRouter.Configuration(apiVersion: "1.2")
         )
+    }
+    
+    var applicationSupportDirectoryURL: URL {
+        return (
+            try! FileManager.default.url(
+                for: .applicationSupportDirectory,
+                in: .userDomainMask,
+                appropriateFor: nil,
+                create: false))
+            .appendingPathComponent(
+                LocalStorageContext.domain,
+                isDirectory: true)
+            .appendingPathComponent(
+                self.id.md5.lowercased(),
+                isDirectory: true)
+    }
+    
+    var cachesDirectoryURL: URL {
+        return (
+            try! FileManager.default.url(
+                for: .cachesDirectory,
+                in: .userDomainMask,
+                appropriateFor: nil,
+                create: false))
+            .appendingPathComponent(
+                LocalStorageContext.domain,
+                isDirectory: true)
+            .appendingPathComponent(
+                self.id.md5.lowercased(),
+                isDirectory: true)
     }
     
 }
