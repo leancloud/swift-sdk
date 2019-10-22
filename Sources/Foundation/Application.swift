@@ -115,27 +115,31 @@ public class LCApplication {
         public static let `default` = Configuration()
         
         /// Customized Servers
-        public let customizedServers: [ServerCustomizableModule]
+        public var customizedServers: [ServerCustomizableModule]
         
         /// Environment
-        public let environment: Environment
+        public var environment: Environment
         
         /// HTTP Request Timeout Interval, default is 60.0 second.
-        public let HTTPRequestTimeoutInterval: TimeInterval
+        public var HTTPRequestTimeoutInterval: TimeInterval
+        
+        /// URL Cache for HTTP Response, default is nil.
+        public var HTTPURLCache: URLCache?
         
         /// RTM Connecting Timeout Interval, default is 15.0 second.
-        public let RTMConnectingTimeoutInterval: TimeInterval
+        public var RTMConnectingTimeoutInterval: TimeInterval
         
         /// RTM Command Timeout Interval, default is 30.0 second.
-        public let RTMCommandTimeoutInterval: TimeInterval
+        public var RTMCommandTimeoutInterval: TimeInterval
         
         /// RTM Custom Server URL.
-        public let RTMCustomServerURL: URL?
+        public var RTMCustomServerURL: URL?
         
         public init(
             customizedServers: [ServerCustomizableModule] = [],
-            environment: Environment = [.default],
+            environment: Environment = .default,
             HTTPRequestTimeoutInterval: TimeInterval = 60.0,
+            HTTPURLCache: URLCache? = nil,
             RTMConnectingTimeoutInterval: TimeInterval = 15.0,
             RTMCommandTimeoutInterval: TimeInterval = 30.0,
             RTMCustomServerURL: URL? = nil)
@@ -143,6 +147,7 @@ public class LCApplication {
             self.customizedServers = customizedServers
             self.environment = environment
             self.HTTPRequestTimeoutInterval = HTTPRequestTimeoutInterval
+            self.HTTPURLCache = HTTPURLCache
             self.RTMConnectingTimeoutInterval = RTMConnectingTimeoutInterval
             self.RTMCommandTimeoutInterval = RTMCommandTimeoutInterval
             self.RTMCustomServerURL = RTMCustomServerURL

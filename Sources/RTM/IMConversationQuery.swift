@@ -64,42 +64,42 @@ public class IMConversationQuery: LCQuery {
     }
     
     @available(*, unavailable)
-    public override func get<T>(_ objectId: LCStringConvertible) -> LCValueResult<T> where T : LCObject {
+    public override func get<T>(_ objectId: LCStringConvertible, cachePolicy: LCQuery.CachePolicy = .onlyNetwork) -> LCValueResult<T> where T : LCObject {
         fatalError("not support")
     }
     
     @available(*, unavailable)
-    public override func get<T>(_ objectId: LCStringConvertible, completion: @escaping (LCValueResult<T>) -> Void) -> LCRequest where T : LCObject {
+    public override func get<T>(_ objectId: LCStringConvertible, cachePolicy: LCQuery.CachePolicy = .onlyNetwork, completion: @escaping (LCValueResult<T>) -> Void) -> LCRequest where T : LCObject {
         fatalError("not support")
     }
     
     @available(*, unavailable)
-    public override func getFirst<T>() -> LCValueResult<T> where T : LCObject {
+    public override func getFirst<T>(cachePolicy: LCQuery.CachePolicy = .onlyNetwork) -> LCValueResult<T> where T : LCObject {
         fatalError("not support")
     }
     
     @available(*, unavailable)
-    public override func getFirst<T>(_ completion: @escaping (LCValueResult<T>) -> Void) -> LCRequest where T : LCObject {
+    public override func getFirst<T>(cachePolicy: LCQuery.CachePolicy = .onlyNetwork, completion: @escaping (LCValueResult<T>) -> Void) -> LCRequest where T : LCObject {
         fatalError("not support")
     }
     
     @available(*, unavailable)
-    public override func find<T>() -> LCQueryResult<T> where T : LCObject {
+    public override func find<T>(cachePolicy: LCQuery.CachePolicy = .onlyNetwork) -> LCQueryResult<T> where T : LCObject {
         fatalError("not support")
     }
     
     @available(*, unavailable)
-    public override func find<T>(_ completion: @escaping (LCQueryResult<T>) -> Void) -> LCRequest where T : LCObject {
+    public override func find<T>(cachePolicy: LCQuery.CachePolicy = .onlyNetwork, completion: @escaping (LCQueryResult<T>) -> Void) -> LCRequest where T : LCObject {
         fatalError("not support")
     }
     
     @available(*, unavailable)
-    public override func count() -> LCCountResult {
+    public override func count(cachePolicy: LCQuery.CachePolicy = .onlyNetwork) -> LCCountResult {
         fatalError("not support")
     }
     
     @available(*, unavailable)
-    public override func count(_ completion: @escaping (LCCountResult) -> Void) -> LCRequest {
+    public override func count(cachePolicy: LCQuery.CachePolicy = .onlyNetwork, completion: @escaping (LCCountResult) -> Void) -> LCRequest {
         fatalError("not support")
     }
     
