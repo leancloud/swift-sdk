@@ -33,8 +33,10 @@ class FileUploader {
     init(file: LCFile, payload: LCFile.Payload) {
         self.file = file
         self.payload = payload
+        let configuration = URLSessionConfiguration.default
+        configuration.urlCache = nil
         self.session = Session(
-            configuration: .default,
+            configuration: configuration,
             startRequestsImmediately: false)
     }
 
