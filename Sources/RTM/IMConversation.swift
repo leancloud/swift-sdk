@@ -2805,7 +2805,7 @@ public class IMServiceConversation: IMConversation {
                     }
                 } catch {
                     client.eventQueue.async {
-                        completion(.failure(error: LCError(underlyingError: error)))
+                        completion(.failure(error: LCError(error: error)))
                     }
                 }
             case .error(let error):
