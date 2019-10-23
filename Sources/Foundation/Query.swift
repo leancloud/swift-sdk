@@ -433,11 +433,12 @@ public class LCQuery: NSObject, NSCopying, NSCoding {
     @discardableResult
     public func find<T>(
         cachePolicy: CachePolicy = .onlyNetwork,
+        completionQueue: DispatchQueue = .main,
         completion: @escaping (LCQueryResult<T>) -> Void)
         -> LCRequest
     {
         return find(cachePolicy: cachePolicy, completionInBackground: { result in
-            mainQueueAsync {
+            completionQueue.async {
                 completion(result)
             }
         })
@@ -479,11 +480,12 @@ public class LCQuery: NSObject, NSCopying, NSCoding {
     @discardableResult
     public func getFirst<T: LCObject>(
         cachePolicy: CachePolicy = .onlyNetwork,
+        completionQueue: DispatchQueue = .main,
         completion: @escaping (LCValueResult<T>) -> Void)
         -> LCRequest
     {
         return getFirst(cachePolicy: cachePolicy, completionInBackground: { result in
-            mainQueueAsync {
+            completionQueue.async {
                 completion(result)
             }
         })
@@ -537,11 +539,12 @@ public class LCQuery: NSObject, NSCopying, NSCoding {
     public func get<T: LCObject>(
         _ objectId: LCStringConvertible,
         cachePolicy: CachePolicy = .onlyNetwork,
+        completionQueue: DispatchQueue = .main,
         completion: @escaping (LCValueResult<T>) -> Void)
         -> LCRequest
     {
         return get(objectId: objectId, cachePolicy: cachePolicy, completionInBackground: { result in
-            mainQueueAsync {
+            completionQueue.async {
                 completion(result)
             }
         })
@@ -578,11 +581,12 @@ public class LCQuery: NSObject, NSCopying, NSCoding {
     /// - Parameter completion: The completion callback closure.
     public func count(
         cachePolicy: CachePolicy = .onlyNetwork,
+        completionQueue: DispatchQueue = .main,
         completion: @escaping (LCCountResult) -> Void)
         -> LCRequest
     {
         return count(cachePolicy: cachePolicy, completionInBackground: { result in
-            mainQueueAsync {
+            completionQueue.async {
                 completion(result)
             }
         })
