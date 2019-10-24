@@ -50,13 +50,29 @@ let sharedChild: TestObject = {
 
 class LCQueryTestCase: BaseTestCase {
     
-    override func setUp() {
+    override class func setUp() {
         super.setUp()
-        // Put setup code here. This method is called before the invocation of each test method in the class.
+        var configuration = LCApplication.Configuration.default
+        let capacity = 100 * 1024 * 1024
+        if #available(iOS 13.0, *) {
+            configuration.HTTPURLCache = URLCache(
+                memoryCapacity: capacity,
+                diskCapacity: capacity)
+        } else {
+            configuration.HTTPURLCache = URLCache(
+                memoryCapacity: capacity,
+                diskCapacity: capacity,
+                diskPath: nil)
+        }
+        try! LCApplication.default.set(
+            id: BaseTestCase.cnApp.id,
+            key: BaseTestCase.cnApp.key,
+            serverURL: BaseTestCase.cnApp.serverURL,
+            configuration: configuration)
     }
     
-    override func tearDown() {
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
+    override class func tearDown() {
+        LCApplication.default.configuration.HTTPURLCache?.removeAllCachedResponses()
         super.tearDown()
     }
 
@@ -604,4 +620,23 @@ class LCQueryTestCase: BaseTestCase {
         XCTAssertNotNil(objects.first?.ACL)
     }
 
+    func testCache() {
+        _ = sharedObject
+        let query = objectQuery()
+        
+        query.whereKey("numberField", .equalTo(42))
+        query.limit = 1
+        
+        let object: TestObject? = query.find(cachePolicy: .onlyNetwork).objects?.first
+        XCTAssertNotNil(object?.objectId?.value)
+        
+        let cachedObject: TestObject? = query.find(cachePolicy: .onlyCache).objects?.first
+        XCTAssertEqual(object?.objectId?.value, cachedObject?.objectId?.value)
+        
+        let count = query.count(cachePolicy: .onlyNetwork).intValue
+        XCTAssertTrue(count > 0)
+        
+        let cachedCount = query.count(cachePolicy: .onlyCache).intValue
+        XCTAssertEqual(count, cachedCount)
+    }
 }
