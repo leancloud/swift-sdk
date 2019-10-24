@@ -270,7 +270,7 @@ extension LCError {
         }
 
         guard let data = response.data else {
-            self = LCError(underlyingError: error)
+            self = LCError(error: error)
             return
         }
 
@@ -285,7 +285,7 @@ extension LCError {
              */
             _
         {
-            self = LCError(underlyingError: error)
+            self = LCError(error: error)
             return
         }
 
@@ -300,7 +300,7 @@ extension LCError {
         {
             self = LCError(code: code, reason: reason, userInfo: nil)
         } else {
-            self = LCError(underlyingError: error)
+            self = LCError(error: error)
         }
     }
 

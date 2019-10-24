@@ -14,7 +14,7 @@ class IMConversationTestCase: RTMBaseTestCase {
 
     func testCreateConversationThenErrorThrows() {
         
-        let client: IMClient = try! IMClient(ID: uuid)
+        let client: IMClient = try! IMClient(ID: uuid, options: [])
         
         let errExp = expectation(description: "not open")
         try? client.createConversation(clientIDs: [], isUnique: false) { (r) in
@@ -435,7 +435,7 @@ class IMConversationTestCase: RTMBaseTestCase {
         })
         wait(for: [sendExp], timeout: timeout)
         
-        let clientB = try! IMClient(ID: otherClientID)
+        let clientB = try! IMClient(ID: otherClientID, options: [.receiveUnreadMessageCountAfterSessionDidOpen])
         let delegatorB = IMClientTestCase.Delegator()
         clientB.delegate = delegatorB
         
@@ -528,7 +528,7 @@ class IMConversationTestCase: RTMBaseTestCase {
         })
         wait(for: [sendExp], timeout: timeout)
         
-        let clientB = try! IMClient(ID: otherClientID)
+        let clientB = try! IMClient(ID: otherClientID, options: [.receiveUnreadMessageCountAfterSessionDidOpen])
         let delegator = IMClientTestCase.Delegator()
         clientB.delegate = delegator
         
@@ -587,7 +587,7 @@ class IMConversationTestCase: RTMBaseTestCase {
         
         delay(seconds: 15)
         
-        let clientA = try! IMClient(ID: clientID)
+        let clientA = try! IMClient(ID: clientID, options: [.receiveUnreadMessageCountAfterSessionDidOpen])
         let delegator = IMClientTestCase.Delegator()
         clientA.delegate = delegator
         
@@ -664,7 +664,7 @@ class IMConversationTestCase: RTMBaseTestCase {
         }
         
         let convIDSet = Set<String>(clientA.convCollection.keys)
-        let clientB = try! IMClient(ID: otherClientID)
+        let clientB = try! IMClient(ID: otherClientID, options: [.receiveUnreadMessageCountAfterSessionDidOpen])
         let delegator = IMClientTestCase.Delegator()
         clientB.delegate = delegator
         
@@ -2160,7 +2160,7 @@ class IMConversationTestCase: RTMBaseTestCase {
 extension IMConversationTestCase {
     
     func newOpenedClient(clientID: String? = nil) -> IMClient? {
-        var client: IMClient? = try? IMClient(ID: clientID ?? uuid)
+        var client: IMClient? = try? IMClient(ID: clientID ?? uuid, options: [.receiveUnreadMessageCountAfterSessionDidOpen])
         let exp = expectation(description: "open")
         client?.open { (result) in
             if result.isFailure { client = nil }
@@ -2172,40 +2172,17 @@ extension IMConversationTestCase {
     
     static func newServiceConversation() -> String? {
         var objectID: String?
-        let url = LCApplication.default.v2router.route(path: "/rtm/service-conversations", module: .api)!
-        let parameters: Parameters = [
-            "name": uuid
-        ]
-        let headers: HTTPHeaders = [
-            "X-LC-Id": LCApplication.default.id,
-            "X-LC-Key": LCApplication.default.key,
-            "Content-Type": "application/json"
-        ]
-        let afRequest = AF.request(
-            url,
-            method: .post,
-            parameters: parameters,
-            encoding: JSONEncoding.default,
-            headers: headers)
-        
-        RunLoop.current.run(mode: .default, before: Date(timeIntervalSinceNow: 3.0))
-        
-        let request = afRequest.request!
-        
-        print("------\n\(request.url!)\n\(parameters)\n------\n")
         var loop = true
-        let task = URLSession.shared.dataTask(with: request) { (data, response, error) in
-            let statusCode = (response as? HTTPURLResponse)?.statusCode ?? 0
-            XCTAssertTrue((200..<300).contains(statusCode))
-            if let data = data,
-                let object = ((try? JSONSerialization.jsonObject(with: data) as? [String: Any]) as [String : Any]??),
-                let json: [String: Any] = object {
-                print("------\n\(json)\n------\n")
-                objectID = json["objectId"] as? String
-            }
-            loop = false
+        _ = LCApplication.default.httpClient.request(
+            url: LCApplication.default.v2router.route(path: "/rtm/service-conversations", module: .api)!,
+            method: .post,
+            parameters: ["name": uuid],
+            headers: nil,
+            completionDispatchQueue: .main)
+        { (response) in
+            objectID = response["objectId"]
+            loop.toggle()
         }
-        task.resume()
         while loop {
             RunLoop.current.run(mode: .default, before: Date(timeIntervalSinceNow: 0.1))
         }
@@ -2214,43 +2191,18 @@ extension IMConversationTestCase {
     
     static func subscribing(serviceConversation conversationID: String, by clientID: String) -> Bool {
         var success: Bool = false
-        let url = LCApplication.default.v2router.route(path: "/rtm/service-conversations/\(conversationID)/subscribers")!
-        let parameters: Parameters = [
-            "client_id": clientID
-        ]
-        let headers: HTTPHeaders = [
-            "X-LC-Id": LCApplication.default.id,
-            "X-LC-Key": LCApplication.default.masterKey,
-            "Content-Type": "application/json"
-        ]
-        let afRequest = AF.request(
-            url,
-            method: .post,
-            parameters: parameters,
-            encoding: JSONEncoding.default,
-            headers: headers)
-        
-        RunLoop.current.run(mode: .default, before: Date(timeIntervalSinceNow: 3.0))
-        
-        let request = afRequest.request!
-        
-        print("------\n\(request.url!)\n\(parameters)\n------\n")
         var loop = true
-        let task = URLSession.shared.dataTask(with: request) { (data, response, error) in
-            let statusCode = (response as? HTTPURLResponse)?.statusCode ?? 0
-            if (200..<300).contains(statusCode) {
-                success = true
-            } else {
-                XCTFail()
-            }
-            if let data = data,
-                let object = ((try? JSONSerialization.jsonObject(with: data) as? [String: Any]) as [String : Any]??),
-                let json: [String: Any] = object {
-                print("------\n\(json)\n------\n")
-            }
-            loop = false
+        _ = LCApplication.default.httpClient.request(
+            url: LCApplication.default.v2router.route(
+                path: "/rtm/service-conversations/\(conversationID)/subscribers")!,
+            method: .post,
+            parameters: ["client_id": clientID],
+            headers: ["X-LC-Key": LCApplication.default.masterKey],
+            completionDispatchQueue: .main)
+        { (response) in
+            success = response.isSuccess
+            loop.toggle()
         }
-        task.resume()
         while loop {
             RunLoop.current.run(mode: .default, before: Date(timeIntervalSinceNow: 0.1))
         }
@@ -2259,45 +2211,22 @@ extension IMConversationTestCase {
     
     static func broadcastingMessage(to conversationID: String, content: String = "test") -> (String, Int64)? {
         var tuple: (String, Int64)?
-        let url = LCApplication.default.v2router.route(path: "/rtm/service-conversations/\(conversationID)/broadcasts", module: .api)!
-        let parameters: Parameters = [
-            "from_client": "master",
-            "message": content
-        ]
-        let headers: HTTPHeaders = [
-            "X-LC-Id": LCApplication.default.id,
-            "X-LC-Key": LCApplication.default.masterKey,
-            "Content-Type": "application/json"
-        ]
-        let afRequest = AF.request(
-            url,
-            method: .post,
-            parameters: parameters,
-            encoding: JSONEncoding.default,
-            headers: headers)
-        
-        RunLoop.current.run(mode: .default, before: Date(timeIntervalSinceNow: 3.0))
-        
-        let request = afRequest.request!
-        
-        print("------\n\(request.url!)\n\(parameters)\n------\n")
         var loop = true
-        let task = URLSession.shared.dataTask(with: request) { (data, response, error) in
-            let statusCode = (response as? HTTPURLResponse)?.statusCode ?? 0
-            XCTAssertTrue((200..<300).contains(statusCode))
-            if let data = data,
-                let object = ((try? JSONSerialization.jsonObject(with: data) as? [String: Any]) as [String : Any]??),
-                let json: [String: Any] = object {
-                print("------\n\(json)\n------\n")
-                if let result: [String: Any] = json["result"] as? [String: Any],
-                    let messageID = result["msg-id"] as? String,
-                    let timestamp: Int64 = result["timestamp"] as? Int64 {
-                    tuple = (messageID, timestamp)
-                }
+        _ = LCApplication.default.httpClient.request(
+            url: LCApplication.default.v2router.route(
+                path: "/rtm/service-conversations/\(conversationID)/broadcasts", module: .api)!,
+            method: .post,
+            parameters: ["from_client": "master", "message": content],
+            headers: ["X-LC-Key": LCApplication.default.masterKey],
+            completionDispatchQueue: .main)
+        { (response) in
+            if let result: [String: Any] = response["result"],
+                let messageID: String = result["msg-id"] as? String,
+                let timestamp: Int64 = result["timestamp"] as? Int64 {
+                tuple = (messageID, timestamp)
             }
-            loop = false
+            loop.toggle()
         }
-        task.resume()
         while loop {
             RunLoop.current.run(mode: .default, before: Date(timeIntervalSinceNow: 0.1))
         }

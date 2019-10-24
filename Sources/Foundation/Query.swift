@@ -394,84 +394,114 @@ public class LCQuery: NSObject, NSCopying, NSCoding {
             return object
         }
     }
-
-    /**
-     Query objects synchronously.
-
-     - returns: The result of the query request.
-     */
-    public func find<T>() -> LCQueryResult<T> {
+    
+    func storeResponse(response: LCResponse) {
+        guard response.error == nil,
+            let urlCache = self.application.httpClient.urlCache,
+            let urlRequest = response.response.request,
+            let httpResponse = response.response.response,
+            let data = response.response.data else {
+                return
+        }
+        urlCache.storeCachedResponse(
+            CachedURLResponse(
+                response: httpResponse,
+                data: data),
+            for: urlRequest)
+    }
+    
+    /// The constants used to specify interaction with the cached responses.
+    public enum CachePolicy {
+        case onlyNetwork
+        case onlyCache
+        case networkElseCache
+    }
+    
+    /// Query objects synchronously.
+    /// - Parameter cachePolicy: The request’s cache policy, default is `onlyNetwork`.
+    public func find<T>(cachePolicy: CachePolicy = .onlyNetwork) -> LCQueryResult<T> {
         return expect { fulfill in
-            self.find(completionInBackground: { result in
+            self.find(cachePolicy: cachePolicy, completionInBackground: { result in
                 fulfill(result)
             })
         }
     }
-
-    /**
-     Query objects asynchronously.
-
-     - parameter completion: The completion callback closure.
-
-     - returns: A request of query.
-     */
-    public func find<T>(_ completion: @escaping (LCQueryResult<T>) -> Void) -> LCRequest {
-        return find(completionInBackground: { result in
-            mainQueueAsync {
+    
+    /// Query objects asynchronously.
+    /// - Parameter cachePolicy: The request’s cache policy, default is `onlyNetwork`.
+    /// - Parameter completion: The completion callback closure.
+    @discardableResult
+    public func find<T>(
+        cachePolicy: CachePolicy = .onlyNetwork,
+        completionQueue: DispatchQueue = .main,
+        completion: @escaping (LCQueryResult<T>) -> Void)
+        -> LCRequest
+    {
+        return find(cachePolicy: cachePolicy, completionInBackground: { result in
+            completionQueue.async {
                 completion(result)
             }
         })
     }
 
     @discardableResult
-    private func find<T>(completionInBackground completion: @escaping (LCQueryResult<T>) -> Void) -> LCRequest {
-        return self.application.httpClient.request(.get, endpoint, parameters: parameters) { response in
+    private func find<T>(
+        cachePolicy: CachePolicy,
+        completionInBackground completion: @escaping (LCQueryResult<T>) -> Void)
+        -> LCRequest
+    {
+        return self.application.httpClient.request(.get, endpoint, parameters: parameters, cachePolicy: cachePolicy) { response in
+            self.storeResponse(response: response)
             if let error = LCError(response: response) {
                 completion(.failure(error: error))
             } else {
                 let className: String? = response["className"]
                 let objects: [T] = self.processResults(response.results, className: className)
-
                 completion(.success(objects: objects))
             }
         }
     }
-
-    /**
-     Get first object of query synchronously.
-
-     - note: All query conditions other than `limit` will take effect for current request.
-
-     - returns: The object result of query.
-     */
-    public func getFirst<T: LCObject>() -> LCValueResult<T> {
+    
+    /// Get first object of query synchronously.
+    /// All query conditions other than `limit` will take effect for current request.
+    /// - Parameter cachePolicy: The request’s cache policy, default is `onlyNetwork`.
+    public func getFirst<T: LCObject>(cachePolicy: CachePolicy = .onlyNetwork) -> LCValueResult<T> {
         return expect { fulfill in
-            self.getFirst(completionInBackground: { result in
+            self.getFirst(cachePolicy: cachePolicy, completionInBackground: { result in
                 fulfill(result)
             })
         }
     }
-
-    /**
-     Get first object of query asynchronously.
-
-     - parameter completion: The completion callback closure.
-     */
-    public func getFirst<T: LCObject>(_ completion: @escaping (LCValueResult<T>) -> Void) -> LCRequest {
-        return getFirst(completionInBackground: { result in
-            mainQueueAsync {
+    
+    /// Get first object of query asynchronously.
+    /// All query conditions other than `limit` will take effect for current request.
+    /// - Parameter cachePolicy: The request’s cache policy, default is `onlyNetwork`.
+    /// - Parameter completion: The completion callback closure.
+    @discardableResult
+    public func getFirst<T: LCObject>(
+        cachePolicy: CachePolicy = .onlyNetwork,
+        completionQueue: DispatchQueue = .main,
+        completion: @escaping (LCValueResult<T>) -> Void)
+        -> LCRequest
+    {
+        return getFirst(cachePolicy: cachePolicy, completionInBackground: { result in
+            completionQueue.async {
                 completion(result)
             }
         })
     }
 
     @discardableResult
-    private func getFirst<T: LCObject>(completionInBackground completion: @escaping (LCValueResult<T>) -> Void) -> LCRequest {
+    private func getFirst<T: LCObject>(
+        cachePolicy: CachePolicy,
+        completionInBackground completion: @escaping (LCValueResult<T>) -> Void)
+        -> LCRequest
+    {
         let query = copy() as! LCQuery
 
         query.limit = 1
 
-        return query.find(completionInBackground: { (result: LCQueryResult<T>) in
+        return query.find(cachePolicy: cachePolicy, completionInBackground: { (result: LCQueryResult<T>) in
             switch result {
             case let .success(objects):
                 if let object = objects.first {
@@ -485,85 +515,97 @@ public class LCQuery: NSObject, NSCopying, NSCoding {
             }
         })
     }
-
-    /**
-     Get object by object ID synchronously.
-
-     - parameter objectId: The object ID.
-
-     - returns: The object result of query.
-     */
-    public func get<T: LCObject>(_ objectId: LCStringConvertible) -> LCValueResult<T> {
+    
+    /// Get object by object ID synchronously.
+    /// - Parameter objectId: The object ID.
+    /// - Parameter cachePolicy: The request’s cache policy, default is `onlyNetwork`.
+    public func get<T: LCObject>(
+        _ objectId: LCStringConvertible,
+        cachePolicy: CachePolicy = .onlyNetwork)
+        -> LCValueResult<T>
+    {
         return expect { fulfill in
-            self.get(objectId, completionInBackground: { result in
+            self.get(objectId: objectId, cachePolicy: cachePolicy, completionInBackground: { result in
                 fulfill(result)
             })
         }
     }
-
-    /**
-     Get object by object ID asynchronously.
-
-     - parameter objectId:   The object ID.
-     - parameter completion: The completion callback closure.
-     */
-    public func get<T: LCObject>(_ objectId: LCStringConvertible, completion: @escaping (LCValueResult<T>) -> Void) -> LCRequest {
-        return get(objectId, completionInBackground: { result in
-            mainQueueAsync {
+    
+    /// Get object by object ID asynchronously.
+    /// - Parameter objectId: The object ID.
+    /// - Parameter cachePolicy: The request’s cache policy, default is `onlyNetwork`.
+    /// - Parameter completion: The completion callback closure.
+    @discardableResult
+    public func get<T: LCObject>(
+        _ objectId: LCStringConvertible,
+        cachePolicy: CachePolicy = .onlyNetwork,
+        completionQueue: DispatchQueue = .main,
+        completion: @escaping (LCValueResult<T>) -> Void)
+        -> LCRequest
+    {
+        return get(objectId: objectId, cachePolicy: cachePolicy, completionInBackground: { result in
+            completionQueue.async {
                 completion(result)
             }
         })
     }
 
     @discardableResult
-    private func get<T: LCObject>(_ objectId: LCStringConvertible, completionInBackground completion: @escaping (LCValueResult<T>) -> Void) -> LCRequest {
+    private func get<T: LCObject>(
+        objectId: LCStringConvertible,
+        cachePolicy: CachePolicy,
+        completionInBackground completion: @escaping (LCValueResult<T>) -> Void)
+        -> LCRequest
+    {
         let query = copy() as! LCQuery
 
         query.whereKey("objectId", .equalTo(objectId))
 
-        let request = query.getFirst(completionInBackground: completion)
+        let request = query.getFirst(cachePolicy: cachePolicy, completionInBackground: completion)
 
         return request
     }
-
-    /**
-     Count objects synchronously.
-
-     - returns: The result of the count request.
-     */
-    public func count() -> LCCountResult {
+    
+    /// Count objects synchronously.
+    /// - Parameter cachePolicy: The request’s cache policy, default is `onlyNetwork`.
+    public func count(cachePolicy: CachePolicy = .onlyNetwork) -> LCCountResult {
         return expect { fulfill in
-            self.count(completionInBackground: { result in
+            self.count(cachePolicy: cachePolicy, completionInBackground: { result in
                 fulfill(result)
             })
         }
     }
-
-    /**
-     Count objects asynchronously.
-
-     - parameter completion: The completion callback closure.
-     */
-    public func count(_ completion: @escaping (LCCountResult) -> Void) -> LCRequest {
-        return count(completionInBackground: { result in
-            mainQueueAsync {
+    
+    /// Count objects asynchronously.
+    /// - Parameter cachePolicy: The request’s cache policy, default is `onlyNetwork`.
+    /// - Parameter completion: The completion callback closure.
+    public func count(
+        cachePolicy: CachePolicy = .onlyNetwork,
+        completionQueue: DispatchQueue = .main,
+        completion: @escaping (LCCountResult) -> Void)
+        -> LCRequest
+    {
+        return count(cachePolicy: cachePolicy, completionInBackground: { result in
+            completionQueue.async {
                 completion(result)
             }
         })
     }
 
     @discardableResult
-    private func count(completionInBackground completion: @escaping (LCCountResult) -> Void) -> LCRequest {
+    private func count(
+        cachePolicy: CachePolicy,
+        completionInBackground completion: @escaping (LCCountResult) -> Void)
+        -> LCRequest
+    {
         var parameters = self.parameters
 
         parameters["count"] = 1
         parameters["limit"] = 0
 
-        let request = self.application.httpClient.request(.get, endpoint, parameters: parameters) { response in
-            let result = LCCountResult(response: response)
-            completion(result)
+        return self.application.httpClient.request(.get, endpoint, parameters: parameters, cachePolicy: cachePolicy) { response in
+            self.storeResponse(response: response)
+            completion(LCCountResult(response: response))
         }
-
-        return request
     }
 }

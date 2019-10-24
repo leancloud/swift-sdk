@@ -67,16 +67,20 @@ class HTTPClient {
     let application: LCApplication
     let configuration: Configuration
     let session: Alamofire.Session
+    
+    var urlCache: URLCache? {
+        return self.session.sessionConfiguration.urlCache
+    }
 
     init(application: LCApplication, configuration: Configuration = .default) {
         self.application = application
         self.configuration = configuration
-        self.session = {
-            let sessionConfiguration = URLSessionConfiguration.default
-            sessionConfiguration.timeoutIntervalForRequest = application.configuration.HTTPRequestTimeoutInterval
-            let session = Session(configuration: sessionConfiguration)
-            return session
-        }()
+        let urlSessionConfiguration = URLSessionConfiguration.default
+        urlSessionConfiguration.timeoutIntervalForRequest = application.configuration
+            .HTTPRequestTimeoutInterval
+        urlSessionConfiguration.urlCache = application.configuration
+            .HTTPURLCache
+        self.session = Session(configuration: urlSessionConfiguration)
     }
 
     /// Default completion dispatch queue.
@@ -100,7 +104,7 @@ class HTTPClient {
             HeaderFieldName.production: self.application.cloudEngineMode
         ]
 
-        if let sessionToken = self.application.currentUser?.sessionToken {
+        if let sessionToken = self.application._currentUser?.sessionToken {
             headers[HeaderFieldName.session] = sessionToken.value
         }
 
@@ -195,71 +199,134 @@ class HTTPClient {
 
         return result
     }
-
-    /**
-     Creates a request to REST API and sends it asynchronously.
-
-     - parameter method:                    The HTTP Method.
-     - parameter path:                      The REST API path.
-     - parameter parameters:                The request parameters.
-     - parameter headers:                   The request headers.
-     - parameter completionDispatchQueue:   The dispatch queue in which the completion handler will be called. By default, it's a concurrent queue.
-     - parameter completionHandler:         The completion callback closure.
-
-     - returns: A request object.
-     */
+    
+    func response(with error: Error) -> LCResponse {
+        return LCResponse(
+            application: self.application,
+            response: DataResponse<Any, Error>(
+                request: nil,
+                response: nil,
+                data: nil,
+                metrics: nil,
+                serializationDuration: 0,
+                result: .failure(error)))
+    }
+    
+    func requestCache(
+        url: URL,
+        method: HTTPMethod,
+        headers: HTTPHeaders,
+        encoding: ParameterEncoding,
+        parameters: [String: Any]?,
+        completionDispatchQueue: DispatchQueue,
+        completionHandler: @escaping (LCResponse) -> Void)
+    {
+        do {
+            var request = try URLRequest(url: url, method: method, headers: headers)
+            request = try encoding.encode(request, with: parameters)
+            completionDispatchQueue.sync {
+                guard let cachedResponse = self.urlCache?.cachedResponse(for: request),
+                    let httpResponse = cachedResponse.response as? HTTPURLResponse else {
+                        completionHandler(self.response(
+                            with: LCError(
+                                code: .notFound,
+                                reason: "Cached Response not found.")))
+                        return
+                }
+                let result = Result {
+                    try JSONResponseSerializer(options: .allowFragments)
+                        .serialize(
+                            request: request,
+                            response: httpResponse,
+                            data: cachedResponse.data,
+                            error: nil)
+                }.mapError { $0 }
+                let response = LCResponse(
+                    application: self.application,
+                    response: DataResponse<Any, Error>(
+                        request: request,
+                        response: httpResponse,
+                        data: cachedResponse.data,
+                        metrics: nil,
+                        serializationDuration: 0,
+                        result: result))
+                completionHandler(response)
+            }
+        } catch {
+            completionDispatchQueue.async {
+                completionHandler(self.response(
+                    with: LCError(error: error)))
+            }
+        }
+    }
+    
     func request(
         _ method: Method,
         _ path: String,
         parameters: [String: Any]? = nil,
         headers: [String: String]? = nil,
+        cachePolicy: LCQuery.CachePolicy = .onlyNetwork,
         completionDispatchQueue: DispatchQueue? = nil,
         completionHandler: @escaping (LCResponse) -> Void)
         -> LCRequest
     {
-        let completionDispatchQueue = (
-            completionDispatchQueue ??
-            defaultCompletionDispatchQueue)
-
+        let completionDispatchQueue = completionDispatchQueue
+            ?? defaultCompletionDispatchQueue
+        
         guard let url = self.application.appRouter.route(path: path) else {
-            let error = LCError(code: .notFound, reason: "URL not found.")
-
-            let response = LCResponse(
-                application: self.application,
-                response: DataResponse<Any, Error>(
-                    request: nil,
-                    response: nil,
-                    data: nil,
-                    metrics: nil,
-                    serializationDuration: 0,
-                    result: .failure(error)
-                )
-            )
-
             completionDispatchQueue.sync {
-                completionHandler(response)
+                completionHandler(self.response(
+                    with: LCError(
+                        code: .notFound,
+                        reason: "URL not found.")))
             }
-
             return LCSingleRequest(request: nil)
         }
 
-        let method    = method.alamofireMethod
-        let headers   = HTTPHeaders(mergeCommonHeaders(headers))
-        var encoding: ParameterEncoding
-
+        let method = method.alamofireMethod
+        let headers = HTTPHeaders(mergeCommonHeaders(headers))
+        let encoding: ParameterEncoding
         switch method {
-        case .get: encoding = URLEncoding.default
-        default:   encoding = JSONEncoding.default
+        case .get:
+            encoding = URLEncoding.default
+        default:
+            encoding = JSONEncoding.default
+        }
+        
+        let requestCachedResponse: () -> Void = {
+            self.requestCache(
+                url: url,
+                method: method,
+                headers: headers,
+                encoding: encoding,
+                parameters: parameters,
+                completionDispatchQueue: completionDispatchQueue,
+                completionHandler: completionHandler)
         }
 
-        let request = session.request(url, method: method, parameters: parameters, encoding: encoding, headers: headers).validate()
-
-        request.responseJSON(queue: completionDispatchQueue) { response in
-            self.log(afDataResponse: response, request: request)
-            completionHandler(LCResponse(application: self.application, afDataResponse: response))
+        switch cachePolicy {
+        case .onlyNetwork, .networkElseCache:
+            let request = session.request(url, method: method, parameters: parameters, encoding: encoding, headers: headers).validate()
+            request.responseJSON(queue: completionDispatchQueue) { afResponse in
+                self.log(afDataResponse: afResponse, request: request)
+                let response = LCResponse(
+                    application: self.application,
+                    afDataResponse: afResponse)
+                if case .onlyNetwork = cachePolicy {
+                    completionHandler(response)
+                } else {
+                    if let _ = LCError(response: response) {
+                        requestCachedResponse()
+                    } else {
+                        completionHandler(response)
+                    }
+                }
+            }
+            return LCSingleRequest(request: request)
+        case .onlyCache:
+            requestCachedResponse()
+            return LCSingleRequest(request: nil)
         }
-
-        return LCSingleRequest(request: request)
     }
 
     /**

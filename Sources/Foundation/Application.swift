@@ -115,27 +115,31 @@ public class LCApplication {
         public static let `default` = Configuration()
         
         /// Customized Servers
-        public let customizedServers: [ServerCustomizableModule]
+        public var customizedServers: [ServerCustomizableModule]
         
         /// Environment
-        public let environment: Environment
+        public var environment: Environment
         
         /// HTTP Request Timeout Interval, default is 60.0 second.
-        public let HTTPRequestTimeoutInterval: TimeInterval
+        public var HTTPRequestTimeoutInterval: TimeInterval
+        
+        /// URL Cache for HTTP Response, default is nil.
+        public var HTTPURLCache: URLCache?
         
         /// RTM Connecting Timeout Interval, default is 15.0 second.
-        public let RTMConnectingTimeoutInterval: TimeInterval
+        public var RTMConnectingTimeoutInterval: TimeInterval
         
         /// RTM Command Timeout Interval, default is 30.0 second.
-        public let RTMCommandTimeoutInterval: TimeInterval
+        public var RTMCommandTimeoutInterval: TimeInterval
         
         /// RTM Custom Server URL.
-        public let RTMCustomServerURL: URL?
+        public var RTMCustomServerURL: URL?
         
         public init(
             customizedServers: [ServerCustomizableModule] = [],
-            environment: Environment = [.default],
+            environment: Environment = .default,
             HTTPRequestTimeoutInterval: TimeInterval = 60.0,
+            HTTPURLCache: URLCache? = nil,
             RTMConnectingTimeoutInterval: TimeInterval = 15.0,
             RTMCommandTimeoutInterval: TimeInterval = 30.0,
             RTMCustomServerURL: URL? = nil)
@@ -143,6 +147,7 @@ public class LCApplication {
             self.customizedServers = customizedServers
             self.environment = environment
             self.HTTPRequestTimeoutInterval = HTTPRequestTimeoutInterval
+            self.HTTPURLCache = HTTPURLCache
             self.RTMConnectingTimeoutInterval = RTMConnectingTimeoutInterval
             self.RTMCommandTimeoutInterval = RTMCommandTimeoutInterval
             self.RTMCustomServerURL = RTMCustomServerURL
@@ -222,7 +227,31 @@ public class LCApplication {
     // MARK: Current User
     
     /// Current User.
-    public var currentUser: LCUser?
+    public var currentUser: LCUser? {
+        set {
+            self._currentUser = newValue
+            LCUser.saveCurrentUser(application: self, user: newValue)
+        }
+        get {
+            if self._currentUser == nil {
+                self._currentUser = LCUser.currentUser(application: self)
+            }
+            return self._currentUser
+        }
+    }
+    var _currentUser: LCUser?
+    
+    var currentUserFileURL: URL? {
+        do {
+            return try self.localStorageContext?.fileURL(
+                place: .persistentData,
+                module: .storage,
+                file: .user)
+        } catch {
+            Logger.shared.error(error)
+            return nil
+        }
+    }
     
     // MARK: Internal Context
     
@@ -269,6 +298,7 @@ public class LCApplication {
     {
         if let oldID = self.id {
             self._currentInstallation = nil
+            self._currentUser = nil
             LCApplication.registry.removeValue(forKey: oldID)
         }
         
@@ -305,7 +335,7 @@ public class LCApplication {
         // register LeanCloud Object Classes if needed.
         _ = ObjectProfiler.shared
         
-        self.localStorageContext = try LocalStorageContext(applicationID: self.id)
+        self.localStorageContext = LocalStorageContext(application: self)
         self.httpClient = HTTPClient(application: self)
         self.appRouter = AppRouter(application: self)
         
@@ -323,5 +353,16 @@ public class LCApplication {
             \n------ END\n
             """)
     }
-
+    
+    // MARK: Deinit
+    
+    /// should unregister the application before releasing it's memory.
+    public func unregister() {
+        LCApplication.registry.removeValue(forKey: self.id)
+        self._currentInstallation = nil
+        self._currentUser = nil
+        self.localStorageContext = nil
+        self.httpClient = nil
+        self.appRouter = nil
+    }
 }

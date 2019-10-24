@@ -1347,7 +1347,7 @@ extension IMMessageTestCase {
     
     func newOpenedClient(
         clientID: String? = nil,
-        options: IMClient.Options = .default)
+        options: IMClient.Options = [.receiveUnreadMessageCountAfterSessionDidOpen])
         -> IMClient?
     {
         var client: IMClient? = try? IMClient(ID: clientID ?? uuid, options:options)

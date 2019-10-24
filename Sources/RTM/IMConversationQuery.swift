@@ -43,81 +43,6 @@ public class IMConversationQuery: LCQuery {
         super.init(application: client.application, className: "_Conversation")
     }
     
-    @available(*, unavailable)
-    public override init(application: LCApplication, className: String) {
-        fatalError("not support")
-    }
-    
-    @available(*, unavailable)
-    public override func copy(with zone: NSZone?) -> Any {
-        fatalError("not support")
-    }
-    
-    @available(*, unavailable)
-    public required init?(coder aDecoder: NSCoder) {
-        fatalError("not support")
-    }
-    
-    @available(*, unavailable)
-    public override func encode(with aCoder: NSCoder) {
-        fatalError("not support")
-    }
-    
-    @available(*, unavailable)
-    public override func get<T>(_ objectId: LCStringConvertible) -> LCValueResult<T> where T : LCObject {
-        fatalError("not support")
-    }
-    
-    @available(*, unavailable)
-    public override func get<T>(_ objectId: LCStringConvertible, completion: @escaping (LCValueResult<T>) -> Void) -> LCRequest where T : LCObject {
-        fatalError("not support")
-    }
-    
-    @available(*, unavailable)
-    public override func getFirst<T>() -> LCValueResult<T> where T : LCObject {
-        fatalError("not support")
-    }
-    
-    @available(*, unavailable)
-    public override func getFirst<T>(_ completion: @escaping (LCValueResult<T>) -> Void) -> LCRequest where T : LCObject {
-        fatalError("not support")
-    }
-    
-    @available(*, unavailable)
-    public override func find<T>() -> LCQueryResult<T> where T : LCObject {
-        fatalError("not support")
-    }
-    
-    @available(*, unavailable)
-    public override func find<T>(_ completion: @escaping (LCQueryResult<T>) -> Void) -> LCRequest where T : LCObject {
-        fatalError("not support")
-    }
-    
-    @available(*, unavailable)
-    public override func count() -> LCCountResult {
-        fatalError("not support")
-    }
-    
-    @available(*, unavailable)
-    public override func count(_ completion: @escaping (LCCountResult) -> Void) -> LCRequest {
-        fatalError("not support")
-    }
-    
-    @available(*, unavailable)
-    public override func and(_ query: LCQuery) throws -> LCQuery {
-        throw LCError(code: .inconsistency, reason: "not support")
-    }
-    
-    @available(*, unavailable)
-    public override func or(_ query: LCQuery) throws -> LCQuery {
-        throw LCError(code: .inconsistency, reason: "not support")
-    }
-    
-    @available(*, unavailable)
-    public override func whereKey(_ key: String, _ constraint: LCQuery.Constraint) {
-        fatalError("not support")
-    }
-    
     /**
      Get logic AND of another query.
      Note that it only combine constraints of two queries, the limit and skip option will be discarded.
@@ -291,6 +216,79 @@ public class IMConversationQuery: LCQuery {
         )
     }
     
+    // MARK: Unavailable
+    
+    @available(*, unavailable)
+    public override init(application: LCApplication, className: String) {
+        fatalError("not support")
+    }
+    
+    @available(*, unavailable)
+    public override func copy(with zone: NSZone?) -> Any {
+        fatalError("not support")
+    }
+    
+    @available(*, unavailable)
+    public required init?(coder aDecoder: NSCoder) {
+        fatalError("not support")
+    }
+    
+    @available(*, unavailable)
+    public override func encode(with aCoder: NSCoder) {
+        fatalError("not support")
+    }
+    
+    @available(*, unavailable)
+    public override func get<T>(_ objectId: LCStringConvertible, cachePolicy: LCQuery.CachePolicy = .onlyNetwork) -> LCValueResult<T> where T : LCObject {
+        fatalError("not support")
+    }
+    
+    public override func get<T>(_ objectId: LCStringConvertible, cachePolicy: LCQuery.CachePolicy = .onlyNetwork, completionQueue: DispatchQueue = .main, completion: @escaping (LCValueResult<T>) -> Void) -> LCRequest where T : LCObject {
+        fatalError("not support")
+    }
+    
+    @available(*, unavailable)
+    public override func getFirst<T>(cachePolicy: LCQuery.CachePolicy = .onlyNetwork) -> LCValueResult<T> where T : LCObject {
+        fatalError("not support")
+    }
+    
+    public override func getFirst<T>(cachePolicy: LCQuery.CachePolicy = .onlyNetwork, completionQueue: DispatchQueue = .main, completion: @escaping (LCValueResult<T>) -> Void) -> LCRequest where T : LCObject {
+        fatalError("not support")
+    }
+    
+    @available(*, unavailable)
+    public override func find<T>(cachePolicy: LCQuery.CachePolicy = .onlyNetwork) -> LCQueryResult<T> where T : LCObject {
+        fatalError("not support")
+    }
+    
+    @available(*, unavailable)
+    public override func find<T>(cachePolicy: LCQuery.CachePolicy = .onlyNetwork, completionQueue: DispatchQueue = .main, completion: @escaping (LCQueryResult<T>) -> Void) -> LCRequest where T : LCObject {
+        fatalError("not support")
+    }
+    
+    @available(*, unavailable)
+    public override func count(cachePolicy: LCQuery.CachePolicy = .onlyNetwork) -> LCCountResult {
+        fatalError("not support")
+    }
+    
+    public override func count(cachePolicy: LCQuery.CachePolicy = .onlyNetwork, completionQueue: DispatchQueue = .main, completion: @escaping (LCCountResult) -> Void) -> LCRequest {
+        fatalError("not support")
+    }
+    
+    @available(*, unavailable)
+    public override func and(_ query: LCQuery) throws -> LCQuery {
+        fatalError("not support")
+    }
+    
+    @available(*, unavailable)
+    public override func or(_ query: LCQuery) throws -> LCQuery {
+        fatalError("not support")
+    }
+    
+    @available(*, unavailable)
+    public override func whereKey(_ key: String, _ constraint: LCQuery.Constraint) {
+        fatalError("not support")
+    }
 }
 
 private extension IMConversationQuery {

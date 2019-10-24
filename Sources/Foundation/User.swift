@@ -58,6 +58,61 @@ open class LCUser: LCObject {
         return "_User"
     }
     
+    // MARK: Cache
+    
+    struct CacheTable: Codable {
+        let jsonString: String
+        let applicationID: String
+        
+        enum CodingKeys: String, CodingKey {
+            case jsonString = "json_string"
+            case applicationID = "application_id"
+        }
+    }
+    
+    static func saveCurrentUser(application: LCApplication, user: LCUser?) {
+        guard let context = application.localStorageContext,
+            let fileURL = application.currentUserFileURL else {
+                return
+        }
+        do {
+            if let user = user {
+                try context.save(
+                    table: CacheTable(
+                        jsonString: user.jsonString,
+                        applicationID: application.id),
+                    to: fileURL)
+            } else {
+                try context.clear(
+                    file: fileURL)
+            }
+        } catch {
+            Logger.shared.error(error)
+        }
+    }
+    
+    static func currentUser(application: LCApplication) -> LCUser? {
+        do {
+            guard let fileURL = application.currentUserFileURL,
+                let context = application.localStorageContext,
+                let table: CacheTable = try context.table(from: fileURL),
+                table.applicationID == application.id,
+                let data = table.jsonString.data(using: .utf8),
+                let jsonObject = try JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+                    return nil
+            }
+            let dictionary = try LCDictionary(
+                application: application,
+                unsafeObject: jsonObject)
+            return LCUser(
+                application: application,
+                dictionary: dictionary)
+        } catch {
+            Logger.shared.error(error)
+            return nil
+        }
+    }
+    
     // MARK: Sign up
 
     /**

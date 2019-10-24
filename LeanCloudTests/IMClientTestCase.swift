@@ -14,7 +14,7 @@ class IMClientTestCase: RTMBaseTestCase {
     func testInit() {
         do {
             let invalidID: String = Array<String>.init(repeating: "a", count: 65).joined()
-            let _ = try IMClient(ID: invalidID)
+            let _ = try IMClient(ID: invalidID, options: [])
             XCTFail()
         } catch {
             XCTAssertTrue(error is LCError)
@@ -22,15 +22,15 @@ class IMClientTestCase: RTMBaseTestCase {
         
         do {
             let invalidTag: String = "default"
-            let _ = try IMClient(ID: "aaaaaa", tag: invalidTag)
+            let _ = try IMClient(ID: uuid, tag: invalidTag, options: [])
             XCTFail()
         } catch {
             XCTAssertTrue(error is LCError)
         }
         
         do {
-            let _ = try IMClient(ID: uuid)
-            let _ = try IMClient(ID: uuid, tag: uuid)
+            let _ = try IMClient(ID: uuid, options: [])
+            let _ = try IMClient(ID: uuid, tag: uuid, options: [])
         } catch {
             XCTFail("\(error)")
         }
@@ -44,7 +44,7 @@ class IMClientTestCase: RTMBaseTestCase {
         XCTAssertTrue(user.signUp().isSuccess)
         
         do {
-            let client = try IMClient(user: user)
+            let client = try IMClient(user: user, options: [])
             XCTAssertNotNil(client.user)
             XCTAssertEqual(client.ID, user.objectId?.stringValue)
         } catch {
@@ -53,7 +53,7 @@ class IMClientTestCase: RTMBaseTestCase {
     }
     
     func testDeinit() {
-        var client: IMClient? = try! IMClient(ID: uuid, tag: uuid)
+        var client: IMClient? = try! IMClient(ID: uuid, tag: uuid, options: [])
         weak var wClient: IMClient? = client
         client = nil
         delay()
@@ -61,7 +61,7 @@ class IMClientTestCase: RTMBaseTestCase {
     }
 
     func testOpenAndClose() {
-        let client: IMClient = try! IMClient(ID: uuid)
+        let client: IMClient = try! IMClient(ID: uuid, options: [])
         
         expecting { (exp) in
             client.open(completion: { (result) in
@@ -111,7 +111,7 @@ class IMClientTestCase: RTMBaseTestCase {
         
         if let objectID = user.objectId?.value, let sessionToken = user.sessionToken?.value {
             
-            var clientWithUser: IMClient! = try! IMClient(user: user)
+            var clientWithUser: IMClient! = try! IMClient(user: user, options: [])
             expecting { (exp) in
                 clientWithUser.open(completion: { (result) in
                     XCTAssertTrue(result.isSuccess)
@@ -125,7 +125,7 @@ class IMClientTestCase: RTMBaseTestCase {
             
             let signatureDelegator = SignatureDelegator()
             signatureDelegator.sessionToken = sessionToken
-            let clientWithID = try! IMClient(ID: objectID, signatureDelegate: signatureDelegator)
+            let clientWithID = try! IMClient(ID: objectID, options: [], signatureDelegate: signatureDelegator)
             expecting { (exp) in
                 clientWithID.open(completion: { (result) in
                     XCTAssertTrue(result.isSuccess)
@@ -137,7 +137,7 @@ class IMClientTestCase: RTMBaseTestCase {
     }
     
     func testDelegateEvent() {
-        let client: IMClient = try! IMClient(ID: uuid)
+        let client: IMClient = try! IMClient(ID: uuid, options: [])
         let delegator: Delegator = Delegator()
         client.delegate = delegator
         
@@ -200,6 +200,7 @@ class IMClientTestCase: RTMBaseTestCase {
         let client1: IMClient = try! IMClient(
             ID: clientID,
             tag: tag,
+            options: [],
             delegate: delegator1)
         
         expecting { (exp) in
@@ -223,6 +224,7 @@ class IMClientTestCase: RTMBaseTestCase {
         let client2: IMClient = try! IMClient(
             ID: clientID,
             tag: tag,
+            options: [],
             delegate: delegator2)
         
         expecting(
@@ -276,7 +278,7 @@ class IMClientTestCase: RTMBaseTestCase {
     }
     
     func testSessionTokenExpired() {
-        let client: IMClient = try! IMClient(ID: uuid)
+        let client: IMClient = try! IMClient(ID: uuid, options: [])
         let delegator: Delegator = Delegator()
         client.delegate = delegator
         
@@ -326,7 +328,7 @@ class IMClientTestCase: RTMBaseTestCase {
     func testReportDeviceToken() {
         let application = LCApplication.default
         let currentDeviceToken = application.currentInstallation.deviceToken?.value
-        let client: IMClient = try! IMClient(application: application, ID: uuid)
+        let client: IMClient = try! IMClient(application: application, ID: uuid, options: [])
         delay()
         XCTAssertEqual(currentDeviceToken, client.currentDeviceToken)
         
@@ -349,8 +351,8 @@ class IMClientTestCase: RTMBaseTestCase {
     }
     
     func testSessionQuery() {
-        let client1: IMClient = try! IMClient(ID: uuid)
-        let client2: IMClient = try! IMClient(ID: uuid)
+        let client1: IMClient = try! IMClient(ID: uuid, options: [])
+        let client2: IMClient = try! IMClient(ID: uuid, options: [])
         
         let openExp1 = expectation(description: "open")
         client1.open { (result) in
