@@ -116,8 +116,12 @@ extension LCValue {
     }
 
     public var boolValue: Bool? {
-        guard let number = rawValue as? Double else { return nil }
-        return number != 0
+        if let value = rawValue as? Bool {
+            return value
+        } else {
+            guard let number = rawValue as? Double else { return nil }
+            return number != 0
+        }
     }
 
     public var stringValue: String? {
