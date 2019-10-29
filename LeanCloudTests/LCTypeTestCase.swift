@@ -28,6 +28,11 @@ class LCTypeTestCase: BaseTestCase {
     func testNullConvertible() {
         XCTAssertEqual(convert(NSNull()) as? LCNull, LCNull())
     }
+    
+    func testBoolConvertible() {
+        XCTAssertEqual(convert(true) as? LCBool, true)
+        XCTAssertEqual(LCBool(true).boolValue, true)
+    }
 
     func testIntegerConvertible() {
         XCTAssertEqual(convert(Int(42))    as? LCNumber, 42)
