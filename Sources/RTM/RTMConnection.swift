@@ -879,7 +879,7 @@ extension IMErrorCommand {
 
 extension IMSessionCommand {
     
-    var lcError: LCError {
+    var lcError: LCError? {
         if self.hasCode {
             var userInfo: LCError.UserInfo = [:]
             if self.hasDetail {
@@ -897,7 +897,7 @@ extension IMSessionCommand {
                 reason: self.hasReason ? self.reason : nil,
                 userInfo: userInfo)
         } else {
-            return LCError(code: .commandInvalid)
+            return nil
         }
     }
 }

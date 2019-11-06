@@ -1519,8 +1519,11 @@ extension IMClient {
                 }
             }
         case (.session, .closed):
-            let sessionMessage = command.sessionMessage
-            self.sessionClosed(with: .failure(error: sessionMessage.lcError), completion: completion)
+            self.sessionClosed(
+                with: .failure(
+                    error: command.sessionMessage.lcError
+                        ?? LCError(code: .commandInvalid)),
+                completion: completion)
         default:
             let error = LCError(code: .commandInvalid)
             self.sessionClosed(with: .failure(error: error), completion: completion)
@@ -2374,7 +2377,9 @@ extension IMClient: RTMConnectionDelegate {
         case .session:
             switch inCommand.op {
             case .closed:
-                self.sessionClosed(with: .failure(error: inCommand.sessionMessage.lcError))
+                self.sessionClosed(with: .failure(
+                    error: inCommand.sessionMessage.lcError
+                        ?? LCError(code: .commandInvalid)))
             default:
                 break
             }
