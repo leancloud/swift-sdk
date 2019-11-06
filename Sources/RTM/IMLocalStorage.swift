@@ -158,7 +158,6 @@ class IMLocalStorage {
             func message(client: IMClient) throws -> IMMessage {
                 let message = IMMessage.instance(
                     application: client.application,
-                    isTransient: false,
                     conversationID: self.conversationID,
                     currentClientID: client.ID,
                     fromClientID: self.fromPeerID,
@@ -167,8 +166,7 @@ class IMLocalStorage {
                     messageID: self.messageID,
                     content: self.content?.decodeToMessageContent(binary: self.binary),
                     isAllMembersMentioned: self.allMentioned,
-                    mentionedMembers: try self.mentionedList?.jsonObject()
-                )
+                    mentionedMembers: try self.mentionedList?.jsonObject())
                 message.deliveredTimestamp = self.deliveredTimestamp
                 message.readTimestamp = self.readTimestamp
                 return message
@@ -627,7 +625,6 @@ extension IMLocalStorage {
                 }
                 let message = IMMessage.instance(
                     application: client.application,
-                    isTransient: false,
                     conversationID: conversationID,
                     currentClientID: client.ID,
                     fromClientID: row[key.fromPeerID.rawValue] as String?,
@@ -635,10 +632,10 @@ extension IMLocalStorage {
                     patchedTimestamp: row[key.patchedTimestamp.rawValue] as Int64?,
                     messageID: messageID,
                     content: (row[key.content.rawValue] as String?)?
-                        .decodeToMessageContent(binary: row[key.binary.rawValue] as Bool?),
+                        .decodeToMessageContent(
+                            binary: row[key.binary.rawValue] as Bool?),
                     isAllMembersMentioned: row[key.allMentioned.rawValue] as Bool?,
-                    mentionedMembers: try (row[key.mentionedList.rawValue] as String?)?.jsonObject()
-                )
+                    mentionedMembers: try (row[key.mentionedList.rawValue] as String?)?.jsonObject())
                 message.deliveredTimestamp = row[key.deliveredTimestamp.rawValue] as Int64?
                 message.readTimestamp = row[key.readTimestamp.rawValue] as Int64?
                 if let breakpoint: Bool = row[key.breakpoint.rawValue] as Bool? {

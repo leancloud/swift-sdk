@@ -1890,47 +1890,44 @@ extension IMClient {
             assert(client.specificAssertion)
             switch result {
             case .success(value: let conversation):
-                guard
-                    let timestamp: Int64 = (command.hasTimestamp ? command.timestamp : nil),
-                    let messageID: String = (command.hasID ? command.id : nil)
-                    else
-                { return }
-                var content: IMMessage.Content? = nil
-                /*
-                 For Compatibility,
-                 Should check `binaryMsg` at first.
-                 Then check `msg`.
-                 */
-                if command.hasBinaryMsg {
-                    content = .data(command.binaryMsg)
-                } else if command.hasMsg {
-                    content = .string(command.msg)
+                guard let timestamp: Int64 = (command.hasTimestamp ? command.timestamp : nil),
+                    let messageID: String = (command.hasID ? command.id : nil) else {
+                        return
                 }
                 let message = IMMessage.instance(
                     application: client.application,
-                    isTransient: (command.hasTransient ? command.transient : false),
                     conversationID: conversationID,
                     currentClientID: client.ID,
                     fromClientID: (command.hasFromPeerID ? command.fromPeerID : nil),
                     timestamp: timestamp,
                     patchedTimestamp: (command.hasPatchTimestamp ? command.patchTimestamp : nil),
                     messageID: messageID,
-                    content: content,
+                    content: command.lcMessageContent,
                     isAllMembersMentioned: (command.hasMentionAll ? command.mentionAll : nil),
-                    mentionedMembers: (command.mentionPids.isEmpty ? nil : command.mentionPids)
-                )
+                    mentionedMembers: (command.mentionPids.isEmpty ? nil : command.mentionPids),
+                    isTransient: (command.hasTransient ? command.transient : false))
+                let isUnreadMessageIncreased = conversation.safeUpdatingLastMessage(
+                    newMessage: message,
+                    client: client)
                 var unreadEvent: IMConversationEvent?
-                let isUnreadMessageIncreased: Bool = conversation.safeUpdatingLastMessage(newMessage: message, client: client)
-                if client.options.isProtobuf3, isUnreadMessageIncreased {
+                if client.options.isProtobuf3,
+                    isUnreadMessageIncreased {
                     conversation.unreadMessageCount += 1
                     unreadEvent = .unreadMessageCountUpdated
                 }
-                client.acknowledging(message: message, conversation: conversation)
+                client.acknowledging(
+                    message: message,
+                    conversation: conversation)
                 client.eventQueue.async {
                     if let unreadUpdatedEvent = unreadEvent {
-                        client.delegate?.client(client, conversation: conversation, event: unreadUpdatedEvent)
+                        client.delegate?.client(
+                            client, conversation: conversation,
+                            event: unreadUpdatedEvent)
                     }
-                    client.delegate?.client(client, conversation: conversation, event: .message(event: .received(message: message)))
+                    client.delegate?.client(
+                        client, conversation: conversation,
+                        event: .message(
+                            event: .received(message: message)))
                 }
             case .failure(error: let error):
                 Logger.shared.error(error)

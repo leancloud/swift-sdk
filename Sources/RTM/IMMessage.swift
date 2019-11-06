@@ -16,11 +16,8 @@ import AppKit
 
 /// IM Message
 open class IMMessage {
-    
+
     /// Message IO Type.
-    ///
-    /// - `in`: The message which the current client received.
-    /// - out: The message which the current client sent.
     public enum IOType {
         case `in`
         case out
@@ -28,12 +25,9 @@ open class IMMessage {
     
     /// @see `IOType`.
     public var ioType: IOType {
-        if
-            let fromClientID: String = self.fromClientID,
-            let currentClientID: String = self.currentClientID,
-            fromClientID == currentClientID
-        {
-            return .out
+        if let fromClientID = self.fromClientID,
+            let currentClientID = self.currentClientID {
+            return fromClientID == currentClientID ? .out : .in
         } else {
             return .in
         }
@@ -83,7 +77,7 @@ open class IMMessage {
     
     /// The sent date of this message.
     public var sentDate: Date? {
-        return IMClient.date(fromMillisecond: sentTimestamp)
+        return IMClient.date(fromMillisecond: self.sentTimestamp)
     }
     
     /// The delivered timestamp of this message. measurement is millisecond.
@@ -91,7 +85,8 @@ open class IMMessage {
     
     /// The delivered date of this message.
     public var deliveredDate: Date? {
-        return IMClient.date(fromMillisecond: deliveredTimestamp)
+        return IMClient.date(
+            fromMillisecond: self.deliveredTimestamp)
     }
     
     /// The read timestamp of this message. measurement is millisecond.
@@ -99,7 +94,8 @@ open class IMMessage {
     
     /// The read date of this message.
     public var readDate: Date? {
-        return IMClient.date(fromMillisecond: readTimestamp)
+        return IMClient.date(
+            fromMillisecond: self.readTimestamp)
     }
     
     /// The reason of the message being patched.
@@ -113,7 +109,8 @@ open class IMMessage {
     
     /// The patched date of this message.
     public var patchedDate: Date? {
-        return IMClient.date(fromMillisecond: patchedTimestamp)
+        return IMClient.date(
+            fromMillisecond: self.patchedTimestamp)
     }
     
     /// Feature: @all.
@@ -124,61 +121,50 @@ open class IMMessage {
     
     /// Indicates whether the current client has been @.
     public var isCurrentClientMentioned: Bool {
-        if self.ioType == .out {
-            return false
-        } else {
-            if let allMentioned: Bool = self.isAllMembersMentioned,
+        if self.ioType == .in {
+            if let allMentioned = self.isAllMembersMentioned,
                 allMentioned {
                 return true
             }
-            if let clientID: String = self.currentClientID,
-                let mentionedMembers: [String] = self.mentionedMembers {
-                return mentionedMembers.contains(clientID)
+            if let clientID = self.currentClientID,
+                let mentionedMembers = self.mentionedMembers,
+                mentionedMembers.contains(clientID) {
+                return true
             }
-            return false
         }
+        return false
     }
     
     /// Message Content.
-    ///
-    /// - string: string content.
-    /// - data: binary content.
     public enum Content {
         case string(String)
         case data(Data)
         
         public var string: String? {
             switch self {
-            case .string(let str):
-                return str
-            default:
-                return nil
+            case let .string(v): return v
+            default: return nil
             }
         }
         
         public var data: Data? {
             switch self {
-            case .data(let data):
-                return data
-            default:
-                return nil
+            case let .data(v): return v
+            default: return nil
             }
         }
     }
     
     /// @see `Content`.
-    public fileprivate(set) var content: Content?
+    public internal(set) var content: Content?
     
     /// Set content for message.
-    ///
     /// - Parameter content: @see `Content`.
-    /// - Throws: `IMCategorizedMessage` not support this function.
     public func set(content: Content) throws {
         if self is IMCategorizedMessage {
             throw LCError(
                 code: .inconsistency,
-                reason:"\(type(of: self))'s content can't be set directly"
-            )
+                reason:"content of `\(type(of: self))` can not be set directly.")
         } else {
             self.content = content
         }
@@ -188,7 +174,6 @@ open class IMMessage {
     
     static func instance(
         application: LCApplication,
-        isTransient: Bool,
         conversationID: String,
         currentClientID: IMClient.Identifier,
         fromClientID: IMClient.Identifier?,
@@ -196,19 +181,19 @@ open class IMMessage {
         patchedTimestamp: Int64?,
         messageID: String,
         content: Content?,
-        isAllMembersMentioned: Bool?,
-        mentionedMembers: [String]?,
-        underlyingStatus: Status = .sent)
+        isAllMembersMentioned: Bool? = nil,
+        mentionedMembers: [String]? = nil,
+        underlyingStatus: Status = .sent,
+        isTransient: Bool = false)
         -> IMMessage
     {
         var message = IMMessage()
-        let messageTypeKey: String = IMCategorizedMessage.ReservedKey.type.rawValue
-        if let string: String = content?.string, string.contains(messageTypeKey) {
+        if let stringContent = content?.string,
+            stringContent.contains(IMCategorizedMessage.ReservedKey.type.rawValue) {
             do {
-                if let rawData: [String: Any] = try string.jsonObject(),
-                    let typeNumber: Int = rawData[messageTypeKey] as? Int,
-                    let messageType: IMCategorizedMessage.Type = IMCategorizedMessageTypeMap[typeNumber]
-                {
+                if let rawData: [String: Any] = try stringContent.jsonObject(),
+                    let typeNumber = rawData[IMCategorizedMessage.ReservedKey.type.rawValue] as? Int,
+                    let messageType = IMCategorizedMessageTypeMap[typeNumber] {
                     let categorizedMessage = messageType.init()
                     categorizedMessage.decoding(rawData: rawData, application: application)
                     message = categorizedMessage
@@ -234,12 +219,9 @@ open class IMMessage {
     var isTransient: Bool = false
     var isWill: Bool = false
     
-    /// ref: https://github.com/leancloud/avoscloud-push/blob/develop/push-server/doc/protocol.md#客户端发起-3
-    /// parameter: `dt`
+    /// ref: https://github.com/leancloud/avoscloud-push/blob/develop/push-server/doc/protocol.md#消息
     var dToken: String? = nil
-    
     var sendingTimestamp: Int64? = nil
-    
     var breakpoint: Bool = false
     
     func setup(clientID: String, conversationID: String) {
@@ -252,20 +234,11 @@ open class IMMessage {
         assert(newStatus != .delivered && newStatus != .read)
         self.underlyingStatus = newStatus
         if newStatus == .sent {
+            assert(ID != nil && timestamp != nil)
             self.ID = ID
             self.sentTimestamp = timestamp
         }
     }
-    
-    var isSent: Bool {
-        switch self.status {
-        case .sent, .delivered, .read:
-            return true
-        default:
-            return false
-        }
-    }
-    
 }
 
 var IMCategorizedMessageTypeMap: [Int: IMCategorizedMessage.Type] = [
@@ -289,22 +262,12 @@ public protocol IMMessageCategorizing: class {
     /// The zero and negative number is reserved for default categorized message,
     /// Any other categorized message should use positive number.
     static var messageType: MessageType { get }
-    
 }
 
 /// IM Categorized Message
 open class IMCategorizedMessage: IMMessage, IMMessageCategorizing {
     
     /// Reserved message type.
-    ///
-    /// - none: none.
-    /// - text: text.
-    /// - image: image.
-    /// - audio: audio.
-    /// - video: video.
-    /// - location: location.
-    /// - file: file.
-    /// - recalled: recalled.
     public enum ReservedType: MessageType {
         case none = 0
         case text = -1
@@ -341,17 +304,13 @@ open class IMCategorizedMessage: IMMessage, IMMessageCategorizing {
     }
     
     /// Any categorized message should be registered at first.
-    ///
-    /// - Throws: if `lcType` is not a positive number.
     public static func register() throws {
-        let type: Int = self.messageType
-        guard type > 0 else {
+        guard self.messageType > 0 else {
             throw LCError(
                 code: .inconsistency,
-                reason: "The value of the customized message's type should be a positive integer"
-            )
+                reason: "the value of message type should be a positive integer.")
         }
-        IMCategorizedMessageTypeMap[type] = self
+        IMCategorizedMessageTypeMap[self.messageType] = self
     }
     
     /// The type of message.
@@ -369,9 +328,12 @@ open class IMCategorizedMessage: IMMessage, IMMessageCategorizing {
         format: String? = nil)
     {
         super.init()
-        let payload = LCFile.Payload.data(data: data)
-        self.file = LCFile(application: application, payload: payload)
-        self.setFileFormat(format: format)
+        let file = LCFile(
+            application: application,
+            payload: .data(
+                data: data))
+        self.file = file
+        self.setFormatForFile(format: format, file: file)
     }
     
     public init(
@@ -380,10 +342,12 @@ open class IMCategorizedMessage: IMMessage, IMMessageCategorizing {
         format: String? = nil)
     {
         super.init()
-        let fileURL = URL(fileURLWithPath: filePath)
-        let payload = LCFile.Payload.fileURL(fileURL: fileURL)
-        self.file = LCFile(application: application, payload: payload)
-        self.setFileFormat(format: format)
+        let file = LCFile(
+            application: application,
+            payload: .fileURL(
+                fileURL: URL(fileURLWithPath: filePath)))
+        self.file = file
+        self.setFormatForFile(format: format, file: file)
     }
     
     public init(
@@ -392,8 +356,11 @@ open class IMCategorizedMessage: IMMessage, IMMessageCategorizing {
         format: String? = nil)
     {
         super.init()
-        self.file = LCFile(application: application, url: url)
-        self.setFileFormat(format: format)
+        let file = LCFile(
+            application: application,
+            url: url)
+        self.file = file
+        self.setFormatForFile(format: format, file: file)
     }
 
     @available(*, unavailable)
@@ -422,212 +389,184 @@ open class IMCategorizedMessage: IMMessage, IMMessageCategorizing {
     /// The file object.
     public var file: LCFile?
     
-    private(set) var fileMetaData: [String: Any]?
-    
     /// The location data.
     public var location: LCGeoPoint?
     
+    private(set) var fileMetaData: [String: Any]?
+    
     fileprivate func decoding(rawData: [String: Any], application: LCApplication) {
-        if let text: String = rawData[ReservedKey.text.rawValue] as? String {
-            self.text = text
+        self.text = rawData[ReservedKey.text.rawValue] as? String
+        self.attributes = rawData[ReservedKey.attributes.rawValue] as? [String: Any]
+        if let fileData = rawData[ReservedKey.file.rawValue] as? [String: Any],
+            let objectID = fileData[FileKey.objId.rawValue] as? String,
+            let urlString = fileData[FileKey.url.rawValue] as? String {
+            let file = LCFile(application: application, objectId: objectID)
+            file.url = LCString(urlString)
+            self.file = file
+            self.fileMetaData = fileData[FileKey.metaData.rawValue] as? [String: Any]
         }
-        if let attributes: [String: Any] = rawData[ReservedKey.attributes.rawValue] as? [String: Any] {
-            self.attributes = attributes
-        }
-        if let locationRawData: [String: Any] = rawData[ReservedKey.location.rawValue] as? [String: Any],
-            let latitude: Double = locationRawData[LocationKey.latitude.rawValue] as? Double,
-            let longitude: Double = locationRawData[LocationKey.longitude.rawValue] as? Double
-        {
+        if let locationData = rawData[ReservedKey.location.rawValue] as? [String: Any],
+            let latitude = locationData[LocationKey.latitude.rawValue] as? Double,
+            let longitude = locationData[LocationKey.longitude.rawValue] as? Double {
             self.location = LCGeoPoint(latitude: latitude, longitude: longitude)
         }
-        if let fileRawData: [String: Any] = rawData[ReservedKey.file.rawValue] as? [String: Any],
-            let objectID: String = fileRawData[FileKey.objId.rawValue] as? String,
-            let URLString: String = fileRawData[FileKey.url.rawValue] as? String
-        {
-            let file = LCFile(application: application, objectId: objectID)
-            file.url = LCString(URLString)
-            self.file = file
-            self.fileMetaData = (fileRawData[FileKey.metaData.rawValue] as? [String: Any])
-        }
         self.rawData = rawData
-    }
-    
-    func tryEncodingFileMetaData() {
-        guard
-            let file = self.file,
-            file.hasObjectId
-            else
-        { return }
-        var shouldRemovedTempFileURL: URL? = nil
-        defer {
-            if let tempFileURL: URL = shouldRemovedTempFileURL {
-                do {
-                    try FileManager.default.removeItem(at: tempFileURL)
-                } catch {
-                    Logger.shared.error(error)
-                }
-            }
-        }
-        var metaData: [String: Any] = [:]
-        // set size
-        if let size: Double = file.metaData?[FileKey.size.rawValue]?.doubleValue {
-            metaData[FileKey.size.rawValue] = size
-        }
-        // set format
-        var tempFilePathExtension: String? = nil
-        if let format: String = file.metaData?[FileKey.format.rawValue]?.stringValue {
-            tempFilePathExtension = format
-            metaData[FileKey.format.rawValue] = format
-        } else if let format: String = (file.name?.value as NSString?)?.pathExtension ?? (file.url?.value as NSString?)?.pathExtension,
-            !format.isEmpty {
-            tempFilePathExtension = format
-            metaData[FileKey.format.rawValue] = format
-        }
-        if (self is IMImageMessage) {
-            // set width & height
-            if let fileOriginMetaData: LCDictionary = file.metaData,
-                let width: Double = fileOriginMetaData[FileKey.width.rawValue]?.doubleValue,
-                let height: Double = fileOriginMetaData[FileKey.height.rawValue]?.doubleValue
-            {
-                metaData[FileKey.width.rawValue] = width
-                metaData[FileKey.height.rawValue] = height
-            } else if let payload: LCFile.Payload = file.payload {
-                var imageData: Data? = nil
-                switch payload {
-                case .fileURL(fileURL: let fileURL):
-                    let filePath: String = fileURL.path
-                    if FileManager.default.fileExists(atPath: filePath) {
-                        imageData = FileManager.default.contents(atPath: filePath)
-                    }
-                case .data(data: let data):
-                    imageData = data
-                }
-                if let data: Data = imageData {
-                    var width: Double? = nil
-                    var height: Double? = nil
-                    #if os(iOS) || os(tvOS) || os(watchOS)
-                    if let image: UIImage = UIImage(data: data) {
-                        width = Double(image.size.width * image.scale)
-                        height = Double(image.size.height * image.scale)
-                    }
-                    #elseif os(macOS)
-                    if let image: NSImage = NSImage(data: data) {
-                        width = Double(image.size.width)
-                        height = Double(image.size.height)
-                    }
-                    #endif
-                    if let w: Double = width, let h: Double = height {
-                        metaData[FileKey.width.rawValue] = w
-                        metaData[FileKey.height.rawValue] = h
-                    }
-                }
-            }
-        } else if (self is IMAudioMessage) || (self is IMVideoMessage) {
-            // set duration
-            if let duration: Double = file.metaData?[FileKey.duration.rawValue]?.doubleValue {
-                metaData[FileKey.duration.rawValue] = duration
-            } else {
-                var avURL: URL? = nil
-                if let payload: LCFile.Payload = file.payload {
-                    switch payload {
-                    case .fileURL(fileURL: let fileURL):
-                        avURL = fileURL
-                    case .data(data: let data):
-                        var nextLoop: Bool = false
-                        repeat {
-                            var pathComponent: String = UUID().uuidString
-                            if let format: String = tempFilePathExtension {
-                                pathComponent = "\(pathComponent).\(format)"
-                            }
-                            let tempFilePath: String = (NSTemporaryDirectory() as NSString).appendingPathComponent(pathComponent)
-                            if FileManager.default.fileExists(atPath: tempFilePath) {
-                                nextLoop = true
-                            } else {
-                                if FileManager.default.createFile(atPath: tempFilePath, contents: data) {
-                                    avURL = URL(fileURLWithPath: tempFilePath)
-                                    shouldRemovedTempFileURL = avURL
-                                }
-                                nextLoop = false
-                            }
-                        } while nextLoop
-                    }
-                } else if let fileURLString: String = file.url?.value {
-                    avURL = URL(string: fileURLString)
-                }
-                if let fileURL: URL = avURL {
-                    #if !os(watchOS)
-                    metaData[FileKey.duration.rawValue] = AVURLAsset(
-                        url: fileURL,
-                        options: [AVURLAssetPreferPreciseDurationAndTimingKey: true])
-                        .duration
-                        .seconds
-                    #endif
-                }
-            }
-        }
-        if !metaData.isEmpty {
-            do {
-                self.fileMetaData = try metaData.jsonObject()
-            } catch {
-                Logger.shared.error(error)
-            }
-        }
-    }
-    
-    func encodingMessageContent() throws {
-        self.rawData[ReservedKey.type.rawValue] = type(of: self).messageType
-        if let text: String = self.text {
-            self.rawData[ReservedKey.text.rawValue] = text
-        }
-        if let attributes: [String: Any] = self.attributes {
-            self.rawData[ReservedKey.attributes.rawValue] = attributes
-        }
-        if let file: LCFile = self.file,
-            let objectID: String = file.objectId?.value,
-            let url: String = file.url?.value
-        {
-            var fileRawData: [String: Any] = [
-                FileKey.objId.rawValue: objectID,
-                FileKey.url.rawValue: url
-            ]
-            if let metaData: [String: Any] = self.fileMetaData {
-                fileRawData[FileKey.metaData.rawValue] = metaData
-            }
-            self.rawData[ReservedKey.file.rawValue] = fileRawData
-        }
-        if let location: LCGeoPoint = self.location {
-            let locationRawData: [String: Any] = [
-                LocationKey.latitude.rawValue: location.latitude,
-                LocationKey.longitude.rawValue: location.longitude
-            ]
-            self.rawData[ReservedKey.location.rawValue] = locationRawData
-        }
-        let data: Data = try JSONSerialization.data(withJSONObject: self.rawData)
-        if let realJSONObject: [String: Any] = try JSONSerialization.jsonObject(with: data) as? [String: Any] {
-            self.rawData = realJSONObject
-        }
-        if let contentString: String = String(data: data, encoding: .utf8) {
-            self.content = .string(contentString)
-        }
     }
     
     fileprivate func decodingFileMetaData<T>(with key: FileKey) -> T? {
         return self.fileMetaData?[key.rawValue] as? T
     }
     
-    private func setFileFormat(format: String?) {
-        guard let format = format, let file = self.file else {
-            return
-        }
-        let key = FileKey.format.rawValue
-        let value = LCString(format)
-        if let metaData: LCDictionary = file.metaData {
-            metaData[key] = value
+    func encodingMessageContent(application: LCApplication) throws {
+        self.rawData[ReservedKey.type.rawValue] = type(of: self).messageType
+        self.rawData[ReservedKey.text.rawValue] = self.text
+        self.rawData[ReservedKey.attributes.rawValue] = self.attributes
+        if let file = self.file,
+            let objectID = file.objectId?.value,
+            let url = file.url?.value {
+            guard file.application === application else {
+                throw LCError(
+                    code: .inconsistency,
+                    reason: "application of file is not equal to application of client.")
+            }
+            var fileData: [String: Any] = [
+                FileKey.objId.rawValue: objectID,
+                FileKey.url.rawValue: url]
+            if let metaData = try self.fileMetaData(from: file) {
+                fileData[FileKey.metaData.rawValue] = metaData
+                self.fileMetaData = metaData
+            }
+            self.rawData[ReservedKey.file.rawValue] = fileData
         } else {
-            file.metaData = LCDictionary([key: value])
+            self.rawData[ReservedKey.file.rawValue] = nil
+        }
+        if let location = self.location {
+            self.rawData[ReservedKey.location.rawValue] = [
+                LocationKey.latitude.rawValue: location.latitude,
+                LocationKey.longitude.rawValue: location.longitude]
+        } else {
+            self.rawData[ReservedKey.location.rawValue] = nil
+        }
+        let data = try JSONSerialization.data(withJSONObject: self.rawData)
+        if let rawData = try JSONSerialization.jsonObject(with: data) as? [String: Any] {
+            self.rawData = rawData
+        }
+        if let contentString = String(data: data, encoding: .utf8) {
+            self.content = .string(contentString)
         }
     }
     
+    private func setFormatForFile(format: String?, file: LCFile) {
+        guard let format = format else {
+            return
+        }
+        if let metaData = file.metaData {
+            metaData[FileKey.format.rawValue] = LCString(format)
+        } else {
+            file.metaData = LCDictionary([FileKey.format.rawValue: format])
+        }
+    }
+    
+    private func fileMetaData(from file: LCFile) throws -> [String: Any]? {
+        guard file.hasObjectId else {
+            return nil
+        }
+        var metaData: [String: Any] = [:]
+        if let size = file.metaData?[FileKey.size.rawValue]?.doubleValue {
+            metaData[FileKey.size.rawValue] = size
+        }
+        if let format = file.metaData?[FileKey.format.rawValue]?.stringValue {
+            metaData[FileKey.format.rawValue] = format
+        } else if let format = (file.name?.value as NSString?)?.pathExtension
+            ?? (file.url?.value as NSString?)?.pathExtension,
+            !format.isEmpty {
+            metaData[FileKey.format.rawValue] = format
+        }
+        if (self is IMImageMessage) {
+            if let tuple = self.imageWidthHeight(from: file) {
+                metaData[FileKey.width.rawValue] = tuple.width
+                metaData[FileKey.height.rawValue] = tuple.height
+            }
+        } else if (self is IMAudioMessage) || (self is IMVideoMessage) {
+            if let duration = try self.mediaDuration(
+                from: file,
+                format: metaData[FileKey.format.rawValue] as? String) {
+                metaData[FileKey.duration.rawValue] = duration
+            }
+        }
+        return metaData.isEmpty ? nil : (try metaData.jsonObject())
+    }
+    
+    private func imageWidthHeight(from file: LCFile) -> (width: Double, height: Double)? {
+        var tuple: (Double, Double)?
+        if let metaData = file.metaData,
+            let width = metaData[FileKey.width.rawValue]?.doubleValue,
+            let height = metaData[FileKey.height.rawValue]?.doubleValue {
+            tuple = (width, height)
+        } else if let payload = file.payload {
+            var imageData: Data?
+            switch payload {
+            case let .fileURL(fileURL: fileURL):
+                if FileManager.default.fileExists(atPath: fileURL.path) {
+                    imageData = FileManager.default.contents(atPath: fileURL.path)
+                }
+            case let .data(data: data):
+                imageData = data
+            }
+            if let data = imageData {
+                #if os(iOS) || os(tvOS) || os(watchOS)
+                if let image = UIImage(data: data) {
+                    tuple = (Double(image.size.width * image.scale),
+                             Double(image.size.height * image.scale))
+                }
+                #elseif os(macOS)
+                if let image = NSImage(data: data) {
+                    tuple = (Double(image.size.width),
+                             Double(image.size.height))
+                }
+                #endif
+            }
+        }
+        return tuple
+    }
+    
+    private func mediaDuration(from file: LCFile, format: String?) throws -> Double? {
+        var mediaDuration: Double?
+        if let duration = file.metaData?[FileKey.duration.rawValue]?.doubleValue {
+            mediaDuration = duration
+        } else {
+            var mediaURL: URL?
+            var localTempFileURL: URL?
+            if let payload = file.payload {
+                switch payload {
+                case let .fileURL(fileURL: fileURL):
+                    mediaURL = fileURL
+                case let .data(data: data):
+                    var pathComponent = UUID().uuidString
+                    if let format = format {
+                        pathComponent = "\(pathComponent).\(format)"
+                    }
+                    let tempFilePath = (NSTemporaryDirectory() as NSString)
+                        .appendingPathComponent(pathComponent)
+                    if FileManager.default.createFile(atPath: tempFilePath, contents: data) {
+                        mediaURL = URL(fileURLWithPath: tempFilePath)
+                        localTempFileURL = mediaURL
+                    }
+                }
+            } else if let fileURLString = file.url?.value {
+                mediaURL = URL(string: fileURLString)
+            }
+            if let mediaURL = mediaURL {
+                if #available(iOS 7, macOS 10.9, tvOS 9, watchOS 6, *) {
+                    mediaDuration = AVURLAsset(url: mediaURL).duration.seconds
+                }
+            }
+            if let localTempFileURL = localTempFileURL {
+                try FileManager.default.removeItem(at: localTempFileURL)
+            }
+        }
+        return mediaDuration
+    }
 }
 
 /// IM Text Message
@@ -660,7 +599,6 @@ open class IMTextMessage: IMCategorizedMessage {
     public override init(application: LCApplication = LCApplication.default, url: URL, format: String? = nil) {
         super.init(application: application, url: url, format: format)
     }
-    
 }
 
 /// IM Image Message
@@ -692,14 +630,12 @@ open class IMImageMessage: IMCategorizedMessage {
     
     /// The URL of image.
     public var url: URL? {
-        if let urlString: String = self.file?.url?.value,
-            let url: URL = URL(string: urlString) {
-            return url
+        if let urlString = self.file?.url?.value {
+            return URL(string: urlString)
         } else {
             return nil
         }
     }
-    
 }
 
 /// IM Audio Message
@@ -726,14 +662,12 @@ open class IMAudioMessage: IMCategorizedMessage {
     
     /// The URL of audio.
     public var url: URL? {
-        if let urlString: String = self.file?.url?.value,
-            let url: URL = URL(string: urlString) {
-            return url
+        if let urlString = self.file?.url?.value {
+            return URL(string: urlString)
         } else {
             return nil
         }
     }
-    
 }
 
 /// IM Video Message
@@ -760,14 +694,12 @@ open class IMVideoMessage: IMCategorizedMessage {
     
     /// The URL of video.
     public var url: URL? {
-        if let urlString: String = self.file?.url?.value,
-            let url: URL = URL(string: urlString) {
-            return url
+        if let urlString = self.file?.url?.value {
+            return URL(string: urlString)
         } else {
             return nil
         }
     }
-    
 }
 
 /// IM File Message
@@ -789,14 +721,12 @@ open class IMFileMessage: IMCategorizedMessage {
     
     /// The URL of file.
     public var url: URL? {
-        if let urlString: String = self.file?.url?.value,
-            let url: URL = URL(string: urlString) {
-            return url
+        if let urlString = self.file?.url?.value {
+            return URL(string: urlString)
         } else {
             return nil
         }
     }
-    
 }
 
 /// IM Location Message
@@ -839,7 +769,6 @@ open class IMLocationMessage: IMCategorizedMessage {
     public var longitude: Double? {
         return self.location?.longitude
     }
-    
 }
 
 /// IM Recalled Message
@@ -867,5 +796,60 @@ open class IMRecalledMessage: IMCategorizedMessage {
     public override init(application: LCApplication = LCApplication.default, url: URL, format: String? = nil) {
         super.init(application: application, url: url, format: format)
     }
+}
+
+extension IMDirectCommand {
     
+    var lcMessageContent: IMMessage.Content? {
+        /* always check `binaryMsg` firstly */
+        if self.hasBinaryMsg {
+            return .data(self.binaryMsg)
+        } else if self.hasMsg {
+            return .string(self.msg)
+        }
+        return nil
+    }
+}
+
+extension IMUnreadTuple {
+    
+    var lcMessageContent: IMMessage.Content? {
+        /* always check `binaryMsg` firstly */
+        if self.hasBinaryMsg {
+            return .data(self.binaryMsg)
+        } else if self.hasData {
+            return .string(self.data)
+        }
+        return nil
+    }
+}
+
+extension IMPatchItem {
+    
+    var lcMessageContent: IMMessage.Content? {
+        /* always check `binaryMsg` firstly */
+        if self.hasBinaryMsg {
+            return .data(self.binaryMsg)
+        } else if self.hasData {
+            return .string(self.data)
+        }
+        return nil
+    }
+}
+
+extension IMLogItem {
+    
+    var lcMessageContent: IMMessage.Content? {
+        if self.hasData {
+            /* always check `binaryMsg` firstly */
+            if self.hasBin, self.bin {
+                if let data = Data(base64Encoded: self.data) {
+                    return .data(data)
+                }
+            } else {
+                return .string(self.data)
+            }
+        }
+        return nil
+    }
 }
