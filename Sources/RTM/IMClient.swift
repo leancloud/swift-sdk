@@ -84,15 +84,14 @@ public class IMClient {
     /// The current session state of the client.
     public private(set) var sessionState: SessionState {
         set {
-            sync(self.underlyingSessionState = newValue)
+            self.sync(self._sessionState = newValue)
         }
         get {
-            var value: SessionState = .closed
-            sync(value = self.underlyingSessionState)
-            return value
+            self.sync(self._sessionState)
         }
     }
-    private(set) var underlyingSessionState: SessionState = .closed
+    private(set) var _sessionState: SessionState = .closed
+    
     var isSessionOpened: Bool {
         return self.sessionState == .opened
     }

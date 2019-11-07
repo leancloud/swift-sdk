@@ -123,7 +123,7 @@ public class IMConversation {
             guard self.convType != .temporary else {
                 return false
             }
-            return self.sync({ self._isOutdated })
+            return self.sync(self._isOutdated)
         }
     }
     private var _isOutdated: Bool = false
@@ -134,7 +134,7 @@ public class IMConversation {
             self.sync(self._lastMessage = newValue)
         }
         get {
-            return self.sync({ self._lastMessage })
+            return self.sync(self._lastMessage)
         }
     }
     private var _lastMessage: IMMessage? = nil
@@ -145,7 +145,7 @@ public class IMConversation {
             self.sync(self._unreadMessageCount = newValue)
         }
         get {
-            return self.sync({ self._unreadMessageCount })
+            return self.sync(self._unreadMessageCount)
         }
     }
     private var _unreadMessageCount: Int = 0
@@ -156,14 +156,14 @@ public class IMConversation {
             self.sync(self._isUnreadMessageContainMention = newValue)
         }
         get {
-            return self.sync({ self._isUnreadMessageContainMention })
+            return self.sync(self._isUnreadMessageContainMention)
         }
     }
     private var _isUnreadMessageContainMention: Bool = false
     
     /// The table of member infomation.
     public var memberInfoTable: [String: MemberInfo]? {
-        return self.sync({ self._memberInfoTable })
+        return self.sync(self._memberInfoTable)
     }
     private var _memberInfoTable: [String: MemberInfo]?
     
@@ -519,7 +519,6 @@ public class IMConversation {
 }
 
 extension IMConversation: InternalSynchronizing {
-    
     // MARK: Internal Synchronizing
     
     var mutex: NSLock {
@@ -528,7 +527,6 @@ extension IMConversation: InternalSynchronizing {
 }
 
 extension IMConversation {
-    
     // MARK: Message Sending
     
     /// Message Sending Option
@@ -711,9 +709,8 @@ extension IMConversation {
     
 }
 
-// MARK: Message Reading
-
 extension IMConversation {
+    // MARK: Message Reading
     
     private func _read(message: IMMessage?) {
         guard
@@ -774,9 +771,8 @@ extension IMConversation {
     
 }
 
-// MARK: Message Updating
-
 extension IMConversation {
+    // MARK: Message Updating
     
     /// Update the content of a sent message.
     ///
@@ -938,9 +934,8 @@ extension IMConversation {
     
 }
 
-// MARK: Message Receipt Timestamp
-
 extension IMConversation {
+    // MARK: Message Receipt Timestamp
     
     /// The timestamp flag of message receipt.
     public struct MessageReceiptFlag {
@@ -1008,9 +1003,8 @@ extension IMConversation {
     
 }
 
-// MARK: Message Query
-
 extension IMConversation {
+    // MARK: Message Query
     
     /// The limit of the messge query result.
     public static let limitRangeOfMessageQuery = 1...100
@@ -1323,9 +1317,8 @@ extension IMConversation {
     
 }
 
-// MARK: Members
-
 extension IMConversation {
+    // MARK: Conversation Member
     
     /// Result for member operation.
     ///
@@ -1477,9 +1470,8 @@ extension IMConversation {
     
 }
 
-// MARK: Mute
-
 extension IMConversation {
+    // MARK: Conversation Mute
     
     private func muteToggle(op: IMOpType, completion: @escaping (LCBooleanResult) -> Void) {
         assert(op == .mute || op == .unmute)
@@ -1521,9 +1513,8 @@ extension IMConversation {
     
 }
 
-// MARK: Member Info
-
 extension IMConversation {
+    // MARK: Member Info
     
     /// Role of the member in the conversation.
     /// Privilege: owner > manager > member.
@@ -1655,9 +1646,8 @@ extension IMConversation {
                     ID: memberID,
                     role: role,
                     conversationID: self.ID,
-                    creator: self.creator
-                )
-                self.sync { self._memberInfoTable?[info.ID] = info }
+                    creator: self.creator)
+                self.sync(self._memberInfoTable?[info.ID] = info)
                 client.eventQueue.async {
                     completion(.success)
                 }
@@ -1671,9 +1661,8 @@ extension IMConversation {
     
 }
 
-// MARK: Blacklist
-
 extension IMConversation {
+    // MARK: Member Blacklist
     
     private func newBlacklistBlockUnblockCommand(
         members: Set<String>,
@@ -1863,9 +1852,8 @@ extension IMConversation {
     
 }
 
-// MARK: Shutup
-
 extension IMConversation {
+    // MARK: Member Shutup
     
     private func update(
         mutedMembers members: Set<String>,
@@ -2006,9 +1994,8 @@ extension IMConversation {
     
 }
 
-// MARK: Data Updating
-
 extension IMConversation {
+    // MARK: Conversation Data Updating
     
     private func _refresh(completion: @escaping (LCBooleanResult) -> Void) throws {
         try self.client?.conversationQuery.getConversation(by: self.ID, completion: { (result) in
@@ -2090,32 +2077,28 @@ extension IMConversation {
         guard !data.isEmpty else {
             return
         }
-        var rawData: RawData?
-        sync {
+        let rawData = self.sync(closure: { () -> RawData in
             self.rawData.merge(data) { (_, new) in new }
-            rawData = self.rawData
-        }
+            return self.rawData
+        })
         self.tryUpdateLocalStorageData(client: client, rawData: rawData)
     }
     
     private func operationRawDataReplaced(data: RawData, client: IMClient) {
-        sync {
+        self.sync(closure: {
             self.rawData = data
             self._isOutdated = false
-        }
+        })
         if let message = self.decodingLastMessage(data: data, client: client) {
             self.safeUpdatingLastMessage(newMessage: message, client: client)
         }
-        if let localStorage = client.localStorage {
-            do {
-                try localStorage.insertOrReplace(
-                    conversationID: self.ID,
-                    rawData: data,
-                    convType: self.convType
-                )
-            } catch {
-                Logger.shared.error(error)
-            }
+        do {
+            try client.localStorage?.insertOrReplace(
+                conversationID: self.ID,
+                rawData: data,
+                convType: self.convType)
+        } catch {
+            Logger.shared.error(error)
         }
     }
     
@@ -2159,9 +2142,9 @@ extension IMConversation {
             self.safeUpdatingRawData(key: .updatedAt, value: udateString)
         }
         if let _ = client.localStorage {
-            var rawData: RawData?
-            sync(rawData = self.rawData)
-            self.tryUpdateLocalStorageData(client: client, rawData: rawData)
+            self.tryUpdateLocalStorageData(
+                client: client,
+                rawData: self.sync(self.rawData))
         }
     }
     
@@ -2180,25 +2163,23 @@ extension IMConversation {
             }
             self.safeUpdatingRawData(key: .members, value: originMembers)
         }
-        if let udateString: String = udate {
-            self.safeUpdatingRawData(key: .updatedAt, value: udateString)
+        if let udate = udate {
+            self.safeUpdatingRawData(key: .updatedAt, value: udate)
         }
         if let _ = client.localStorage {
-            var rawData: RawData?
-            var outdated: Bool?
-            self.sync {
-                rawData = self.rawData
-                outdated = self._isOutdated
-            }
-            self.tryUpdateLocalStorageData(client: client, rawData: rawData, outdated: outdated)
+            let tuple = self.sync((self.rawData, self._isOutdated))
+            self.tryUpdateLocalStorageData(
+                client: client,
+                rawData: tuple.0,
+                outdated: tuple.1)
         }
-        self.sync {
+        self.sync(closure: {
             if let _ = self._memberInfoTable {
                 for member in leftMembers {
                     self._memberInfoTable?.removeValue(forKey: member)
                 }
             }
-        }
+        })
     }
     
     private class KeyAndDictionary {
@@ -2210,58 +2191,48 @@ extension IMConversation {
         }
     }
     
-    private func operationRawDataUpdated(attr: [String: Any], attrModified: [String: Any], udate: String?, client: IMClient) {
-        guard
-            let udateString: String = udate,
-            let newUpdatedDate: Date = LCDate.dateFromString(udateString),
+    private func operationRawDataUpdated(
+        attr: [String: Any],
+        attrModified: [String: Any],
+        udate: String?,
+        client: IMClient)
+    {
+        guard let udateString = udate,
+            let newUpdatedDate = LCDate.dateFromString(udateString),
             let originUpdateDate = self.updatedAt,
-            newUpdatedDate > originUpdateDate
-            else
-        {
-            return
+            newUpdatedDate > originUpdateDate else {
+                return
         }
-        var rawDataCopy: RawData! = nil
-        sync(rawDataCopy = self.rawData)
+        var rawDataCopy = self.sync(self.rawData)
         for keyPath in attr.keys {
             var stack: [KeyAndDictionary] = []
-            var modifiedValue: Any? = nil
-            for key in keyPath.components(separatedBy: ".") {
-                if stack.isEmpty {
-                    stack.insert(KeyAndDictionary(
+            var modifiedValue: Any?
+            for (index, key) in keyPath.components(separatedBy: ".").enumerated() {
+                stack.insert(
+                    KeyAndDictionary(
                         key: key,
-                        dictionary: rawDataCopy
-                    ), at: 0)
-                    modifiedValue = attrModified[key]
-                } else {
-                    let first: KeyAndDictionary = stack[0]
-                    stack.insert(KeyAndDictionary(
-                        key: key,
-                        dictionary: (first.dictionary[first.key] as? [String: Any]) ?? [:]
-                    ), at: 0)
-                    if let modifiedDic = modifiedValue as? [String: Any] {
-                        modifiedValue = modifiedDic[key]
-                    }
-                }
+                        dictionary: index == 0
+                            ? rawDataCopy
+                            : (stack[0].dictionary[stack[0].key] as? [String: Any]) ?? [:]),
+                    at: 0)
+                modifiedValue = index == 0
+                    ? attrModified[key]
+                    : (modifiedValue as? [String: Any])?[key]
             }
             for (index, item) in stack.enumerated() {
-                if index == 0 {
-                    if let value = modifiedValue {
-                        item.dictionary[item.key] = value
-                    } else {
-                        item.dictionary.removeValue(forKey: item.key)
-                    }
-                } else {
-                    let leafItem = stack[index - 1]
-                    item.dictionary[item.key] = leafItem.dictionary
-                }
+                item.dictionary[item.key] = index == 0
+                    ? modifiedValue
+                    : stack[index - 1].dictionary
             }
-            if let newRawData = stack.last?.dictionary {
-                rawDataCopy = newRawData
+            if let dictionary = stack.last?.dictionary {
+                rawDataCopy = dictionary
             }
         }
         rawDataCopy[Key.updatedAt.rawValue] = udateString
-        sync(self.rawData = rawDataCopy)
-        self.tryUpdateLocalStorageData(client: client, rawData: rawDataCopy)
+        self.sync(self.rawData = rawDataCopy)
+        self.tryUpdateLocalStorageData(
+            client: client,
+            rawData: rawDataCopy)
     }
     
     enum Operation {
@@ -2287,7 +2258,7 @@ extension IMConversation {
         case let .updated(attr: attr, attrModified: attrModified, udate):
             self.operationRawDataUpdated(attr: attr, attrModified: attrModified, udate: udate, client: client)
         case let .memberInfoChanged(info: info):
-            self.sync { self._memberInfoTable?[info.ID] = info }
+            self.sync(self._memberInfoTable?[info.ID] = info)
         }
     }
     
@@ -2295,11 +2266,10 @@ extension IMConversation {
         guard let udate: String = udate else {
             return
         }
-        let key = Key.mutedMembers
-        var newMutedMembers: [String]
+        let newMutedMembers: [String]
         switch op {
         case .mute:
-            if let originMutedMembers: [String] = self.safeDecodingRawData(with: key) {
+            if let originMutedMembers: [String] = self.safeDecodingRawData(with: .mutedMembers) {
                 var set = Set(originMutedMembers)
                 set.insert(self.clientID)
                 newMutedMembers = Array(set)
@@ -2307,7 +2277,7 @@ extension IMConversation {
                 newMutedMembers = [self.clientID]
             }
         case .unmute:
-            if let originMutedMembers: [String] = self.safeDecodingRawData(with: key) {
+            if let originMutedMembers: [String] = self.safeDecodingRawData(with: .mutedMembers) {
                 var set = Set(originMutedMembers)
                 set.remove(self.clientID)
                 newMutedMembers = Array(set)
@@ -2317,12 +2287,11 @@ extension IMConversation {
         default:
             return
         }
-        var rawData: RawData?
-        sync {
-            self.updatingRawData(key: key, value: newMutedMembers)
+        let rawData = self.sync(closure: { () -> RawData in
+            self.updatingRawData(key: .mutedMembers, value: newMutedMembers)
             self.updatingRawData(key: .updatedAt, value: udate)
-            rawData = self.rawData
-        }
+            return self.rawData
+        })
         self.tryUpdateLocalStorageData(client: client, rawData: rawData)
     }
     
@@ -2401,7 +2370,7 @@ extension IMConversation {
         } else if let string: String = IMConversation.decoding(key: .lastMessageString, from: data) {
             content = .string(string)
         }
-        let message = IMMessage.instance(
+        return IMMessage.instance(
             application: client.application,
             conversationID: self.ID,
             currentClientID: self.clientID,
@@ -2412,7 +2381,6 @@ extension IMConversation {
             content: content,
             isAllMembersMentioned: IMConversation.decoding(key: .lastMessageMentionAll, from: data),
             mentionedMembers: IMConversation.decoding(key: .lastMessageMentionPids, from: data))
-        return message
     }
     
     func tryUpdateLocalStorageData(client: IMClient, rawData: RawData? = nil, outdated: Bool? = nil) {
@@ -2445,20 +2413,12 @@ extension IMConversation {
         }
     }
     
-}
-
-// MARK: Misc
-
-private extension IMConversation {
-    
     func safeDecodingRawData<T>(with key: Key) -> T? {
         return self.safeDecodingRawData(with: key.rawValue)
     }
     
     func safeDecodingRawData<T>(with string: String) -> T? {
-        var value: T? = nil
-        sync(value = self.decodingRawData(with: string))
-        return value
+        return self.sync(self.decodingRawData(with: string))
     }
     
     func decodingRawData<T>(with key: Key) -> T? {
@@ -2482,7 +2442,7 @@ private extension IMConversation {
     }
     
     func safeUpdatingRawData(string: String, value: Any) {
-        sync(self.updatingRawData(string: string, value: value))
+        self.sync(self.updatingRawData(string: string, value: value))
     }
     
     func updatingRawData(key: Key, value: Any) {
@@ -2492,7 +2452,6 @@ private extension IMConversation {
     func updatingRawData(string: String, value: Any) {
         self.rawData[string] = value
     }
-    
 }
 
 /// IM Chat Room
