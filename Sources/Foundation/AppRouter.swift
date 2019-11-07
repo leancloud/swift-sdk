@@ -78,8 +78,12 @@ class AppRouter: InternalSynchronizing {
     let customizedServerTable: [String: String]
     
     var cacheTable: CacheTable? {
-        set { self.sync(self._cacheTable = newValue) }
-        get { self.sync({ self._cacheTable }) }
+        set {
+            self.sync(self._cacheTable = newValue)
+        }
+        get {
+            self.sync(self._cacheTable)
+        }
     }
     private var _cacheTable: CacheTable?
     
@@ -239,7 +243,7 @@ extension AppRouter {
     }
     
     func requestAppRouter() {
-        guard self.sync({
+        guard self.sync(closure: {
             if self.isRequesting {
                 return false
             } else {
