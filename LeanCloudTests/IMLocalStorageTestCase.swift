@@ -580,6 +580,37 @@ class IMLocalStorageTestCase: RTMBaseTestCase {
         } catch {
             XCTFail("\(error)")
         }
+        
+        do {
+            let failedMessage = IMMessage.instance(
+                application: client.application,
+                conversationID: conversationID,
+                currentClientID: client.ID,
+                fromClientID: client.ID,
+                timestamp: nil,
+                patchedTimestamp: nil,
+                messageID: nil,
+                content: .string("test"),
+                isAllMembersMentioned: true,
+                mentionedMembers: [uuid],
+                underlyingStatus: .failed)
+            failedMessage.sendingTimestamp = messages[1].sentTimestamp
+            failedMessage.dToken = uuid
+            try client.localStorage?.insertOrReplace(failedMessage: failedMessage)
+            let result = try client.localStorage?.selectMessages(
+                client: client,
+                conversationID: conversationID,
+                start: nil, end: nil, direction: nil,
+                limit: messages.count + 1)
+            XCTAssertEqual(result?.messages.count, messages.count + 1)
+            for (index, item) in (result?.messages ?? []).enumerated() {
+                XCTAssertEqual(
+                    item.breakpoint,
+                    index == 0 || index == messages.count)
+            }
+        } catch {
+            XCTFail("\(error)")
+        }
     }
 
     func testDeleteConversationAndMessage() {
@@ -684,8 +715,126 @@ class IMLocalStorageTestCase: RTMBaseTestCase {
                 exp.fulfill()
             })
         }
+        
+        expecting(count: 2) { (exp) in
+            let failedMessage = IMMessage.instance(
+                application: client.application,
+                conversationID: uuid,
+                currentClientID: client.ID,
+                fromClientID: client.ID,
+                timestamp: nil,
+                patchedTimestamp: nil,
+                messageID: nil,
+                content: .string("test"),
+                isAllMembersMentioned: true,
+                mentionedMembers: [uuid],
+                underlyingStatus: .failed)
+            failedMessage.sendingTimestamp = Int64(Date().timeIntervalSince1970 * 1000.0)
+            failedMessage.dToken = uuid
+            try! client.convCollection.values.first?.insertFailedMessageToCache(failedMessage, completion: { (result) in
+                XCTAssertTrue(Thread.isMainThread)
+                XCTAssertTrue(result.isSuccess)
+                XCTAssertNil(result.error)
+                exp.fulfill()
+            })
+            try! client.convCollection.values.first?.removeFailedMessageFromCache(failedMessage, completion: { (result) in
+                XCTAssertTrue(Thread.isMainThread)
+                XCTAssertTrue(result.isSuccess)
+                XCTAssertNil(result.error)
+                exp.fulfill()
+            })
+        }
     }
 
+    func testFailedMessageCache() {
+        let client = clientUsingLocalStorage()
+        prepare(client: client)
+        
+        do {
+            let sentMessage = IMMessage.instance(
+                application: client.application,
+                conversationID: uuid,
+                currentClientID: client.ID,
+                fromClientID: client.ID,
+                timestamp: Int64(Date().timeIntervalSince1970 * 1000.0),
+                patchedTimestamp: nil,
+                messageID: uuid,
+                content: .string("test"))
+            try client.localStorage?.insertOrReplace(failedMessage: sentMessage)
+            XCTFail()
+        } catch {
+            XCTAssertTrue(error is LCError)
+        }
+        
+        let failedMessage = IMMessage.instance(
+            application: client.application,
+            conversationID: uuid,
+            currentClientID: client.ID,
+            fromClientID: client.ID,
+            timestamp: nil,
+            patchedTimestamp: nil,
+            messageID: nil,
+            content: .string("test"),
+            isAllMembersMentioned: true,
+            mentionedMembers: [uuid],
+            underlyingStatus: .failed)
+        failedMessage.sendingTimestamp = Int64(Date().timeIntervalSince1970 * 1000.0)
+        failedMessage.dToken = uuid
+        
+        expecting { (exp) in
+            for i in 0...1 {
+                failedMessage.isTransient = (i == 0)
+                failedMessage.isWill = (i == 1)
+                do {
+                    try client.localStorage?.insertOrReplace(failedMessage: failedMessage)
+                    XCTFail()
+                } catch {
+                    XCTAssertTrue(error is LCError)
+                }
+            }
+            failedMessage.isTransient = false
+            failedMessage.isWill = false
+            exp.fulfill()
+        }
+        
+        expecting { (exp) in
+            do {
+                try client.localStorage?.insertOrReplace(failedMessage: failedMessage)
+                let result = try client.localStorage?.selectMessages(
+                    client: client,
+                    conversationID: failedMessage.conversationID!,
+                    start: nil, end: nil, direction: nil,
+                    limit: 10)
+                XCTAssertEqual(result?.messages.count, 1)
+                XCTAssertEqual(result?.hasBreakpoint, false)
+                XCTAssertEqual(result?.messages.first?.conversationID, failedMessage.conversationID)
+                XCTAssertEqual(result?.messages.first?.sendingTimestamp, failedMessage.sendingTimestamp)
+                XCTAssertEqual(result?.messages.first?.dToken, failedMessage.dToken)
+                XCTAssertEqual(result?.messages.first?.currentClientID, failedMessage.currentClientID)
+                XCTAssertEqual(result?.messages.first?.fromClientID, failedMessage.fromClientID)
+                XCTAssertEqual(result?.messages.first?.content?.string, failedMessage.content?.string)
+                XCTAssertEqual(result?.messages.first?.isAllMembersMentioned, failedMessage.isAllMembersMentioned)
+                XCTAssertEqual(result?.messages.first?.mentionedMembers, failedMessage.mentionedMembers)
+                XCTAssertEqual(result?.messages.first?.underlyingStatus, .failed)
+                XCTAssertNil(result?.messages.first?.sentTimestamp)
+                XCTAssertNil(result?.messages.first?.ID)
+                XCTAssertNil(result?.messages.first?.patchedTimestamp)
+                XCTAssertNil(result?.messages.first?.deliveredTimestamp)
+                XCTAssertNil(result?.messages.first?.readTimestamp)
+                try client.localStorage?.delete(failedMessage: failedMessage)
+                XCTAssertEqual(
+                    (try client.localStorage?.selectMessages(
+                        client: client,
+                        conversationID: failedMessage.conversationID!,
+                        start: nil, end: nil, direction: nil,
+                        limit: 10))?.messages.isEmpty,
+                    true)
+            } catch {
+                XCTFail("\(error)")
+            }
+            exp.fulfill()
+        }
+    }
 }
 
 extension IMLocalStorageTestCase {
