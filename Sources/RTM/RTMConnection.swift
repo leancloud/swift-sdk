@@ -313,7 +313,10 @@ class RTMConnection {
             let shouldNextPingPong: Bool = (!isPingSentAndPongNotReceived && currentTimestamp > self.lastPongReceivedTimestamp + self.pingpongInterval)
             if lastPingTimeout || shouldNextPingPong {
                 self.socket.write(ping: Data()) {
-                    Logger.shared.verbose("\(self.socket) ping sent")
+                    Logger.shared.verbose("""
+                        \n\(self.socket)
+                        Ping Sent.
+                        """)
                 }
                 self.lastPingSentTimestamp = currentTimestamp
             }
@@ -321,7 +324,10 @@ class RTMConnection {
         
         func receivePong() {
             assert(self.specificAssertion)
-            Logger.shared.verbose("\(self.socket) pong received")
+            Logger.shared.verbose("""
+                \n\(self.socket)
+                Pong Received.
+                """)
             self.lastPongReceivedTimestamp = Date().timeIntervalSince1970
         }
         
@@ -427,6 +433,10 @@ class RTMConnection {
         self.previousAppState = mainQueueSync {
             (UIApplication.shared.applicationState == .background ? .background : .foreground)
         }
+        Logger.shared.verbose("""
+            \nApplication State changed.
+            \t\(self.previousAppState)
+            """)
         let operationQueue = OperationQueue()
         operationQueue.underlyingQueue = self.serialQueue
         self.enterBackgroundObserver = NotificationCenter.default.addObserver(
@@ -434,7 +444,10 @@ class RTMConnection {
             object: nil,
             queue: operationQueue)
         { [weak self] _ in
-            Logger.shared.verbose("Application did enter background")
+            Logger.shared.verbose("""
+                \nApplication State changed.
+                \t\(AppState.background)
+                """)
             self?.applicationStateChanged(with: .background)
         }
         self.enterForegroundObserver = NotificationCenter.default.addObserver(
@@ -442,7 +455,10 @@ class RTMConnection {
             object: nil,
             queue: operationQueue)
         { [weak self] _ in
-            Logger.shared.verbose("Application will enter foreground")
+            Logger.shared.verbose("""
+                \nApplication State changed.
+                \t\(AppState.foreground)
+                """)
             self?.applicationStateChanged(with: .foreground)
         }
         #endif
@@ -451,7 +467,10 @@ class RTMConnection {
         self.reachabilityManager = NetworkReachabilityManager()
         self.previousReachabilityStatus = self.reachabilityManager?.status ?? .unknown
         self.reachabilityManager?.startListening(onQueue: self.serialQueue) { [weak self] newStatus in
-            Logger.shared.verbose("Network status change to \(newStatus)")
+            Logger.shared.verbose("""
+                \nNetwork Reachability Status changed.
+                \t\(newStatus)
+                """)
             self?.networkReachabilityStatusChanged(with: newStatus)
         }
         #endif
@@ -564,7 +583,7 @@ class RTMConnection {
                 timer.insert(commandCallback: commandCallback, index: index)
             }
             socket.write(data: serializedData) {
-                Logger.shared.debug("\n\n------ BEGIN LeanCloud Out Command\n\(socket)\n\(outCommand)------ END\n")
+                Logger.shared.debug("\n------ BEGIN LeanCloud Out Command\n\(socket)\n\(outCommand)------ END")
             }
         }
     }
@@ -651,7 +670,12 @@ extension RTMConnection {
                     socket.callbackQueue = self.serialQueue
                     socket.connect()
                     self.socket = socket
-                    Logger.shared.verbose("\(socket) connecting URL<\"\(url)\"> with protocol<\"\(self.lcimProtocol.rawValue)\">")
+                    Logger.shared.verbose("""
+                        \n\(socket)
+                        In Connecting.
+                        \tURL: \(url)
+                        \tProtocol: \(self.lcimProtocol.rawValue)
+                        """)
                 case .failure(error: let error):
                     for item in self.allDelegators {
                         item.queue.async {
@@ -775,7 +799,10 @@ extension RTMConnection: WebSocketDelegate, WebSocketPongDelegate {
     func websocketDidConnect(socket: WebSocketClient) {
         assert(self.specificAssertion)
         assert(self.socket === socket && self.timer == nil)
-        Logger.shared.verbose("\(socket) connect success")
+        Logger.shared.verbose("""
+            \n\(socket)
+            Connect Success.
+            """)
         self.reconnectingDelay = .second1
         self.rtmRouter?.updateFailureCount(reset: true)
         self.timer = Timer(connection: self, socket: socket)
@@ -805,7 +832,7 @@ extension RTMConnection: WebSocketDelegate, WebSocketPongDelegate {
             Logger.shared.error(error)
             return
         }
-        Logger.shared.debug("\n\n------ BEGIN LeanCloud In Command\n\(socket)\n\(inCommand)------ END\n")
+        Logger.shared.debug("\n------ BEGIN LeanCloud In Command\n\(socket)\n\(inCommand)------ END")
         if inCommand.hasI {
             self.timer?.handle(callbackCommand: inCommand)
         } else {

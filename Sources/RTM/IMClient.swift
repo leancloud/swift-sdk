@@ -209,7 +209,11 @@ public class IMClient {
                     file: .database
                 )
                 self.localStorage = try IMLocalStorage(path: databaseURL.path, clientID: ID)
-                Logger.shared.verbose("\(IMClient.self)<ID: \"\(ID)\"> initialize database<URL: \"\(databaseURL)\"> success.")
+                Logger.shared.verbose("""
+                    \n\(IMClient.self)<ID: \"\(ID)\">
+                    local database<URL: \"\(databaseURL)\">
+                    initialize success.
+                    """)
             }
         }
         
@@ -274,13 +278,17 @@ public class IMClient {
     }
     
     deinit {
-        Logger.shared.verbose("\(IMClient.self)<ID: \"\(self.ID)\"> deinit.")
-        let service: RTMConnection.Service = .instantMessaging(ID: self.ID, protocol: self.options.lcimProtocol)
+        let service = RTMConnection.Service.instantMessaging(
+            ID: self.ID,
+            protocol: self.options.lcimProtocol)
         self.connection.removeDelegator(service: service)
         RTMConnectionManager.default.unregister(
             application: self.application,
-            service: service
-        )
+            service: service)
+        Logger.shared.verbose("""
+            \n\(IMClient.self)<ID: \"\(self.ID)\">
+            deinit.
+            """)
     }
     
     let serialQueue = DispatchQueue(label: "\(IMClient.self).serialQueue")

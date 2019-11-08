@@ -111,7 +111,7 @@ public class LCApplication {
     }
     
     /// Application Configuration.
-    public struct Configuration {
+    public struct Configuration: CustomDebugStringConvertible {
         public static let `default` = Configuration()
         
         /// Customized Servers
@@ -151,6 +151,31 @@ public class LCApplication {
             self.RTMConnectingTimeoutInterval = RTMConnectingTimeoutInterval
             self.RTMCommandTimeoutInterval = RTMCommandTimeoutInterval
             self.RTMCustomServerURL = RTMCustomServerURL
+        }
+        
+        public var debugDescription: String {
+            var customizedServersDebugDescription: String
+            if self.customizedServers.isEmpty {
+                customizedServersDebugDescription = "[]"
+            } else {
+                customizedServersDebugDescription = "\n"
+                for (index, item) in self.customizedServers.enumerated() {
+                    if index == self.customizedServers.count - 1 {
+                        customizedServersDebugDescription += "\t\t\(item)"
+                    } else {
+                        customizedServersDebugDescription += "\t\t\(item)\n"
+                    }
+                }
+            }
+            return """
+            \tcustomizedServers: \(customizedServersDebugDescription)
+            \tenvironment: \(self.environment)
+            \tHTTPRequestTimeoutInterval: \(self.HTTPRequestTimeoutInterval) seconds
+            \tHTTPURLCache: \(self.HTTPURLCache?.debugDescription ?? "nil")
+            \tRTMConnectingTimeoutInterval: \(self.RTMConnectingTimeoutInterval) seconds
+            \tRTMCommandTimeoutInterval: \(self.RTMCommandTimeoutInterval) seconds
+            \tRTMCustomServerURL: \(self.RTMCustomServerURL?.absoluteString ?? "nil")
+            """
         }
     }
     
@@ -344,13 +369,13 @@ public class LCApplication {
     
     func logInitializationInfo() {
         Logger.shared.debug("""
-            \n------ LCApplication Initialization Infomation\n
+            \n------ LCApplication Initialization Infomation
             Version: \(Version.versionString)
             ID: \(self.id!)
-            Server URL: \(self.serverURL ?? "")
-            Configuration: \(self.configuration)
+            Server URL: \(self.serverURL ?? "nil")
+            Configuration: \n\(self.configuration.debugDescription)
             Region: \(self.region)
-            \n------ END\n
+            ------ END
             """)
     }
     
