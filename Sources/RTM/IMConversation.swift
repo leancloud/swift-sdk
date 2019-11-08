@@ -516,6 +516,22 @@ public class IMConversation {
     {
         self._checkMuting(member: ID, completion: completion)
     }
+    
+    public func insertFailedMessageToCache(
+        _ message: IMMessage,
+        completion: @escaping (LCBooleanResult) -> Void)
+        throws
+    {
+        try self._insertFailedMessageToCache(message, completion: completion)
+    }
+    
+    public func removeFailedMessageFromCache(
+        _ message: IMMessage,
+        completion: @escaping (LCBooleanResult) -> Void)
+        throws
+    {
+        try self._removeFailedMessageFromCache(message, completion: completion)
+    }
 }
 
 extension IMConversation: InternalSynchronizing {
@@ -574,15 +590,17 @@ extension IMConversation {
                 reason: "only the message that status is `\(IMMessage.Status.none)` or `\(IMMessage.Status.failed)` can do sending.")
         }
         message.setup(clientID: self.clientID, conversationID: self.ID)
-        message.update(status: .sending)
         message.isTransient = options.contains(.isTransient)
         message.isWill = options.contains(.isAutoDeliveringWhenOffline)
-        if !message.isTransient,
-            self.convType != .transient,
-            message.dToken == nil {
-            message.dToken = UUID().uuidString.replacingOccurrences(of: "-", with: "")
+        if self.convType != .transient,
+            !message.isTransient,
+            !message.isWill {
+            if message.dToken == nil {
+                message.dToken = UUID().uuidString.replacingOccurrences(of: "-", with: "")
+            }
             message.sendingTimestamp = Int64(Date().timeIntervalSince1970 * 1000.0)
         }
+        message.update(status: .sending)
         try self.preprocess(
             message: message,
             pushData: pushData,
@@ -707,6 +725,58 @@ extension IMConversation {
         }
     }
     
+}
+
+extension IMConversation {
+    // MARK: Failed Message Caching
+    
+    private func _insertFailedMessageToCache(
+        _ message: IMMessage,
+        completion: @escaping (LCBooleanResult) -> Void)
+        throws
+    {
+        guard let client = self.client,
+            let localStorage = client.localStorage else {
+                throw LCError.clientLocalStorageNotFound
+        }
+        client.serialQueue.async {
+            do {
+                try localStorage.insertOrReplace(failedMessage: message)
+                client.eventQueue.async {
+                    completion(.success)
+                }
+            } catch {
+                client.eventQueue.async {
+                    completion(.failure(
+                        error: LCError(error: error)))
+                }
+            }
+        }
+    }
+    
+    private func _removeFailedMessageFromCache(
+        _ message: IMMessage,
+        completion: @escaping (LCBooleanResult) -> Void)
+        throws
+    {
+        guard let client = self.client,
+            let localStorage = client.localStorage else {
+                throw LCError.clientLocalStorageNotFound
+        }
+        client.serialQueue.async {
+            do {
+                try localStorage.delete(failedMessage: message)
+                client.eventQueue.async {
+                    completion(.success)
+                }
+            } catch {
+                client.eventQueue.async {
+                    completion(.failure(
+                        error: LCError(error: error)))
+                }
+            }
+        }
+    }
 }
 
 extension IMConversation {
@@ -840,8 +910,8 @@ extension IMConversation {
                 switch result {
                 case .inCommand(let inCommand):
                     assert(client.specificAssertion)
-                    if inCommand.hasPatchMessage,
-                        inCommand.patchMessage.hasLastPatchTime {
+                    if let patchMessage = (inCommand.hasPatchMessage ? inCommand.patchMessage : nil),
+                        let patchTime = (patchMessage.hasLastPatchTime ? patchMessage.lastPatchTime : nil) {
                         newMessage.setup(
                             clientID: self.clientID,
                             conversationID: self.ID)
@@ -849,7 +919,7 @@ extension IMConversation {
                             status: .sent,
                             ID: oldMessageID,
                             timestamp: oldMessageTimestamp)
-                        newMessage.patchedTimestamp = inCommand.patchMessage.lastPatchTime
+                        newMessage.patchedTimestamp = patchTime
                         newMessage.deliveredTimestamp = oldMessage.deliveredTimestamp
                         newMessage.readTimestamp = oldMessage.readTimestamp
                         self.safeUpdatingLastMessage(newMessage: newMessage, client: client)
@@ -1089,14 +1159,15 @@ extension IMConversation {
         guard IMConversation.limitRangeOfMessageQuery.contains(limit) else {
             throw LCError(
                 code: .inconsistency,
-                reason: "limit should in range \(IMConversation.limitRangeOfMessageQuery)"
-            )
+                reason: "limit should in range \(IMConversation.limitRangeOfMessageQuery).")
         }
         var realPolicy: MessageQueryPolicy = policy
-        if [.transient, .temporary].contains(self.convType) || type != nil {
+        if [.transient, .temporary].contains(self.convType)
+            || type != nil {
             realPolicy = .onlyNetwork
         } else if realPolicy == .default {
-            if let client = self.client, client.options.contains(.usingLocalStorage) {
+            if let client = self.client,
+                client.options.contains(.usingLocalStorage) {
                 realPolicy = .cacheThenNetwork
             } else {
                 realPolicy = .onlyNetwork
@@ -1118,8 +1189,9 @@ extension IMConversation {
                 }
             }
         case .onlyCache:
-            guard let client = self.client, let localStorage = client.localStorage else {
-                throw LCError.clientLocalStorageNotFound
+            guard let client = self.client,
+                let localStorage = client.localStorage else {
+                    throw LCError.clientLocalStorageNotFound
             }
             self.queryMessageOnlyCache(
                 client: client,
@@ -1134,8 +1206,9 @@ extension IMConversation {
                 }
             }
         case .cacheThenNetwork:
-            guard let client = self.client, let localStorage = client.localStorage else {
-                throw LCError.clientLocalStorageNotFound
+            guard let client = self.client,
+                let localStorage = client.localStorage else {
+                    throw LCError.clientLocalStorageNotFound
             }
             self.queryMessageOnlyCache(
                 client: client,
@@ -1145,8 +1218,9 @@ extension IMConversation {
                 direction: direction,
                 limit: limit)
             { (client, result, hasBreakpoint) in
-                var shouldUseNetwork: Bool = (hasBreakpoint || result.isFailure)
-                if !shouldUseNetwork, let value = result.value {
+                var shouldUseNetwork = (hasBreakpoint || result.isFailure)
+                if !shouldUseNetwork,
+                    let value = result.value {
                     shouldUseNetwork = (value.count != limit)
                 }
                 if shouldUseNetwork {
@@ -2486,6 +2560,16 @@ public class IMChatRoom: IMConversation {
         completion(.failure(error: LCError.conversationNotSupport(convType: type(of: self))))
     }
     
+    @available(*, unavailable)
+    public override func insertFailedMessageToCache(_ message: IMMessage, completion: @escaping (LCBooleanResult) -> Void) throws {
+        throw LCError.conversationNotSupport(convType: type(of: self))
+    }
+    
+    @available(*, unavailable)
+    public override func removeFailedMessageFromCache(_ message: IMMessage, completion: @escaping (LCBooleanResult) -> Void) throws {
+        throw LCError.conversationNotSupport(convType: type(of: self))
+    }
+    
     /// Get count of online clients in this Chat Room.
     ///
     /// - Parameter completion: callback.
@@ -2800,6 +2884,16 @@ public class IMTemporaryConversation: IMConversation {
     @available(*, unavailable)
     public override func checkMuting(member ID: String, completion: @escaping (LCGenericResult<Bool>) -> Void) {
         completion(.failure(error: LCError.conversationNotSupport(convType: type(of: self))))
+    }
+    
+    @available(*, unavailable)
+    public override func insertFailedMessageToCache(_ message: IMMessage, completion: @escaping (LCBooleanResult) -> Void) throws {
+        throw LCError.conversationNotSupport(convType: type(of: self))
+    }
+    
+    @available(*, unavailable)
+    public override func removeFailedMessageFromCache(_ message: IMMessage, completion: @escaping (LCBooleanResult) -> Void) throws {
+        throw LCError.conversationNotSupport(convType: type(of: self))
     }
     
     /// Refresh temporary conversation's data.
