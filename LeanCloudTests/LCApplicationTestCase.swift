@@ -63,7 +63,7 @@ class LCApplicationTestCase: BaseTestCase {
             }
         }
         
-        LCApplication.registry.removeValue(forKey: app.id)
+        app.unregister()
     }
     
     func testEnvironment() {
@@ -90,7 +90,7 @@ class LCApplicationTestCase: BaseTestCase {
         XCTAssertEqual(app.cloudEngineMode, "1")
         XCTAssertEqual(app.pushMode, "prod")
         
-        LCApplication.registry.removeValue(forKey: app.id)
+        app.unregister()
     }
     
     func testRegion() {
@@ -105,7 +105,7 @@ class LCApplicationTestCase: BaseTestCase {
                 key: UUID().uuidString,
                 serverURL: "leancloud.cn")
             XCTAssertEqual(app.region, region)
-            LCApplication.registry.removeValue(forKey: app.id)
+            app.unregister()
         }
     }
     
@@ -140,7 +140,7 @@ class LCApplicationTestCase: BaseTestCase {
                             URL(string: "https://leancloud.cn/\(AppRouter.Configuration.default.apiVersion)/foo"))
                     }
                 }
-                LCApplication.registry.removeValue(forKey: app.id)
+                app.unregister()
             } catch {
                 XCTFail("\(error)")
             }
@@ -150,10 +150,27 @@ class LCApplicationTestCase: BaseTestCase {
             let app = try LCApplication(
                 id: UUID().uuidString + "-MdYXbMMI",
                 key: UUID().uuidString)
-            LCApplication.registry.removeValue(forKey: app.id)
+            app.unregister()
         } catch {
             XCTFail("\(error)")
         }
+    }
+    
+    func testDeinit() {
+        let appID = UUID().uuidString
+        var app: LCApplication! = try! LCApplication(
+            id: appID,
+            key: UUID().uuidString,
+            serverURL: "https://leancloud.cn")
+        XCTAssertTrue(LCApplication.registry[appID] === app)
+        XCTAssertNotNil(app.localStorageContext)
+        XCTAssertNotNil(app.httpClient)
+        XCTAssertNotNil(app.appRouter)
+        weak var wApp = app
+        app.unregister()
+        app = nil
+        delay()
+        XCTAssertNil(wApp)
     }
     
     func testCurrentInstallation() {
