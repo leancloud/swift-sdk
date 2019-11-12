@@ -317,3 +317,30 @@ public class LCFile: LCObject {
     }
     
 }
+
+extension LCFile {
+    // MARK: Qiniu
+    
+    /// Parameters of Thumbnail.
+    public enum Thumbnail {
+        case scale(Double)
+        case size(width: Double, height: Double)
+    }
+    
+    /// Get the Thumbnail URL.
+    /// @note: only work on Qiniu URL.
+    /// - Parameter thumbnail: @see `Thumbnail`.
+    public func thumbnailURL(_ thumbnail: Thumbnail) -> URL? {
+        guard let fileURLString = self.url?.value else {
+            return nil
+        }
+        var path = "?imageMogr2/thumbnail/"
+        switch thumbnail {
+        case let .scale(scale):
+            path += "!\(scale * 100)p"
+        case let .size(width: width, height: height):
+            path += "\(width)x\(height)!"
+        }
+        return URL(string: fileURLString + path)
+    }
+}

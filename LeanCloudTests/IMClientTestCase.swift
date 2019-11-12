@@ -277,6 +277,34 @@ class IMClientTestCase: RTMBaseTestCase {
         }
     }
     
+    func testDeviceTokenObserving() {
+        let deviceToken = uuid
+        
+        LCApplication.default.currentInstallation.set(
+            deviceToken: deviceToken,
+            apnsTeamId: "LeanCloud")
+        XCTAssertTrue(LCApplication.default.currentInstallation.save().isSuccess)
+        XCTAssertEqual(LCApplication.default.currentInstallation.deviceToken?.value, deviceToken)
+        
+        let clientID = uuid
+        let tag = "tag"
+        
+        for i in 0...1 {
+            if i == 1 {
+                LCApplication.default._currentInstallation = nil
+            }
+            expecting { (exp) in
+                let client = try! IMClient(ID: clientID, tag: tag, options: [])
+                client.open { (result) in
+                    XCTAssertTrue(result.isSuccess)
+                    XCTAssertNil(result.error)
+                    XCTAssertEqual(client.currentDeviceToken, deviceToken)
+                    exp.fulfill()
+                }
+            }
+        }
+    }
+    
     func testSessionTokenExpired() {
         let client: IMClient = try! IMClient(ID: uuid, options: [])
         let delegator: Delegator = Delegator()

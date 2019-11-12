@@ -579,6 +579,7 @@ public class LCQuery: NSObject, NSCopying, NSCoding {
     /// Count objects asynchronously.
     /// - Parameter cachePolicy: The request’s cache policy, default is `onlyNetwork`.
     /// - Parameter completion: The completion callback closure.
+    @discardableResult
     public func count(
         cachePolicy: CachePolicy = .onlyNetwork,
         completionQueue: DispatchQueue = .main,

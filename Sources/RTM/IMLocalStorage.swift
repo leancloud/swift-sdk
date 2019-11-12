@@ -128,16 +128,13 @@ class IMLocalStorage {
             }
             
             init(message: IMMessage) throws {
-                guard
+                guard message.underlyingStatus == .sent,
                     let conversationID = message.conversationID,
                     let sentTimestamp = message.sentTimestamp,
-                    let messageID = message.ID,
-                    message.underlyingStatus.rawValue >= IMMessage.Status.sent.rawValue else
-                {
-                    throw LCError(
-                        code: .inconsistency,
-                        reason: "\(IMLocalStorage.Table.Message.self): message invalid."
-                    )
+                    let messageID = message.ID else {
+                        throw LCError(
+                            code: .inconsistency,
+                            reason: "storing message invalid.")
                 }
                 self.conversationID = conversationID
                 self.sentTimestamp = sentTimestamp
@@ -151,14 +148,40 @@ class IMLocalStorage {
                 self.patchedTimestamp = message.patchedTimestamp
                 self.allMentioned = message.isAllMembersMentioned
                 self.mentionedList = try message.mentionedMembers?.jsonString()
-                self.status = message.underlyingStatus.rawValue
+                self.status = IMMessage.Status.sent.rawValue
                 self.breakpoint = message.breakpoint
+            }
+            
+            init(failedMessage: IMMessage) throws {
+                guard failedMessage.underlyingStatus == .failed,
+                    !failedMessage.isTransient,
+                    !failedMessage.isWill,
+                    let conversationID = failedMessage.conversationID,
+                    let sendingTimestamp = failedMessage.sendingTimestamp,
+                    let dToken = failedMessage.dToken else {
+                        throw LCError(
+                            code: .inconsistency,
+                            reason: "storing failed message invalid.")
+                }
+                self.conversationID = conversationID
+                self.sentTimestamp = sendingTimestamp
+                self.messageID = dToken
+                self.fromPeerID = failedMessage.fromClientID
+                let tuple = failedMessage.content?.encodeToDatabaseValue()
+                self.content = tuple?.string
+                self.binary = tuple?.binary
+                self.deliveredTimestamp = nil
+                self.readTimestamp = nil
+                self.patchedTimestamp = nil
+                self.allMentioned = failedMessage.isAllMembersMentioned
+                self.mentionedList = try failedMessage.mentionedMembers?.jsonString()
+                self.status = IMMessage.Status.failed.rawValue
+                self.breakpoint = false
             }
             
             func message(client: IMClient) throws -> IMMessage {
                 let message = IMMessage.instance(
                     application: client.application,
-                    isTransient: false,
                     conversationID: self.conversationID,
                     currentClientID: client.ID,
                     fromClientID: self.fromPeerID,
@@ -167,8 +190,7 @@ class IMLocalStorage {
                     messageID: self.messageID,
                     content: self.content?.decodeToMessageContent(binary: self.binary),
                     isAllMembersMentioned: self.allMentioned,
-                    mentionedMembers: try self.mentionedList?.jsonObject()
-                )
+                    mentionedMembers: try self.mentionedList?.jsonObject())
                 message.deliveredTimestamp = self.deliveredTimestamp
                 message.readTimestamp = self.readTimestamp
                 return message
@@ -184,10 +206,10 @@ class IMLocalStorage {
         #if DEBUG
         configuration.trace = {
             Logger.shared.verbose("""
-                \n------ LeanCloud SQL Executing\n
-                client identifier: \(clientID)
+                \n------ LeanCloud SQL Executing
+                \(IMClient.self)<ID: \"\(clientID)\">
                 \($0)
-                \n------ END\n
+                ------ END
                 """)
         }
         #endif
@@ -482,17 +504,9 @@ extension IMLocalStorage {
     
     // MARK: Message Update
     
-    func insertOrReplace(messages: [IMMessage]) throws {
-        guard
-            messages.count > 2,
-            let messageTuple = self.newestAndOldestMessage(from: messages) else
-        { return }
-        let newestMessage = messageTuple.newest
-        let oldestMessage = messageTuple.oldest
-        try self.setupBreakpoint(message: newestMessage, newest: true)
-        try self.setupBreakpoint(message: oldestMessage, newest: false)
+    private func insertOrReplaceMessageSQL() -> String {
         let key = Table.Message.CodingKeys.self
-        let sql: String = """
+        return """
         insert or replace into \(Table.message) (
         \(key.conversationID.rawValue),
         \(key.sentTimestamp.rawValue),
@@ -509,25 +523,75 @@ extension IMLocalStorage {
         \(key.breakpoint.rawValue)
         ) values(?,?,?,?,?,?,?,?,?,?,?,?,?)
         """
+    }
+    
+    private func insertOrReplaceMessageArguments(table: Table.Message) -> StatementArguments {
+        return [
+            table.conversationID,
+            table.sentTimestamp,
+            table.messageID,
+            table.fromPeerID,
+            table.content,
+            table.binary,
+            table.deliveredTimestamp,
+            table.readTimestamp,
+            table.patchedTimestamp,
+            table.allMentioned,
+            table.mentionedList,
+            table.status,
+            table.breakpoint]
+    }
+    
+    func insertOrReplace(messages: [IMMessage]) throws {
+        guard messages.count > 2,
+            let tuple = self.newestAndOldestMessage(from: messages) else {
+                return
+        }
+        try self.setupBreakpoint(message: tuple.newest, newest: true)
+        try self.setupBreakpoint(message: tuple.oldest, newest: false)
+        let sql = self.insertOrReplaceMessageSQL()
         try self.dbPool.write { db in
             for message in messages {
-                let table = try Table.Message(message: message)
-                let arguments: StatementArguments = [
-                    table.conversationID,
-                    table.sentTimestamp,
-                    table.messageID,
-                    table.fromPeerID,
-                    table.content,
-                    table.binary,
-                    table.deliveredTimestamp,
-                    table.readTimestamp,
-                    table.patchedTimestamp,
-                    table.allMentioned,
-                    table.mentionedList,
-                    table.status,
-                    table.breakpoint]
-                try db.execute(sql: sql, arguments: arguments)
+                try db.execute(
+                    sql: sql,
+                    arguments: self.insertOrReplaceMessageArguments(
+                        table: try Table.Message(message: message)))
             }
+        }
+    }
+    
+    func insertOrReplace(failedMessage message: IMMessage) throws {
+        try self.dbPool.write { db in
+            try db.execute(
+                sql: self.insertOrReplaceMessageSQL(),
+                arguments: self.insertOrReplaceMessageArguments(
+                    table: try Table.Message(failedMessage: message)))
+        }
+    }
+    
+    func delete(failedMessage message: IMMessage) throws {
+        guard message.underlyingStatus == .failed,
+            let conversationID = message.conversationID,
+            let sendingTimestamp = message.sendingTimestamp,
+            let dToken = message.dToken else {
+                throw LCError(
+                    code: .inconsistency,
+                    reason: "deleting failed message invalid.")
+        }
+        let key = Table.Message.CodingKeys.self
+        let sql = """
+        delete from \(Table.message)
+        where \(key.conversationID.rawValue) = ?
+        and \(key.sentTimestamp.rawValue) = ?
+        and \(key.messageID.rawValue) = ?
+        and \(key.status.rawValue) = \(IMMessage.Status.failed.rawValue)
+        """
+        let arguments: StatementArguments = [
+            conversationID,
+            sendingTimestamp,
+            dToken]
+        try self.dbPool.write { db in
+            try db.execute(sql: sql, arguments: arguments)
         }
     }
     
@@ -563,14 +627,14 @@ extension IMLocalStorage {
     }
     
     private func newestAndOldestMessage(from messages: [IMMessage]) -> (newest: IMMessage, oldest: IMMessage)? {
-        guard
-            let first = messages.first,
+        guard let first = messages.first,
             let last = messages.last,
             let firstSentTimestamp = first.sentTimestamp,
             let lastSentTimestamp = last.sentTimestamp,
             let firstMessageID = first.ID,
-            let lastMessageID = last.ID else
-        { return nil }
+            let lastMessageID = last.ID else {
+                return nil
+        }
         if firstSentTimestamp == lastSentTimestamp {
             return firstMessageID > lastMessageID ? (first, last) : (last, first)
         } else if firstSentTimestamp > lastSentTimestamp {
@@ -579,7 +643,6 @@ extension IMLocalStorage {
             return (last, first)
         }
     }
-    
 }
 
 extension IMLocalStorage {
@@ -618,29 +681,50 @@ extension IMLocalStorage {
             var breakpointSet: Set<Bool> = []
             
             while let row = try rows.next() {
-                guard
-                    let sentTimestamp: Int64 = row[key.sentTimestamp.rawValue] as Int64?,
-                    let messageID: String = row[key.messageID.rawValue] as String? else
-                {
-                    breakpointSet.insert(true)
-                    break
+                guard let sentTimestamp: Int64 = row[key.sentTimestamp.rawValue] as Int64?,
+                    let messageID: String = row[key.messageID.rawValue] as String? else {
+                        breakpointSet.insert(true)
+                        break
                 }
-                let message = IMMessage.instance(
-                    application: client.application,
-                    isTransient: false,
-                    conversationID: conversationID,
-                    currentClientID: client.ID,
-                    fromClientID: row[key.fromPeerID.rawValue] as String?,
-                    timestamp: sentTimestamp,
-                    patchedTimestamp: row[key.patchedTimestamp.rawValue] as Int64?,
-                    messageID: messageID,
-                    content: (row[key.content.rawValue] as String?)?
-                        .decodeToMessageContent(binary: row[key.binary.rawValue] as Bool?),
-                    isAllMembersMentioned: row[key.allMentioned.rawValue] as Bool?,
-                    mentionedMembers: try (row[key.mentionedList.rawValue] as String?)?.jsonObject()
-                )
-                message.deliveredTimestamp = row[key.deliveredTimestamp.rawValue] as Int64?
-                message.readTimestamp = row[key.readTimestamp.rawValue] as Int64?
+                let content = (row[key.content.rawValue] as String?)?
+                    .decodeToMessageContent(
+                        binary: row[key.binary.rawValue] as Bool?)
+                let isAllMembersMentioned = row[key.allMentioned.rawValue] as Bool?
+                let mentionedMembers: [String]? = try (row[key.mentionedList.rawValue] as String?)?
+                    .jsonObject()
+                let message: IMMessage
+                if ((row[key.status.rawValue] as Int?)
+                    ?? IMMessage.Status.sent.rawValue)
+                    == IMMessage.Status.failed.rawValue  {
+                    message = IMMessage.instance(
+                        application: client.application,
+                        conversationID: conversationID,
+                        currentClientID: client.ID,
+                        fromClientID: client.ID,
+                        timestamp: nil,
+                        patchedTimestamp: nil,
+                        messageID: nil,
+                        content: content,
+                        isAllMembersMentioned: isAllMembersMentioned,
+                        mentionedMembers: mentionedMembers,
+                        underlyingStatus: .failed)
+                    message.sendingTimestamp = sentTimestamp
+                    message.dToken = messageID
+                } else {
+                    message = IMMessage.instance(
+                        application: client.application,
+                        conversationID: conversationID,
+                        currentClientID: client.ID,
+                        fromClientID: row[key.fromPeerID.rawValue] as String?,
+                        timestamp: sentTimestamp,
+                        patchedTimestamp: row[key.patchedTimestamp.rawValue] as Int64?,
+                        messageID: messageID,
+                        content: content,
+                        isAllMembersMentioned: isAllMembersMentioned,
+                        mentionedMembers: mentionedMembers)
+                    message.deliveredTimestamp = row[key.deliveredTimestamp.rawValue] as Int64?
+                    message.readTimestamp = row[key.readTimestamp.rawValue] as Int64?
+                }
                 if let breakpoint: Bool = row[key.breakpoint.rawValue] as Bool? {
                     message.breakpoint = breakpoint
                 }

@@ -9,14 +9,14 @@
          <BuildActionEntry
             buildForTesting = "YES"
             buildForRunning = "YES"
-            buildForProfiling = "NO"
-            buildForArchiving = "NO"
-            buildForAnalyzing = "NO">
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "8342FCC41C7B13A700C3CF15"
-               BuildableName = "LeanCloudTests.xctest"
-               BlueprintName = "LeanCloudTests"
+               BlueprintIdentifier = "D3457E75237955580030BEDE"
+               BuildableName = "CLI"
+               BlueprintName = "CLI"
                ReferencedContainer = "container:LeanCloud.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -26,55 +26,30 @@
       buildConfiguration = "Debug"
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
-      shouldUseLaunchSchemeArgsEnv = "YES"
-      codeCoverageEnabled = "YES">
-      <AdditionalOptions>
-         <AdditionalOption
-            key = "NSZombieEnabled"
-            value = "YES"
-            isEnabled = "YES">
-         </AdditionalOption>
-      </AdditionalOptions>
+      shouldUseLaunchSchemeArgsEnv = "YES">
       <Testables>
-         <TestableReference
-            skipped = "NO">
-            <BuildableReference
-               BuildableIdentifier = "primary"
-               BlueprintIdentifier = "8342FCC41C7B13A700C3CF15"
-               BuildableName = "LeanCloudTests.xctest"
-               BlueprintName = "LeanCloudTests"
-               ReferencedContainer = "container:LeanCloud.xcodeproj">
-            </BuildableReference>
-         </TestableReference>
       </Testables>
    </TestAction>
    <LaunchAction
       buildConfiguration = "Debug"
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
-      enableThreadSanitizer = "YES"
       launchStyle = "0"
       useCustomWorkingDirectory = "NO"
       ignoresPersistentStateOnLaunch = "NO"
       debugDocumentVersioning = "YES"
       debugServiceExtension = "internal"
       allowLocationSimulation = "YES">
-      <MacroExpansion>
+      <BuildableProductRunnable
+         runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "8342FCC41C7B13A700C3CF15"
-            BuildableName = "LeanCloudTests.xctest"
-            BlueprintName = "LeanCloudTests"
+            BlueprintIdentifier = "D3457E75237955580030BEDE"
+            BuildableName = "CLI"
+            BlueprintName = "CLI"
             ReferencedContainer = "container:LeanCloud.xcodeproj">
          </BuildableReference>
-      </MacroExpansion>
-      <AdditionalOptions>
-         <AdditionalOption
-            key = "NSZombieEnabled"
-            value = "YES"
-            isEnabled = "YES">
-         </AdditionalOption>
-      </AdditionalOptions>
+      </BuildableProductRunnable>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"
@@ -82,15 +57,16 @@
       savedToolIdentifier = ""
       useCustomWorkingDirectory = "NO"
       debugDocumentVersioning = "YES">
-      <MacroExpansion>
+      <BuildableProductRunnable
+         runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "8342FCC41C7B13A700C3CF15"
-            BuildableName = "LeanCloudTests.xctest"
-            BlueprintName = "LeanCloudTests"
+            BlueprintIdentifier = "D3457E75237955580030BEDE"
+            BuildableName = "CLI"
+            BlueprintName = "CLI"
             ReferencedContainer = "container:LeanCloud.xcodeproj">
          </BuildableReference>
-      </MacroExpansion>
+      </BuildableProductRunnable>
    </ProfileAction>
    <AnalyzeAction
       buildConfiguration = "Debug">

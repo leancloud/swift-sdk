@@ -406,16 +406,16 @@ class HTTPClient {
 
     func log(response: DataResponse<Any, Error>, request: Request) {
         self.log(request: request)
-        Logger.shared.debug("\n\n\(response.lcDebugDescription(application: self.application, request))\n")
+        Logger.shared.debug(response.lcDebugDescription(application: self.application, request))
     }
     
     func log(afDataResponse response: AFDataResponse<Any>, request: Request) {
         self.log(request: request)
-        Logger.shared.debug("\n\n\(response.lcDebugDescription(application: self.application, request))\n")
+        Logger.shared.debug(response.lcDebugDescription(application: self.application, request))
     }
 
     func log(request: Request) {
-        Logger.shared.debug("\n\n\(request.lcDebugDescription)\n")
+        Logger.shared.debug(request.lcDebugDescription)
     }
 }
 
@@ -430,7 +430,7 @@ extension Request {
         }
 
         let taskIdentifier = task?.taskIdentifier ?? 0
-        let message = "------ BEGIN LeanCloud HTTP Request\n" +
+        let message = "\n------ BEGIN LeanCloud HTTP Request\n" +
                       "task: \(taskIdentifier)\n" +
                       "curl: \(curl)\n" +
                       "------ END"
@@ -444,7 +444,7 @@ extension DataResponse {
     func lcDebugDescription(application: LCApplication, _ request : Request) -> String {
         let taskIdentifier = request.task?.taskIdentifier ?? 0
 
-        var message = "------ BEGIN LeanCloud HTTP Response\n"
+        var message = "\n------ BEGIN LeanCloud HTTP Response\n"
 
         message.append("task: \(taskIdentifier)\n")
 

@@ -74,12 +74,11 @@ protocol InternalSynchronizing {
 
 extension InternalSynchronizing {
     
-    func sync(_ closure: @autoclosure () -> Void) {
-        self.sync { closure() }
+    func sync<T>(_ closure: @autoclosure () -> T) -> T {
+        self.sync(closure: closure)
     }
     
-    @discardableResult
-    func sync<T>(_ closure: () -> T) -> T {
+    func sync<T>(closure: () -> T) -> T {
         self.mutex.lock()
         defer {
             self.mutex.unlock()

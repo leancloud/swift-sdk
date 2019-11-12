@@ -84,15 +84,14 @@ public class IMClient {
     /// The current session state of the client.
     public private(set) var sessionState: SessionState {
         set {
-            sync(self.underlyingSessionState = newValue)
+            self.sync(self._sessionState = newValue)
         }
         get {
-            var value: SessionState = .closed
-            sync(value = self.underlyingSessionState)
-            return value
+            self.sync(self._sessionState)
         }
     }
-    private(set) var underlyingSessionState: SessionState = .closed
+    private(set) var _sessionState: SessionState = .closed
+    
     var isSessionOpened: Bool {
         return self.sessionState == .opened
     }
@@ -210,7 +209,11 @@ public class IMClient {
                     file: .database
                 )
                 self.localStorage = try IMLocalStorage(path: databaseURL.path, clientID: ID)
-                Logger.shared.verbose("\(IMClient.self)<ID: \"\(ID)\"> initialize database<URL: \"\(databaseURL)\"> success.")
+                Logger.shared.verbose("""
+                    \n\(IMClient.self)<ID: \"\(ID)\">
+                    local database<URL: \"\(databaseURL)\">
+                    initialize success.
+                    """)
             }
         }
         
@@ -275,13 +278,17 @@ public class IMClient {
     }
     
     deinit {
-        Logger.shared.verbose("\(IMClient.self)<ID: \"\(self.ID)\"> deinit.")
-        let service: RTMConnection.Service = .instantMessaging(ID: self.ID, protocol: self.options.lcimProtocol)
+        let service = RTMConnection.Service.instantMessaging(
+            ID: self.ID,
+            protocol: self.options.lcimProtocol)
         self.connection.removeDelegator(service: service)
         RTMConnectionManager.default.unregister(
             application: self.application,
-            service: service
-        )
+            service: service)
+        Logger.shared.verbose("""
+            \n\(IMClient.self)<ID: \"\(self.ID)\">
+            deinit.
+            """)
     }
     
     let serialQueue = DispatchQueue(label: "\(IMClient.self).serialQueue")
@@ -1519,8 +1526,11 @@ extension IMClient {
                 }
             }
         case (.session, .closed):
-            let sessionMessage = command.sessionMessage
-            self.sessionClosed(with: .failure(error: sessionMessage.lcError), completion: completion)
+            self.sessionClosed(
+                with: .failure(
+                    error: command.sessionMessage.lcError
+                        ?? LCError(code: .commandInvalid)),
+                completion: completion)
         default:
             let error = LCError(code: .commandInvalid)
             self.sessionClosed(with: .failure(error: error), completion: completion)
@@ -1887,47 +1897,44 @@ extension IMClient {
             assert(client.specificAssertion)
             switch result {
             case .success(value: let conversation):
-                guard
-                    let timestamp: Int64 = (command.hasTimestamp ? command.timestamp : nil),
-                    let messageID: String = (command.hasID ? command.id : nil)
-                    else
-                { return }
-                var content: IMMessage.Content? = nil
-                /*
-                 For Compatibility,
-                 Should check `binaryMsg` at first.
-                 Then check `msg`.
-                 */
-                if command.hasBinaryMsg {
-                    content = .data(command.binaryMsg)
-                } else if command.hasMsg {
-                    content = .string(command.msg)
+                guard let timestamp: Int64 = (command.hasTimestamp ? command.timestamp : nil),
+                    let messageID: String = (command.hasID ? command.id : nil) else {
+                        return
                 }
                 let message = IMMessage.instance(
                     application: client.application,
-                    isTransient: (command.hasTransient ? command.transient : false),
                     conversationID: conversationID,
                     currentClientID: client.ID,
                     fromClientID: (command.hasFromPeerID ? command.fromPeerID : nil),
                     timestamp: timestamp,
                     patchedTimestamp: (command.hasPatchTimestamp ? command.patchTimestamp : nil),
                     messageID: messageID,
-                    content: content,
+                    content: command.lcMessageContent,
                     isAllMembersMentioned: (command.hasMentionAll ? command.mentionAll : nil),
-                    mentionedMembers: (command.mentionPids.isEmpty ? nil : command.mentionPids)
-                )
+                    mentionedMembers: (command.mentionPids.isEmpty ? nil : command.mentionPids),
+                    isTransient: (command.hasTransient ? command.transient : false))
+                let isUnreadMessageIncreased = conversation.safeUpdatingLastMessage(
+                    newMessage: message,
+                    client: client)
                 var unreadEvent: IMConversationEvent?
-                let isUnreadMessageIncreased: Bool = conversation.safeUpdatingLastMessage(newMessage: message, client: client)
-                if client.options.isProtobuf3, isUnreadMessageIncreased {
+                if client.options.isProtobuf3,
+                    isUnreadMessageIncreased {
                     conversation.unreadMessageCount += 1
                     unreadEvent = .unreadMessageCountUpdated
                 }
-                client.acknowledging(message: message, conversation: conversation)
+                client.acknowledging(
+                    message: message,
+                    conversation: conversation)
                 client.eventQueue.async {
                     if let unreadUpdatedEvent = unreadEvent {
-                        client.delegate?.client(client, conversation: conversation, event: unreadUpdatedEvent)
+                        client.delegate?.client(
+                            client, conversation: conversation,
+                            event: unreadUpdatedEvent)
                     }
-                    client.delegate?.client(client, conversation: conversation, event: .message(event: .received(message: message)))
+                    client.delegate?.client(
+                        client, conversation: conversation,
+                        event: .message(
+                            event: .received(message: message)))
                 }
             case .failure(error: let error):
                 Logger.shared.error(error)
@@ -2374,7 +2381,9 @@ extension IMClient: RTMConnectionDelegate {
         case .session:
             switch inCommand.op {
             case .closed:
-                self.sessionClosed(with: .failure(error: inCommand.sessionMessage.lcError))
+                self.sessionClosed(with: .failure(
+                    error: inCommand.sessionMessage.lcError
+                        ?? LCError(code: .commandInvalid)))
             default:
                 break
             }

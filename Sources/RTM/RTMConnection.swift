@@ -68,44 +68,43 @@ class RTMConnectionManager {
             self.mutex.unlock()
         }
         let appID: LCApplication.Identifier = application.id
-        let returnValue: RTMConnection
+        let connection: RTMConnection
         switch service {
         case let .instantMessaging(ID: clientID, protocol: lcimProtocol):
             var map: InstantMessagingReferenceMap = self.getMap(protocol: lcimProtocol)
-            if var connectionMapInAppContext = map[appID], let connection = connectionMapInAppContext.values.first {
-                if let _ = connectionMapInAppContext[clientID] {
+            if var connectionMap = map[appID],
+                let existConnection = connectionMap.values.first {
+                if let _ = connectionMap[clientID] {
                     throw LCError(
                         code: .inconsistency,
-                        reason:"\(RTMConnectionManager.self): duplicate registered"
-                    )
+                        reason:"duplicate registering connection.")
                 } else {
-                    connectionMapInAppContext[clientID] = connection
-                    map[appID] = connectionMapInAppContext
-                    returnValue = connection
+                    connectionMap[clientID] = existConnection
+                    map[appID] = connectionMap
+                    connection = existConnection
                 }
-            } else if let connection = self.liveQueryMap[appID], connection.lcimProtocol == lcimProtocol {
-                map[appID] = [clientID: connection]
-                returnValue = connection
+            } else if let existConnection = self.liveQueryMap[appID],
+                existConnection.lcimProtocol == lcimProtocol {
+                map[appID] = [clientID: existConnection]
+                connection = existConnection
             } else {
-                returnValue = try RTMConnection(
+                connection = try RTMConnection(
                     application: application,
-                    lcimProtocol: lcimProtocol
-                )
-                map[appID] = [clientID: returnValue]
+                    lcimProtocol: lcimProtocol)
+                map[appID] = [clientID: connection]
             }
             self.setMap(map, lcimProtocol: lcimProtocol)
         case .liveQuery:
-            if let connection = self.getConnectionFromMapForLiveQuery(applicationID: appID) {
-                returnValue = connection
+            if let existConnection = self.getConnectionFromMapForLiveQuery(applicationID: appID) {
+                connection = existConnection
             } else {
-                returnValue = try RTMConnection(
+                connection = try RTMConnection(
                     application: application,
-                    lcimProtocol: .protobuf3
-                )
-                self.liveQueryMap[appID] = returnValue
+                    lcimProtocol: .protobuf3)
             }
+            self.liveQueryMap[appID] = connection
         }
-        return returnValue
+        return connection
     }
     
     func unregister(application: LCApplication, service: RTMConnection.Service) {
@@ -117,9 +116,9 @@ class RTMConnectionManager {
         switch service {
         case let .instantMessaging(ID: clientID, protocol: lcimProtocol):
             var map: InstantMessagingReferenceMap = self.getMap(protocol: lcimProtocol)
-            if var connectionMapInAppContext = map[appID] {
-                connectionMapInAppContext.removeValue(forKey: clientID)
-                map[appID] = connectionMapInAppContext
+            if var connectionMap = map[appID] {
+                connectionMap.removeValue(forKey: clientID)
+                map[appID] = connectionMap
             }
             self.setMap(map, lcimProtocol: lcimProtocol)
         case .liveQuery:
@@ -143,7 +142,8 @@ protocol RTMConnectionDelegate: class {
 class RTMConnection {
     
     #if DEBUG
-    static let TestGoawayCommandReceivedNotification = Notification.Name("\(RTMConnection.self).TestGoawayCommandReceivedNotification")
+    static let TestGoawayCommandReceivedNotification = Notification.Name(
+        "\(RTMConnection.self).TestGoawayCommandReceivedNotification")
     #endif
     
     /// ref: https://github.com/leancloud/avoscloud-push/blob/develop/push-server/doc/protocol.md#传输协议
@@ -274,7 +274,7 @@ class RTMConnection {
                 self.commandIndexSequence.remove(at: index)
             }
             commandCallback.callingQueue.async {
-                if let error: LCError = command.encounteredError {
+                if let error: LCError = command.lcEncounteredError {
                     commandCallback.closure(.error(error))
                 } else {
                     commandCallback.closure(.inCommand(command))
@@ -313,7 +313,10 @@ class RTMConnection {
             let shouldNextPingPong: Bool = (!isPingSentAndPongNotReceived && currentTimestamp > self.lastPongReceivedTimestamp + self.pingpongInterval)
             if lastPingTimeout || shouldNextPingPong {
                 self.socket.write(ping: Data()) {
-                    Logger.shared.verbose("\(self.socket) ping sent")
+                    Logger.shared.verbose("""
+                        \n\(self.socket)
+                        Ping Sent.
+                        """)
                 }
                 self.lastPingSentTimestamp = currentTimestamp
             }
@@ -321,7 +324,10 @@ class RTMConnection {
         
         func receivePong() {
             assert(self.specificAssertion)
-            Logger.shared.verbose("\(self.socket) pong received")
+            Logger.shared.verbose("""
+                \n\(self.socket)
+                Pong Received.
+                """)
             self.lastPongReceivedTimestamp = Date().timeIntervalSince1970
         }
         
@@ -427,6 +433,10 @@ class RTMConnection {
         self.previousAppState = mainQueueSync {
             (UIApplication.shared.applicationState == .background ? .background : .foreground)
         }
+        Logger.shared.verbose("""
+            \nApplication State changed.
+            \t\(self.previousAppState)
+            """)
         let operationQueue = OperationQueue()
         operationQueue.underlyingQueue = self.serialQueue
         self.enterBackgroundObserver = NotificationCenter.default.addObserver(
@@ -434,7 +444,10 @@ class RTMConnection {
             object: nil,
             queue: operationQueue)
         { [weak self] _ in
-            Logger.shared.verbose("Application did enter background")
+            Logger.shared.verbose("""
+                \nApplication State changed.
+                \t\(AppState.background)
+                """)
             self?.applicationStateChanged(with: .background)
         }
         self.enterForegroundObserver = NotificationCenter.default.addObserver(
@@ -442,7 +455,10 @@ class RTMConnection {
             object: nil,
             queue: operationQueue)
         { [weak self] _ in
-            Logger.shared.verbose("Application will enter foreground")
+            Logger.shared.verbose("""
+                \nApplication State changed.
+                \t\(AppState.foreground)
+                """)
             self?.applicationStateChanged(with: .foreground)
         }
         #endif
@@ -451,7 +467,10 @@ class RTMConnection {
         self.reachabilityManager = NetworkReachabilityManager()
         self.previousReachabilityStatus = self.reachabilityManager?.status ?? .unknown
         self.reachabilityManager?.startListening(onQueue: self.serialQueue) { [weak self] newStatus in
-            Logger.shared.verbose("Network status change to \(newStatus)")
+            Logger.shared.verbose("""
+                \nNetwork Reachability Status changed.
+                \t\(newStatus)
+                """)
             self?.networkReachabilityStatusChanged(with: newStatus)
         }
         #endif
@@ -564,16 +583,16 @@ class RTMConnection {
                 timer.insert(commandCallback: commandCallback, index: index)
             }
             socket.write(data: serializedData) {
-                Logger.shared.debug("\n\n------ BEGIN LeanCloud Out Command\n\(socket)\n\(outCommand)------ END\n")
+                Logger.shared.debug("\n------ BEGIN LeanCloud Out Command\n\(socket)\n\(outCommand)------ END")
             }
         }
     }
     
 }
 
-// MARK: - Private
-
 extension RTMConnection {
+    
+    // MARK: Internal
     
     #if os(iOS) || os(tvOS)
     private func applicationStateChanged(with newState: RTMConnection.AppState) {
@@ -651,7 +670,12 @@ extension RTMConnection {
                     socket.callbackQueue = self.serialQueue
                     socket.connect()
                     self.socket = socket
-                    Logger.shared.verbose("\(socket) connecting URL<\"\(url)\"> with protocol<\"\(self.lcimProtocol.rawValue)\">")
+                    Logger.shared.verbose("""
+                        \n\(socket)
+                        In Connecting.
+                        \tURL: \(url)
+                        \tProtocol: \(self.lcimProtocol.rawValue)
+                        """)
                 case .failure(error: let error):
                     for item in self.allDelegators {
                         item.queue.async {
@@ -768,14 +792,17 @@ extension RTMConnection {
     
 }
 
-// MARK: - WebSocketDelegate
-
 extension RTMConnection: WebSocketDelegate, WebSocketPongDelegate {
+    
+    // MARK: WebSocketDelegate
     
     func websocketDidConnect(socket: WebSocketClient) {
         assert(self.specificAssertion)
         assert(self.socket === socket && self.timer == nil)
-        Logger.shared.verbose("\(socket) connect success")
+        Logger.shared.verbose("""
+            \n\(socket)
+            Connect Success.
+            """)
         self.reconnectingDelay = .second1
         self.rtmRouter?.updateFailureCount(reset: true)
         self.timer = Timer(connection: self, socket: socket)
@@ -805,7 +832,7 @@ extension RTMConnection: WebSocketDelegate, WebSocketPongDelegate {
             Logger.shared.error(error)
             return
         }
-        Logger.shared.debug("\n\n------ BEGIN LeanCloud In Command\n\(socket)\n\(inCommand)------ END\n")
+        Logger.shared.debug("\n------ BEGIN LeanCloud In Command\n\(socket)\n\(inCommand)------ END")
         if inCommand.hasI {
             self.timer?.handle(callbackCommand: inCommand)
         } else {
@@ -837,7 +864,7 @@ extension RTMConnection: WebSocketDelegate, WebSocketPongDelegate {
 
 extension IMGenericCommand {
     
-    fileprivate var encounteredError: LCError? {
+    var lcEncounteredError: LCError? {
         if self.cmd == .error {
             if self.hasErrorMessage {
                 return self.errorMessage.lcError
@@ -848,14 +875,11 @@ extension IMGenericCommand {
             return nil
         }
     }
-    
 }
 
 extension IMErrorCommand {
     
     var lcError: LCError {
-        let code: Int = Int(self.code)
-        let reason: String? = (self.hasReason ? self.reason : nil)
         var userInfo: LCError.UserInfo = [:]
         if self.hasAppCode {
             userInfo["appCode"] = self.appCode
@@ -866,41 +890,49 @@ extension IMErrorCommand {
         if self.hasDetail {
             userInfo["detail"] = self.detail
         }
-        do {
-            userInfo = try userInfo.jsonObject() ?? userInfo
-        } catch {
-            Logger.shared.error(error)
+        if !userInfo.isEmpty {
+            do {
+                userInfo = try userInfo.jsonObject() ?? userInfo
+            } catch {
+                Logger.shared.error(error)
+            }
         }
-        return LCError(code: code, reason: reason, userInfo: userInfo)
+        return LCError(
+            code: Int(self.code),
+            reason: self.hasReason ? self.reason : nil,
+            userInfo: userInfo)
     }
-    
 }
 
 extension IMSessionCommand {
     
-    var lcError: LCError {
-        let code: Int = Int(self.code)
-        let reason: String? = (self.hasReason ? self.reason : nil)
-        var userInfo: LCError.UserInfo = [:]
-        if self.hasDetail {
-            userInfo["detail"] = self.detail
+    var lcError: LCError? {
+        if self.hasCode {
+            var userInfo: LCError.UserInfo = [:]
+            if self.hasDetail {
+                userInfo["detail"] = self.detail
+            }
+            if !userInfo.isEmpty {
+                do {
+                    userInfo = try userInfo.jsonObject() ?? userInfo
+                } catch {
+                    Logger.shared.error(error)
+                }
+            }
+            return LCError(
+                code: Int(self.code),
+                reason: self.hasReason ? self.reason : nil,
+                userInfo: userInfo)
+        } else {
+            return nil
         }
-        do {
-            userInfo = try userInfo.jsonObject() ?? userInfo
-        } catch {
-            Logger.shared.error(error)
-        }
-        return LCError(code: code, reason: reason, userInfo: userInfo)
     }
-    
 }
 
 extension IMAckCommand {
     
     var lcError: LCError? {
         if self.hasCode || self.hasAppCode {
-            let code: Int = Int(self.code)
-            let reason: String? = (self.hasReason ? self.reason : nil)
             var userInfo: LCError.UserInfo = [:]
             if self.hasAppCode {
                 userInfo["appCode"] = self.appCode
@@ -908,54 +940,55 @@ extension IMAckCommand {
             if self.hasAppMsg {
                 userInfo["appMsg"] = self.appMsg
             }
-            do {
-                userInfo = try userInfo.jsonObject() ?? userInfo
-            } catch {
-                Logger.shared.error(error)
+            if !userInfo.isEmpty {
+                do {
+                    userInfo = try userInfo.jsonObject() ?? userInfo
+                } catch {
+                    Logger.shared.error(error)
+                }
             }
-            return LCError(code: code, reason: reason, userInfo: userInfo)
+            return LCError(
+                code: Int(self.code),
+                reason: self.hasReason ? self.reason : nil,
+                userInfo: userInfo)
         } else {
             return nil
         }
     }
-    
 }
 
 extension LCError {
     
+    // MARK: Connection Lost Error
+    
     static var RTMConnectionAppInBackground: LCError {
-        return LCError(
-            code: .connectionLost,
-            reason: "\((#file as NSString).lastPathComponent): Due to application did enter background, connection lost."
-        )
+        return RTMConnectionLostError(
+            reason: "application did enter background, connection lost.")
     }
     
     static var RTMConnectionNetworkUnavailable: LCError {
-        return LCError(
-            code: .connectionLost,
-            reason: "\((#file as NSString).lastPathComponent): Due to network unavailable, connection lost."
-        )
+        return RTMConnectionLostError(
+            reason: "network unavailable, connection lost.")
     }
     
     static var RTMConnectionNetworkChanged: LCError {
-        return LCError(
-            code: .connectionLost,
-            reason: "\((#file as NSString).lastPathComponent): Due to network interface changed, connection lost."
-        )
+        return RTMConnectionLostError(
+            reason: "network interface changed, connection lost.")
     }
     
     static var RTMConnectionClosedByLocal: LCError {
-        return LCError(
-            code: .connectionLost,
-            reason: "\((#file as NSString).lastPathComponent): Connection did close by local peer."
-        )
+        return RTMConnectionLostError(
+            reason: "connection did close by local peer.")
     }
     
     static var RTMConnectionClosedByRemote: LCError {
-        return LCError(
-            code: .connectionLost,
-            reason: "\((#file as NSString).lastPathComponent): Connection did close by remote peer."
-        )
+        return RTMConnectionLostError(
+            reason: "connection did close by remote peer.")
     }
     
+    static func RTMConnectionLostError(reason: String) -> LCError {
+        return LCError(
+            code: .connectionLost,
+            reason: reason)
+    }
 }

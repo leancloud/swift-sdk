@@ -106,4 +106,21 @@ class LCFileTestCase: BaseTestCase {
         XCTAssertEqual(shadow.fileField, file)
     }
     
+    func testThumbnailURL() {
+        [bundleResourceURL(name: "test", ext: "jpg"),
+         bundleResourceURL(name: "test", ext: "png")]
+            .forEach { (url) in
+                let file = LCFile(payload: .fileURL(fileURL: url))
+                let thumbnails: [LCFile.Thumbnail] = [
+                    .scale(0.5),
+                    .size(width: 100, height: 100)]
+                thumbnails.forEach { (thumbnail) in
+                    XCTAssertNil(file.thumbnailURL(thumbnail))
+                }
+                XCTAssertTrue(file.save().isSuccess)
+                thumbnails.forEach { (thumbnail) in
+                    XCTAssertNotNil(UIImage(data: (try! Data(contentsOf: file.thumbnailURL(thumbnail)!))))
+                }
+        }
+    }
 }

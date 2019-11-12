@@ -65,17 +65,17 @@ public class IMConversation {
 
     /// The name of the conversation.
     public var name: String? {
-        return safeDecodingRawData(with: .name)
+        return self.safeDecodingRawData(with: .name)
     }
     
     /// The creator of the conversation.
     public var creator: String? {
-        return safeDecodingRawData(with: .creator)
+        return self.safeDecodingRawData(with: .creator)
     }
     
     /// The creation date of the conversation.
     public var createdAt: Date? {
-        if let str: String = safeDecodingRawData(with: .createdAt) {
+        if let str: String = self.safeDecodingRawData(with: .createdAt) {
             return LCDate.dateFromString(str)
         } else {
             return nil
@@ -84,7 +84,7 @@ public class IMConversation {
     
     /// The updated date of the conversation.
     public var updatedAt: Date? {
-        if let str: String = safeDecodingRawData(with: .updatedAt) {
+        if let str: String = self.safeDecodingRawData(with: .updatedAt) {
             return LCDate.dateFromString(str)
         } else {
             return nil
@@ -93,17 +93,17 @@ public class IMConversation {
     
     /// The attributes of the conversation.
     public var attributes: [String: Any]? {
-        return safeDecodingRawData(with: .attributes)
+        return self.safeDecodingRawData(with: .attributes)
     }
     
     /// The members of the conversation.
     public var members: [String]? {
-        return safeDecodingRawData(with: .members)
+        return self.safeDecodingRawData(with: .members)
     }
     
     /// Indicates whether the conversation has been muted.
     public var isMuted: Bool {
-        if let mutedMembers: [String] = safeDecodingRawData(with: .mutedMembers) {
+        if let mutedMembers: [String] = self.safeDecodingRawData(with: .mutedMembers) {
             return mutedMembers.contains(self.clientID)
         } else {
             return false
@@ -117,82 +117,83 @@ public class IMConversation {
             guard self.convType != .temporary else {
                 return
             }
-            sync(self.underlyingOutdated = newValue)
+            self.sync(self._isOutdated = newValue)
         }
         get {
-            var value: Bool = false
             guard self.convType != .temporary else {
-                return value
+                return false
             }
-            sync(value = self.underlyingOutdated)
-            return value
+            return self.sync(self._isOutdated)
         }
     }
-    private var underlyingOutdated: Bool = false
+    private var _isOutdated: Bool = false
     
     /// The last message of the conversation.
     public private(set) var lastMessage: IMMessage? {
         set {
-            sync(self.underlyingLastMessage = newValue)
+            self.sync(self._lastMessage = newValue)
         }
         get {
-            var message: IMMessage? = nil
-            sync(message = self.underlyingLastMessage)
-            return message
+            return self.sync(self._lastMessage)
         }
     }
-    private var underlyingLastMessage: IMMessage? = nil
+    private var _lastMessage: IMMessage? = nil
     
     /// The unread message count of the conversation
     public internal(set) var unreadMessageCount: Int {
         set {
-            sync(self.underlyingUnreadMessageCount = newValue)
+            self.sync(self._unreadMessageCount = newValue)
         }
         get {
-            var count: Int = 0
-            sync(count = self.underlyingUnreadMessageCount)
-            return count
+            return self.sync(self._unreadMessageCount)
         }
     }
-    private var underlyingUnreadMessageCount: Int = 0
+    private var _unreadMessageCount: Int = 0
     
     /// Indicates whether has unread message mentioning the client.
     public var isUnreadMessageContainMention: Bool {
         set {
-            sync(self.underlyingIsUnreadMessageContainMention = newValue)
+            self.sync(self._isUnreadMessageContainMention = newValue)
         }
         get {
-            var value: Bool = false
-            sync(value = self.underlyingIsUnreadMessageContainMention)
-            return value
+            return self.sync(self._isUnreadMessageContainMention)
         }
     }
-    private var underlyingIsUnreadMessageContainMention: Bool = false
+    private var _isUnreadMessageContainMention: Bool = false
     
     /// The table of member infomation.
     public var memberInfoTable: [String: MemberInfo]? {
-        var value: [String: MemberInfo]?
-        self.sync(value = self.underlyingMemberInfoTable)
-        return value
+        return self.sync(self._memberInfoTable)
     }
-    private var underlyingMemberInfoTable: [String: MemberInfo]?
+    private var _memberInfoTable: [String: MemberInfo]?
     
     /// Get value via subscript syntax.
     public subscript(key: String) -> Any? {
-        get { return safeDecodingRawData(with: key) }
+        get {
+            return self.safeDecodingRawData(with: key)
+        }
     }
     
-    static func instance(ID: String, rawData: RawData, client: IMClient, caching: Bool) -> IMConversation {
+    static func instance(
+        ID: String,
+        rawData: RawData,
+        client: IMClient,
+        caching: Bool)
+        -> IMConversation
+    {
         var convType: ConvType = .normal
-        if let typeRawValue: Int = rawData[Key.convType.rawValue] as? Int,
-            let validType = ConvType(rawValue: typeRawValue) {
+        if let typeValue = rawData[Key.convType.rawValue] as? Int,
+            let validType = ConvType(rawValue: typeValue) {
             convType = validType
         } else {
-            if let transient: Bool = rawData[Key.transient.rawValue] as? Bool, transient {
+            if let transient = rawData[Key.transient.rawValue] as? Bool,
+                transient {
                 convType = .transient
-            } else if let system: Bool = rawData[Key.system.rawValue] as? Bool, system {
+            } else if let system = rawData[Key.system.rawValue] as? Bool,
+                system {
                 convType = .system
-            } else if let temporary: Bool = rawData[Key.temporary.rawValue] as? Bool, temporary {
+            } else if let temporary = rawData[Key.temporary.rawValue] as? Bool,
+                temporary {
                 convType = .temporary
             } else if ID.hasPrefix(IMTemporaryConversation.prefixOfID) {
                 convType = .temporary
@@ -205,58 +206,59 @@ public class IMConversation {
                 rawData: rawData,
                 convType: convType,
                 client: client,
-                caching: caching
-            )
+                caching: caching)
         case .transient:
             return IMChatRoom(
                 ID: ID,
                 rawData: rawData,
                 convType: convType,
                 client: client,
-                caching: caching
-            )
+                caching: caching)
         case .system:
             return IMServiceConversation(
                 ID: ID,
                 rawData: rawData,
                 convType: convType,
                 client: client,
-                caching: caching
-            )
+                caching: caching)
         case .temporary:
             return IMTemporaryConversation(
                 ID: ID,
                 rawData: rawData,
                 convType: convType,
                 client: client,
-                caching: caching
-            )
+                caching: caching)
         }
     }
 
-    init(ID: String, rawData: RawData, convType: ConvType, client: IMClient, caching: Bool) {
+    init(
+        ID: String,
+        rawData: RawData,
+        convType: ConvType,
+        client: IMClient,
+        caching: Bool)
+    {
         self.ID = ID
         self.client = client
         self.rawData = rawData
         self.clientID = client.ID
         self.convType = convType
-        self.isUnique = (rawData[Key.unique.rawValue] as? Bool) ?? false
-        self.uniqueID = (rawData[Key.uniqueId.rawValue] as? String)
+        let uniqueID = rawData[Key.uniqueId.rawValue] as? String
+        self.isUnique = (rawData[Key.unique.rawValue] as? Bool) ?? (uniqueID != nil)
+        self.uniqueID = uniqueID
         if let message = self.decodingLastMessage(data: rawData, client: client) {
             self.safeUpdatingLastMessage(
                 newMessage: message,
                 client: client,
                 caching: caching,
-                notifying: false
-            )
+                notifying: false)
         }
-        if caching, let localStorage = client.localStorage {
+        if caching {
             do {
-                try localStorage.insertOrReplace(
+                try client.localStorage?.insertOrReplace(
                     conversationID: ID,
                     rawData: rawData,
-                    convType: convType
-                )
+                    convType: convType)
             } catch {
                 Logger.shared.error(error)
             }
@@ -515,19 +517,33 @@ public class IMConversation {
         self._checkMuting(member: ID, completion: completion)
     }
     
+    public func insertFailedMessageToCache(
+        _ message: IMMessage,
+        completion: @escaping (LCBooleanResult) -> Void)
+        throws
+    {
+        try self._insertFailedMessageToCache(message, completion: completion)
+    }
+    
+    public func removeFailedMessageFromCache(
+        _ message: IMMessage,
+        completion: @escaping (LCBooleanResult) -> Void)
+        throws
+    {
+        try self._removeFailedMessageFromCache(message, completion: completion)
+    }
 }
 
 extension IMConversation: InternalSynchronizing {
+    // MARK: Internal Synchronizing
     
     var mutex: NSLock {
         return self.lock
     }
-    
 }
 
-// MARK: Message Sending
-
 extension IMConversation {
+    // MARK: Message Sending
     
     /// Message Sending Option
     public struct MessageSendOptions: OptionSet {
@@ -571,30 +587,33 @@ extension IMConversation {
         guard message.status == .none || message.status == .failed else {
             throw LCError(
                 code: .inconsistency,
-                reason: "Only the message that status is \(IMMessage.Status.none) or \(IMMessage.Status.failed) can be sent"
-            )
+                reason: "only the message that status is `\(IMMessage.Status.none)` or `\(IMMessage.Status.failed)` can do sending.")
         }
         message.setup(clientID: self.clientID, conversationID: self.ID)
-        message.update(status: .sending)
         message.isTransient = options.contains(.isTransient)
         message.isWill = options.contains(.isAutoDeliveringWhenOffline)
-        if
+        if self.convType != .transient,
             !message.isTransient,
-            self.convType != .transient,
-            message.dToken == nil
-        {
-            message.dToken = UUID().uuidString.replacingOccurrences(of: "-", with: "")
+            !message.isWill {
+            if message.dToken == nil {
+                message.dToken = UUID().uuidString.replacingOccurrences(of: "-", with: "")
+            }
             message.sendingTimestamp = Int64(Date().timeIntervalSince1970 * 1000.0)
         }
-        try self.preprocess(message: message, pushData: pushData, progress: progress) { (pushDataString: String?, error: LCError?) in
-            if let error: LCError = error {
+        message.update(status: .sending)
+        try self.preprocess(
+            message: message,
+            pushData: pushData,
+            progress: progress)
+        { (client, pushDataString: String?, error: LCError?) in
+            if let error = error {
                 message.update(status: .failed)
-                self.client?.eventQueue.async {
+                client.eventQueue.async {
                     completion(.failure(error: error))
                 }
                 return
             }
-            self.client?.sendCommand(constructor: { () -> IMGenericCommand in
+            client.sendCommand(constructor: { () -> IMGenericCommand in
                 var outCommand = IMGenericCommand()
                 outCommand.cmd = .direct
                 if let priority = priority {
@@ -610,16 +629,16 @@ extension IMConversation {
                         directCommand.msg = string
                     }
                 }
-                if let value: Bool = message.isAllMembersMentioned {
-                    directCommand.mentionAll = value
+                if let mentionAll = message.isAllMembersMentioned {
+                    directCommand.mentionAll = mentionAll
                 }
-                if let value: [String] = message.mentionedMembers {
-                    directCommand.mentionPids = value
+                if let mentionPids = message.mentionedMembers {
+                    directCommand.mentionPids = mentionPids
                 }
                 if options.contains(.needReceipt) {
                     directCommand.r = true
                 }
-                if let pushData: String = pushDataString {
+                if let pushData = pushDataString {
                     directCommand.pushData = pushData
                 }
                 if message.isWill {
@@ -628,7 +647,7 @@ extension IMConversation {
                 if message.isTransient {
                     directCommand.transient = true
                 }
-                if let dt: String = message.dToken {
+                if let dt = message.dToken {
                     directCommand.dt = dt
                 }
                 outCommand.directMessage = directCommand
@@ -637,32 +656,20 @@ extension IMConversation {
                 switch result {
                 case .inCommand(let inCommand):
                     assert(client.specificAssertion)
-                    let ackCommand = (inCommand.hasAckMessage ? inCommand.ackMessage : nil)
-                    if
-                        let ack: IMAckCommand = ackCommand,
-                        let messageID: String = (ack.hasUid ? ack.uid : nil),
-                        let timestamp: Int64 = (ack.hasT ? ack.t : nil)
-                    {
+                    if let ackCommand = (inCommand.hasAckMessage ? inCommand.ackMessage : nil),
+                        let messageID = (ackCommand.hasUid ? ackCommand.uid : nil),
+                        let timestamp = (ackCommand.hasT ? ackCommand.t : nil) {
                         message.update(status: .sent, ID: messageID, timestamp: timestamp)
                         self.safeUpdatingLastMessage(newMessage: message, client: client)
                         client.eventQueue.async {
                             completion(.success)
                         }
-                    }
-                    else if
-                        let ack: IMAckCommand = ackCommand,
-                        let error: LCError = ack.lcError
-                    {
-                        client.eventQueue.async {
-                            completion(.failure(error: error))
-                        }
-                    }
-                    else
-                    {
+                    } else {
                         message.update(status: .failed)
                         client.eventQueue.async {
-                            let error = LCError(code: .commandInvalid)
-                            completion(.failure(error: error))
+                            completion(.failure(
+                                error: inCommand.ackMessage.lcError
+                                    ?? LCError(code: .commandInvalid)))
                         }
                     }
                 case .error(let error):
@@ -679,63 +686,101 @@ extension IMConversation {
         message: IMMessage,
         pushData: [String: Any]? = nil,
         progress: ((Double) -> Void)?,
-        completion: @escaping (String?, LCError?) -> Void)
+        completion: @escaping (IMClient, String?, LCError?) -> Void)
         throws
     {
         guard let client = self.client else {
-            throw LCError(code: .inconsistency, reason: "client not found.")
-        }
-        var pushDataString: String? = nil
-        if let pushData: [String: Any] = pushData {
-            let data: Data = try JSONSerialization.data(withJSONObject: pushData, options: [])
-            pushDataString = String(data: data, encoding: .utf8)
-        }
-        guard let categorizedMessage: IMCategorizedMessage = message as? IMCategorizedMessage else {
-            completion(pushDataString, nil)
             return
         }
-        let normallyCompletedClosure: () throws -> Void = {
-            categorizedMessage.tryEncodingFileMetaData()
-            try categorizedMessage.encodingMessageContent()
-            completion(pushDataString, nil)
-        }
-        guard let file: LCFile = categorizedMessage.file else {
-            try normallyCompletedClosure()
+        let pushDataString = try pushData?.jsonString()
+        guard let categorizedMessage = message as? IMCategorizedMessage else {
+            completion(client, pushDataString, nil)
             return
         }
-        guard file.application === client.application else {
-            throw LCError(code: .inconsistency, reason: "file's application is not equal to client's application.")
+        guard let file = categorizedMessage.file,
+            !file.hasObjectId else {
+                try categorizedMessage.encodingMessageContent(
+                    application: client.application)
+                completion(client, pushDataString, nil)
+                return
         }
-        guard !file.hasObjectId else {
-            try normallyCompletedClosure()
-            return
-        }
-        // TODO: progress queue
         file.save(
+            // TODO: progress queue
             progress: { (value) in progress?(value) },
-            completionQueue: client
-                .application
-                .httpClient
-                .defaultCompletionDispatchQueue,
-            completion:  { (result) in
-                switch result {
-                case .success:
-                    do {
-                        try normallyCompletedClosure()
-                    } catch {
-                        completion(nil, LCError(error: error))
-                    }
-                case .failure(error: let error):
-                    completion(nil, error)
+            completionQueue: client.application.httpClient
+                .defaultCompletionDispatchQueue)
+        { (result) in
+            switch result {
+            case .success:
+                do {
+                    try categorizedMessage.encodingMessageContent(
+                        application: client.application)
+                    completion(client, pushDataString, nil)
+                } catch {
+                    completion(client, nil, LCError(error: error))
                 }
-        })
+            case .failure(error: let error):
+                completion(client, nil, error)
+            }
+        }
     }
     
 }
 
-// MARK: Message Reading
+extension IMConversation {
+    // MARK: Failed Message Caching
+    
+    private func _insertFailedMessageToCache(
+        _ message: IMMessage,
+        completion: @escaping (LCBooleanResult) -> Void)
+        throws
+    {
+        guard let client = self.client,
+            let localStorage = client.localStorage else {
+                throw LCError.clientLocalStorageNotFound
+        }
+        client.serialQueue.async {
+            do {
+                try localStorage.insertOrReplace(failedMessage: message)
+                client.eventQueue.async {
+                    completion(.success)
+                }
+            } catch {
+                client.eventQueue.async {
+                    completion(.failure(
+                        error: LCError(error: error)))
+                }
+            }
+        }
+    }
+    
+    private func _removeFailedMessageFromCache(
+        _ message: IMMessage,
+        completion: @escaping (LCBooleanResult) -> Void)
+        throws
+    {
+        guard let client = self.client,
+            let localStorage = client.localStorage else {
+                throw LCError.clientLocalStorageNotFound
+        }
+        client.serialQueue.async {
+            do {
+                try localStorage.delete(failedMessage: message)
+                client.eventQueue.async {
+                    completion(.success)
+                }
+            } catch {
+                client.eventQueue.async {
+                    completion(.failure(
+                        error: LCError(error: error)))
+                }
+            }
+        }
+    }
+}
 
 extension IMConversation {
+    // MARK: Message Reading
     
     private func _read(message: IMMessage?) {
         guard
@@ -765,59 +810,39 @@ extension IMConversation {
         guard unreadTuple.hasUnread else {
             return
         }
-        let newUnreadCount: Int = Int(unreadTuple.unread)
-        let newUnreadMentioned: Bool? = (unreadTuple.hasMentioned ? unreadTuple.mentioned : nil)
-        let newLastMessage: IMMessage? = {
-            guard
-                let timestamp: Int64 = (unreadTuple.hasTimestamp ? unreadTuple.timestamp : nil),
-                let messageID: String = (unreadTuple.hasMid ? unreadTuple.mid : nil)
-                else
-            { return nil }
-            var content: IMMessage.Content? = nil
-            /*
-             For Compatibility,
-             Should check `binaryMsg` at first.
-             Then check `data`.
-             */
-            if unreadTuple.hasBinaryMsg {
-                content = .data(unreadTuple.binaryMsg)
-            } else if unreadTuple.hasData {
-                content = .string(unreadTuple.data)
-            }
+        if let timestamp = (unreadTuple.hasTimestamp ? unreadTuple.timestamp : nil),
+            let messageID = (unreadTuple.hasMid ? unreadTuple.mid : nil) {
             let message = IMMessage.instance(
                 application: client.application,
-                isTransient: false,
                 conversationID: self.ID,
                 currentClientID: self.clientID,
                 fromClientID: (unreadTuple.hasFrom ? unreadTuple.from : nil),
                 timestamp: timestamp,
                 patchedTimestamp: (unreadTuple.hasPatchTimestamp ? unreadTuple.patchTimestamp : nil),
                 messageID: messageID,
-                content: content,
-                isAllMembersMentioned: nil,
-                mentionedMembers: nil
-            )
-            return message
-        }()
-        if let message: IMMessage = newLastMessage {
-            self.safeUpdatingLastMessage(newMessage: message, client: client)
+                content: unreadTuple.lcMessageContent)
+            self.safeUpdatingLastMessage(
+                newMessage: message,
+                client: client)
         }
+        let newUnreadCount = Int(unreadTuple.unread)
         if self.unreadMessageCount != newUnreadCount {
             self.unreadMessageCount = newUnreadCount
-            if let isMentioned: Bool = newUnreadMentioned {
-                self.isUnreadMessageContainMention = isMentioned
+            if let newUnreadMentioned = (unreadTuple.hasMentioned ? unreadTuple.mentioned : nil) {
+                self.isUnreadMessageContainMention = newUnreadMentioned
             }
             client.eventQueue.async {
-                client.delegate?.client(client, conversation: self, event: .unreadMessageCountUpdated)
+                client.delegate?.client(
+                    client, conversation: self,
+                    event: .unreadMessageCountUpdated)
             }
         }
     }
     
 }
 
-// MARK: Message Updating
-
 extension IMConversation {
+    // MARK: Message Updating
     
     /// Update the content of a sent message.
     ///
@@ -833,36 +858,29 @@ extension IMConversation {
         completion: @escaping (LCBooleanResult) -> Void)
         throws
     {
-        guard
-            let oldMessageID: String = oldMessage.ID,
-            let oldMessageTimestamp: Int64 = oldMessage.sentTimestamp,
-            oldMessage.isSent
-            else
-        {
-            throw LCError(code: .updatingMessageNotSent)
+        guard let oldMessageID = oldMessage.ID,
+            let oldMessageTimestamp = oldMessage.sentTimestamp,
+            oldMessage.underlyingStatus == .sent else {
+                throw LCError(code: .updatingMessageNotSent)
         }
-        guard
-            let oldMessageConvID: String = oldMessage.conversationID,
+        guard let oldMessageConvID = oldMessage.conversationID,
             oldMessageConvID == self.ID,
-            oldMessage.fromClientID == self.clientID
-            else
-        {
-            throw LCError(code: .updatingMessageNotAllowed)
+            oldMessage.fromClientID == self.clientID else {
+                throw LCError(code: .updatingMessageNotAllowed)
         }
         guard newMessage.status == .none else {
             throw LCError(
                 code: .inconsistency,
-                reason: "new message's status should be \(IMMessage.Status.none)."
-            )
+                reason: "the status of new message should be \(IMMessage.Status.none).")
         }
-        try self.preprocess(message: newMessage, progress: progress) { (_, error: LCError?) in
+        try self.preprocess(message: newMessage, progress: progress) { (client, _, error: LCError?) in
             if let error: LCError = error {
-                self.client?.eventQueue.async {
+                client.eventQueue.async {
                     completion(.failure(error: error))
                 }
                 return
             }
-            self.client?.sendCommand(constructor: { () -> IMGenericCommand in
+            client.sendCommand(constructor: { () -> IMGenericCommand in
                 var outCommand = IMGenericCommand()
                 outCommand.cmd = .patch
                 outCommand.op = .modify
@@ -879,11 +897,11 @@ extension IMConversation {
                         patchItem.data = string
                     }
                 }
-                if let mentionAll: Bool = newMessage.isAllMembersMentioned {
+                if let mentionAll = newMessage.isAllMembersMentioned {
                     patchItem.mentionAll = mentionAll
                 }
-                if let mentionList: [String] = newMessage.mentionedMembers {
-                    patchItem.mentionPids = mentionList
+                if let mentionPids = newMessage.mentionedMembers {
+                    patchItem.mentionPids = mentionPids
                 }
                 patchMessage.patches = [patchItem]
                 outCommand.patchMessage = patchMessage
@@ -892,34 +910,31 @@ extension IMConversation {
                 switch result {
                 case .inCommand(let inCommand):
                     assert(client.specificAssertion)
-                    if inCommand.hasPatchMessage, inCommand.patchMessage.hasLastPatchTime {
-                        newMessage.patchedTimestamp = inCommand.patchMessage.lastPatchTime
-                        newMessage.update(
-                            status: oldMessage.status,
-                            ID: oldMessageID,
-                            timestamp: oldMessageTimestamp
-                        )
+                    if let patchMessage = (inCommand.hasPatchMessage ? inCommand.patchMessage : nil),
+                        let patchTime = (patchMessage.hasLastPatchTime ? patchMessage.lastPatchTime : nil) {
                         newMessage.setup(
                             clientID: self.clientID,
-                            conversationID: self.ID
-                        )
+                            conversationID: self.ID)
+                        newMessage.update(
+                            status: .sent,
+                            ID: oldMessageID,
+                            timestamp: oldMessageTimestamp)
+                        newMessage.patchedTimestamp = patchTime
                         newMessage.deliveredTimestamp = oldMessage.deliveredTimestamp
                         newMessage.readTimestamp = oldMessage.readTimestamp
                         self.safeUpdatingLastMessage(newMessage: newMessage, client: client)
-                        if let localStorage = client.localStorage {
-                            do {
-                                try localStorage.updateOrIgnore(message: newMessage)
-                            } catch {
-                                Logger.shared.error(error)
-                            }
+                        do {
+                            try client.localStorage?.updateOrIgnore(message: newMessage)
+                        } catch {
+                            Logger.shared.error(error)
                         }
                         client.eventQueue.async {
                             completion(.success)
                         }
                     } else {
                         client.eventQueue.async {
-                            let error = LCError(code: .commandInvalid)
-                            completion(.failure(error: error))
+                            completion(.failure(
+                                error: LCError(code: .commandInvalid)))
                         }
                     }
                 case .error(let error):
@@ -950,63 +965,47 @@ extension IMConversation {
     
     func process(patchItem: IMPatchItem, client: IMClient) {
         assert(client.specificAssertion)
-        guard
-            let timestamp: Int64 = (patchItem.hasTimestamp ? patchItem.timestamp : nil),
-            let messageID: String = (patchItem.hasMid ? patchItem.mid : nil)
-            else
-        {
-            return
-        }
-        var content: IMMessage.Content? = nil
-        /*
-         For Compatibility,
-         Should check `binaryMsg` at first.
-         Then check `data`.
-         */
-        if patchItem.hasBinaryMsg {
-            content = .data(patchItem.binaryMsg)
-        } else if patchItem.hasData {
-            content = .string(patchItem.data)
+        guard let timestamp = (patchItem.hasTimestamp ? patchItem.timestamp : nil),
+            let messageID = (patchItem.hasMid ? patchItem.mid : nil) else {
+                return
         }
         let patchedMessage = IMMessage.instance(
             application: client.application,
-            isTransient: false,
             conversationID: self.ID,
             currentClientID: self.clientID,
             fromClientID: (patchItem.hasFrom ? patchItem.from : nil),
             timestamp: timestamp,
             patchedTimestamp: (patchItem.hasPatchTimestamp ? patchItem.patchTimestamp : nil),
             messageID: messageID,
-            content: content,
+            content: patchItem.lcMessageContent,
             isAllMembersMentioned: (patchItem.hasMentionAll ? patchItem.mentionAll : nil),
-            mentionedMembers: (patchItem.mentionPids.count > 0 ? patchItem.mentionPids : nil)
-        )
-        self.safeUpdatingLastMessage(newMessage: patchedMessage, client: client)
-        if let localStorage = client.localStorage {
-            do {
-                try localStorage.updateOrIgnore(message: patchedMessage)
-            } catch {
-                Logger.shared.error(error)
-            }
+            mentionedMembers: (patchItem.mentionPids.isEmpty ? nil : patchItem.mentionPids))
+        self.safeUpdatingLastMessage(
+            newMessage: patchedMessage,
+            client: client)
+        do {
+            try client.localStorage?.updateOrIgnore(message: patchedMessage)
+        } catch {
+            Logger.shared.error(error)
         }
-        var reason: IMMessage.PatchedReason? = nil
+        var reason: IMMessage.PatchedReason?
         if patchItem.hasPatchCode || patchItem.hasPatchReason {
             reason = IMMessage.PatchedReason(
                 code: (patchItem.hasPatchCode ? Int(patchItem.patchCode) : nil),
-                reason: (patchItem.hasPatchReason ? patchItem.patchReason : nil)
-            )
+                reason: (patchItem.hasPatchReason ? patchItem.patchReason : nil))
         }
         client.eventQueue.async {
-            let messageEvent = IMMessageEvent.updated(updatedMessage: patchedMessage, reason: reason)
-            client.delegate?.client(client, conversation: self, event: .message(event: messageEvent))
+            client.delegate?.client(
+                client, conversation: self,
+                event: .message(
+                    event: .updated(updatedMessage: patchedMessage, reason: reason)))
         }
     }
     
 }
 
-// MARK: Message Receipt Timestamp
-
 extension IMConversation {
+    // MARK: Message Receipt Timestamp
     
     /// The timestamp flag of message receipt.
     public struct MessageReceiptFlag {
@@ -1074,9 +1073,8 @@ extension IMConversation {
     
 }
 
-// MARK: Message Query
-
 extension IMConversation {
+    // MARK: Message Query
     
     /// The limit of the messge query result.
     public static let limitRangeOfMessageQuery = 1...100
@@ -1161,14 +1159,15 @@ extension IMConversation {
         guard IMConversation.limitRangeOfMessageQuery.contains(limit) else {
             throw LCError(
                 code: .inconsistency,
-                reason: "limit should in range \(IMConversation.limitRangeOfMessageQuery)"
-            )
+                reason: "limit should in range \(IMConversation.limitRangeOfMessageQuery).")
         }
         var realPolicy: MessageQueryPolicy = policy
-        if [.transient, .temporary].contains(self.convType) || type != nil {
+        if [.transient, .temporary].contains(self.convType)
+            || type != nil {
             realPolicy = .onlyNetwork
         } else if realPolicy == .default {
-            if let client = self.client, client.options.contains(.usingLocalStorage) {
+            if let client = self.client,
+                client.options.contains(.usingLocalStorage) {
                 realPolicy = .cacheThenNetwork
             } else {
                 realPolicy = .onlyNetwork
@@ -1190,8 +1189,9 @@ extension IMConversation {
                 }
             }
         case .onlyCache:
-            guard let client = self.client, let localStorage = client.localStorage else {
-                throw LCError.clientLocalStorageNotFound
+            guard let client = self.client,
+                let localStorage = client.localStorage else {
+                    throw LCError.clientLocalStorageNotFound
             }
             self.queryMessageOnlyCache(
                 client: client,
@@ -1206,8 +1206,9 @@ extension IMConversation {
                 }
             }
         case .cacheThenNetwork:
-            guard let client = self.client, let localStorage = client.localStorage else {
-                throw LCError.clientLocalStorageNotFound
+            guard let client = self.client,
+                let localStorage = client.localStorage else {
+                    throw LCError.clientLocalStorageNotFound
             }
             self.queryMessageOnlyCache(
                 client: client,
@@ -1217,8 +1218,9 @@ extension IMConversation {
                 direction: direction,
                 limit: limit)
             { (client, result, hasBreakpoint) in
-                var shouldUseNetwork: Bool = (hasBreakpoint || result.isFailure)
-                if !shouldUseNetwork, let value = result.value {
+                var shouldUseNetwork = (hasBreakpoint || result.isFailure)
+                if !shouldUseNetwork,
+                    let value = result.value {
                     shouldUseNetwork = (value.count != limit)
                 }
                 if shouldUseNetwork {
@@ -1360,55 +1362,37 @@ extension IMConversation {
         }
         var messages: [IMMessage] = []
         for item in command.logsMessage.logs {
-            guard
-                let messageID = (item.hasMsgID ? item.msgID : nil),
-                let timestamp = (item.hasTimestamp ? item.timestamp : nil)
-                else
-            { continue }
-            var content: IMMessage.Content? = nil
-            if item.hasData {
-                /*
-                 For Compatibility,
-                 Should check `binaryMsg` at first.
-                 Then check `msg`.
-                 */
-                if item.hasBin {
-                    /* should use base64 for decoding stored binary data string */
-                    if let decodedData = Data(base64Encoded: item.data) {
-                        content = .data(decodedData)
-                    }
-                } else {
-                    content = .string(item.data)
-                }
+            guard let messageID = (item.hasMsgID ? item.msgID : nil),
+                let timestamp = (item.hasTimestamp ? item.timestamp : nil) else {
+                    continue
             }
             let message = IMMessage.instance(
                 application: client.application,
-                isTransient: false,
                 conversationID: self.ID,
                 currentClientID: client.ID,
                 fromClientID: (item.hasFrom ? item.from : nil),
                 timestamp: timestamp,
                 patchedTimestamp: (item.hasPatchTimestamp ? item.patchTimestamp : nil),
                 messageID: messageID,
-                content: content,
+                content: item.lcMessageContent,
                 isAllMembersMentioned: (item.hasMentionAll ? item.mentionAll : nil),
-                mentionedMembers: (item.mentionPids.isEmpty ? nil : item.mentionPids)
-            )
+                mentionedMembers: (item.mentionPids.isEmpty ? nil : item.mentionPids))
             message.deliveredTimestamp = (item.hasAckAt ? item.ackAt : nil)
             message.readTimestamp = (item.hasReadAt ? item.readAt : nil)
             messages.append(message)
         }
         if let newestMessage = messages.last {
-            self.safeUpdatingLastMessage(newMessage: newestMessage, client: client)
+            self.safeUpdatingLastMessage(
+                newMessage: newestMessage,
+                client: client)
         }
         return messages
     }
     
 }
 
-// MARK: Members
-
 extension IMConversation {
+    // MARK: Conversation Member
     
     /// Result for member operation.
     ///
@@ -1560,9 +1544,8 @@ extension IMConversation {
     
 }
 
-// MARK: Mute
-
 extension IMConversation {
+    // MARK: Conversation Mute
     
     private func muteToggle(op: IMOpType, completion: @escaping (LCBooleanResult) -> Void) {
         assert(op == .mute || op == .unmute)
@@ -1604,9 +1587,8 @@ extension IMConversation {
     
 }
 
-// MARK: Member Info
-
 extension IMConversation {
+    // MARK: Member Info
     
     /// Role of the member in the conversation.
     /// Privilege: owner > manager > member.
@@ -1694,7 +1676,7 @@ extension IMConversation {
                                     table[info.ID] = info
                                 }
                             }
-                            self.sync(self.underlyingMemberInfoTable = table)
+                            self.sync(self._memberInfoTable = table)
                             completion(client, .success)
                         } else {
                             completion(client, .failure(error: LCError(code: .malformedData)))
@@ -1738,9 +1720,8 @@ extension IMConversation {
                     ID: memberID,
                     role: role,
                     conversationID: self.ID,
-                    creator: self.creator
-                )
-                self.sync { self.underlyingMemberInfoTable?[info.ID] = info }
+                    creator: self.creator)
+                self.sync(self._memberInfoTable?[info.ID] = info)
                 client.eventQueue.async {
                     completion(.success)
                 }
@@ -1754,9 +1735,8 @@ extension IMConversation {
     
 }
 
-// MARK: Blacklist
-
 extension IMConversation {
+    // MARK: Member Blacklist
     
     private func newBlacklistBlockUnblockCommand(
         members: Set<String>,
@@ -1946,9 +1926,8 @@ extension IMConversation {
     
 }
 
-// MARK: Shutup
-
 extension IMConversation {
+    // MARK: Member Shutup
     
     private func update(
         mutedMembers members: Set<String>,
@@ -2089,9 +2068,8 @@ extension IMConversation {
     
 }
 
-// MARK: Data Updating
-
 extension IMConversation {
+    // MARK: Conversation Data Updating
     
     private func _refresh(completion: @escaping (LCBooleanResult) -> Void) throws {
         try self.client?.conversationQuery.getConversation(by: self.ID, completion: { (result) in
@@ -2173,32 +2151,28 @@ extension IMConversation {
         guard !data.isEmpty else {
             return
         }
-        var rawData: RawData?
-        sync {
+        let rawData = self.sync(closure: { () -> RawData in
             self.rawData.merge(data) { (_, new) in new }
-            rawData = self.rawData
-        }
+            return self.rawData
+        })
         self.tryUpdateLocalStorageData(client: client, rawData: rawData)
     }
     
     private func operationRawDataReplaced(data: RawData, client: IMClient) {
-        sync {
+        self.sync(closure: {
             self.rawData = data
-            self.underlyingOutdated = false
-        }
+            self._isOutdated = false
+        })
         if let message = self.decodingLastMessage(data: data, client: client) {
             self.safeUpdatingLastMessage(newMessage: message, client: client)
         }
-        if let localStorage = client.localStorage {
-            do {
-                try localStorage.insertOrReplace(
-                    conversationID: self.ID,
-                    rawData: data,
-                    convType: self.convType
-                )
-            } catch {
-                Logger.shared.error(error)
-            }
+        do {
+            try client.localStorage?.insertOrReplace(
+                conversationID: self.ID,
+                rawData: data,
+                convType: self.convType)
+        } catch {
+            Logger.shared.error(error)
         }
     }
     
@@ -2242,9 +2216,9 @@ extension IMConversation {
             self.safeUpdatingRawData(key: .updatedAt, value: udateString)
         }
         if let _ = client.localStorage {
-            var rawData: RawData?
-            sync(rawData = self.rawData)
-            self.tryUpdateLocalStorageData(client: client, rawData: rawData)
+            self.tryUpdateLocalStorageData(
+                client: client,
+                rawData: self.sync(self.rawData))
         }
     }
     
@@ -2263,25 +2237,23 @@ extension IMConversation {
             }
             self.safeUpdatingRawData(key: .members, value: originMembers)
         }
-        if let udateString: String = udate {
-            self.safeUpdatingRawData(key: .updatedAt, value: udateString)
+        if let udate = udate {
+            self.safeUpdatingRawData(key: .updatedAt, value: udate)
         }
         if let _ = client.localStorage {
-            var rawData: RawData?
-            var outdated: Bool?
-            self.sync {
-                rawData = self.rawData
-                outdated = self.underlyingOutdated
-            }
-            self.tryUpdateLocalStorageData(client: client, rawData: rawData, outdated: outdated)
+            let tuple = self.sync((self.rawData, self._isOutdated))
+            self.tryUpdateLocalStorageData(
+                client: client,
+                rawData: tuple.0,
+                outdated: tuple.1)
         }
-        self.sync {
-            if let _ = self.underlyingMemberInfoTable {
+        self.sync(closure: {
+            if let _ = self._memberInfoTable {
                 for member in leftMembers {
-                    self.underlyingMemberInfoTable?.removeValue(forKey: member)
+                    self._memberInfoTable?.removeValue(forKey: member)
                 }
             }
-        }
+        })
     }
     
     private class KeyAndDictionary {
@@ -2293,58 +2265,48 @@ extension IMConversation {
         }
     }
     
-    private func operationRawDataUpdated(attr: [String: Any], attrModified: [String: Any], udate: String?, client: IMClient) {
-        guard
-            let udateString: String = udate,
-            let newUpdatedDate: Date = LCDate.dateFromString(udateString),
+    private func operationRawDataUpdated(
+        attr: [String: Any],
+        attrModified: [String: Any],
+        udate: String?,
+        client: IMClient)
+    {
+        guard let udateString = udate,
+            let newUpdatedDate = LCDate.dateFromString(udateString),
             let originUpdateDate = self.updatedAt,
-            newUpdatedDate > originUpdateDate
-            else
-        {
-            return
+            newUpdatedDate > originUpdateDate else {
+                return
         }
-        var rawDataCopy: RawData! = nil
-        sync(rawDataCopy = self.rawData)
+        var rawDataCopy = self.sync(self.rawData)
         for keyPath in attr.keys {
             var stack: [KeyAndDictionary] = []
-            var modifiedValue: Any? = nil
-            for key in keyPath.components(separatedBy: ".") {
-                if stack.isEmpty {
-                    stack.insert(KeyAndDictionary(
+            var modifiedValue: Any?
+            for (index, key) in keyPath.components(separatedBy: ".").enumerated() {
+                stack.insert(
+                    KeyAndDictionary(
                         key: key,
-                        dictionary: rawDataCopy
-                    ), at: 0)
-                    modifiedValue = attrModified[key]
-                } else {
-                    let first: KeyAndDictionary = stack[0]
-                    stack.insert(KeyAndDictionary(
-                        key: key,
-                        dictionary: (first.dictionary[first.key] as? [String: Any]) ?? [:]
-                    ), at: 0)
-                    if let modifiedDic = modifiedValue as? [String: Any] {
-                        modifiedValue = modifiedDic[key]
-                    }
-                }
+                        dictionary: index == 0
+                            ? rawDataCopy
+                            : (stack[0].dictionary[stack[0].key] as? [String: Any]) ?? [:]),
+                    at: 0)
+                modifiedValue = index == 0
+                    ? attrModified[key]
+                    : (modifiedValue as? [String: Any])?[key]
             }
             for (index, item) in stack.enumerated() {
-                if index == 0 {
-                    if let value = modifiedValue {
-                        item.dictionary[item.key] = value
-                    } else {
-                        item.dictionary.removeValue(forKey: item.key)
-                    }
-                } else {
-                    let leafItem = stack[index - 1]
-                    item.dictionary[item.key] = leafItem.dictionary
-                }
+                item.dictionary[item.key] = index == 0
+                    ? modifiedValue
+                    : stack[index - 1].dictionary
             }
-            if let newRawData = stack.last?.dictionary {
-                rawDataCopy = newRawData
+            if let dictionary = stack.last?.dictionary {
+                rawDataCopy = dictionary
             }
         }
         rawDataCopy[Key.updatedAt.rawValue] = udateString
-        sync(self.rawData = rawDataCopy)
-        self.tryUpdateLocalStorageData(client: client, rawData: rawDataCopy)
+        self.sync(self.rawData = rawDataCopy)
+        self.tryUpdateLocalStorageData(
+            client: client,
+            rawData: rawDataCopy)
     }
     
     enum Operation {
@@ -2370,7 +2332,7 @@ extension IMConversation {
         case let .updated(attr: attr, attrModified: attrModified, udate):
             self.operationRawDataUpdated(attr: attr, attrModified: attrModified, udate: udate, client: client)
         case let .memberInfoChanged(info: info):
-            self.sync { self.underlyingMemberInfoTable?[info.ID] = info }
+            self.sync(self._memberInfoTable?[info.ID] = info)
         }
     }
     
@@ -2378,11 +2340,10 @@ extension IMConversation {
         guard let udate: String = udate else {
             return
         }
-        let key = Key.mutedMembers
-        var newMutedMembers: [String]
+        let newMutedMembers: [String]
         switch op {
         case .mute:
-            if let originMutedMembers: [String] = self.safeDecodingRawData(with: key) {
+            if let originMutedMembers: [String] = self.safeDecodingRawData(with: .mutedMembers) {
                 var set = Set(originMutedMembers)
                 set.insert(self.clientID)
                 newMutedMembers = Array(set)
@@ -2390,7 +2351,7 @@ extension IMConversation {
                 newMutedMembers = [self.clientID]
             }
         case .unmute:
-            if let originMutedMembers: [String] = self.safeDecodingRawData(with: key) {
+            if let originMutedMembers: [String] = self.safeDecodingRawData(with: .mutedMembers) {
                 var set = Set(originMutedMembers)
                 set.remove(self.clientID)
                 newMutedMembers = Array(set)
@@ -2400,12 +2361,11 @@ extension IMConversation {
         default:
             return
         }
-        var rawData: RawData?
-        sync {
-            self.updatingRawData(key: key, value: newMutedMembers)
+        let rawData = self.sync(closure: { () -> RawData in
+            self.updatingRawData(key: .mutedMembers, value: newMutedMembers)
             self.updatingRawData(key: .updatedAt, value: udate)
-            rawData = self.rawData
-        }
+            return self.rawData
+        })
         self.tryUpdateLocalStorageData(client: client, rawData: rawData)
     }
     
@@ -2418,19 +2378,20 @@ extension IMConversation {
         -> Bool
     {
         var shouldIncreaseUnreadMessageCount: Bool = false
-        guard
-            !newMessage.isTransient,
+        guard !newMessage.isTransient,
             !newMessage.isWill,
-            self.convType != .transient else
-        {
-            return shouldIncreaseUnreadMessageCount
+            self.convType != .transient else {
+                return shouldIncreaseUnreadMessageCount
         }
-        var messageEvent: IMConversationEvent? = nil
+        var messageEvent: IMConversationEvent?
         let updatingLastMessageClosure: (Bool) -> Void = { isNewMessage in
             self.lastMessage = newMessage
-            if self.convType != .temporary, caching, let localStorage = client.localStorage {
+            if caching,
+                self.convType != .temporary {
                 do {
-                    try localStorage.insertOrReplace(conversationID: self.ID, lastMessage: newMessage)
+                    try client.localStorage?.insertOrReplace(
+                        conversationID: self.ID,
+                        lastMessage: newMessage)
                 } catch {
                     Logger.shared.error(error)
                 }
@@ -2460,36 +2421,31 @@ extension IMConversation {
         } else {
             updatingLastMessageClosure(true)
         }
-        if let event = messageEvent {
+        if let messageEvent = messageEvent {
             client.eventQueue.async {
-                client.delegate?.client(client, conversation: self, event: event)
+                client.delegate?.client(
+                    client, conversation: self,
+                    event: messageEvent)
             }
         }
         return shouldIncreaseUnreadMessageCount
     }
     
     private func decodingLastMessage(data: RawData, client: IMClient) -> IMMessage? {
-        guard
-            self.convType != .transient,
+        guard self.convType != .transient,
             let timestamp: Int64 = IMConversation.decoding(key: .lastMessageTimestamp, from: data),
-            let messageID: String = IMConversation.decoding(key: .lastMessageId, from: data) else
-        {
-            return nil
+            let messageID: String = IMConversation.decoding(key: .lastMessageId, from: data) else {
+                return nil
         }
         var content: IMMessage.Content? = nil
-        /*
-         For Compatibility,
-         Should check `lastMessageBinary` at first.
-         Then check `lastMessageString`.
-         */
+        /* always check `binaryMsg` firstly */
         if let data: Data = IMConversation.decoding(key: .lastMessageBinary, from: data) {
             content = .data(data)
         } else if let string: String = IMConversation.decoding(key: .lastMessageString, from: data) {
             content = .string(string)
         }
-        let message = IMMessage.instance(
+        return IMMessage.instance(
             application: client.application,
-            isTransient: false,
             conversationID: self.ID,
             currentClientID: self.clientID,
             fromClientID: IMConversation.decoding(key: .lastMessageFrom, from: data),
@@ -2498,9 +2454,7 @@ extension IMConversation {
             messageID: messageID,
             content: content,
             isAllMembersMentioned: IMConversation.decoding(key: .lastMessageMentionAll, from: data),
-            mentionedMembers: IMConversation.decoding(key: .lastMessageMentionPids, from: data)
-        )
-        return message
+            mentionedMembers: IMConversation.decoding(key: .lastMessageMentionPids, from: data))
     }
     
     func tryUpdateLocalStorageData(client: IMClient, rawData: RawData? = nil, outdated: Bool? = nil) {
@@ -2533,20 +2487,12 @@ extension IMConversation {
         }
     }
     
-}
-
-// MARK: Misc
-
-private extension IMConversation {
-    
     func safeDecodingRawData<T>(with key: Key) -> T? {
         return self.safeDecodingRawData(with: key.rawValue)
     }
     
     func safeDecodingRawData<T>(with string: String) -> T? {
-        var value: T? = nil
-        sync(value = self.decodingRawData(with: string))
-        return value
+        return self.sync(self.decodingRawData(with: string))
     }
     
     func decodingRawData<T>(with key: Key) -> T? {
@@ -2570,7 +2516,7 @@ private extension IMConversation {
     }
     
     func safeUpdatingRawData(string: String, value: Any) {
-        sync(self.updatingRawData(string: string, value: value))
+        self.sync(self.updatingRawData(string: string, value: value))
     }
     
     func updatingRawData(key: Key, value: Any) {
@@ -2580,7 +2526,6 @@ private extension IMConversation {
     func updatingRawData(string: String, value: Any) {
         self.rawData[string] = value
     }
-    
 }
 
 /// IM Chat Room
@@ -2613,6 +2558,16 @@ public class IMChatRoom: IMConversation {
     @available(*, unavailable)
     public override func unmute(completion: @escaping (LCBooleanResult) -> Void) {
         completion(.failure(error: LCError.conversationNotSupport(convType: type(of: self))))
+    }
+    
+    @available(*, unavailable)
+    public override func insertFailedMessageToCache(_ message: IMMessage, completion: @escaping (LCBooleanResult) -> Void) throws {
+        throw LCError.conversationNotSupport(convType: type(of: self))
+    }
+    
+    @available(*, unavailable)
+    public override func removeFailedMessageFromCache(_ message: IMMessage, completion: @escaping (LCBooleanResult) -> Void) throws {
+        throw LCError.conversationNotSupport(convType: type(of: self))
     }
     
     /// Get count of online clients in this Chat Room.
@@ -2929,6 +2884,16 @@ public class IMTemporaryConversation: IMConversation {
     @available(*, unavailable)
     public override func checkMuting(member ID: String, completion: @escaping (LCGenericResult<Bool>) -> Void) {
         completion(.failure(error: LCError.conversationNotSupport(convType: type(of: self))))
+    }
+    
+    @available(*, unavailable)
+    public override func insertFailedMessageToCache(_ message: IMMessage, completion: @escaping (LCBooleanResult) -> Void) throws {
+        throw LCError.conversationNotSupport(convType: type(of: self))
+    }
+    
+    @available(*, unavailable)
+    public override func removeFailedMessageFromCache(_ message: IMMessage, completion: @escaping (LCBooleanResult) -> Void) throws {
+        throw LCError.conversationNotSupport(convType: type(of: self))
     }
     
     /// Refresh temporary conversation's data.

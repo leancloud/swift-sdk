@@ -86,7 +86,7 @@ class RTMConnectionTestCase: RTMBaseTestCase {
         XCTAssertEqual(RTMConnectionManager.default.protobuf1Map[application.id]?.count, 1)
         XCTAssertEqual(RTMConnectionManager.default.protobuf3Map[application.id]?.count, 1)
         
-        LCApplication.registry.removeValue(forKey: application.id)
+        application.unregister()
     }
     
     func testDeinit() {
