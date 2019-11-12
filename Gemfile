@@ -1,3 +1,4 @@
 source 'https://rubygems.org' do
-    gem 'octokit'
+    gem 'cocoapods'
+    gem 'jazzy'
 end
