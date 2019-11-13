@@ -98,6 +98,7 @@
 		D3B600842281679400F2E556 /* LCApplicationTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B600832281679400F2E556 /* LCApplicationTestCase.swift */; };
 		D3BBFB41225D944100B75BA1 /* LCLocalStorageContextTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3BBFB40225D944100B75BA1 /* LCLocalStorageContextTestCase.swift */; };
 		D3C3782F21E48D3C00EA9AC9 /* IMConversationQuery.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3C3782E21E48D3C00EA9AC9 /* IMConversationQuery.swift */; };
+		D3D2E5EB237BBA4A007A2045 /* CFNetwork.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D3D2E5EA237BBA4A007A2045 /* CFNetwork.framework */; };
 		D3D73BEB22EAA4EE00ECAE2B /* LiveQueryClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3D73BEA22EAA4EE00ECAE2B /* LiveQueryClient.swift */; };
 		D3DAD03C218DA402008BCD37 /* RTMConnectionTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3DAD03B218DA402008BCD37 /* RTMConnectionTestCase.swift */; };
 		D3FE04522277EA6C0008C88A /* IMLocalStorageTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FE04512277EA6C0008C88A /* IMLocalStorageTestCase.swift */; };
@@ -239,6 +240,7 @@
 		D3B600832281679400F2E556 /* LCApplicationTestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCApplicationTestCase.swift; sourceTree = "<group>"; };
 		D3BBFB40225D944100B75BA1 /* LCLocalStorageContextTestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCLocalStorageContextTestCase.swift; sourceTree = "<group>"; };
 		D3C3782E21E48D3C00EA9AC9 /* IMConversationQuery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IMConversationQuery.swift; sourceTree = "<group>"; };
+		D3D2E5EA237BBA4A007A2045 /* CFNetwork.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CFNetwork.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/System/Library/Frameworks/CFNetwork.framework; sourceTree = DEVELOPER_DIR; };
 		D3D73BEA22EAA4EE00ECAE2B /* LiveQueryClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveQueryClient.swift; sourceTree = "<group>"; };
 		D3DAD03B218DA402008BCD37 /* RTMConnectionTestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RTMConnectionTestCase.swift; sourceTree = "<group>"; };
 		D3F030F2222FB411009F6C67 /* RuntimeTests-iOS.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "RuntimeTests-iOS.entitlements"; sourceTree = "<group>"; };
@@ -254,6 +256,7 @@
 				D303BD752328CB1C004AE13D /* SwiftProtobuf in Frameworks */,
 				D303BD782328CDFC004AE13D /* Starscream in Frameworks */,
 				D303BD7B2328D062004AE13D /* GRDB in Frameworks */,
+				D3D2E5EB237BBA4A007A2045 /* CFNetwork.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -286,6 +289,7 @@
 		113D23BF21900CEB006B53EC /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				D3D2E5EA237BBA4A007A2045 /* CFNetwork.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -941,14 +945,16 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
+				MACOSX_DEPLOYMENT_TARGET = 10.12;
 				PRODUCT_BUNDLE_IDENTIFIER = LeanCloud.SDK.Swift;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = YES;
 				SUPPORTED_PLATFORMS = "iphonesimulator iphoneos macosx appletvos appletvsimulator watchos watchsimulator";
-				SWIFT_INCLUDE_PATHS = "";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
+				TVOS_DEPLOYMENT_TARGET = 10.0;
+				WATCHOS_DEPLOYMENT_TARGET = 3.0;
 			};
 			name = Debug;
 		};
@@ -972,13 +978,15 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
+				MACOSX_DEPLOYMENT_TARGET = 10.12;
 				PRODUCT_BUNDLE_IDENTIFIER = LeanCloud.SDK.Swift;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = YES;
 				SUPPORTED_PLATFORMS = "iphonesimulator iphoneos macosx appletvos appletvsimulator watchos watchsimulator";
-				SWIFT_INCLUDE_PATHS = "";
 				SWIFT_VERSION = 5.0;
+				TVOS_DEPLOYMENT_TARGET = 10.0;
+				WATCHOS_DEPLOYMENT_TARGET = 3.0;
 			};
 			name = Release;
 		};
