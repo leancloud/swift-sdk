@@ -307,8 +307,9 @@ class HTTPClient {
         switch cachePolicy {
         case .onlyNetwork, .networkElseCache:
             let request = session.request(url, method: method, parameters: parameters, encoding: encoding, headers: headers).validate()
+            request.lcDebugDescription()
             request.responseJSON(queue: completionDispatchQueue) { afResponse in
-                self.log(afDataResponse: afResponse, request: request)
+                afResponse.lcDebugDescription(request: request)
                 let response = LCResponse(
                     application: self.application,
                     afDataResponse: afResponse)
@@ -363,9 +364,10 @@ class HTTPClient {
 
         let completionDispatchQueue = completionDispatchQueue ?? defaultCompletionDispatchQueue
 
-        request.responseJSON(queue: completionDispatchQueue) { response in
-            self.log(afDataResponse: response, request: request)
-            completionHandler(LCResponse(application: self.application, afDataResponse: response))
+        request.lcDebugDescription()
+        request.responseJSON(queue: completionDispatchQueue) { afResponse in
+            afResponse.lcDebugDescription(request: request)
+            completionHandler(LCResponse(application: self.application, afDataResponse: afResponse))
         }
 
         return LCSingleRequest(request: request)
@@ -403,72 +405,61 @@ class HTTPClient {
 
         return LCSingleRequest(request: nil)
     }
-
-    func log(response: DataResponse<Any, Error>, request: Request) {
-        self.log(request: request)
-        Logger.shared.debug(response.lcDebugDescription(application: self.application, request))
-    }
-    
-    func log(afDataResponse response: AFDataResponse<Any>, request: Request) {
-        self.log(request: request)
-        Logger.shared.debug(response.lcDebugDescription(application: self.application, request))
-    }
-
-    func log(request: Request) {
-        Logger.shared.debug(request.lcDebugDescription)
-    }
 }
 
 extension Request {
-
-    var lcDebugDescription : String {
-        var curl: String = cURLDescription()
-
-        if curl.hasPrefix("$ ") {
-            let startIndex: String.Index = curl.index(curl.startIndex, offsetBy: 2)
-            curl = String(curl[startIndex...])
+    
+    func lcDebugDescription() {
+        guard LCApplication.logLevel >= .debug else {
+            return
         }
-
-        let taskIdentifier = task?.taskIdentifier ?? 0
-        let message = "\n------ BEGIN LeanCloud HTTP Request\n" +
-                      "task: \(taskIdentifier)\n" +
-                      "curl: \(curl)\n" +
-                      "------ END"
-        return message
+        self.cURLDescription { (curl) in
+            Logger.shared.debug(closure: { () -> String in
+                var message = "\n------ BEGIN LeanCloud HTTP Request\n"
+                if let taskIdentifier = self.task?.taskIdentifier {
+                    message += "task: \(taskIdentifier)\n"
+                }
+                var curl = curl
+                if curl.hasPrefix("$ ") {
+                    curl.removeFirst(2)
+                }
+                message += "curl: \(curl)\n"
+                message += "------ END"
+                return message
+            })
+        }
     }
-
 }
 
 extension DataResponse {
-
-    func lcDebugDescription(application: LCApplication, _ request : Request) -> String {
-        let taskIdentifier = request.task?.taskIdentifier ?? 0
-
-        var message = "\n------ BEGIN LeanCloud HTTP Response\n"
-
-        message.append("task: \(taskIdentifier)\n")
-
-        if let response = response {
-            message.append("code: \(response.statusCode)\n")
-        }
-
-        if let error = error {
-            message.append("error: \(error.localizedDescription)\n")
-        }
-
-        if let data = data {
-            do {
-                let jsonObject = try JSONSerialization.jsonObject(with: data, options: [])
-                let object = try ObjectProfiler.shared.object(application: application, jsonValue: jsonObject)
-                message.append("data: \(object.jsonString)\n")
-            } catch {
-                /* Nop */
+    
+    func lcDebugDescription(request : Request) {
+        Logger.shared.debug(closure: { () -> String in
+            var message = "\n------ BEGIN LeanCloud HTTP Response\n"
+            if let taskIdentifier = request.task?.taskIdentifier {
+                message += "task: \(taskIdentifier)\n"
             }
-        }
-
-        message.append("------ END")
-
-        return message
+            if let response = self.response {
+                message += "code: \(response.statusCode)\n"
+            }
+            if let error = self.error {
+                message += "error: \(error.localizedDescription)\n"
+            }
+            if let data = self.data {
+                do {
+                    if let prettyPrintedJSON = String(
+                        data: try JSONSerialization.data(
+                            withJSONObject: try JSONSerialization.jsonObject(with: data),
+                            options: .prettyPrinted),
+                        encoding: .utf8) {
+                        message += "data: \(prettyPrintedJSON)\n"
+                    }
+                } catch {
+                    Logger.shared.error(error)
+                }
+            }
+            message += "------ END"
+            return message
+        })
     }
-
 }
