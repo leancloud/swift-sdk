@@ -371,6 +371,18 @@ class LCObjectTestCase: BaseTestCase {
         }
         """)
     }
+    
+    func testBatchChildren() {
+        let object1 = LCObject(className: "BatchChildren")
+        let object2 = LCObject(className: "BatchChildren")
+        let object3 = LCObject(className: "BatchChildren")
+        object1["child"] = object2
+        object2["child"] = object3
+        XCTAssertTrue(object1.save(options: [.fetchWhenSave]).isSuccess)
+        XCTAssertNotNil(object1.objectId)
+        XCTAssertNotNil(object2.objectId)
+        XCTAssertNotNil(object3.objectId)
+    }
 }
 
 class TestObject: LCObject {

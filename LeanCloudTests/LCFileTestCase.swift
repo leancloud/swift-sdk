@@ -123,4 +123,21 @@ class LCFileTestCase: BaseTestCase {
                 }
         }
     }
+    
+    func testObjectAssociateFile() {
+        do {
+            let file = LCFile(
+                payload: .fileURL(
+                    fileURL: bundleResourceURL(name: "test", ext: "jpg")))
+            XCTAssertTrue(file.save().isSuccess)
+            let object = LCObject(className: "AssociateFile")
+            try object.set("image", value: file)
+            XCTAssertTrue(object.save().isSuccess)
+            let fetchObject = LCObject(className: "AssociateFile", objectId: object.objectId!.value)
+            XCTAssertTrue(fetchObject.fetch().isSuccess)
+            XCTAssertTrue(fetchObject["image"] is LCFile)
+        } catch {
+            XCTFail("\(error)")
+        }
+    }
 }
