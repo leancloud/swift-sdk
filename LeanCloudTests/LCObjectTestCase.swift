@@ -383,6 +383,20 @@ class LCObjectTestCase: BaseTestCase {
         XCTAssertNotNil(object2.objectId)
         XCTAssertNotNil(object3.objectId)
     }
+    
+    func testValueForKey() {
+        let object = LCObject()
+        let key = "key"
+        XCTAssertNil(object[key])
+        XCTAssertNil(object.get(key))
+        XCTAssertNil(object.value(forKey: key))
+        XCTAssertNil(object.value(forUndefinedKey: key))
+        object[key] = "value".lcString
+        XCTAssertNotNil(object[key])
+        XCTAssertNotNil(object.get(key))
+        XCTAssertNotNil(object.value(forKey: key))
+        XCTAssertNil(object.value(forUndefinedKey: key))
+    }
 }
 
 class TestObject: LCObject {
