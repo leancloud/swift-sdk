@@ -171,11 +171,12 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
     }
 
     open override func value(forKey key: String) -> Any? {
-        guard let value = get(key) else {
-            return super.value(forKey: key)
-        }
-
-        return value
+        return self.get(key)
+            ?? super.value(forKey: key)
+    }
+    
+    open override func value(forUndefinedKey key: String) -> Any? {
+        return nil
     }
 
     open func makeIterator() -> DictionaryIterator<String, LCValue> {
