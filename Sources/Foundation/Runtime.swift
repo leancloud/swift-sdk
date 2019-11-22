@@ -152,8 +152,9 @@ class Runtime {
      - parameter propertyName: Property name on which you want to set.
      - parameter value:        New property value.
      */
-    static func setInstanceVariable(_ object: Any, _ propertyName: String, _ value: Any?) {
+    static func setInstanceVariable(_ object: Any?, _ propertyName: String, _ value: Any?) {
         guard
+            let object = object,
             let aClass = object_getClass(object),
             let ivar = instanceVariable(aClass, propertyName)
         else {

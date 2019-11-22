@@ -89,7 +89,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
         self.application = .default
         super.init()
         self.operationHub = OperationHub(self)
-        self.propertyTable.elementDidChange = { (key, value) in
+        self.propertyTable.elementDidChange = { [weak self] (key, value) in
             Runtime.setInstanceVariable(self, key, value)
         }
     }
@@ -100,7 +100,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
         self.application = application
         super.init()
         self.operationHub = OperationHub(self)
-        self.propertyTable.elementDidChange = { (key, value) in
+        self.propertyTable.elementDidChange = { [weak self] (key, value) in
             Runtime.setInstanceVariable(self, key, value)
         }
     }
