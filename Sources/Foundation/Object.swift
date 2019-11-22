@@ -234,7 +234,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
         return formattedJSONString(indentLevel: 0)
     }
 
-    public var rawValue: LCValueConvertible {
+    public var rawValue: Any {
         return self
     }
 

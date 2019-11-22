@@ -172,9 +172,9 @@ public final class LCDictionary: NSObject, LCValue, LCValueExtension, Collection
         return formattedJSONString(indentLevel: 0)
     }
 
-    public var rawValue: LCValueConvertible {
-        let dictionary = value.mapValue { value in value.rawValue }
-        return dictionary as! LCValueConvertible
+    public var rawValue: Any {
+        let v: [String: Any] = self.value.mapValue { value in value.rawValue }
+        return v
     }
 
     var lconValue: Any? {

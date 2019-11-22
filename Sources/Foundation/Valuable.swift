@@ -30,7 +30,7 @@ public protocol LCValue: NSObjectProtocol, NSCoding, NSCopying, LCValueConvertib
      For JSON-compatible objects, such as string, array, etc., raw value is the value of corresponding Swift built-in type.
      For some objects of other types, such as `LCObject`, `LCACL` etc., raw value is itself.
      */
-    var rawValue: LCValueConvertible { get }
+    var rawValue: Any { get }
 
     /* Shorthands for type conversion. */
 
@@ -48,8 +48,8 @@ public protocol LCValue: NSObjectProtocol, NSCoding, NSCopying, LCValueConvertib
     var doubleValue: Double? { get }
     var boolValue: Bool? { get }
     var stringValue: String? { get }
-    var arrayValue: [LCValueConvertible]? { get }
-    var dictionaryValue: [String: LCValueConvertible]? { get }
+    var arrayValue: [Any]? { get }
+    var dictionaryValue: [String: Any]? { get }
     var dataValue: Data? { get }
     var dateValue: Date? { get }
 }
@@ -128,12 +128,12 @@ extension LCValue {
         return rawValue as? String
     }
 
-    public var arrayValue: [LCValueConvertible]? {
-        return rawValue as? [LCValueConvertible]
+    public var arrayValue: [Any]? {
+        return rawValue as? [Any]
     }
 
-    public var dictionaryValue: [String: LCValueConvertible]? {
-        return rawValue as? [String: LCValueConvertible]
+    public var dictionaryValue: [String: Any]? {
+        return rawValue as? [String: Any]
     }
 
     public var dataValue: Data? {
@@ -290,11 +290,11 @@ extension LCValueConvertible {
         return lcValue.stringValue
     }
 
-    public var arrayValue: [LCValueConvertible]? {
+    public var arrayValue: [Any]? {
         return lcValue.arrayValue
     }
 
-    public var dictionaryValue: [String: LCValueConvertible]? {
+    public var dictionaryValue: [String: Any]? {
         return lcValue.dictionaryValue
     }
 

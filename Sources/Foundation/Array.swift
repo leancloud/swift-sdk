@@ -117,9 +117,9 @@ public final class LCArray: NSObject, LCValue, LCValueExtension, Collection, Exp
         return formattedJSONString(indentLevel: 0)
     }
 
-    public var rawValue: LCValueConvertible {
-        let array = value.map { element in element.rawValue }
-        return array as! LCValueConvertible
+    public var rawValue: Any {
+        let v: [Any] = self.value.map { element in element.rawValue }
+        return v
     }
 
     var lconValue: Any? {

@@ -106,7 +106,7 @@ public final class LCGeoPoint: NSObject, LCValue, LCValueExtension {
         return formattedJSONString(indentLevel: 0)
     }
 
-    public var rawValue: LCValueConvertible {
+    public var rawValue: Any {
         return self
     }
 
