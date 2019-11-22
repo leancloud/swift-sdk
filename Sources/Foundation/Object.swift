@@ -52,7 +52,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
     private(set) var objectClassName: String?
 
     var actualClassName: String {
-        if let className = (self.get("className") as? LCString)?.value {
+        if let className = (self["className"] as? LCString)?.value {
             return className
         } else if let className = self.objectClassName {
             return className
@@ -196,7 +196,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
     }
 
     open override func value(forKey key: String) -> Any? {
-        return self.get(key)
+        return self[key]
             ?? super.value(forKey: key)
     }
     
@@ -447,14 +447,14 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
      */
     func synchronizePropertyTable() {
         ObjectProfiler.shared.iterateProperties(self) { (key, _) in
-            guard
-                let ivarValue: LCValue = Runtime.instanceVariableValue(self, key) as? LCValue,
-                ivarValue !== propertyTable[key]
-                else
-            {
+            guard let ivarValue = Runtime.instanceVariableValue(self, key) as? LCValue else {
                 return
             }
-            propertyTable[key] = ivarValue
+            if let value = self.propertyTable[key]?.lcValue,
+                value === ivarValue {
+                return
+            }
+            self.propertyTable[key] = ivarValue
         }
     }
 
@@ -512,20 +512,16 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
     /**
      Get and set value via subscript syntax.
      */
-    open subscript(key: String) -> LCValue? {
+    open subscript(key: String) -> LCValueConvertible? {
         get {
-            var lcValue: LCValue? = nil
-            if let value: LCValue = get(key) {
-                lcValue = value
-            }
-            return lcValue
+            return self.get(key)
         }
         set {
-            /*
-             Currently, Swift do not support throwable subscript.
-             So, the exception will be ignored.
-             */
-            try? set(key, lcValue: newValue)
+            do {
+                try self.set(key, value: newValue)
+            } catch {
+                Logger.shared.error(error)
+            }
         }
     }
 
@@ -534,7 +530,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
             return self[key]
         }
         set {
-            self[key] = newValue?.lcValue
+            self[key] = newValue
         }
     }
 
@@ -545,28 +541,9 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
 
      - returns: The value for key.
      */
-    open func get(_ key: String) -> LCValue? {
-        var lcValue: LCValue? = nil
-        if let value: LCValue = ObjectProfiler.shared.propertyValue(self, key) {
-            lcValue = value
-        } else if let value: LCValue = propertyTable[key] {
-            lcValue = value
-        }
-        return lcValue
-    }
-
-    /**
-     Set value for key.
-
-     - parameter key:   The key for which to set the value.
-     - parameter value: The new value.
-     */
-    func set(_ key: String, lcValue value: LCValue?) throws {
-        if let value = value {
-            try addOperation(.set, key, value)
-        } else {
-            try addOperation(.delete, key)
-        }
+    open func get(_ key: String) -> LCValueConvertible? {
+        return ObjectProfiler.shared.propertyValue(self, key)
+            ?? self.propertyTable[key]
     }
 
     /**
@@ -578,7 +555,11 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
      - parameter value: The new value.
      */
     open func set(_ key: String, value: LCValueConvertible?) throws {
-        try set(key, lcValue: value?.lcValue)
+        if let value = value?.lcValue {
+            try addOperation(.set, key, value)
+        } else {
+            try addOperation(.delete, key)
+        }
     }
 
     /**

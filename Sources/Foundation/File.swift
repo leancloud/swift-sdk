@@ -45,10 +45,10 @@ public class LCFile: LCObject {
      */
     public var mimeType: LCString? {
         get {
-            return self.get("mime_type") as? LCString
+            return self["mime_type"] as? LCString
         }
         set {
-            try? self.set("mime_type", value: newValue)
+            self["mime_type"] = newValue
         }
     }
 
