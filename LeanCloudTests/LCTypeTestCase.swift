@@ -73,6 +73,14 @@ class LCTypeTestCase: BaseTestCase {
         XCTAssertEqual(
             LCDictionary(["foo": "bar", "true": true, "dict": ["null": NSNull()], "date": date, "object": object]),
             try LCDictionary(unsafeObject: ["foo": "bar", "true": true, "dict": ["null": NSNull()], "date": date, "object": object]))
+        
+        let dic = LCDictionary()
+        dic["1"] = "a"
+        dic["2"] = 42
+        dic["3"] = true
+        XCTAssertEqual(dic["1"]?.stringValue, "a")
+        XCTAssertEqual(dic["2"]?.intValue, 42)
+        XCTAssertEqual(dic["3"]?.boolValue, true)
     }
 
     func testDataConvertible() {
