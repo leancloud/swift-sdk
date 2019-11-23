@@ -208,13 +208,12 @@ class HubTask: Task {
         }
     }
     
-    static func pullRequest(with message: String) throws {
+    static func pullRequest() throws {
         try version()
         guard HubTask(arguments: [
             "pull-request",
             "-b", "leancloud:master",
-            "-m", message,
-            "-f", "-p", "-o"])
+            "--force", "--push", "--browse"])
             .excute() else {
                 throw TaskError()
         }
@@ -461,7 +460,7 @@ class CLI {
         var currentVersion = try VersionUpdater.currentVersion()
         print("""
             Current Version is \(currentVersion.versionString)
-            [?] do you want to update it before releasing? [<new-semantic-version>/no]
+            [?] do you want to update it before pull request ? [<new-semantic-version>/no]
             """)
         if let input = readLine()?.trimmingCharacters(in: .whitespaces).lowercased() {
             if ["n", "no", "not"].contains(input.lowercased()) {
@@ -476,7 +475,7 @@ class CLI {
                 currentVersion = newVersion
             }
         }
-        try HubTask.pullRequest(with: "release: \(currentVersion.versionString)")
+        try HubTask.pullRequest()
     }
     
     static func podTrunk() throws {
