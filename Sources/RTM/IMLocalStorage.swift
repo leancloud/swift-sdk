@@ -7,7 +7,9 @@
 //
 
 import Foundation
+#if canImport(GRDB)
 import GRDB
+#endif
 
 class IMLocalStorage {
     
@@ -46,6 +48,7 @@ class IMLocalStorage {
                 }
             }
             
+            #if canImport(GRDB)
             var value: DatabaseValueConvertible {
                 switch self {
                 case let .ID(v):
@@ -60,6 +63,7 @@ class IMLocalStorage {
                     return v
                 }
             }
+            #endif
         }
         
         enum LastMessage {
@@ -84,6 +88,7 @@ class IMLocalStorage {
                 }
             }
             
+            #if canImport(GRDB)
             var value: DatabaseValueConvertible {
                 switch self {
                 case let .conversationID(v):
@@ -94,6 +99,7 @@ class IMLocalStorage {
                     return v
                 }
             }
+            #endif
         }
         
         struct Message: Codable {
@@ -198,12 +204,14 @@ class IMLocalStorage {
         }
     }
     
+    #if canImport(GRDB)
     let dbPool: DatabasePool
+    #endif
     
     init(path: String, clientID: String) throws {
+        #if canImport(GRDB)
         var configuration = Configuration()
         configuration.label = "\(IMLocalStorage.self).dbQueue"
-        #if DEBUG
         configuration.trace = {
             Logger.shared.verbose("""
                 \n------ LeanCloud SQL Executing
@@ -212,8 +220,8 @@ class IMLocalStorage {
                 ------ END
                 """)
         }
-        #endif
         try self.dbPool = DatabasePool(path: path, configuration: configuration)
+        #endif
     }
 }
 
@@ -222,13 +230,18 @@ extension IMLocalStorage {
     // MARK: Table Create
     
     func createTablesIfNotExists() throws {
+        #if canImport(GRDB)
         try self.dbPool.write { db in
             try self.createConversationTableIfNotExists(db: db)
             try self.createLastMessageTableIfNotExists(db: db)
             try self.createMessageTableIfNotExists(db: db)
         }
+        #else
+        throw LCError.cannotImportGRDB
+        #endif
     }
     
+    #if canImport(GRDB)
     private func createConversationTableIfNotExists(db: Database) throws {
         let tableName: String = Table.conversation
         let key = Table.Conversation.CodingKeys.self
@@ -286,7 +299,7 @@ extension IMLocalStorage {
         """
         try db.execute(sql: sql)
     }
-    
+    #endif
 }
 
 extension IMLocalStorage {
@@ -299,6 +312,7 @@ extension IMLocalStorage {
         convType: IMConversation.ConvType)
         throws
     {
+        #if canImport(GRDB)
         guard convType != .temporary, convType != .transient else {
             return
         }
@@ -329,6 +343,7 @@ extension IMLocalStorage {
         try self.dbPool.write { db in
             try db.execute(sql: sql, arguments: arguments)
         }
+        #endif
     }
     
     func updateOrIgnore(
@@ -336,6 +351,7 @@ extension IMLocalStorage {
         sets: [Table.Conversation])
         throws
     {
+        #if canImport(GRDB)
         guard !sets.isEmpty else {
             return
         }
@@ -357,6 +373,7 @@ extension IMLocalStorage {
         try self.dbPool.write { db in
             try db.execute(sql: sql, arguments: StatementArguments(values))
         }
+        #endif
     }
     
     func insertOrReplace(
@@ -364,6 +381,7 @@ extension IMLocalStorage {
         lastMessage: IMMessage)
         throws
     {
+        #if canImport(GRDB)
         guard !lastMessage.isTransient, !lastMessage.isWill else {
             return
         }
@@ -383,9 +401,11 @@ extension IMLocalStorage {
         try self.dbPool.write { db in
             try db.execute(sql: sql, arguments: arguments)
         }
+        #endif
     }
     
     func deleteConversationAndMessages(IDs: Set<String>) throws {
+        #if canImport(GRDB)
         guard !IDs.isEmpty else {
             return
         }
@@ -415,6 +435,9 @@ extension IMLocalStorage {
                 """,
                 arguments: arguments)
         }
+        #else
+        throw LCError.cannotImportGRDB
+        #endif
     }
     
 }
@@ -429,6 +452,7 @@ extension IMLocalStorage {
         throws
         -> (conversationMap: [String: IMConversation], conversations: [IMConversation])
     {
+        #if canImport(GRDB)
         var selectConversationSQL: String = "select * from \(Table.conversation)"
         var selectLastMessageSQL: String = "select * from \(Table.lastMessage)"
         let orderCondition: String = " order by \(order.key) \(order.sqlOrder)"
@@ -496,6 +520,9 @@ extension IMLocalStorage {
             
             return (conversationMap, conversations)
         }
+        #else
+        throw LCError.cannotImportGRDB
+        #endif
     }
     
 }
@@ -504,6 +531,7 @@ extension IMLocalStorage {
     
     // MARK: Message Update
     
+    #if canImport(GRDB)
     private func insertOrReplaceMessageSQL() -> String {
         let key = Table.Message.CodingKeys.self
         return """
@@ -542,7 +570,27 @@ extension IMLocalStorage {
             table.breakpoint]
     }
     
+    private func newestAndOldestMessage(from messages: [IMMessage]) -> (newest: IMMessage, oldest: IMMessage)? {
+        guard let first = messages.first,
+            let last = messages.last,
+            let firstSentTimestamp = first.sentTimestamp,
+            let lastSentTimestamp = last.sentTimestamp,
+            let firstMessageID = first.ID,
+            let lastMessageID = last.ID else {
+                return nil
+        }
+        if firstSentTimestamp == lastSentTimestamp {
+            return firstMessageID > lastMessageID ? (first, last) : (last, first)
+        } else if firstSentTimestamp > lastSentTimestamp {
+            return (first, last)
+        } else {
+            return (last, first)
+        }
+    }
+    #endif
+    
     func insertOrReplace(messages: [IMMessage]) throws {
+        #if canImport(GRDB)
         guard messages.count > 2,
             let tuple = self.newestAndOldestMessage(from: messages) else {
                 return
@@ -558,18 +606,24 @@ extension IMLocalStorage {
                         table: try Table.Message(message: message)))
             }
         }
+        #endif
     }
     
     func insertOrReplace(failedMessage message: IMMessage) throws {
+        #if canImport(GRDB)
         try self.dbPool.write { db in
             try db.execute(
                 sql: self.insertOrReplaceMessageSQL(),
                 arguments: self.insertOrReplaceMessageArguments(
                     table: try Table.Message(failedMessage: message)))
         }
+        #else
+        throw LCError.cannotImportGRDB
+        #endif
     }
     
     func delete(failedMessage message: IMMessage) throws {
+        #if canImport(GRDB)
         guard message.underlyingStatus == .failed,
             let conversationID = message.conversationID,
             let sendingTimestamp = message.sendingTimestamp,
@@ -593,9 +647,13 @@ extension IMLocalStorage {
         try self.dbPool.write { db in
             try db.execute(sql: sql, arguments: arguments)
         }
+        #else
+        throw LCError.cannotImportGRDB
+        #endif
     }
     
     func updateOrIgnore(message: IMMessage) throws {
+        #if canImport(GRDB)
         let table = try Table.Message(message: message)
         let key = Table.Message.CodingKeys.self
         let sql: String = """
@@ -624,24 +682,7 @@ extension IMLocalStorage {
         try self.dbPool.write { db in
             try db.execute(sql: sql, arguments: arguments)
         }
-    }
-    
-    private func newestAndOldestMessage(from messages: [IMMessage]) -> (newest: IMMessage, oldest: IMMessage)? {
-        guard let first = messages.first,
-            let last = messages.last,
-            let firstSentTimestamp = first.sentTimestamp,
-            let lastSentTimestamp = last.sentTimestamp,
-            let firstMessageID = first.ID,
-            let lastMessageID = last.ID else {
-                return nil
-        }
-        if firstSentTimestamp == lastSentTimestamp {
-            return firstMessageID > lastMessageID ? (first, last) : (last, first)
-        } else if firstSentTimestamp > lastSentTimestamp {
-            return (first, last)
-        } else {
-            return (last, first)
-        }
+        #endif
     }
 }
 
@@ -659,6 +700,7 @@ extension IMLocalStorage {
         throws
         -> (messages: [IMMessage], hasBreakpoint: Bool)
     {
+        #if canImport(GRDB)
         let order = (direction ?? .newToOld)
         let messageWhereCondition = self.messageWhereCondition(order: order, start: start, end: end)
         
@@ -738,8 +780,12 @@ extension IMLocalStorage {
             
             return (messages, breakpointSet.contains(true))
         }
+        #else
+        throw LCError.cannotImportGRDB
+        #endif
     }
     
+    #if canImport(GRDB)
     private func messageWhereCondition(
         order: IMConversation.MessageQueryDirection,
         start: IMConversation.MessageQueryEndpoint? = nil,
@@ -864,7 +910,7 @@ extension IMLocalStorage {
             }
         }
     }
-    
+    #endif
 }
 
 private extension String {
@@ -883,7 +929,6 @@ private extension String {
         }
         return content
     }
-    
 }
 
 private extension IMMessage.Content {
@@ -900,5 +945,13 @@ private extension IMMessage.Content {
             return (string, false)
         }
     }
+}
+
+private extension LCError {
     
+    static var cannotImportGRDB: LCError {
+        return LCError(
+            code: .inconsistency,
+            reason: "can not import GRDB.")
+    }
 }

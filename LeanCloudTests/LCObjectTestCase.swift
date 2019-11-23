@@ -11,17 +11,15 @@ import XCTest
 
 class LCObjectTestCase: BaseTestCase {
 
-    override func setUp() {
-        super.setUp()
-        // Put setup code here. This method is called before the invocation of each test method in the class.
-    }
-    
-    override func tearDown() {
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
-        super.tearDown()
-    }
-
     var observed = false
+    
+    func testDeinit() {
+        var object: LCObject! = LCObject()
+        weak var wObject: LCObject? = object
+        XCTAssertNotNil(wObject)
+        object = nil
+        XCTAssertNil(wObject)
+    }
 
     func testSaveObject() {
         let object = TestObject()
@@ -370,6 +368,136 @@ class LCObjectTestCase: BaseTestCase {
             "className": "LCObject"
         }
         """)
+    }
+    
+    func testBatchChildren() {
+        let object1 = LCObject(className: "BatchChildren")
+        let object2 = LCObject(className: "BatchChildren")
+        let object3 = LCObject(className: "BatchChildren")
+        object1["child"] = object2
+        object2["child"] = object3
+        XCTAssertTrue(object1.save(options: [.fetchWhenSave]).isSuccess)
+        XCTAssertNotNil(object1.objectId)
+        XCTAssertNotNil(object2.objectId)
+        XCTAssertNotNil(object3.objectId)
+    }
+    
+    func testValueForKey() {
+        let object = LCObject()
+        let key = "key"
+        XCTAssertNil(object[key])
+        XCTAssertNil(object.get(key))
+        XCTAssertNil(object.value(forKey: key))
+        XCTAssertNil(object.value(forUndefinedKey: key))
+        object[key] = "value".lcString
+        XCTAssertNotNil(object[key])
+        XCTAssertNotNil(object.get(key))
+        XCTAssertNotNil(object.value(forKey: key))
+        XCTAssertNil(object.value(forUndefinedKey: key))
+    }
+    
+    func testSubscriptValueConvertible() {
+        let object = LCObject()
+        
+        let intKey = "int"
+        object[intKey] = 42
+        XCTAssertTrue(object[intKey] is LCNumber)
+        XCTAssertEqual(object[intKey]?.intValue, 42)
+        object[intKey] = 43.lcValue
+        XCTAssertTrue(object[intKey] is LCNumber)
+        XCTAssertEqual(object[intKey]?.intValue, 43)
+        object[intKey] = 44.lcNumber
+        XCTAssertTrue(object[intKey] is LCNumber)
+        XCTAssertEqual(object[intKey]?.intValue, 44)
+        
+        let doubleKey = "double"
+        object[doubleKey] = 42.0
+        XCTAssertTrue(object[doubleKey] is LCNumber)
+        XCTAssertEqual(object[doubleKey]?.doubleValue, 42.0)
+        object[doubleKey] = 43.0.lcValue
+        XCTAssertTrue(object[doubleKey] is LCNumber)
+        XCTAssertEqual(object[doubleKey]?.doubleValue, 43.0)
+        object[doubleKey] = 44.0.lcNumber
+        XCTAssertTrue(object[doubleKey] is LCNumber)
+        XCTAssertEqual(object[doubleKey]?.doubleValue, 44.0)
+        
+        let boolKey = "bool"
+        object[boolKey] = true
+        XCTAssertTrue(object[boolKey] is LCBool)
+        XCTAssertEqual(object[boolKey]?.boolValue, true)
+        object[boolKey] = false.lcValue
+        XCTAssertTrue(object[boolKey] is LCBool)
+        XCTAssertEqual(object[boolKey]?.boolValue, false)
+        object[boolKey] = true.lcBool
+        XCTAssertTrue(object[boolKey] is LCBool)
+        XCTAssertEqual(object[boolKey]?.boolValue, true)
+        
+        let stringKey = "string"
+        object[stringKey] = "a"
+        XCTAssertTrue(object[stringKey] is LCString)
+        XCTAssertEqual(object[stringKey]?.stringValue, "a")
+        object[stringKey] = "b".lcValue
+        XCTAssertTrue(object[stringKey] is LCString)
+        XCTAssertEqual(object[stringKey]?.stringValue, "b")
+        object[stringKey] = "c".lcString
+        XCTAssertTrue(object[stringKey] is LCString)
+        XCTAssertEqual(object[stringKey]?.stringValue, "c")
+        
+        let arrayKey = "array"
+        object[arrayKey] = ["a"]
+        XCTAssertTrue(object[arrayKey] is LCArray)
+        XCTAssertEqual(object[arrayKey]?.arrayValue?.count, 1)
+        XCTAssertEqual(object[arrayKey]?.arrayValue?[0] as? String, "a")
+        object[arrayKey] = ["a", "b"].lcValue
+        XCTAssertTrue(object[arrayKey] is LCArray)
+        XCTAssertEqual(object[arrayKey]?.arrayValue?.count, 2)
+        XCTAssertEqual(object[arrayKey]?.arrayValue?[0] as? String, "a")
+        XCTAssertEqual(object[arrayKey]?.arrayValue?[1] as? String, "b")
+        object[arrayKey] = ["a", "b", "c"].lcArray
+        XCTAssertTrue(object[arrayKey] is LCArray)
+        XCTAssertEqual(object[arrayKey]?.arrayValue?.count, 3)
+        XCTAssertEqual(object[arrayKey]?.arrayValue?[0] as? String, "a")
+        XCTAssertEqual(object[arrayKey]?.arrayValue?[1] as? String, "b")
+        XCTAssertEqual(object[arrayKey]?.arrayValue?[2] as? String, "c")
+        object[arrayKey] = LCArray(["a", 1])
+        XCTAssertTrue(object[arrayKey] is LCArray)
+        XCTAssertEqual(object[arrayKey]?.arrayValue?.count, 2)
+        XCTAssertEqual(object[arrayKey]?.arrayValue?[0] as? String, "a")
+        XCTAssertEqual(object[arrayKey]?.arrayValue?[1] as? Double, 1)
+        
+        let dictionaryKey = "dictionary"
+        object[dictionaryKey] = ["1": "a"]
+        XCTAssertTrue(object[dictionaryKey] is LCDictionary)
+        XCTAssertEqual(object[dictionaryKey]?.dictionaryValue?.count, 1)
+        XCTAssertEqual(object[dictionaryKey]?.dictionaryValue?["1"] as? String, "a")
+        object[dictionaryKey] = ["1": "a", "2": "b"].lcValue
+        XCTAssertTrue(object[dictionaryKey] is LCDictionary)
+        XCTAssertEqual(object[dictionaryKey]?.dictionaryValue?.count, 2)
+        XCTAssertEqual(object[dictionaryKey]?.dictionaryValue?["1"] as? String, "a")
+        XCTAssertEqual(object[dictionaryKey]?.dictionaryValue?["2"] as? String, "b")
+        object[dictionaryKey] = ["1": "a", "2": "b", "3": "c"].lcDictionary
+        XCTAssertTrue(object[dictionaryKey] is LCDictionary)
+        XCTAssertEqual(object[dictionaryKey]?.dictionaryValue?.count, 3)
+        XCTAssertEqual(object[dictionaryKey]?.dictionaryValue?["1"] as? String, "a")
+        XCTAssertEqual(object[dictionaryKey]?.dictionaryValue?["2"] as? String, "b")
+        XCTAssertEqual(object[dictionaryKey]?.dictionaryValue?["3"] as? String, "c")
+        object[dictionaryKey] = LCDictionary(["1": "a", "2": 42])
+        XCTAssertTrue(object[dictionaryKey] is LCDictionary)
+        XCTAssertEqual(object[dictionaryKey]?.dictionaryValue?.count, 2)
+        XCTAssertEqual(object[dictionaryKey]?.dictionaryValue?["1"] as? String, "a")
+        XCTAssertEqual(object[dictionaryKey]?.dictionaryValue?["2"] as? Double, 42)
+        
+        XCTAssertTrue(object.save(options: [.fetchWhenSave]).isSuccess)
+        XCTAssertEqual(object[intKey]?.intValue, 44)
+        XCTAssertEqual(object[doubleKey]?.doubleValue, 44.0)
+        XCTAssertEqual(object[boolKey]?.boolValue, true)
+        XCTAssertEqual(object[stringKey]?.stringValue, "c")
+        XCTAssertEqual(object[arrayKey]?.arrayValue?.count, 2)
+        XCTAssertEqual(object[arrayKey]?.arrayValue?[0] as? String, "a")
+        XCTAssertEqual(object[arrayKey]?.arrayValue?[1] as? Double, 1)
+        XCTAssertEqual(object[dictionaryKey]?.dictionaryValue?.count, 2)
+        XCTAssertEqual(object[dictionaryKey]?.dictionaryValue?["1"] as? String, "a")
+        XCTAssertEqual(object[dictionaryKey]?.dictionaryValue?["2"] as? Double, 42)
     }
 }
 

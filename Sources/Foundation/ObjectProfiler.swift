@@ -670,7 +670,7 @@ class ObjectProfiler {
     let propertyGetter: @convention(c) (LCObject, Selector) -> Any? = {
         (object: LCObject, cmd: Selector) -> Any? in
         let key = NSStringFromSelector(cmd)
-        return object.get(key)
+        return object[key]
     }
 
     /**
@@ -679,12 +679,12 @@ class ObjectProfiler {
     let propertySetter: @convention(c) (LCObject, Selector, Any?) -> Void = {
         (object: LCObject, cmd: Selector, value: Any?) -> Void in
         let key = ObjectProfiler.shared.propertyName(cmd)
-        let value = value as? LCValue
+        let value = value as? LCValueConvertible
 
         if ObjectProfiler.shared.getLCValue(object, key) == nil {
-            try? object.set(key.firstLowercaseString, lcValue: value)
+            object[key.firstLowercaseString] = value
         } else {
-            try? object.set(key, lcValue: value)
+            object[key] = value
         }
     }
 }

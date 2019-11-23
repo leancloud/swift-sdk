@@ -100,8 +100,8 @@ public final class LCData: NSObject, LCValue, LCValueExtension {
         return formattedJSONString(indentLevel: 0)
     }
 
-    public var rawValue: LCValueConvertible {
-        return value
+    public var rawValue: Any {
+        return self.value
     }
 
     var lconValue: Any? {

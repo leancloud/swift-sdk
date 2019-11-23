@@ -61,8 +61,8 @@ public final class LCBool: NSObject, LCValue, LCValueExtension, ExpressibleByBoo
         return formattedJSONString(indentLevel: 0)
     }
 
-    public var rawValue: LCValueConvertible {
-        return value
+    public var rawValue: Any {
+        return self.value
     }
 
     var lconValue: Any? {

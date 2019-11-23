@@ -8,25 +8,26 @@
 
 import Foundation
 
-/**
- LeanCloud object type.
-
- It's a compound type used to unite other types.
- It can be extended into subclass while adding some other properties to form a new type.
- Each object is correspond to a record in data storage.
- */
+/// LeanCloud Object Type.
 @dynamicMemberLookup
 open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
+    
+    // MARK: Property
+    
+    /// The application this object belong to.
     public let application: LCApplication
     
-    /// Access control lists.
-    @objc dynamic public var ACL: LCACL?
+    /// Access Control List.
+    @objc public dynamic var ACL: LCACL?
 
-    /// Object identifier.
-    @objc dynamic public private(set) var objectId: LCString?
-
-    @objc dynamic public private(set) var createdAt: LCDate?
-    @objc dynamic public private(set) var updatedAt: LCDate?
+    /// The identifier of this object.
+    @objc public dynamic private(set) var objectId: LCString?
+    
+    /// The created date of this object.
+    @objc public dynamic private(set) var createdAt: LCDate?
+    
+    /// The updated date of this object.
+    @objc public dynamic private(set) var updatedAt: LCDate?
 
     /**
      The table of properties.
@@ -51,7 +52,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
     private(set) var objectClassName: String?
 
     var actualClassName: String {
-        if let className = (self.get("className") as? LCString)?.value {
+        if let className = (self["className"] as? LCString)?.value {
             return className
         } else if let className = self.objectClassName {
             return className
@@ -60,13 +61,15 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
     }
 
     /// The temp in-memory object identifier.
-    var internalId = Utility.uuid()
+    lazy var internalId: String = {
+        UUID().uuidString.replacingOccurrences(of: "-", with: "").lowercased()
+    }()
 
     /// Operation hub.
     /// Used to manage update operations.
     var operationHub: OperationHub?
 
-    /// Whether object has data to upload or not.
+    /// Whether this object has unsync-data to upload to server.
     public var hasDataToUpload: Bool {
         if self.hasObjectId {
             if let operationHub = self.operationHub {
@@ -78,43 +81,61 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
             return true
         }
     }
-
+    
+    // MARK: Initialization
+    
+    /// Initializing a new object with default application.
     public override required init() {
-        self.application = LCApplication.default
+        self.application = .default
         super.init()
         self.operationHub = OperationHub(self)
-        self.propertyTable.elementDidChange = { (key, value) in
+        self.propertyTable.elementDidChange = { [weak self] (key, value) in
             Runtime.setInstanceVariable(self, key, value)
         }
     }
     
+    /// Initializing a new object with an application.
+    /// - Parameter application: The application this object belong to.
     public required init(application: LCApplication) {
         self.application = application
         super.init()
         self.operationHub = OperationHub(self)
-        self.propertyTable.elementDidChange = { (key, value) in
+        self.propertyTable.elementDidChange = { [weak self] (key, value) in
             Runtime.setInstanceVariable(self, key, value)
         }
     }
-
+    
+    /// Initializing a new object with an application and a identifier.
+    /// - Parameters:
+    ///   - application: The application this object belong to.
+    ///   - objectId: The identifier of an exist object.
     public convenience init(
-        application: LCApplication = LCApplication.default,
+        application: LCApplication = .default,
         objectId: LCStringConvertible)
     {
         self.init(application: application)
         self.objectId = objectId.lcString
     }
-
+    
+    /// Initializing a new object with an application and class name.
+    /// - Parameters:
+    ///   - application: The application this object belong to.
+    ///   - className: The class name of this object.
     public convenience init(
-        application: LCApplication = LCApplication.default,
+        application: LCApplication = .default,
         className: LCStringConvertible)
     {
         self.init(application: application)
         self.objectClassName = className.lcString.value
     }
-
+    
+    /// Initializing a new object with an application, a identifier and class name.
+    /// - Parameters:
+    ///   - application: The application this object belong to.
+    ///   - className: The class name of this object.
+    ///   - objectId: The identifier of an exist object.
     public convenience init(
-        application: LCApplication = LCApplication.default,
+        application: LCApplication = .default,
         className: LCStringConvertible,
         objectId: LCStringConvertible)
     {
@@ -129,32 +150,36 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
             self.propertyTable[key] = value
         }
     }
-
-    public required convenience init?(coder aDecoder: NSCoder) {
+    
+    // MARK: Serialization
+    
+    /// Returns an object initialized from data in a given unarchiver.
+    /// - Parameter coder: An unarchiver object.
+    public required convenience init?(coder: NSCoder) {
         let application: LCApplication
-        if let applicationID = aDecoder.decodeObject(forKey: "applicationID") as? String,
+        if let applicationID = coder.decodeObject(forKey: "applicationID") as? String,
             let registeredApplication = LCApplication.registry[applicationID] {
             application = registeredApplication
         } else {
             application = LCApplication.default
         }
         self.init(application: application)
-        self.objectClassName = aDecoder.decodeObject(forKey: "objectClassName") as? String
-        let dictionary: LCDictionary = (aDecoder.decodeObject(forKey: "propertyTable") as? LCDictionary) ?? [:]
+        self.objectClassName = coder.decodeObject(forKey: "objectClassName") as? String
+        let dictionary: LCDictionary = (coder.decodeObject(forKey: "propertyTable") as? LCDictionary) ?? [:]
         for (key, value) in dictionary {
             self.propertyTable[key] = value
         }
     }
     
-    public func encode(with aCoder: NSCoder) {
+    /// Encodes the receiver using a given archiver.
+    /// - Parameter coder: An archiver object.
+    public func encode(with coder: NSCoder) {
         let applicationID: String = self.application.id
         let propertyTable: LCDictionary = self.dictionary.copy() as! LCDictionary
-        
-        aCoder.encode(applicationID, forKey: "applicationID")
-        aCoder.encode(propertyTable, forKey: "propertyTable")
-        
+        coder.encode(applicationID, forKey: "applicationID")
+        coder.encode(propertyTable, forKey: "propertyTable")
         if let objectClassName = self.objectClassName {
-            aCoder.encode(objectClassName, forKey: "objectClassName")
+            coder.encode(objectClassName, forKey: "objectClassName")
         }
     }
 
@@ -171,11 +196,12 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
     }
 
     open override func value(forKey key: String) -> Any? {
-        guard let value = get(key) else {
-            return super.value(forKey: key)
-        }
-
-        return value
+        return self[key]
+            ?? super.value(forKey: key)
+    }
+    
+    open override func value(forUndefinedKey key: String) -> Any? {
+        return nil
     }
 
     open func makeIterator() -> DictionaryIterator<String, LCValue> {
@@ -208,7 +234,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
         return formattedJSONString(indentLevel: 0)
     }
 
-    public var rawValue: LCValueConvertible {
+    public var rawValue: Any {
         return self
     }
 
@@ -421,14 +447,14 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
      */
     func synchronizePropertyTable() {
         ObjectProfiler.shared.iterateProperties(self) { (key, _) in
-            guard
-                let ivarValue: LCValue = Runtime.instanceVariableValue(self, key) as? LCValue,
-                ivarValue !== propertyTable[key]
-                else
-            {
+            guard let ivarValue = Runtime.instanceVariableValue(self, key) as? LCValue else {
                 return
             }
-            propertyTable[key] = ivarValue
+            if let value = self.propertyTable[key]?.lcValue,
+                value === ivarValue {
+                return
+            }
+            self.propertyTable[key] = ivarValue
         }
     }
 
@@ -480,24 +506,22 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
         propertyTable[key] = transformValue(key, value)
         didChangeValue(forKey: key)
     }
+    
+    // MARK: CRUD
 
     /**
      Get and set value via subscript syntax.
      */
-    open subscript(key: String) -> LCValue? {
+    open subscript(key: String) -> LCValueConvertible? {
         get {
-            var lcValue: LCValue? = nil
-            if let value: LCValue = get(key) {
-                lcValue = value
-            }
-            return lcValue
+            return self.get(key)
         }
         set {
-            /*
-             Currently, Swift do not support throwable subscript.
-             So, the exception will be ignored.
-             */
-            try? set(key, lcValue: newValue)
+            do {
+                try self.set(key, value: newValue)
+            } catch {
+                Logger.shared.error(error)
+            }
         }
     }
 
@@ -506,7 +530,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
             return self[key]
         }
         set {
-            self[key] = newValue?.lcValue
+            self[key] = newValue
         }
     }
 
@@ -517,28 +541,9 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
 
      - returns: The value for key.
      */
-    open func get(_ key: String) -> LCValue? {
-        var lcValue: LCValue? = nil
-        if let value: LCValue = ObjectProfiler.shared.propertyValue(self, key) {
-            lcValue = value
-        } else if let value: LCValue = propertyTable[key] {
-            lcValue = value
-        }
-        return lcValue
-    }
-
-    /**
-     Set value for key.
-
-     - parameter key:   The key for which to set the value.
-     - parameter value: The new value.
-     */
-    func set(_ key: String, lcValue value: LCValue?) throws {
-        if let value = value {
-            try addOperation(.set, key, value)
-        } else {
-            try addOperation(.delete, key)
-        }
+    open func get(_ key: String) -> LCValueConvertible? {
+        return ObjectProfiler.shared.propertyValue(self, key)
+            ?? self.propertyTable[key]
     }
 
     /**
@@ -550,7 +555,11 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
      - parameter value: The new value.
      */
     open func set(_ key: String, value: LCValueConvertible?) throws {
-        try set(key, lcValue: value?.lcValue)
+        if let value = value?.lcValue {
+            try addOperation(.set, key, value)
+        } else {
+            try addOperation(.delete, key)
+        }
     }
 
     /**
@@ -702,7 +711,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
         return true
     }
 
-    // MARK: Save object
+    // MARK: Save
     
     public enum SaveOption {
         case fetchWhenSave
@@ -781,7 +790,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
         return type(of: self).save([self], options: options, completion: completion)
     }
 
-    // MARK: Delete object
+    // MARK: Delete
 
     /**
      Delete a batch of objects in one request synchronously.
@@ -838,7 +847,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
         return type(of: self).delete([self], completion: completion)
     }
 
-    // MARK: Fetch object
+    // MARK: Fetch
 
     /**
      Fetch a batch of objects in one request synchronously.

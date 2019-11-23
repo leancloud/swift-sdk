@@ -111,11 +111,14 @@ public final class LCDictionary: NSObject, LCValue, LCValueExtension, Collection
         return value[position]
     }
 
-    public subscript(key: Key) -> Value? {
-        get { return value[key] }
+    public subscript(key: Key) -> LCValueConvertible? {
+        get {
+            return self.value[key]
+        }
         set {
-            value[key] = newValue
-            elementDidChange?(key, newValue)
+            let lcValue = newValue?.lcValue
+            self.value[key] = lcValue
+            self.elementDidChange?(key, lcValue)
         }
     }
 
@@ -124,7 +127,7 @@ public final class LCDictionary: NSObject, LCValue, LCValueExtension, Collection
             return self[key]
         }
         set {
-            self[key] = newValue?.lcValue
+            self[key] = newValue
         }
     }
 
@@ -172,9 +175,9 @@ public final class LCDictionary: NSObject, LCValue, LCValueExtension, Collection
         return formattedJSONString(indentLevel: 0)
     }
 
-    public var rawValue: LCValueConvertible {
-        let dictionary = value.mapValue { value in value.rawValue }
-        return dictionary as! LCValueConvertible
+    public var rawValue: Any {
+        let v: [String: Any] = self.value.mapValue { value in value.rawValue }
+        return v
     }
 
     var lconValue: Any? {
