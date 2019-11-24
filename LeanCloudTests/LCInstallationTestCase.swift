@@ -52,5 +52,16 @@ class LCInstallationTestCase: BaseTestCase {
             try! FileManager.default.removeItem(at: fileURL)
         }
     }
-
+    
+    func testSetDeviceTokenAndTeamID() {
+        let installation = LCInstallation()
+        let deviceToken = UUID().uuidString
+        try! installation.set("deviceToken", value: deviceToken)
+        try! installation.set("apnsTeamId", value: "LeanCloud")
+        installation.badge = 0
+        installation.channels = LCArray(["test"])
+        XCTAssertEqual(installation.deviceToken?.value, deviceToken)
+        XCTAssertEqual(installation.apnsTeamId?.value, "LeanCloud")
+        XCTAssertTrue(installation.save().isSuccess)
+    }
 }
