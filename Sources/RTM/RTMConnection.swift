@@ -369,7 +369,8 @@ class RTMConnection {
     private(set) var instantMessagingDelegatorMap: [IMClient.Identifier: Delegator] = [:]
     private(set) var liveQueryDelegatorMap: [LiveQueryClient.Identifier: Delegator] = [:]
     var allDelegators: [Delegator] {
-        return Array(self.instantMessagingDelegatorMap.values) + Array(self.liveQueryDelegatorMap.values)
+        return Array(self.instantMessagingDelegatorMap.values)
+            + Array(self.liveQueryDelegatorMap.values)
     }
     private(set) var socket: WebSocket? = nil
     private(set) var timer: Timer? = nil
@@ -665,17 +666,12 @@ extension RTMConnection {
                     var request = URLRequest(url: url)
                     request.timeoutInterval = self.application.configuration.RTMConnectingTimeoutInterval
                     let socket = WebSocket(request: request, protocols: [self.lcimProtocol.rawValue])
-                    socket.delegate = self
+                    socket.request.setValue(nil, forHTTPHeaderField: "Origin")
+                    socket.advancedDelegate = self
                     socket.pongDelegate = self
                     socket.callbackQueue = self.serialQueue
                     socket.connect()
                     self.socket = socket
-                    Logger.shared.verbose("""
-                        \n\(socket)
-                        In Connecting.
-                        \tURL: \(url)
-                        \tProtocol: \(self.lcimProtocol.rawValue)
-                        """)
                 case .failure(error: let error):
                     for item in self.allDelegators {
                         item.queue.async {
@@ -792,11 +788,11 @@ extension RTMConnection {
     
 }
 
-extension RTMConnection: WebSocketDelegate, WebSocketPongDelegate {
+extension RTMConnection: WebSocketAdvancedDelegate, WebSocketPongDelegate {
     
     // MARK: WebSocketDelegate
     
-    func websocketDidConnect(socket: WebSocketClient) {
+    func websocketDidConnect(socket: WebSocket) {
         assert(self.specificAssertion)
         assert(self.socket === socket && self.timer == nil)
         Logger.shared.verbose("""
@@ -813,40 +809,51 @@ extension RTMConnection: WebSocketDelegate, WebSocketPongDelegate {
         }
     }
     
-    func websocketDidDisconnect(socket: WebSocketClient, error: Error?) {
+    func websocketDidDisconnect(socket: WebSocket, error: Error?) {
         assert(self.specificAssertion)
         assert(self.socket === socket)
-        Logger.shared.error("\(socket) disconnect with error: \(String(describing: error))")
+        Logger.shared.error("""
+            \n\(socket)
+            Disconnect with error: \(String(describing: error))
+            """)
         self.tryClearConnection(with: LCError(error: error ?? LCError.RTMConnectionClosedByRemote))
         self.useSecondaryServer.toggle()
         self.tryConnecting(delay: self.reconnectingDelay)
     }
     
-    func websocketDidReceiveData(socket: WebSocketClient, data: Data) {
+    func websocketDidReceiveMessage(socket: WebSocket, text: String, response: WebSocket.WSResponse) {
+        Logger.shared.error("should never be invoked.")
+    }
+    
+    func websocketDidReceiveData(socket: WebSocket, data: Data, response: WebSocket.WSResponse) {
         assert(self.specificAssertion)
         assert(self.socket === socket && self.timer != nil)
-        let inCommand: IMGenericCommand
         do {
-            inCommand = try IMGenericCommand(serializedData: data)
+            let inCommand = try IMGenericCommand(serializedData: data)
+            Logger.shared.debug("""
+                \n------ BEGIN LeanCloud In Command
+                \(socket)
+                \(inCommand)
+                \(response.lcDescription)
+                ------ END
+                """)
+            if inCommand.hasI {
+                self.timer?.handle(callbackCommand: inCommand)
+            } else {
+                var delegator: Delegator?
+                if let peerID = (inCommand.hasPeerID ? inCommand.peerID : nil) {
+                    delegator = self.instantMessagingDelegatorMap[peerID]
+                } else if let installationID = (inCommand.hasInstallationID ? inCommand.installationID : nil) {
+                    delegator = self.liveQueryDelegatorMap[installationID]
+                } else {
+                    self.handleGoaway(inCommand: inCommand)
+                }
+                delegator?.queue.async {
+                    delegator?.delegate?.connection(self, didReceiveCommand: inCommand)
+                }
+            }
         } catch {
             Logger.shared.error(error)
-            return
-        }
-        Logger.shared.debug("\n------ BEGIN LeanCloud In Command\n\(socket)\n\(inCommand)------ END")
-        if inCommand.hasI {
-            self.timer?.handle(callbackCommand: inCommand)
-        } else {
-            var delegator: Delegator?
-            if let peerID = (inCommand.hasPeerID ? inCommand.peerID : nil) {
-                delegator = self.instantMessagingDelegatorMap[peerID]
-            } else if let installationID = (inCommand.hasInstallationID ? inCommand.installationID : nil) {
-                delegator = self.liveQueryDelegatorMap[installationID]
-            } else {
-                self.handleGoaway(inCommand: inCommand)
-            }
-            delegator?.queue.async {
-                delegator?.delegate?.connection(self, didReceiveCommand: inCommand)
-            }
         }
     }
     
@@ -856,13 +863,32 @@ extension RTMConnection: WebSocketDelegate, WebSocketPongDelegate {
         self.timer?.receivePong()
     }
     
-    func websocketDidReceiveMessage(socket: WebSocketClient, text: String) {
-        fatalError("should never be invoked.")
+    func websocketHttpUpgrade(socket: WebSocket, request: String) {
+        Logger.shared.verbose("""
+            \n\(socket)
+            \(request)
+            """)
     }
     
+    func websocketHttpUpgrade(socket: WebSocket, response: String) {
+        Logger.shared.verbose("""
+            \n\(socket)
+            \(response)
+            """)
+    }
 }
 
-extension IMGenericCommand {
+private extension WebSocket.WSResponse {
+    
+    var lcDescription: String {
+        return """
+        code: \(self.code)
+        frameCount: \(self.frameCount)
+        """
+    }
+}
+
+private extension IMGenericCommand {
     
     var lcEncounteredError: LCError? {
         if self.cmd == .error {
@@ -957,7 +983,7 @@ extension IMAckCommand {
     }
 }
 
-extension LCError {
+private extension LCError {
     
     // MARK: Connection Lost Error
     
