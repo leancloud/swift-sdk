@@ -8,6 +8,7 @@
 
 import XCTest
 @testable import LeanCloud
+@testable import Starscream
 
 class RTMConnectionTestCase: RTMBaseTestCase {
     
@@ -289,7 +290,7 @@ class RTMConnectionTestCase: RTMBaseTestCase {
                     var goaway = IMGenericCommand()
                     goaway.cmd = .goaway
                     return try! goaway.serializedData()
-                }())
+                }(), response: WebSocket.WSResponse())
             }
         }
         
