@@ -10,9 +10,9 @@ import Foundation
 
 /// IM Conversation
 public class IMConversation {
-    
+
     public typealias RawData = [String: Any]
-    
+
     enum Key: String {
         case objectId = "objectId"
         case uniqueId = "uniqueId"
@@ -38,28 +38,28 @@ public class IMConversation {
         case lastMessageMentionAll = "mention_all"
         case lastMessageMentionPids = "mention_pids"
     }
-    
+
     enum ConvType: Int {
         case normal = 1
         case transient = 2
         case system = 3
         case temporary = 4
     }
-    
+
     let convType: ConvType
-    
+
     /// The client which this conversation belong to.
     public private(set) weak var client: IMClient?
 
     /// The ID of the conversation.
     public let ID: String
-    
+
     /// The ID of the client.
     public let clientID: IMClient.Identifier
-    
+
     /// Indicates whether the conversation is unique.
     public let isUnique: Bool
-    
+
     /// The unique ID of the unique conversation.
     public let uniqueID: String?
 
@@ -67,12 +67,12 @@ public class IMConversation {
     public var name: String? {
         return self.safeDecodingRawData(with: .name)
     }
-    
+
     /// The creator of the conversation.
     public var creator: String? {
         return self.safeDecodingRawData(with: .creator)
     }
-    
+
     /// The creation date of the conversation.
     public var createdAt: Date? {
         if let str: String = self.safeDecodingRawData(with: .createdAt) {
@@ -81,7 +81,7 @@ public class IMConversation {
             return nil
         }
     }
-    
+
     /// The updated date of the conversation.
     public var updatedAt: Date? {
         if let str: String = self.safeDecodingRawData(with: .updatedAt) {
@@ -90,17 +90,17 @@ public class IMConversation {
             return nil
         }
     }
-    
+
     /// The attributes of the conversation.
     public var attributes: [String: Any]? {
         return self.safeDecodingRawData(with: .attributes)
     }
-    
+
     /// The members of the conversation.
     public var members: [String]? {
         return self.safeDecodingRawData(with: .members)
     }
-    
+
     /// Indicates whether the conversation has been muted.
     public var isMuted: Bool {
         if let mutedMembers: [String] = self.safeDecodingRawData(with: .mutedMembers) {
@@ -109,7 +109,7 @@ public class IMConversation {
             return false
         }
     }
-    
+
     /// Indicates whether the data of conversation is outdated,
     /// after refresh, this property will be false.
     public internal(set) var isOutdated: Bool {
@@ -127,7 +127,7 @@ public class IMConversation {
         }
     }
     private var _isOutdated: Bool = false
-    
+
     /// The last message of the conversation.
     public private(set) var lastMessage: IMMessage? {
         set {
@@ -138,7 +138,7 @@ public class IMConversation {
         }
     }
     private var _lastMessage: IMMessage? = nil
-    
+
     /// The unread message count of the conversation
     public internal(set) var unreadMessageCount: Int {
         set {
@@ -149,7 +149,7 @@ public class IMConversation {
         }
     }
     private var _unreadMessageCount: Int = 0
-    
+
     /// Indicates whether has unread message mentioning the client.
     public var isUnreadMessageContainMention: Bool {
         set {
@@ -160,20 +160,20 @@ public class IMConversation {
         }
     }
     private var _isUnreadMessageContainMention: Bool = false
-    
+
     /// The table of member infomation.
     public var memberInfoTable: [String: MemberInfo]? {
         return self.sync(self._memberInfoTable)
     }
     private var _memberInfoTable: [String: MemberInfo]?
-    
+
     /// Get value via subscript syntax.
     public subscript(key: String) -> Any? {
         get {
             return self.safeDecodingRawData(with: key)
         }
     }
-    
+
     static func instance(
         ID: String,
         rawData: RawData,
@@ -264,25 +264,25 @@ public class IMConversation {
             }
         }
     }
-    
+
     private(set) var rawData: RawData
-    
+
     let lock: NSLock = NSLock()
-    
+
     /// Clear unread messages that its sent timestamp less than the sent timestamp of the parameter message.
     ///
     /// - Parameter message: The default is the last message.
     public func read(message: IMMessage? = nil) {
         self._read(message: message)
     }
-    
+
     /// Get the timestamp flag of message receipt.
     ///
     /// - Parameter completion: callback.
     public func getMessageReceiptFlag(completion: @escaping (LCGenericResult<MessageReceiptFlag>) -> Void) throws {
         try self._getMessageReceiptFlag(completion: completion)
     }
-    
+
     /// Join in this conversation.
     ///
     /// - Parameter completion: callback.
@@ -299,7 +299,7 @@ public class IMConversation {
             }
         }
     }
-    
+
     /// Leave this conversation.
     ///
     /// - Parameter completion: callback.
@@ -316,7 +316,7 @@ public class IMConversation {
             }
         }
     }
-    
+
     /// Add members to this conversation.
     ///
     /// - Parameters:
@@ -325,7 +325,7 @@ public class IMConversation {
     public func add(members: Set<String>, completion: @escaping (MemberResult) -> Void) throws {
         try self.update(members: members, op: .add, completion: completion)
     }
-    
+
     /// Remove members from this conversation.
     ///
     /// - Parameters:
@@ -334,28 +334,28 @@ public class IMConversation {
     public func remove(members: Set<String>, completion: @escaping (MemberResult) -> Void) throws {
         try self.update(members: members, op: .remove, completion: completion)
     }
-    
+
     /// Mute this conversation.
     ///
     /// - Parameter completion: callback.
     public func mute(completion: @escaping (LCBooleanResult) -> Void) {
         self.muteToggle(op: .mute, completion: completion)
     }
-    
+
     /// Unmute this conversation.
     ///
     /// - Parameter completion: callback.
     public func unmute(completion: @escaping (LCBooleanResult) -> Void) {
         self.muteToggle(op: .unmute, completion: completion)
     }
-    
+
     /// Refresh conversation's data.
     ///
     /// - Parameter completion: callback
     public func refresh(completion: @escaping (LCBooleanResult) -> Void) throws {
         try self._refresh(completion: completion)
     }
-    
+
     /// Update conversation's data.
     ///
     /// - Parameters:
@@ -364,7 +364,7 @@ public class IMConversation {
     public func update(attribution data: [String: Any], completion: @escaping (LCBooleanResult) -> Void) throws {
         try self._update(attribution: data, completion: completion)
     }
-    
+
     /// Fetching the table of member infomation in the conversation.
     /// The result will be cached by the property `memberInfoTable`.
     ///
@@ -376,7 +376,7 @@ public class IMConversation {
             }
         }
     }
-    
+
     /// Get infomation of one member in the conversation.
     ///
     /// - Parameters:
@@ -404,7 +404,7 @@ public class IMConversation {
             }
         }
     }
-    
+
     /// Updating role of the member in the conversaiton.
     ///
     /// - Parameters:
@@ -420,7 +420,7 @@ public class IMConversation {
     {
         try self._update(role: role, ofMember: memberID, completion: completion)
     }
-    
+
     /// Blocking members in the conversation.
     ///
     /// - Parameters:
@@ -430,7 +430,7 @@ public class IMConversation {
     public func block(members: Set<String>, completion: @escaping (MemberResult) -> Void) throws {
         try self.update(blockedMembers: members, op: .block, completion: completion)
     }
-    
+
     /// Unblocking members in the conversation.
     ///
     /// - Parameters:
@@ -440,7 +440,7 @@ public class IMConversation {
     public func unblock(members: Set<String>, completion: @escaping (MemberResult) -> Void) throws {
         try self.update(blockedMembers: members, op: .unblock, completion: completion)
     }
-    
+
     /// Get the blocked members in the conversation.
     ///
     /// - Parameters:
@@ -456,7 +456,7 @@ public class IMConversation {
     {
         try self._getBlockedMembers(limit: limit, next: next, completion: completion)
     }
-    
+
     /// Check if one member has been blocked in the conversation.
     ///
     /// - Parameters:
@@ -468,7 +468,7 @@ public class IMConversation {
     {
         self._checkBlocking(member: ID, completion: completion)
     }
-    
+
     /// Muting members in the conversation.
     ///
     /// - Parameters:
@@ -478,7 +478,7 @@ public class IMConversation {
     public func mute(members: Set<String>, completion: @escaping (MemberResult) -> Void) throws {
         try self.update(mutedMembers: members, op: .addShutup, completion: completion)
     }
-    
+
     /// Unmuting members in the conversation.
     ///
     /// - Parameters:
@@ -488,7 +488,7 @@ public class IMConversation {
     public func unmute(members: Set<String>, completion: @escaping (MemberResult) -> Void) throws {
         try self.update(mutedMembers: members, op: .removeShutup, completion: completion)
     }
-    
+
     /// Get the muted members in the conversation.
     ///
     /// - Parameters:
@@ -504,7 +504,7 @@ public class IMConversation {
     {
         try self._getMutedMembers(limit: limit, next: next, completion: completion)
     }
-    
+
     /// Check if one member has been muted in the conversation.
     ///
     /// - Parameters:
@@ -516,7 +516,7 @@ public class IMConversation {
     {
         self._checkMuting(member: ID, completion: completion)
     }
-    
+
     public func insertFailedMessageToCache(
         _ message: IMMessage,
         completion: @escaping (LCBooleanResult) -> Void)
@@ -524,7 +524,7 @@ public class IMConversation {
     {
         try self._insertFailedMessageToCache(message, completion: completion)
     }
-    
+
     public func removeFailedMessageFromCache(
         _ message: IMMessage,
         completion: @escaping (LCBooleanResult) -> Void)
@@ -536,7 +536,7 @@ public class IMConversation {
 
 extension IMConversation: InternalSynchronizing {
     // MARK: Internal Synchronizing
-    
+
     var mutex: NSLock {
         return self.lock
     }
@@ -544,32 +544,32 @@ extension IMConversation: InternalSynchronizing {
 
 extension IMConversation {
     // MARK: Message Sending
-    
+
     /// Message Sending Option
     public struct MessageSendOptions: OptionSet {
         public let rawValue: Int
-        
+
         public init(rawValue: Int) {
             self.rawValue = rawValue
         }
-        
+
         /// Default option is empty.
         public static let `default`: MessageSendOptions = []
-        
+
         /// Get Receipt when other client received message or read message.
         public static let needReceipt = MessageSendOptions(rawValue: 1 << 0)
-        
+
         /// Indicates whether this message is transient.
         public static let isTransient = MessageSendOptions(rawValue: 1 << 1)
-        
+
         /// Indicates whether this message will be auto delivering to other client when this client disconnected.
         public static let isAutoDeliveringWhenOffline = MessageSendOptions(rawValue: 1 << 2)
     }
-    
+
     /// Send Message.
     ///
     /// - Parameters:
-    ///   - message: The message to be sent.
+    ///   - message: The message to be sent. Properties such as `ID` and `sentTimeStamp` are updated.
     ///   - options: @see `MessageSendOptions`.
     ///   - priority: @see `IMChatRoom.MessagePriority`.
     ///   - pushData: The push data of APNs.
@@ -681,7 +681,7 @@ extension IMConversation {
             })
         }
     }
-    
+
     private func preprocess(
         message: IMMessage,
         pushData: [String: Any]? = nil,
@@ -724,12 +724,12 @@ extension IMConversation {
             }
         }
     }
-    
+
 }
 
 extension IMConversation {
     // MARK: Failed Message Caching
-    
+
     private func _insertFailedMessageToCache(
         _ message: IMMessage,
         completion: @escaping (LCBooleanResult) -> Void)
@@ -753,7 +753,7 @@ extension IMConversation {
             }
         }
     }
-    
+
     private func _removeFailedMessageFromCache(
         _ message: IMMessage,
         completion: @escaping (LCBooleanResult) -> Void)
@@ -781,7 +781,7 @@ extension IMConversation {
 
 extension IMConversation {
     // MARK: Message Reading
-    
+
     private func _read(message: IMMessage?) {
         guard
             self.unreadMessageCount > 0,
@@ -804,7 +804,7 @@ extension IMConversation {
             return outCommand
         })
     }
-    
+
     func process(unreadTuple: IMUnreadTuple, client: IMClient) {
         assert(client.specificAssertion)
         guard unreadTuple.hasUnread else {
@@ -838,12 +838,12 @@ extension IMConversation {
             }
         }
     }
-    
+
 }
 
 extension IMConversation {
     // MARK: Message Updating
-    
+
     /// Update the content of a sent message.
     ///
     /// - Parameters:
@@ -945,7 +945,7 @@ extension IMConversation {
             })
         }
     }
-    
+
     /// Recall a sent message.
     ///
     /// - Parameters:
@@ -962,7 +962,7 @@ extension IMConversation {
             }
         })
     }
-    
+
     func process(patchItem: IMPatchItem, client: IMClient) {
         assert(client.specificAssertion)
         guard let timestamp = (patchItem.hasTimestamp ? patchItem.timestamp : nil),
@@ -1001,32 +1001,32 @@ extension IMConversation {
                     event: .updated(updatedMessage: patchedMessage, reason: reason)))
         }
     }
-    
+
 }
 
 extension IMConversation {
     // MARK: Message Receipt Timestamp
-    
+
     /// The timestamp flag of message receipt.
     public struct MessageReceiptFlag {
-        
+
         /// Means the messages that its sent timestamp less than this flag timestamp has been read.
         public let readFlagTimestamp: Int64?
-        
+
         /// Date format of the `readFlagTimestamp`.
         public var readFlagDate: Date? {
             return IMClient.date(fromMillisecond: self.readFlagTimestamp)
         }
-        
+
         /// Means the messages that its sent timestamp less than this flag timestamp has been delivered.
         public let deliveredFlagTimestamp: Int64?
-        
+
         /// Date format of the `deliveredFlagTimestamp`.
         public var deliveredFlagDate: Date? {
             return IMClient.date(fromMillisecond: self.deliveredFlagTimestamp)
         }
     }
-    
+
     private func _getMessageReceiptFlag(completion: @escaping (LCGenericResult<MessageReceiptFlag>) -> Void) throws {
         if let options = self.client?.options {
             guard options.isProtobuf3 else {
@@ -1070,27 +1070,27 @@ extension IMConversation {
             }
         })
     }
-    
+
 }
 
 extension IMConversation {
     // MARK: Message Query
-    
+
     /// The limit of the messge query result.
     public static let limitRangeOfMessageQuery = 1...100
-    
+
     /// The endpoint of the message queue.
     public struct MessageQueryEndpoint {
-        
+
         /// The ID of the endpoint(message).
         public let messageID: String?
-        
+
         /// The sent timestamp of the endpoint(message).
         public let sentTimestamp: Int64?
-        
+
         /// Interval open or closed.
         public let isClosed: Bool?
-        
+
         /// Initialization.
         public init(messageID: String?, sentTimestamp: Int64?, isClosed: Bool?) {
             self.messageID = messageID
@@ -1098,12 +1098,12 @@ extension IMConversation {
             self.isClosed = isClosed
         }
     }
-    
+
     /// The query direction.
     public enum MessageQueryDirection: Int {
         case newToOld = 1
         case oldToNew = 2
-        
+
         var protobufEnum: IMLogsCommand.QueryDirection {
             switch self {
             case .newToOld:
@@ -1112,7 +1112,7 @@ extension IMConversation {
                 return .new
             }
         }
-        
+
         var SQLOrder: String {
             switch self {
             case .newToOld:
@@ -1122,7 +1122,7 @@ extension IMConversation {
             }
         }
     }
-    
+
     /// Policy of Message Query
     ///
     /// - `default`: If using local storage, it is `cacheThenNetwork`. If not using local storage, it is `onlyNetwork`.
@@ -1135,7 +1135,7 @@ extension IMConversation {
         case onlyCache
         case cacheThenNetwork
     }
-    
+
     /// Message Query.
     ///
     /// - Parameters:
@@ -1243,7 +1243,7 @@ extension IMConversation {
             }
         }
     }
-    
+
     private func queryMessageOnlyNetwork(
         start: MessageQueryEndpoint?,
         end: MessageQueryEndpoint?,
@@ -1283,7 +1283,7 @@ extension IMConversation {
             }
         })
     }
-    
+
     private func queryMessageOnlyCache(
         client: IMClient,
         localStorage: IMLocalStorage,
@@ -1308,7 +1308,7 @@ extension IMConversation {
             }
         }
     }
-    
+
     private func messageQueryCommand(
         start: MessageQueryEndpoint?,
         end: MessageQueryEndpoint?,
@@ -1355,7 +1355,7 @@ extension IMConversation {
         outCommand.logsMessage = logCommand
         return outCommand
     }
-    
+
     private func handleMessageQueryResult(command: IMGenericCommand, client: IMClient) throws -> [IMMessage] {
         guard command.hasLogsMessage else {
             throw LCError(code: .commandInvalid)
@@ -1388,12 +1388,12 @@ extension IMConversation {
         }
         return messages
     }
-    
+
 }
 
 extension IMConversation {
     // MARK: Conversation Member
-    
+
     /// Result for member operation.
     ///
     /// - allSucceeded: Operation for all members are succeeded.
@@ -1403,7 +1403,7 @@ extension IMConversation {
         case allSucceeded
         case failure(error: LCError)
         case slicing(success: [String]?, failure: [(IDs: [String], error: LCError)])
-        
+
         public var isSuccess: Bool {
             switch self {
             case .allSucceeded:
@@ -1412,7 +1412,7 @@ extension IMConversation {
                 return false
             }
         }
-        
+
         public var error: LCError? {
             switch self {
             case .failure(error: let error):
@@ -1421,12 +1421,12 @@ extension IMConversation {
                 return nil
             }
         }
-        
+
         public init(error: LCError) {
             self = .failure(error: error)
         }
     }
-    
+
     private func newConvAddRemoveCommand(
         members: Set<String>,
         op: IMOpType,
@@ -1447,7 +1447,7 @@ extension IMConversation {
         outCommand.convMessage = convCommand
         return outCommand
     }
-    
+
     private func getConvAddRemoveCommand(
         members: Set<String>,
         op: IMOpType,
@@ -1480,7 +1480,7 @@ extension IMConversation {
                 op: op))
         }
     }
-    
+
     private func update(members: Set<String>, op: IMOpType, completion: @escaping (MemberResult) -> Void) throws {
         assert(op == .add || op == .remove)
         guard !members.isEmpty else {
@@ -1541,12 +1541,12 @@ extension IMConversation {
             })
         }
     }
-    
+
 }
 
 extension IMConversation {
     // MARK: Conversation Mute
-    
+
     private func muteToggle(op: IMOpType, completion: @escaping (LCBooleanResult) -> Void) {
         assert(op == .mute || op == .unmute)
         self.client?.sendCommand(constructor: { () -> IMGenericCommand in
@@ -1584,12 +1584,12 @@ extension IMConversation {
             }
         })
     }
-    
+
 }
 
 extension IMConversation {
     // MARK: Member Info
-    
+
     /// Role of the member in the conversation.
     /// Privilege: owner > manager > member.
     ///
@@ -1601,18 +1601,18 @@ extension IMConversation {
         case manager = "Manager"
         case member = "Member"
     }
-    
+
     /// The infomation of one member in the conversation.
     public struct MemberInfo {
-        
+
         /// The ID of the member.
         public let ID: String
-        
+
         /// The role of the member.
         public let role: MemberRole
-        
+
         let conversationID: String
-        
+
         init?(rawData: [String: Any], creator: String?) {
             guard
                 let clientId: String = rawData["clientId"] as? String,
@@ -1634,7 +1634,7 @@ extension IMConversation {
             }
             self.conversationID = cid
         }
-        
+
         init(ID: String, role: MemberRole, conversationID: String, creator: String?) {
             self.ID = ID
             if let creator = creator, creator == ID {
@@ -1645,7 +1645,7 @@ extension IMConversation {
             self.conversationID = conversationID
         }
     }
-    
+
     private func _fetchMemberInfoTable(completion: @escaping (IMClient, LCBooleanResult) -> Void) {
         self.client?.serialQueue.async {
             self.client?.getSessionToken(completion: { (client, result) in
@@ -1688,7 +1688,7 @@ extension IMConversation {
             })
         }
     }
-    
+
     private func _update(role: MemberRole, ofMember memberID: String, completion: @escaping (LCBooleanResult) -> Void) throws {
         guard role != .owner else {
             throw LCError(code: LCError.InternalErrorCode.ownerPromotionNotAllowed)
@@ -1732,12 +1732,12 @@ extension IMConversation {
             }
         })
     }
-    
+
 }
 
 extension IMConversation {
     // MARK: Member Blacklist
-    
+
     private func newBlacklistBlockUnblockCommand(
         members: Set<String>,
         op: IMOpType,
@@ -1759,7 +1759,7 @@ extension IMConversation {
         command.blacklistMessage = blacklistCommand
         return command
     }
-    
+
     private func getBlacklistBlockUnblockCommand(
         members: Set<String>,
         op: IMOpType,
@@ -1792,7 +1792,7 @@ extension IMConversation {
                 op: op))
         }
     }
-    
+
     private func update(
         blockedMembers members: Set<String>,
         op: IMOpType,
@@ -1817,7 +1817,7 @@ extension IMConversation {
                     }
                     let allowedPids: [String] = blacklistMessage.allowedPids
                     let failedPids: [IMErrorCommand] = blacklistMessage.failedPids
-                    
+
                     let memberResult: MemberResult
                     if failedPids.isEmpty {
                         memberResult = .allSucceeded
@@ -1829,7 +1829,7 @@ extension IMConversation {
                         }
                         memberResult = .slicing(success: successIDs, failure: failures)
                     }
-                    
+
                     client.eventQueue.async {
                         completion(memberResult)
                     }
@@ -1841,9 +1841,9 @@ extension IMConversation {
             })
         }
     }
-    
+
     public typealias BlockedMembersResult = (members: [String], next: String?)
-    
+
     private func _getBlockedMembers(
         limit: Int,
         next: String?,
@@ -1888,7 +1888,7 @@ extension IMConversation {
             }
         })
     }
-    
+
     private func _checkBlocking(
         member ID: String,
         completion: @escaping (LCGenericResult<Bool>) -> Void)
@@ -1923,12 +1923,12 @@ extension IMConversation {
             }
         })
     }
-    
+
 }
 
 extension IMConversation {
     // MARK: Member Shutup
-    
+
     private func update(
         mutedMembers members: Set<String>,
         op: IMOpType,
@@ -1960,7 +1960,7 @@ extension IMConversation {
                 }
                 let allowedPids: [String] = convCommand.allowedPids
                 let failedPids: [IMErrorCommand] = convCommand.failedPids
-                
+
                 let memberResult: MemberResult
                 if failedPids.isEmpty {
                     memberResult = .allSucceeded
@@ -1972,7 +1972,7 @@ extension IMConversation {
                     }
                     memberResult = .slicing(success: successIDs, failure: failures)
                 }
-                
+
                 client.eventQueue.async {
                     completion(memberResult)
                 }
@@ -1983,9 +1983,9 @@ extension IMConversation {
             }
         })
     }
-    
+
     public typealias MutedMembersResult = (members: [String], next: String?)
-    
+
     private func _getMutedMembers(
         limit: Int,
         next: String?,
@@ -2030,7 +2030,7 @@ extension IMConversation {
             }
         })
     }
-    
+
     private func _checkMuting(
         member ID: String,
         completion: @escaping (LCGenericResult<Bool>) -> Void)
@@ -2065,12 +2065,12 @@ extension IMConversation {
             }
         })
     }
-    
+
 }
 
 extension IMConversation {
     // MARK: Conversation Data Updating
-    
+
     private func _refresh(completion: @escaping (LCBooleanResult) -> Void) throws {
         try self.client?.conversationQuery.getConversation(by: self.ID, completion: { (result) in
             switch result {
@@ -2081,7 +2081,7 @@ extension IMConversation {
             }
         })
     }
-    
+
     private func _update(attribution data: [String: Any], completion: @escaping (LCBooleanResult) -> Void) throws {
         guard !data.isEmpty else {
             throw LCError(code: .inconsistency, reason: "parameter invalid.")
@@ -2146,7 +2146,7 @@ extension IMConversation {
             }
         })
     }
-    
+
     private func operationRawDataMerging(data: RawData, client: IMClient) {
         guard !data.isEmpty else {
             return
@@ -2157,7 +2157,7 @@ extension IMConversation {
         })
         self.tryUpdateLocalStorageData(client: client, rawData: rawData)
     }
-    
+
     private func operationRawDataReplaced(data: RawData, client: IMClient) {
         self.sync(closure: {
             self.rawData = data
@@ -2175,7 +2175,7 @@ extension IMConversation {
             Logger.shared.error(error)
         }
     }
-    
+
     private func needUpdateMembers(members: [String], updatedDateString: String?) -> Bool {
         guard
             self.convType != .transient,
@@ -2195,7 +2195,7 @@ extension IMConversation {
             return false
         }
     }
-    
+
     private func operationAppend(members joinedMembers: [String], udate: String?, client: IMClient) {
         guard self.needUpdateMembers(members: joinedMembers, updatedDateString: udate) else {
             return
@@ -2221,7 +2221,7 @@ extension IMConversation {
                 rawData: self.sync(self.rawData))
         }
     }
-    
+
     private func operationRemove(members leftMembers: [String], udate: String?, client: IMClient) {
         guard self.needUpdateMembers(members: leftMembers, updatedDateString: udate) else {
             return
@@ -2255,7 +2255,7 @@ extension IMConversation {
             }
         })
     }
-    
+
     private class KeyAndDictionary {
         let key: String
         var dictionary: [String: Any]
@@ -2264,7 +2264,7 @@ extension IMConversation {
             self.dictionary = dictionary
         }
     }
-    
+
     private func operationRawDataUpdated(
         attr: [String: Any],
         attrModified: [String: Any],
@@ -2308,7 +2308,7 @@ extension IMConversation {
             client: client,
             rawData: rawDataCopy)
     }
-    
+
     enum Operation {
         case rawDataMerging(data: RawData)
         case rawDataReplaced(by: RawData)
@@ -2317,7 +2317,7 @@ extension IMConversation {
         case updated(attr: [String: Any], attrModified: [String: Any], udate: String?)
         case memberInfoChanged(info: MemberInfo)
     }
-    
+
     func safeExecuting(operation: Operation, client: IMClient) {
         assert(client.specificAssertion)
         switch operation {
@@ -2335,7 +2335,7 @@ extension IMConversation {
             self.sync(self._memberInfoTable?[info.ID] = info)
         }
     }
-    
+
     private func safeUpdatingMutedMembers(op: IMOpType, udate: String?, client: IMClient) {
         guard let udate: String = udate else {
             return
@@ -2368,7 +2368,7 @@ extension IMConversation {
         })
         self.tryUpdateLocalStorageData(client: client, rawData: rawData)
     }
-    
+
     @discardableResult
     func safeUpdatingLastMessage(
         newMessage: IMMessage,
@@ -2430,7 +2430,7 @@ extension IMConversation {
         }
         return shouldIncreaseUnreadMessageCount
     }
-    
+
     private func decodingLastMessage(data: RawData, client: IMClient) -> IMMessage? {
         guard self.convType != .transient,
             let timestamp: Int64 = IMConversation.decoding(key: .lastMessageTimestamp, from: data),
@@ -2456,7 +2456,7 @@ extension IMConversation {
             isAllMembersMentioned: IMConversation.decoding(key: .lastMessageMentionAll, from: data),
             mentionedMembers: IMConversation.decoding(key: .lastMessageMentionPids, from: data))
     }
-    
+
     func tryUpdateLocalStorageData(client: IMClient, rawData: RawData? = nil, outdated: Bool? = nil) {
         guard let localStorage = client.localStorage else {
             return
@@ -2486,43 +2486,43 @@ extension IMConversation {
             Logger.shared.error(error)
         }
     }
-    
+
     func safeDecodingRawData<T>(with key: Key) -> T? {
         return self.safeDecodingRawData(with: key.rawValue)
     }
-    
+
     func safeDecodingRawData<T>(with string: String) -> T? {
         return self.sync(self.decodingRawData(with: string))
     }
-    
+
     func decodingRawData<T>(with key: Key) -> T? {
         return self.decodingRawData(with: key.rawValue)
     }
-    
+
     func decodingRawData<T>(with string: String) -> T? {
         return IMConversation.decoding(string: string, from: self.rawData)
     }
-    
+
     static func decoding<T>(key: Key, from data: RawData) -> T? {
         return IMConversation.decoding(string: key.rawValue, from: data)
     }
-    
+
     static func decoding<T>(string: String, from data: RawData) -> T? {
         return data[string] as? T
     }
-    
+
     func safeUpdatingRawData(key: Key, value: Any) {
         self.safeUpdatingRawData(string: key.rawValue, value: value)
     }
-    
+
     func safeUpdatingRawData(string: String, value: Any) {
         self.sync(self.updatingRawData(string: string, value: value))
     }
-    
+
     func updatingRawData(key: Key, value: Any) {
         self.updatingRawData(string: key.rawValue, value: value)
     }
-    
+
     func updatingRawData(string: String, value: Any) {
         self.rawData[string] = value
     }
@@ -2530,7 +2530,7 @@ extension IMConversation {
 
 /// IM Chat Room
 public class IMChatRoom: IMConversation {
-    
+
     /// Priority for Sending Message in Chat Room.
     ///
     /// - high: high.
@@ -2541,35 +2541,35 @@ public class IMChatRoom: IMConversation {
         case normal = 2
         case low = 3
     }
-    
+
     @available(*, unavailable)
     public override func read(message: IMMessage? = nil) {}
-    
+
     @available(*, unavailable)
     public override func getMessageReceiptFlag(completion: @escaping (LCGenericResult<IMConversation.MessageReceiptFlag>) -> Void) throws {
         throw LCError.conversationNotSupport(convType: type(of: self))
     }
-    
+
     @available(*, unavailable)
     public override func mute(completion: @escaping (LCBooleanResult) -> Void) {
         completion(.failure(error: LCError.conversationNotSupport(convType: type(of: self))))
     }
-    
+
     @available(*, unavailable)
     public override func unmute(completion: @escaping (LCBooleanResult) -> Void) {
         completion(.failure(error: LCError.conversationNotSupport(convType: type(of: self))))
     }
-    
+
     @available(*, unavailable)
     public override func insertFailedMessageToCache(_ message: IMMessage, completion: @escaping (LCBooleanResult) -> Void) throws {
         throw LCError.conversationNotSupport(convType: type(of: self))
     }
-    
+
     @available(*, unavailable)
     public override func removeFailedMessageFromCache(_ message: IMMessage, completion: @escaping (LCBooleanResult) -> Void) throws {
         throw LCError.conversationNotSupport(convType: type(of: self))
     }
-    
+
     /// Get count of online clients in this Chat Room.
     ///
     /// - Parameter completion: callback.
@@ -2603,7 +2603,7 @@ public class IMChatRoom: IMConversation {
             }
         })
     }
-    
+
     /// Get online clients in this Chat Room.
     ///
     /// - Parameters:
@@ -2646,72 +2646,72 @@ public class IMChatRoom: IMConversation {
             }
         })
     }
-    
+
 }
 
 /// IM Service Conversation
 public class IMServiceConversation: IMConversation {
-    
+
     @available(*, unavailable)
     public override func update(attribution data: [String : Any], completion: @escaping (LCBooleanResult) -> Void) throws {
         throw LCError.conversationNotSupport(convType: type(of: self))
     }
-    
+
     @available(*, unavailable)
     public override func fetchMemberInfoTable(completion: @escaping (LCBooleanResult) -> Void) {
         completion(.failure(error: LCError.conversationNotSupport(convType: type(of: self))))
     }
-    
+
     @available(*, unavailable)
     public override func getMemberInfo(by memberID: String, completion: @escaping (LCGenericResult<IMConversation.MemberInfo?>) -> Void) {
         completion(.failure(error: LCError.conversationNotSupport(convType: type(of: self))))
     }
-    
+
     @available(*, unavailable)
     public override func update(role: IMConversation.MemberRole, ofMember memberID: String, completion: @escaping (LCBooleanResult) -> Void) throws {
         throw LCError.conversationNotSupport(convType: type(of: self))
     }
-    
+
     @available(*, unavailable)
     public override func block(members: Set<String>, completion: @escaping (IMConversation.MemberResult) -> Void) throws {
         throw LCError.conversationNotSupport(convType: type(of: self))
     }
-    
+
     @available(*, unavailable)
     public override func unblock(members: Set<String>, completion: @escaping (IMConversation.MemberResult) -> Void) throws {
         throw LCError.conversationNotSupport(convType: type(of: self))
     }
-    
+
     @available(*, unavailable)
     public override func getBlockedMembers(limit: Int = 50, next: String? = nil, completion: @escaping (LCGenericResult<IMConversation.BlockedMembersResult>) -> Void) throws {
         throw LCError.conversationNotSupport(convType: type(of: self))
     }
-    
+
     @available(*, unavailable)
     public override func checkBlocking(member ID: String, completion: @escaping (LCGenericResult<Bool>) -> Void) {
         completion(.failure(error: LCError.conversationNotSupport(convType: type(of: self))))
     }
-    
+
     @available(*, unavailable)
     public override func mute(members: Set<String>, completion: @escaping (IMConversation.MemberResult) -> Void) throws {
         throw LCError.conversationNotSupport(convType: type(of: self))
     }
-    
+
     @available(*, unavailable)
     public override func unmute(members: Set<String>, completion: @escaping (IMConversation.MemberResult) -> Void) throws {
         throw LCError.conversationNotSupport(convType: type(of: self))
     }
-    
+
     @available(*, unavailable)
     public override func getMutedMembers(limit: Int = 50, next: String? = nil, completion: @escaping (LCGenericResult<IMConversation.MutedMembersResult>) -> Void) throws {
         throw LCError.conversationNotSupport(convType: type(of: self))
     }
-    
+
     @available(*, unavailable)
     public override func checkMuting(member ID: String, completion: @escaping (LCGenericResult<Bool>) -> Void) {
         completion(.failure(error: LCError.conversationNotSupport(convType: type(of: self))))
     }
-    
+
     /// Subscribe this Service Conversation.
     ///
     /// - Parameter completion: callback.
@@ -2725,7 +2725,7 @@ public class IMServiceConversation: IMConversation {
     public func unsubscribe(completion: @escaping (LCBooleanResult) -> Void) throws {
         try self.leave(completion: completion)
     }
-    
+
     /// Check whether subscribed this Service Conversation.
     ///
     /// - Parameter completion: callback, dispatch to client.eventQueue .
@@ -2770,15 +2770,15 @@ public class IMServiceConversation: IMConversation {
             }
         })
     }
-    
+
 }
 
 /// IM Temporary Conversation
 /// Temporary Conversation is unique in it's Life Cycle.
 public class IMTemporaryConversation: IMConversation {
-    
+
     static let prefixOfID: String = "_tmp:"
-    
+
     /// Expiration.
     public var expiration: Date? {
         guard
@@ -2790,112 +2790,112 @@ public class IMTemporaryConversation: IMConversation {
         }
         return Date(timeInterval: TimeInterval(ttl), since: createDate)
     }
-    
+
     /// Time to Live.
     public var timeToLive: Int? {
         return safeDecodingRawData(with: .temporaryTTL)
     }
-    
+
     @available(*, unavailable)
     public override func join(completion: @escaping (LCBooleanResult) -> Void) throws {
         throw LCError.conversationNotSupport(convType: type(of: self))
     }
-    
+
     @available(*, unavailable)
     public override func leave(completion: @escaping (LCBooleanResult) -> Void) throws {
         throw LCError.conversationNotSupport(convType: type(of: self))
     }
-    
+
     @available(*, unavailable)
     public override func add(members: Set<String>, completion: @escaping (IMConversation.MemberResult) -> Void) throws {
         throw LCError.conversationNotSupport(convType: type(of: self))
     }
-    
+
     @available(*, unavailable)
     public override func remove(members: Set<String>, completion: @escaping (IMConversation.MemberResult) -> Void) throws {
         throw LCError.conversationNotSupport(convType: type(of: self))
     }
-    
+
     @available(*, unavailable)
     public override func mute(completion: @escaping (LCBooleanResult) -> Void) {
         completion(.failure(error: LCError.conversationNotSupport(convType: type(of: self))))
     }
-    
+
     @available(*, unavailable)
     public override func unmute(completion: @escaping (LCBooleanResult) -> Void) {
         completion(.failure(error: LCError.conversationNotSupport(convType: type(of: self))))
     }
-    
+
     @available(*, unavailable)
     public override func update(attribution data: [String : Any], completion: @escaping (LCBooleanResult) -> Void) throws {
         throw LCError.conversationNotSupport(convType: type(of: self))
     }
-    
+
     @available(*, unavailable)
     public override func fetchMemberInfoTable(completion: @escaping (LCBooleanResult) -> Void) {
         completion(.failure(error: LCError.conversationNotSupport(convType: type(of: self))))
     }
-    
+
     @available(*, unavailable)
     public override func getMemberInfo(by memberID: String, completion: @escaping (LCGenericResult<IMConversation.MemberInfo?>) -> Void) {
         completion(.failure(error: LCError.conversationNotSupport(convType: type(of: self))))
     }
-    
+
     @available(*, unavailable)
     public override func update(role: IMConversation.MemberRole, ofMember memberID: String, completion: @escaping (LCBooleanResult) -> Void) throws {
         throw LCError.conversationNotSupport(convType: type(of: self))
     }
-    
+
     @available(*, unavailable)
     public override func block(members: Set<String>, completion: @escaping (IMConversation.MemberResult) -> Void) throws {
         throw LCError.conversationNotSupport(convType: type(of: self))
     }
-    
+
     @available(*, unavailable)
     public override func unblock(members: Set<String>, completion: @escaping (IMConversation.MemberResult) -> Void) throws {
         throw LCError.conversationNotSupport(convType: type(of: self))
     }
-    
+
     @available(*, unavailable)
     public override func getBlockedMembers(limit: Int = 50, next: String? = nil, completion: @escaping (LCGenericResult<IMConversation.BlockedMembersResult>) -> Void) throws {
         throw LCError.conversationNotSupport(convType: type(of: self))
     }
-    
+
     @available(*, unavailable)
     public override func checkBlocking(member ID: String, completion: @escaping (LCGenericResult<Bool>) -> Void) {
         completion(.failure(error: LCError.conversationNotSupport(convType: type(of: self))))
     }
-    
+
     @available(*, unavailable)
     public override func mute(members: Set<String>, completion: @escaping (IMConversation.MemberResult) -> Void) throws {
         throw LCError.conversationNotSupport(convType: type(of: self))
     }
-    
+
     @available(*, unavailable)
     public override func unmute(members: Set<String>, completion: @escaping (IMConversation.MemberResult) -> Void) throws {
         throw LCError.conversationNotSupport(convType: type(of: self))
     }
-    
+
     @available(*, unavailable)
     public override func getMutedMembers(limit: Int = 50, next: String? = nil, completion: @escaping (LCGenericResult<IMConversation.MutedMembersResult>) -> Void) throws {
         throw LCError.conversationNotSupport(convType: type(of: self))
     }
-    
+
     @available(*, unavailable)
     public override func checkMuting(member ID: String, completion: @escaping (LCGenericResult<Bool>) -> Void) {
         completion(.failure(error: LCError.conversationNotSupport(convType: type(of: self))))
     }
-    
+
     @available(*, unavailable)
     public override func insertFailedMessageToCache(_ message: IMMessage, completion: @escaping (LCBooleanResult) -> Void) throws {
         throw LCError.conversationNotSupport(convType: type(of: self))
     }
-    
+
     @available(*, unavailable)
     public override func removeFailedMessageFromCache(_ message: IMMessage, completion: @escaping (LCBooleanResult) -> Void) throws {
         throw LCError.conversationNotSupport(convType: type(of: self))
     }
-    
+
     /// Refresh temporary conversation's data.
     ///
     /// - Parameter completion: callback
@@ -2914,16 +2914,16 @@ public class IMTemporaryConversation: IMConversation {
             }
         })
     }
-    
+
 }
 
 extension LCError {
-    
+
     static func conversationNotSupport(convType: IMConversation.Type) -> LCError {
         return LCError(
             code: .inconsistency,
             reason: "\(convType) not support this API"
         )
     }
-    
+
 }
