@@ -1,6 +1,5 @@
 name-template: 'next version'
 tag-template: '$NEXT_PATCH_VERSION'
-change-template: '* $TITLE (#$NUMBER)'
 categories:
   - title: '⚠️ Breaking Changes' 
     labels:
@@ -31,5 +30,6 @@ exclude-labels:
   - 'cosm('
   - 'build:'
   - 'build('
+change-template: '* $TITLE (#$NUMBER)'
 template: |
   $CHANGES
