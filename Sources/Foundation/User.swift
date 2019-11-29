@@ -133,6 +133,7 @@ open class LCUser: LCObject {
 
      - parameter completion: The completion callback closure.
      */
+    @discardableResult
     public func signUp(_ completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
         return signUp(completionInBackground: { result in
             mainQueueAsync {
@@ -176,6 +177,7 @@ open class LCUser: LCObject {
      - parameter password:   The password.
      - parameter completion: The completion callback closure.
      */
+    @discardableResult
     public static func logIn<User: LCUser>(
         application: LCApplication = LCApplication.default,
         username: String,
@@ -236,6 +238,7 @@ open class LCUser: LCObject {
     ///   - password: The password.
     ///   - completion: The completion callback closure.
     /// - Returns: The result of login request.
+    @discardableResult
     public static func logIn<User: LCUser>(
         application: LCApplication = LCApplication.default,
         email: String,
@@ -298,6 +301,7 @@ open class LCUser: LCObject {
      - parameter password:          The password.
      - parameter completion:        The completion callback closure.
      */
+    @discardableResult
     public static func logIn<User: LCUser>(
         application: LCApplication = LCApplication.default,
         mobilePhoneNumber: String,
@@ -360,6 +364,7 @@ open class LCUser: LCObject {
      - parameter verificationCode:  The verification code.
      - parameter completion:        The completion callback closure.
      */
+    @discardableResult
     public static func logIn<User: LCUser>(
         application: LCApplication = LCApplication.default,
         mobilePhoneNumber: String,
@@ -452,6 +457,7 @@ open class LCUser: LCObject {
      - parameter sessionToken: The session token.
      - parameter completion:   The completion callback closure, it will be called in main thread.
      */
+    @discardableResult
     public static func logIn<User: LCUser>(
         application: LCApplication = LCApplication.default,
         sessionToken: String,
@@ -531,6 +537,7 @@ open class LCUser: LCObject {
      - parameter verificationCode:  The verification code.
      - parameter completion:        The completion callback closure.
      */
+    @discardableResult
     public static func signUpOrLogIn<User: LCUser>(
         application: LCApplication = LCApplication.default,
         mobilePhoneNumber: String,
@@ -608,6 +615,7 @@ open class LCUser: LCObject {
      - parameter email:      The email address to where the mail will be sent.
      - parameter completion: The completion callback closure.
      */
+    @discardableResult
     public static func requestVerificationMail(
         application: LCApplication = LCApplication.default,
         email: String,
@@ -662,6 +670,7 @@ open class LCUser: LCObject {
      - parameter mobilePhoneNumber: The mobile phone number where the verification code will be sent to.
      - parameter completion:        The completion callback closure.
      */
+    @discardableResult
     public static func requestVerificationCode(
         application: LCApplication = LCApplication.default,
         mobilePhoneNumber: String,
@@ -719,6 +728,7 @@ open class LCUser: LCObject {
      - parameter verificationCode:  The verification code.
      - parameter completion:        The completion callback closure.
      */
+    @discardableResult
     public static func verifyMobilePhoneNumber(
         application: LCApplication = LCApplication.default,
         _ mobilePhoneNumber: String,
@@ -775,6 +785,7 @@ open class LCUser: LCObject {
      - parameter mobilePhoneNumber: The mobile phone number where the verification code message will be sent to.
      - parameter completion:        The completion callback closure.
      */
+    @discardableResult
     public static func requestLoginVerificationCode(
         application: LCApplication = LCApplication.default,
         mobilePhoneNumber: String,
@@ -830,6 +841,7 @@ open class LCUser: LCObject {
      - parameter email:      The email address where the password reset email will be sent to.
      - parameter completion: The completion callback closure.
      */
+    @discardableResult
     public static func requestPasswordReset(
         application: LCApplication = LCApplication.default,
         email: String,
@@ -885,6 +897,7 @@ open class LCUser: LCObject {
      - parameter mobilePhoneNumber: The mobile phone number where the password reset verification code will be sent to.
      - parameter completion:        The completion callback closure.
      */
+    @discardableResult
     public static func requestPasswordReset(
         application: LCApplication = LCApplication.default,
         mobilePhoneNumber: String,
@@ -951,6 +964,7 @@ open class LCUser: LCObject {
      - parameter newPassword:       The new password.
      - parameter completion:        The completion callback closure.
      */
+    @discardableResult
     public static func resetPassword(
         application: LCApplication = LCApplication.default,
         mobilePhoneNumber: String,
@@ -1011,6 +1025,7 @@ open class LCUser: LCObject {
      - parameter newPassword: The new password.
      - parameter completion:  The completion callback closure.
      */
+    @discardableResult
     public func updatePassword(oldPassword: String, newPassword: String, completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
         return updatePassword(oldPassword: oldPassword, newPassword: newPassword, completionInBackground: { result in
             mainQueueAsync {
