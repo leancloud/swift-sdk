@@ -263,6 +263,8 @@ class FileUploader {
         metaData["mime_type"] = attributes.mimeType
 
         parameters["metaData"] = metaData
+        parameters.removeValue(forKey: "__type")
+        parameters.removeValue(forKey: "className")
 
         return parameters
     }

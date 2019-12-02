@@ -117,6 +117,8 @@ public class LCInstallation: LCObject {
 
                 body.removeValue(forKey: "createdAt")
                 body.removeValue(forKey: "updatedAt")
+                body.removeValue(forKey: "__type")
+                body.removeValue(forKey: "className")
 
                 request["body"] = body
             }

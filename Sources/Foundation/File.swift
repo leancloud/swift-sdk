@@ -200,7 +200,9 @@ public class LCFile: LCObject {
                 }
             }
             
-            let parameters = dictionary.jsonValue as? [String: Any]
+            var parameters = dictionary.jsonValue as? [String: Any]
+            parameters?.removeValue(forKey: "__type")
+            parameters?.removeValue(forKey: "className")
 
             return httpClient.request(.post, "files", parameters: parameters) { response in
                 let result = LCValueResult<LCDictionary>(response: response)
