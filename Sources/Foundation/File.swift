@@ -107,6 +107,8 @@ public class LCFile: LCObject {
         return "_File"
     }
     
+    // MARK: Save
+    
     /// Save file synchronously.
     public func save() -> LCBooleanResult {
         return expect { fulfill in
@@ -162,7 +164,8 @@ public class LCFile: LCObject {
     @discardableResult
     private func save(
         progressInBackground progress: @escaping (Double) -> Void,
-        completion: @escaping (LCBooleanResult) -> Void) -> LCRequest
+        completion: @escaping (LCBooleanResult) -> Void)
+        -> LCRequest
     {
         let httpClient: HTTPClient = self.application.httpClient
         
@@ -224,7 +227,8 @@ public class LCFile: LCObject {
     private func upload(
         payload: Payload,
         progress: @escaping (Double) -> Void,
-        completion: @escaping (LCBooleanResult) -> Void) -> LCRequest
+        completion: @escaping (LCBooleanResult) -> Void)
+        -> LCRequest
     {
         let uploader = FileUploader(file: self, payload: payload)
 
@@ -281,41 +285,24 @@ public class LCFile: LCObject {
     // MARK: Unavailable
     
     @available(*, unavailable)
-    public override class func save(
-        _ objects: [LCObject],
-        options: [LCObject.SaveOption] = [])
-        -> LCBooleanResult
-    {
+    public override class func save(_ objects: [LCObject], options: [LCObject.SaveOption] = []) -> LCBooleanResult {
         fatalError("not support")
     }
     
     @available(*, unavailable)
-    public override class func save(
-        _ objects: [LCObject],
-        options: [LCObject.SaveOption] = [],
-        completion: @escaping (LCBooleanResult) -> Void)
-        -> LCRequest
-    {
+    public override class func save(_ objects: [LCObject], options: [LCObject.SaveOption] = [], completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
         fatalError("not support")
     }
     
     @available(*, unavailable)
-    public override func save(
-        options: [LCObject.SaveOption] = [])
-        -> LCBooleanResult
-    {
+    public override func save(options: [LCObject.SaveOption] = []) -> LCBooleanResult {
         fatalError("not support")
     }
     
     @available(*, unavailable)
-    public override func save(
-        options: [LCObject.SaveOption] = [],
-        completion: @escaping (LCBooleanResult) -> Void)
-        -> LCRequest
-    {
+    public override func save(options: [LCObject.SaveOption] = [], completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
         fatalError("not support")
     }
-    
 }
 
 extension LCFile {

@@ -112,6 +112,7 @@ public final class LCSMSClient {
      - parameter variables:         The variables used to substitute placeholders in template.
      - parameter completion:        The completion callback closure.
      */
+    @discardableResult
     public static func requestShortMessage(
         application: LCApplication = LCApplication.default,
         mobilePhoneNumber: String,
@@ -170,6 +171,7 @@ public final class LCSMSClient {
      - parameter timeToLive:        The time to live of short message, in minutes. Defaults to 10 minutes.
      - parameter completion:        The completion callback closure.
      */
+    @discardableResult
     public static func requestVerificationCode(
         application: LCApplication = LCApplication.default,
         mobilePhoneNumber: String,
@@ -240,6 +242,7 @@ public final class LCSMSClient {
      - parameter mobilePhoneNumber: The mobile phone number where verification code will be sent to.
      - parameter completion:        The completion callback closure.
      */
+    @discardableResult
     public static func requestVoiceVerificationCode(
         application: LCApplication = LCApplication.default,
         mobilePhoneNumber: String,
@@ -297,6 +300,7 @@ public final class LCSMSClient {
      - parameter verificationCode:  The verification code.
      - parameter completion:        The completion callback closure.
      */
+    @discardableResult
     public static func verifyMobilePhoneNumber(
         application: LCApplication = LCApplication.default,
         _ mobilePhoneNumber: String,

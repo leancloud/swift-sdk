@@ -146,6 +146,7 @@ public class LCEngine {
     ///   - parameters: The parameters of the function
     ///   - completion: The result of the callback
     /// - Returns: The Request
+    @discardableResult
     public static func call(
         application: LCApplication = LCApplication.default,
         _ function: String,
