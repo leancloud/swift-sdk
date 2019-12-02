@@ -1071,6 +1071,7 @@ open class LCUser: LCObject {
     
     // MARK: Auth Data
     
+    /// The third party platform
     public enum AuthDataPlatform {
         case qq
         case weibo
@@ -1091,6 +1092,7 @@ open class LCUser: LCObject {
         }
     }
     
+    /// The options of auth data
     public struct AuthDataOptions: OptionSet {
         public let rawValue: Int
         
@@ -1098,11 +1100,20 @@ open class LCUser: LCObject {
             self.rawValue = rawValue
         }
         
+        /// Using the auth data as main data.
         public static let mainAccount = AuthDataOptions(rawValue: 1 << 0)
         
+        /// If a user with the auth data not exist, then return error.
         public static let failOnNotExist = AuthDataOptions(rawValue: 1 << 1)
     }
     
+    /// Login with third party auth data synchronously.
+    /// - Parameters:
+    ///   - authData: The auth data of third party account.
+    ///   - platform: The platform of third party account. @see `AuthDataPlatform`.
+    ///   - unionID: The union ID of the auth data.
+    ///   - unionIDPlatform: The platform of the `unionID`. @see `AuthDataPlatform`.
+    ///   - options: @see `AuthDataOptions`.
     public func logIn(
         authData: [String: Any],
         platform: AuthDataPlatform,
@@ -1118,11 +1129,21 @@ open class LCUser: LCObject {
                 unionID: unionID,
                 unionIDPlatform: unionIDPlatform,
                 options: options,
-                completionInBackground: { fulfill($0) }
-            )
+                completionInBackground: { result in
+                    fulfill(result)
+            })
         }
     }
     
+    /// Login with third party auth data asynchronously.
+    /// - Parameters:
+    ///   - authData: The auth data of third party account.
+    ///   - platform: The platform of third party account. @see `AuthDataPlatform`.
+    ///   - unionID: The union ID of the auth data.
+    ///   - unionIDPlatform: The platform of the `unionID`. @see `AuthDataPlatform`.
+    ///   - options: @see `AuthDataOptions`.
+    ///   - completionQueue: The queue where the `completion` be executed, default is main.
+    ///   - completion: Result callback.
     @discardableResult
     public func logIn(
         authData: [String: Any],
@@ -1130,6 +1151,7 @@ open class LCUser: LCObject {
         unionID: String? = nil,
         unionIDPlatform: AuthDataPlatform? = nil,
         options: AuthDataOptions? = nil,
+        completionQueue: DispatchQueue = .main,
         completion: @escaping (LCBooleanResult) -> Void)
         -> LCRequest
     {
@@ -1139,8 +1161,11 @@ open class LCUser: LCObject {
             unionID: unionID,
             unionIDPlatform: unionIDPlatform,
             options: options,
-            completionInBackground: { (result) in mainQueueAsync { completion(result) } }
-        )
+            completionInBackground: { (result) in
+                completionQueue.async {
+                    completion(result)
+                }
+        })
     }
     
     @discardableResult
@@ -1153,57 +1178,62 @@ open class LCUser: LCObject {
         completionInBackground completion: @escaping (LCBooleanResult) -> Void)
         -> LCRequest
     {
-        var authData: [String: Any] = authData
-        if let unionID: String = unionID {
+        var authData = authData
+        if let unionID = unionID {
             authData["unionid"] = unionID
         }
-        if let unionIDPlatform: AuthDataPlatform = unionIDPlatform {
+        if let unionIDPlatform = unionIDPlatform {
             authData["platform"] = unionIDPlatform.key
         }
-        if let options: AuthDataOptions = options, options.contains(.mainAccount) {
+        if let options = options, options.contains(.mainAccount) {
             authData["main_account"] = true
         }
         
-        var parameters = (self.dictionary.jsonValue as? [String: Any]) ?? [:]
+        var parameters = (self.dictionary.lconValue as? [String: Any]) ?? [:]
         parameters["authData"] = [platform.key: authData]
         parameters.removeValue(forKey: "__type")
         parameters.removeValue(forKey: "className")
         
-        let path: String
+        var path = "users"
         if let options = options, options.contains(.failOnNotExist) {
-            path = "users?failOnNotExist=true"
-        } else {
-            path = "users"
+            path += "?failOnNotExist=true"
         }
         
-        let request = self.application.httpClient.request(.post, path, parameters: parameters) { response in
+        return self.application.httpClient.request(
+            .post, path,
+            parameters: parameters)
+        { response in
             if let error = LCError(response: response) {
                 completion(.failure(error: error))
             } else {
                 if let dictionary = response.value as? [String: Any] {
-                    
                     ObjectProfiler.shared.updateObject(self, dictionary)
                     self.application.currentUser = self
-                    
                     completion(.success)
                 } else {
-                    let error = LCError(code: .invalidType, reason: "invalid response data type.")
-                    completion(.failure(error: error))
+                    completion(.failure(
+                        error: LCError(
+                            code: .invalidType,
+                            reason: "invalid response data type.")))
                 }
             }
         }
-        
-        return request
     }
     
+    /// Associate the user with third party auth data synchronously.
+    /// - Parameters:
+    ///   - authData: The auth data of third party account.
+    ///   - platform: The platform of third party account. @see `AuthDataPlatform`.
+    ///   - unionID: The union ID of the auth data.
+    ///   - unionIDPlatform: The platform of the `unionID`. @see `AuthDataPlatform`.
+    ///   - options: @see `AuthDataOptions`.
     public func associate(
         authData: [String: Any],
         platform: AuthDataPlatform,
         unionID: String? = nil,
         unionIDPlatform: AuthDataPlatform? = nil,
         options: AuthDataOptions? = nil)
-        throws
-        -> LCBooleanResult
+        throws -> LCBooleanResult
     {
         return try expect { fulfill in
             try self.associate(
@@ -1212,11 +1242,21 @@ open class LCUser: LCObject {
                 unionID: unionID,
                 unionIDPlatform: unionIDPlatform,
                 options: options,
-                completionInBackground: { fulfill($0) }
-            )
+                completionInBackground: { result in
+                    fulfill(result)
+            })
         }
     }
     
+    /// Associate the user with third party auth data asynchronously.
+    /// - Parameters:
+    ///   - authData: The auth data of third party account.
+    ///   - platform: The platform of third party account. @see `AuthDataPlatform`.
+    ///   - unionID: The union ID of the auth data.
+    ///   - unionIDPlatform: The platform of the `unionID`. @see `AuthDataPlatform`.
+    ///   - options: @see `AuthDataOptions`.
+    ///   - completionQueue: The queue where the `completion` be executed, default is main.
+    ///   - completion: Result callback.
     @discardableResult
     public func associate(
         authData: [String: Any],
@@ -1224,9 +1264,9 @@ open class LCUser: LCObject {
         unionID: String? = nil,
         unionIDPlatform: AuthDataPlatform? = nil,
         options: AuthDataOptions? = nil,
+        completionQueue: DispatchQueue = .main,
         completion: @escaping (LCBooleanResult) -> Void)
-        throws
-        -> LCRequest
+        throws -> LCRequest
     {
         return try self.associate(
             authData: authData,
@@ -1234,8 +1274,11 @@ open class LCUser: LCObject {
             unionID: unionID,
             unionIDPlatform: unionIDPlatform,
             options: options,
-            completionInBackground: { result in mainQueueAsync { completion(result) } }
-        )
+            completionInBackground: { result in
+                completionQueue.async {
+                    completion(result)
+                }
+        })
     }
     
     @discardableResult
@@ -1249,105 +1292,141 @@ open class LCUser: LCObject {
         throws
         -> LCRequest
     {
-        guard let objectID: String = self.objectId?.stringValue else {
-            throw LCError(code: .inconsistency, reason: "object id not found.")
+        guard let objectID = self.objectId?.value else {
+            throw LCError(
+                code: .inconsistency,
+                reason: "object id not found.")
         }
-        guard let sessionToken: String = self.sessionToken?.stringValue else {
-            throw LCError(code: .inconsistency, reason: "session token not found.")
+        guard let sessionToken = self.sessionToken?.value else {
+            throw LCError(
+                code: .inconsistency,
+                reason: "session token not found.")
         }
         
-        var authData: [String: Any] = authData
-        if let unionID: String = unionID {
+        var authData = authData
+        if let unionID = unionID {
             authData["unionid"] = unionID
         }
-        if let unionIDPlatform: AuthDataPlatform = unionIDPlatform {
+        if let unionIDPlatform = unionIDPlatform {
             authData["platform"] = unionIDPlatform.key
         }
-        if let options: AuthDataOptions = options, options.contains(.mainAccount) {
+        if let options = options, options.contains(.mainAccount) {
             authData["main_account"] = true
         }
         
         let path: String = "users/\(objectID)"
-        let parameters: [String: Any] = ["authData": [platform.key : authData]]
+        let parameters: [String: Any] = ["authData": [platform.key: authData]]
         let headers: [String: String] = [HTTPClient.HeaderFieldName.session: sessionToken]
         
-        let request = self.application.httpClient.request(.put, path, parameters: parameters, headers: headers) { response in
+        return self.application.httpClient.request(
+            .put, path,
+            parameters: parameters,
+            headers: headers)
+        { response in
             if let error = LCError(response: response) {
                 completion(.failure(error: error))
             } else {
-                if var dictionary = response.value as? [String: Any] {
-                    var originAuthData: [String: Any] = (self.authData?.jsonValue as? [String: Any]) ?? [:]
-                    originAuthData[platform.key] = authData
-                    dictionary["authData"] = originAuthData
-                    ObjectProfiler.shared.updateObject(self, dictionary)
-                    completion(.success)
+                if let dictionary = response.value as? [String: Any] {
+                    do {
+                        if let originAuthData = self.authData {
+                            originAuthData[platform.key] = try LCDictionary(
+                                application: self.application,
+                                unsafeObject: authData)
+                        } else {
+                            self.authData = try LCDictionary(
+                                application: self.application,
+                                unsafeObject: [platform.key: authData])
+                        }
+                        ObjectProfiler.shared.updateObject(self, dictionary)
+                        completion(.success)
+                    } catch {
+                        completion(.failure(
+                            error: LCError(
+                                error: error)))
+                    }
                 } else {
-                    let error = LCError(code: .invalidType, reason: "invalid response data type.")
-                    completion(.failure(error: error))
+                    completion(.failure(
+                        error: LCError(
+                            code: .invalidType,
+                            reason: "invalid response data type.")))
                 }
             }
         }
-        
-        return request
     }
     
+    /// Disassociate the user with third party auth data synchronously.
+    ///   - platform: The platform of third party account. @see `AuthDataPlatform`.
     public func disassociate(authData platform: AuthDataPlatform) throws -> LCBooleanResult {
         return try expect { fulfill in
             try self.disassociate(
                 authData: platform,
-                completionInBackground: { fulfill($0) }
-            )
+                completionInBackground: { result in
+                    fulfill(result)
+            })
         }
     }
     
+    /// Disassociate the user with third party auth data asynchronously.
+    /// - Parameters:
+    ///   - platform: The platform of third party account. @see `AuthDataPlatform`.
+    ///   - completionQueue: The queue where the `completion` be executed, default is main.
+    ///   - completion: Result callback.
     @discardableResult
     public func disassociate(
         authData platform: AuthDataPlatform,
+        completionQueue: DispatchQueue = .main,
         completion: @escaping (LCBooleanResult) -> Void)
-        throws
-        -> LCRequest
+        throws -> LCRequest
     {
         return try self.disassociate(
             authData: platform,
-            completionInBackground: { result in mainQueueAsync { completion(result) } }
-        )
+            completionInBackground: { result in
+                completionQueue.async {
+                    completion(result)
+                }
+        })
     }
     
     @discardableResult
     private func disassociate(
         authData platform: AuthDataPlatform,
         completionInBackground completion: @escaping (LCBooleanResult) -> Void)
-        throws
-        -> LCRequest
+        throws -> LCRequest
     {
-        guard let objectID: String = self.objectId?.stringValue else {
-            throw LCError(code: .inconsistency, reason: "object id not found.")
+        guard let objectID = self.objectId?.value else {
+            throw LCError(
+                code: .inconsistency,
+                reason: "object id not found.")
         }
-        guard let sessionToken: String = self.sessionToken?.stringValue else {
-            throw LCError(code: .inconsistency, reason: "session token not found.")
+        guard let sessionToken = self.sessionToken?.value else {
+            throw LCError(
+                code: .inconsistency,
+                reason: "session token not found.")
         }
         
         let path: String = "users/\(objectID)"
         let parameters: [String: Any] = ["authData.\(platform.key)": [Operation.key: Operation.Name.delete.rawValue]]
         let headers: [String: String] = [HTTPClient.HeaderFieldName.session: sessionToken]
         
-        let request = self.application.httpClient.request(.put, path, parameters: parameters, headers: headers) { response in
+        return self.application.httpClient.request(
+            .put, path,
+            parameters: parameters,
+            headers: headers)
+        { response in
             if let error = LCError(response: response) {
                 completion(.failure(error: error))
             } else {
-                if var dictionary = response.value as? [String: Any] {
-                    var originAuthData: [String: Any] = (self.authData?.jsonValue as? [String: Any]) ?? [:]
-                    originAuthData.removeValue(forKey: platform.key)
-                    dictionary["authData"] = originAuthData
+                if let dictionary = response.value as? [String: Any] {
+                    self.authData?.removeValue(forKey: platform.key)
                     ObjectProfiler.shared.updateObject(self, dictionary)
                     completion(.success)
                 } else {
-                    let error = LCError(code: .invalidType, reason: "invalid response data type.")
-                    completion(.failure(error: error))
+                    completion(.failure(
+                        error: LCError(
+                            code: .invalidType,
+                            reason: "invalid response data type.")))
                 }
             }
         }
-        
-        return request
     }
 }
