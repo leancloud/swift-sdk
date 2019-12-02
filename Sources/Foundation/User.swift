@@ -1166,6 +1166,8 @@ open class LCUser: LCObject {
         
         var parameters = (self.dictionary.jsonValue as? [String: Any]) ?? [:]
         parameters["authData"] = [platform.key: authData]
+        parameters.removeValue(forKey: "__type")
+        parameters.removeValue(forKey: "className")
         
         let path: String
         if let options = options, options.contains(.failOnNotExist) {

@@ -112,6 +112,7 @@ public final class LCCQLClient {
      - parameter parameters: The parameters for placeholders in CQL statement.
      - parameter completion: The completion callback closure.
      */
+    @discardableResult
     public static func execute(
         application: LCApplication = LCApplication.default,
         _ cql: String, parameters: LCArrayConvertible? = nil,

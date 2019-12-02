@@ -135,7 +135,13 @@ public class LCEngine {
         parameters: LCObject)
         -> LCValueOptionalResult
     {
-        return self.call(application: application, function, parameters: parameters.dictionary)
+        let dictionary = LCDictionary(parameters.dictionary)
+        dictionary.removeValue(forKey: "__type")
+        dictionary.removeValue(forKey: "className")
+        return self.call(
+            application: application,
+            function,
+            parameters: dictionary)
     }
     
     /// call the cloud function by RPC asynchronously
@@ -146,6 +152,7 @@ public class LCEngine {
     ///   - parameters: The parameters of the function
     ///   - completion: The result of the callback
     /// - Returns: The Request
+    @discardableResult
     public static func call(
         application: LCApplication = LCApplication.default,
         _ function: String,
@@ -153,7 +160,15 @@ public class LCEngine {
         completion: @escaping (LCValueOptionalResult) -> Void)
         -> LCRequest
     {
-        return self.call(application: application, function, parameters: parameters.dictionary, completion: completion)
+        let dictionary = LCDictionary(parameters.dictionary)
+        dictionary.removeValue(forKey: "__type")
+        dictionary.removeValue(forKey: "className")
+        return self.call(
+            application: application,
+            function,
+            parameters: dictionary,
+            completionQueue: completionQueue,
+            completion: completion)
     }
     
     @discardableResult

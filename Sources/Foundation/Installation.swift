@@ -99,7 +99,12 @@ public class LCInstallation: LCObject {
         self.apnsTeamId = apnsTeamId.lcString
     }
 
-    override func preferredBatchRequest(method: HTTPClient.Method, path: String, internalId: String) throws -> [String : Any]? {
+    override func preferredBatchRequest(
+        method: HTTPClient.Method,
+        path: String,
+        internalId: String)
+        throws -> [String : Any]?
+    {
         switch method {
         case .post, .put:
             var request: [String: Any] = [:]
@@ -112,6 +117,8 @@ public class LCInstallation: LCObject {
 
                 body.removeValue(forKey: "createdAt")
                 body.removeValue(forKey: "updatedAt")
+                body.removeValue(forKey: "__type")
+                body.removeValue(forKey: "className")
 
                 request["body"] = body
             }
@@ -140,12 +147,11 @@ public class LCInstallation: LCObject {
             LCInstallation.saveCurrentInstallation(self)
         }
     }
-
 }
 
-// MARK: Cache
-
 extension LCInstallation {
+    
+    // MARK: Cache
     
     struct CacheTable: Codable {
         let jsonString: String
@@ -195,15 +201,13 @@ extension LCInstallation {
             Logger.shared.error(error)
         }
     }
-    
 }
 
-// MARK: Device Token Conversion
+// MARK: Device Token Convertible
 
 public protocol LCDeviceTokenConvertible {
 
     var lcDeviceToken: LCString { get }
-
 }
 
 extension String: LCDeviceTokenConvertible {
@@ -211,7 +215,6 @@ extension String: LCDeviceTokenConvertible {
     public var lcDeviceToken: LCString {
         return lcString
     }
-
 }
 
 extension NSString: LCDeviceTokenConvertible {
@@ -219,7 +222,6 @@ extension NSString: LCDeviceTokenConvertible {
     public var lcDeviceToken: LCString {
         return (self as String).lcDeviceToken
     }
-
 }
 
 extension Data: LCDeviceTokenConvertible {
@@ -229,7 +231,6 @@ extension Data: LCDeviceTokenConvertible {
 
         return LCString(string)
     }
-
 }
 
 extension NSData: LCDeviceTokenConvertible {
@@ -237,5 +238,4 @@ extension NSData: LCDeviceTokenConvertible {
     public var lcDeviceToken: LCString {
         return (self as Data).lcDeviceToken
     }
-
 }
