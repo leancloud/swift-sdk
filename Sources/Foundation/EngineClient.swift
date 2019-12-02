@@ -8,48 +8,55 @@
 
 import Foundation
 
+/// LeanCloud Cloud Engine Client
 public class LCEngine {
     
-    /// call the cloud function synchronously
-    ///
+    /// Call the cloud function synchronously.
     /// - Parameters:
-    ///   - application: The application
-    ///   - function: The name of the function in the cloud
-    ///   - parameters: The parameters of the function
-    /// - Returns: The result of the function
+    ///   - application: The application.
+    ///   - function: The name of the function in the cloud.
+    ///   - parameters: The parameters passing to the function in the cloud.
     public static func run(
-        application: LCApplication = LCApplication.default,
+        application: LCApplication = .default,
         _ function: String,
         parameters: [String: Any]? = nil)
         -> LCGenericResult<Any>
     {
         return expect { (fulfill) in
-            self.run(application: application, function: function, parameters: parameters, completionInBackground: { (result) in
-                fulfill(result)
+            self.run(
+                application: application,
+                function: function,
+                parameters: parameters,
+                completionInBackground: { (result) in
+                    fulfill(result)
             })
         }
     }
     
-    /// call the cloud function asynchronously
-    ///
+    /// Call the cloud function asynchronously.
     /// - Parameters:
-    ///   - application: The application
-    ///   - function: The name of the function in the cloud
-    ///   - parameters: The parameters of the function
-    ///   - completion: The result of the callback
-    /// - Returns: The Request
+    ///   - application: The application.
+    ///   - function: The name of the function in the cloud.
+    ///   - parameters: The parameters passing to the function in the cloud.
+    ///   - completionQueue: The queue where the `completion` be executed, default is main.
+    ///   - completion: Result callback.
     @discardableResult
     public static func run(
-        application: LCApplication = LCApplication.default,
+        application: LCApplication = .default,
         _ function: String,
         parameters: [String: Any]? = nil,
+        completionQueue: DispatchQueue = .main,
         completion: @escaping (LCGenericResult<Any>) -> Void)
         -> LCRequest
     {
-        return self.run(application: application, function: function, parameters: parameters, completionInBackground: { (result) in
-            mainQueueAsync {
-                completion(result)
-            }
+        return self.run(
+            application: application,
+            function: function,
+            parameters: parameters,
+            completionInBackground: { (result) in
+                completionQueue.async {
+                    completion(result)
+                }
         })
     }
     
@@ -61,76 +68,81 @@ public class LCEngine {
         completionInBackground completion: @escaping (LCGenericResult<Any>) -> Void)
         -> LCRequest
     {
-        let httpClient: HTTPClient = application.httpClient
-        
-        let request = httpClient.request(.post, "functions/\(function)", parameters: parameters) { (response) in
+        return application.httpClient.request(
+            .post, "functions/\(function)",
+            parameters: parameters)
+        { (response) in
             if let error: Error = LCError(response: response) {
                 completion(.failure(error: LCError(error: error)))
             } else {
-                if let value = response.value as? [String: Any], let result = value["result"] {
+                if let result: Any = response["result"] {
                     completion(.success(value: result))
                 } else {
-                    let error = LCError(code: .invalidType, reason: "invalid response data type.")
-                    completion(.failure(error: error))
+                    completion(.failure(
+                        error: LCError(
+                            code: .invalidType,
+                            reason: "invalid response data type.")))
                 }
             }
         }
-        
-        return request
     }
     
-    /// call the cloud function by RPC synchronously
-    ///
+    /// RPC call the cloud function synchronously.
     /// - Parameters:
-    ///   - application: The application
-    ///   - function: The name of the function in the cloud
-    ///   - parameters: The parameters of the function
-    /// - Returns: The result of the function
+    ///   - application: The application.
+    ///   - function: The name of the function in the cloud.
+    ///   - parameters: The parameters passing to the function in the cloud.
     public static func call(
-        application: LCApplication = LCApplication.default,
+        application: LCApplication = .default,
         _ function: String,
         parameters: LCDictionaryConvertible? = nil)
         -> LCValueOptionalResult
     {
         return expect { (fulfill) in
-            self.call(application: application, function: function, parameters: parameters, completionInBackground: { (result) in
-                fulfill(result)
+            self.call(
+                application: application,
+                function: function,
+                parameters: parameters,
+                completionInBackground: { (result) in
+                    fulfill(result)
             })
         }
     }
     
-    /// call the cloud function by RPC asynchronously
-    ///
+    /// RPC call the cloud function asynchronously.
     /// - Parameters:
-    ///   - application: The application
-    ///   - function: The name of the function in the cloud
-    ///   - parameters: The parameters of the function
-    ///   - completion: The result of the callback
-    /// - Returns: The Request
+    ///   - application: The application.
+    ///   - function: The name of the function in the cloud.
+    ///   - parameters: The parameters passing to the function in the cloud.
+    ///   - completionQueue: The queue where the `completion` be executed, default is main.
+    ///   - completion: Result callback.
     @discardableResult
     public static func call(
-        application: LCApplication = LCApplication.default,
+        application: LCApplication = .default,
         _ function: String,
         parameters: LCDictionaryConvertible? = nil,
+        completionQueue: DispatchQueue = .main,
         completion: @escaping (LCValueOptionalResult) -> Void)
         -> LCRequest
     {
-        return self.call(application: application, function: function, parameters: parameters, completionInBackground: { (result) in
-            mainQueueAsync {
-                completion(result)
-            }
+        return self.call(
+            application: application,
+            function: function,
+            parameters: parameters,
+            completionInBackground: { (result) in
+                completionQueue.async {
+                    completion(result)
+                }
         })
     }
     
-    /// call the cloud function by RPC synchronously
-    ///
+    /// RPC call the cloud function synchronously.
     /// - Parameters:
-    ///   - application: The application
-    ///   - function: The name of the function in the cloud
-    ///   - parameters: The parameters of the function
-    /// - Returns: The result of the function
+    ///   - application: The application.
+    ///   - function: The name of the function in the cloud.
+    ///   - parameters: The parameters passing to the function in the cloud.
     public static func call(
-        application: LCApplication = LCApplication.default,
+        application: LCApplication = .default,
         _ function: String,
         parameters: LCObject)
         -> LCValueOptionalResult
@@ -144,19 +156,19 @@ public class LCEngine {
             parameters: dictionary)
     }
     
-    /// call the cloud function by RPC asynchronously
-    ///
+    /// RPC call the cloud function asynchronously.
     /// - Parameters:
-    ///   - application: The application
-    ///   - function: The name of the function in the cloud
-    ///   - parameters: The parameters of the function
-    ///   - completion: The result of the callback
-    /// - Returns: The Request
+    ///   - application: The application.
+    ///   - function: The name of the function in the cloud.
+    ///   - parameters: The parameters passing to the function in the cloud.
+    ///   - completionQueue: The queue where the `completion` be executed, default is main.
+    ///   - completion: Result callback.
     @discardableResult
     public static func call(
-        application: LCApplication = LCApplication.default,
+        application: LCApplication = .default,
         _ function: String,
         parameters: LCObject,
+        completionQueue: DispatchQueue = .main,
         completion: @escaping (LCValueOptionalResult) -> Void)
         -> LCRequest
     {
@@ -179,14 +191,13 @@ public class LCEngine {
         completionInBackground completion: @escaping (LCValueOptionalResult) -> Void)
         -> LCRequest
     {
-        let parameters = parameters?.lcDictionary.lconValue as? [String: Any]
-        
-        let request = application.httpClient.request(.post, "call/\(function)", parameters: parameters) { response in
-            let result = LCValueOptionalResult(response: response, keyPath: "result")
-            completion(result)
+        return application.httpClient.request(
+            .post, "call/\(function)",
+            parameters: parameters?.lcDictionary.lconValue as? [String: Any])
+        { response in
+            completion(LCValueOptionalResult(
+                response: response,
+                keyPath: "result"))
         }
-        
-        return request
     }
-    
 }
