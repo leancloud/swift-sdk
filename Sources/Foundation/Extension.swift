@@ -108,6 +108,7 @@ func ==(lhs: [LCDictionary.Key: LCDictionary.Value], rhs: [LCDictionary.Key: LCD
 }
 
 extension Dictionary {
+    
     init(elements: [Element]) {
         self.init()
 
@@ -133,47 +134,20 @@ extension Dictionary {
         return Dictionary<Key, T>(elements: elements)
     }
     
-    /*
-     Maybe you will think: Why use JSONSerialization encoding and decoding `Dictionary` ?
-     
-     Because a Swift Raw Data Type `[String: Any]` is Strong-Type-Checking.
-     
-     e.g.
-     ```
-     var dic: [String: Any] = ["foo": Int32(1)]
-     (dic["foo"] as? Int) == nil
-     (dic["foo"] as? Int32) == Optional(1)
-     ```
-     
-     But after JSONSerialization's encoding and decoding.
-     
-     The Swift Type `[String: Any]` has been converted to a Real JSON Object.
-     
-     ```
-     dic = try! dic.jsonObject()
-     (dic["foo"] as? Int) == Optional(1)
-     (dic["foo"] as? Int32) == Optional(1)
-     ```
-     
-     This will make data better for SDK to handle it.
-     */
     func jsonObject() throws -> [Key: Value]? {
-        let data: Data = try JSONSerialization.data(withJSONObject: self)
-        if let json: [Key: Value] = try JSONSerialization.jsonObject(with: data) as? [Key: Value] {
-            return json
-        } else {
-            return nil
-        }
+        return try JSONSerialization.jsonObject(with:
+            try JSONSerialization.data(withJSONObject: self))
+            as? [Key: Value]
     }
     
     func jsonString(
         using encoding: String.Encoding = .utf8,
         options: JSONSerialization.WritingOptions = [])
-        throws
-        -> String?
+        throws -> String?
     {
-        let data: Data = try JSONSerialization.data(withJSONObject: self, options: options)
-        return String(data: data, encoding: encoding)
+        return String(
+            data: try JSONSerialization.data(withJSONObject: self, options: options),
+            encoding: encoding)
     }
 }
 
@@ -222,17 +196,13 @@ extension String {
     func jsonObject<T>(
         using encoding: String.Encoding = .utf8,
         options: JSONSerialization.ReadingOptions = [])
-        throws
-        -> T?
+        throws -> T?
     {
-        guard !self.isEmpty else {
-            return nil
+        guard !self.isEmpty,
+            let data = self.data(using: encoding) else {
+                return nil
         }
-        if let data: Data = self.data(using: encoding) {
-            return try JSONSerialization.jsonObject(with: data, options: options) as? T
-        } else {
-            return nil
-        }
+        return try JSONSerialization.jsonObject(with: data, options: options) as? T
     }
 }
 
@@ -245,11 +215,11 @@ extension Sequence {
     func jsonString(
         using encoding: String.Encoding = .utf8,
         options: JSONSerialization.WritingOptions = [])
-        throws
-        -> String?
+        throws -> String?
     {
-        let data: Data = try JSONSerialization.data(withJSONObject: self, options: options)
-        return String(data: data, encoding: encoding)
+        return String(
+            data: try JSONSerialization.data(withJSONObject: self, options: options),
+            encoding: encoding)
     }
 }
 
@@ -303,7 +273,6 @@ extension LCError {
             self = LCError(error: error)
         }
     }
-
 }
 
 /**
