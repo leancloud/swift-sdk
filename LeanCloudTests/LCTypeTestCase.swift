@@ -56,6 +56,14 @@ class LCTypeTestCase: BaseTestCase {
         XCTAssertEqual(convert("foo") as? LCString, "foo")
         XCTAssertEqual(convert(NSString(string: "foo")) as? LCString, "foo")
     }
+    
+    func testArrayInit() {
+        let array1 = LCArray([42])
+        let array2 = LCArray(array1)
+        XCTAssertFalse(array1 === array2)
+        XCTAssertEqual(array1.value.count, array2.value.count)
+        XCTAssertEqual(array1.value.first as? LCNumber, array2.value.first as? LCNumber)
+    }
 
     func testArrayConvertible() {
         let date = Date()
