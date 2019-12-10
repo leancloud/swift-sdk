@@ -253,6 +253,7 @@ public class IMConversation {
                 caching: caching,
                 notifying: false)
         }
+        #if canImport(GRDB)
         if caching {
             do {
                 try client.localStorage?.insertOrReplace(
@@ -263,6 +264,7 @@ public class IMConversation {
                 Logger.shared.error(error)
             }
         }
+        #endif
     }
 
     private(set) var rawData: RawData
@@ -517,6 +519,7 @@ public class IMConversation {
         self._checkMuting(member: ID, completion: completion)
     }
 
+    #if canImport(GRDB)
     public func insertFailedMessageToCache(
         _ message: IMMessage,
         completion: @escaping (LCBooleanResult) -> Void)
@@ -532,6 +535,7 @@ public class IMConversation {
     {
         try self._removeFailedMessageFromCache(message, completion: completion)
     }
+    #endif
 }
 
 extension IMConversation: InternalSynchronizing {
@@ -727,6 +731,7 @@ extension IMConversation {
 
 }
 
+#if canImport(GRDB)
 extension IMConversation {
     // MARK: Failed Message Caching
 
@@ -778,6 +783,7 @@ extension IMConversation {
         }
     }
 }
+#endif
 
 extension IMConversation {
     // MARK: Message Reading
@@ -923,11 +929,13 @@ extension IMConversation {
                         newMessage.deliveredTimestamp = oldMessage.deliveredTimestamp
                         newMessage.readTimestamp = oldMessage.readTimestamp
                         self.safeUpdatingLastMessage(newMessage: newMessage, client: client)
+                        #if canImport(GRDB)
                         do {
                             try client.localStorage?.updateOrIgnore(message: newMessage)
                         } catch {
                             Logger.shared.error(error)
                         }
+                        #endif
                         client.eventQueue.async {
                             completion(.success)
                         }
@@ -983,11 +991,13 @@ extension IMConversation {
         self.safeUpdatingLastMessage(
             newMessage: patchedMessage,
             client: client)
+        #if canImport(GRDB)
         do {
             try client.localStorage?.updateOrIgnore(message: patchedMessage)
         } catch {
             Logger.shared.error(error)
         }
+        #endif
         var reason: IMMessage.PatchedReason?
         if patchItem.hasPatchCode || patchItem.hasPatchReason {
             reason = IMMessage.PatchedReason(
@@ -1132,8 +1142,10 @@ extension IMConversation {
     public enum MessageQueryPolicy {
         case `default`
         case onlyNetwork
+        #if canImport(GRDB)
         case onlyCache
         case cacheThenNetwork
+        #endif
     }
 
     /// Message Query.
@@ -1162,16 +1174,19 @@ extension IMConversation {
                 reason: "limit should in range \(IMConversation.limitRangeOfMessageQuery).")
         }
         var realPolicy: MessageQueryPolicy = policy
-        if [.transient, .temporary].contains(self.convType)
-            || type != nil {
+        if [.transient, .temporary].contains(self.convType) || type != nil {
             realPolicy = .onlyNetwork
         } else if realPolicy == .default {
+            #if canImport(GRDB)
             if let client = self.client,
                 client.options.contains(.usingLocalStorage) {
                 realPolicy = .cacheThenNetwork
             } else {
                 realPolicy = .onlyNetwork
             }
+            #else
+            realPolicy = .onlyNetwork
+            #endif
         }
         switch realPolicy {
         case .default:
@@ -1188,6 +1203,7 @@ extension IMConversation {
                     completion(result)
                 }
             }
+            #if canImport(GRDB)
         case .onlyCache:
             guard let client = self.client,
                 let localStorage = client.localStorage else {
@@ -1241,6 +1257,7 @@ extension IMConversation {
                     }
                 }
             }
+            #endif
         }
     }
 
@@ -1266,6 +1283,7 @@ extension IMConversation {
                 assert(client.specificAssertion)
                 do {
                     let messages = try self.handleMessageQueryResult(command: inCommand, client: client)
+                    #if canImport(GRDB)
                     if [.normal, .system].contains(self.convType),
                         let localStorage = client.localStorage {
                         do {
@@ -1274,6 +1292,7 @@ extension IMConversation {
                             Logger.shared.error(error)
                         }
                     }
+                    #endif
                     completion(client, .success(value: messages))
                 } catch {
                     completion(client, .failure(error: LCError(error: error)))
@@ -1284,6 +1303,7 @@ extension IMConversation {
         })
     }
 
+    #if canImport(GRDB)
     private func queryMessageOnlyCache(
         client: IMClient,
         localStorage: IMLocalStorage,
@@ -1308,6 +1328,7 @@ extension IMConversation {
             }
         }
     }
+    #endif
 
     private func messageQueryCommand(
         start: MessageQueryEndpoint?,
@@ -2155,7 +2176,9 @@ extension IMConversation {
             self.rawData.merge(data) { (_, new) in new }
             return self.rawData
         })
+        #if canImport(GRDB)
         self.tryUpdateLocalStorageData(client: client, rawData: rawData)
+        #endif
     }
 
     private func operationRawDataReplaced(data: RawData, client: IMClient) {
@@ -2166,6 +2189,7 @@ extension IMConversation {
         if let message = self.decodingLastMessage(data: data, client: client) {
             self.safeUpdatingLastMessage(newMessage: message, client: client)
         }
+        #if canImport(GRDB)
         do {
             try client.localStorage?.insertOrReplace(
                 conversationID: self.ID,
@@ -2174,6 +2198,7 @@ extension IMConversation {
         } catch {
             Logger.shared.error(error)
         }
+        #endif
     }
 
     private func needUpdateMembers(members: [String], updatedDateString: String?) -> Bool {
@@ -2215,11 +2240,13 @@ extension IMConversation {
         if let udateString: String = udate {
             self.safeUpdatingRawData(key: .updatedAt, value: udateString)
         }
+        #if canImport(GRDB)
         if let _ = client.localStorage {
             self.tryUpdateLocalStorageData(
                 client: client,
                 rawData: self.sync(self.rawData))
         }
+        #endif
     }
 
     private func operationRemove(members leftMembers: [String], udate: String?, client: IMClient) {
@@ -2240,6 +2267,7 @@ extension IMConversation {
         if let udate = udate {
             self.safeUpdatingRawData(key: .updatedAt, value: udate)
         }
+        #if canImport(GRDB)
         if let _ = client.localStorage {
             let tuple = self.sync((self.rawData, self._isOutdated))
             self.tryUpdateLocalStorageData(
@@ -2247,6 +2275,7 @@ extension IMConversation {
                 rawData: tuple.0,
                 outdated: tuple.1)
         }
+        #endif
         self.sync(closure: {
             if let _ = self._memberInfoTable {
                 for member in leftMembers {
@@ -2304,9 +2333,11 @@ extension IMConversation {
         }
         rawDataCopy[Key.updatedAt.rawValue] = udateString
         self.sync(self.rawData = rawDataCopy)
+        #if canImport(GRDB)
         self.tryUpdateLocalStorageData(
             client: client,
             rawData: rawDataCopy)
+        #endif
     }
 
     enum Operation {
@@ -2366,7 +2397,9 @@ extension IMConversation {
             self.updatingRawData(key: .updatedAt, value: udate)
             return self.rawData
         })
+        #if canImport(GRDB)
         self.tryUpdateLocalStorageData(client: client, rawData: rawData)
+        #endif
     }
 
     @discardableResult
@@ -2386,6 +2419,7 @@ extension IMConversation {
         var messageEvent: IMConversationEvent?
         let updatingLastMessageClosure: (Bool) -> Void = { isNewMessage in
             self.lastMessage = newMessage
+            #if canImport(GRDB)
             if caching,
                 self.convType != .temporary {
                 do {
@@ -2396,6 +2430,7 @@ extension IMConversation {
                     Logger.shared.error(error)
                 }
             }
+            #endif
             if notifying {
                 messageEvent = .lastMessageUpdated(newMessage: isNewMessage)
             }
@@ -2457,6 +2492,7 @@ extension IMConversation {
             mentionedMembers: IMConversation.decoding(key: .lastMessageMentionPids, from: data))
     }
 
+    #if canImport(GRDB)
     func tryUpdateLocalStorageData(client: IMClient, rawData: RawData? = nil, outdated: Bool? = nil) {
         guard let localStorage = client.localStorage else {
             return
@@ -2486,6 +2522,7 @@ extension IMConversation {
             Logger.shared.error(error)
         }
     }
+    #endif
 
     func safeDecodingRawData<T>(with key: Key) -> T? {
         return self.safeDecodingRawData(with: key.rawValue)
@@ -2560,6 +2597,7 @@ public class IMChatRoom: IMConversation {
         completion(.failure(error: LCError.conversationNotSupport(convType: type(of: self))))
     }
 
+    #if canImport(GRDB)
     @available(*, unavailable)
     public override func insertFailedMessageToCache(_ message: IMMessage, completion: @escaping (LCBooleanResult) -> Void) throws {
         throw LCError.conversationNotSupport(convType: type(of: self))
@@ -2569,6 +2607,7 @@ public class IMChatRoom: IMConversation {
     public override func removeFailedMessageFromCache(_ message: IMMessage, completion: @escaping (LCBooleanResult) -> Void) throws {
         throw LCError.conversationNotSupport(convType: type(of: self))
     }
+    #endif
 
     /// Get count of online clients in this Chat Room.
     ///
@@ -2886,6 +2925,7 @@ public class IMTemporaryConversation: IMConversation {
         completion(.failure(error: LCError.conversationNotSupport(convType: type(of: self))))
     }
 
+    #if canImport(GRDB)
     @available(*, unavailable)
     public override func insertFailedMessageToCache(_ message: IMMessage, completion: @escaping (LCBooleanResult) -> Void) throws {
         throw LCError.conversationNotSupport(convType: type(of: self))
@@ -2895,6 +2935,7 @@ public class IMTemporaryConversation: IMConversation {
     public override func removeFailedMessageFromCache(_ message: IMMessage, completion: @escaping (LCBooleanResult) -> Void) throws {
         throw LCError.conversationNotSupport(convType: type(of: self))
     }
+    #endif
 
     /// Refresh temporary conversation's data.
     ///

@@ -55,7 +55,9 @@ public class IMClient {
     
     let connectionDelegator: RTMConnection.Delegator
     
+    #if canImport(GRDB)
     private(set) var localStorage: IMLocalStorage?
+    #endif
     
     /// The client delegate.
     public weak var delegate: IMClientDelegate?
@@ -106,16 +108,22 @@ public class IMClient {
         }
         
         /// Default option is `receiveUnreadMessageCountAfterSessionDidOpen`.
-        public static let `default`: Options = [
-            .receiveUnreadMessageCountAfterSessionDidOpen,
-            .usingLocalStorage
-        ]
+        public static let `default`: Options = {
+            #if canImport(GRDB)
+            return [.receiveUnreadMessageCountAfterSessionDidOpen,
+                    .usingLocalStorage]
+            #else
+            return [.receiveUnreadMessageCountAfterSessionDidOpen]
+            #endif
+        }()
         
         /// Receive unread message count after session did open.
         public static let receiveUnreadMessageCountAfterSessionDidOpen = Options(rawValue: 1 << 0)
         
+        #if canImport(GRDB)
         /// Use local storage.
         public static let usingLocalStorage = Options(rawValue: 1 << 1)
+        #endif
         
         var lcimProtocol: RTMConnection.LCIMProtocol {
             if contains(.receiveUnreadMessageCountAfterSessionDidOpen) {
@@ -202,6 +210,7 @@ public class IMClient {
                 self.underlyingLocalRecord = localRecord
             }
             
+            #if canImport(GRDB)
             if options.contains(.usingLocalStorage) {
                 let databaseURL = try localStorageContext.fileURL(
                     place: .persistentData,
@@ -215,6 +224,7 @@ public class IMClient {
                     initialize success.
                     """)
             }
+            #endif
         }
         
         // directly init `connection` is better, lazy init is not a good choice.
@@ -936,6 +946,7 @@ extension IMClient {
 
 // MARK: Local Storage
 
+#if canImport(GRDB)
 extension IMClient {
     
     /// Open database of the local storage.
@@ -1059,6 +1070,7 @@ extension IMClient {
     }
     
 }
+#endif
 
 // MARK: Internal
 
@@ -1300,7 +1312,9 @@ extension IMClient {
             if let invalidLocalConvCache = droppable["invalidLocalConvCache"] as? Bool, invalidLocalConvCache {
                 for conv in convsSnapshot {
                     conv.isOutdated = true
+                    #if canImport(GRDB)
                     conv.tryUpdateLocalStorageData(client: self, outdated: true)
+                    #endif
                 }
             } else if let notifications = droppable["notifications"] as? [[String: Any]] {
                 mapReduce(notifications)
@@ -1848,7 +1862,9 @@ extension IMClient {
                     let _ = self.validInFetchingNotificationsCachedConvMapSnapshot?[conversationID]
                 {
                     conversation.isOutdated = true
+                    #if canImport(GRDB)
                     conversation.tryUpdateLocalStorageData(client: client, outdated: true)
+                    #endif
                 }
                 if let event: IMConversationEvent = tuple.event {
                     client.eventQueue.async {
