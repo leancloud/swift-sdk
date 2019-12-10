@@ -436,6 +436,7 @@ class IMClientTestCase: RTMBaseTestCase {
         wait(for: [queryExp2], timeout: timeout)
     }
     
+    #if canImport(GRDB)
     func testPrepareLocalStorage() {
         expecting { (exp) in
             let notUseLocalStorageClient = try! IMClient(ID: uuid, options: [])
@@ -582,7 +583,7 @@ class IMClientTestCase: RTMBaseTestCase {
         
         XCTAssertEqual(client.convCollection.count, 2)
     }
-
+    #endif
 }
 
 extension IMClientTestCase {
