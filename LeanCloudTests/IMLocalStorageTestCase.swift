@@ -10,7 +10,7 @@ import XCTest
 @testable import LeanCloud
 
 class IMLocalStorageTestCase: RTMBaseTestCase {
-    
+    #if canImport(GRDB)
     func testInitAndDeinit() {
         var client: IMClient! = clientUsingLocalStorage()
         XCTAssertNotNil(client.localStorage)
@@ -835,8 +835,10 @@ class IMLocalStorageTestCase: RTMBaseTestCase {
             exp.fulfill()
         }
     }
+    #endif
 }
 
+#if canImport(GRDB)
 extension IMLocalStorageTestCase {
     
     func clientUsingLocalStorage() -> IMClient {
@@ -853,5 +855,5 @@ extension IMLocalStorageTestCase {
             }
         }
     }
-    
 }
+#endif
