@@ -65,6 +65,14 @@ class LCTypeTestCase: BaseTestCase {
             LCArray([42, true, NSNull(), [String: String](), [String](), Data(), date, object]),
             try LCArray(unsafeObject: [42, true, NSNull(), [String: String](), [String](), Data(), date, object]))
     }
+    
+    func testArrayLiteral() {
+        let _: LCArray = ["a"]
+        let _: LCArray = ["a", 1]
+        let _: LCArray = ["a", LCNumber(1)]
+        let _: LCArray = [LCString("a"), 1]
+        let _: LCArray = [LCString("a"), LCNumber(1)]
+    }
 
     func testDictionaryConvertible() {
         let date = Date()

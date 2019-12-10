@@ -11,12 +11,25 @@ import XCTest
 
 class LCEngineTestCase: BaseTestCase {
     
-    func testEngineFunction() {
-        XCTAssertEqual(LCEngine.run("test").value as? String, "test")
+    func testFunction() {
+        let result = LCEngine.run("test")
+        XCTAssertEqual(result.value as? String, "test")
+        XCTAssertNil(result.error)
     }
     
-    func testEngineRPC() {
-        XCTAssertTrue(LCEngine.call("test").isSuccess)
+    func testError() {
+        let result = LCEngine.run("error")
+        XCTAssertNil(result.value)
+        XCTAssertNotNil(LCEngine.run("error").error)
     }
-
+    
+    func testGetOnOffStatus() {
+        let result = LCEngine.run(
+            "getOnOffStatus",
+            parameters: ["peerIds":
+                ["FCA6CAA7E5A14748BA25DE46EC1B66C8",
+                 UUID().uuidString]])
+        XCTAssertEqual((result.value as? [Any])?.count, 2)
+        XCTAssertNil(result.error)
+    }
 }
