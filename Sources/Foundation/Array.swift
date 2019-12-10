@@ -8,12 +8,8 @@
 
 import Foundation
 
-/**
- LeanCloud list type.
-
- It is a wrapper of `Swift.Array` type, used to store a list of objects.
- */
-public final class LCArray: NSObject, LCValue, LCValueExtension, Collection, ExpressibleByArrayLiteral {
+/// LeanCloud List Type
+public class LCArray: NSObject, LCValue, Collection, ExpressibleByArrayLiteral {
     public typealias Index = Int
     public typealias Element = LCValue
 
@@ -30,53 +26,51 @@ public final class LCArray: NSObject, LCValue, LCValueExtension, Collection, Exp
 
     public convenience init(_ value: [LCValueConvertible]) {
         self.init()
-        self.value = value.map { element in element.lcValue }
+        self.value = value.map { $0.lcValue }
     }
 
-    public convenience required init(arrayLiteral elements: Element...) {
+    public convenience required init(arrayLiteral elements: LCValueConvertible...) {
         self.init(elements)
     }
 
     public convenience init(
-        application: LCApplication = LCApplication.default,
+        application: LCApplication = .default,
         unsafeObject: Any)
         throws
     {
         self.init()
-
         guard let object = unsafeObject as? [Any] else {
             throw LCError(
                 code: .malformedData,
-                reason: "Failed to construct LCArray with non-array object.")
+                reason: "Failed to construct \(LCArray.self) with a \(type(of: unsafeObject)) object.")
         }
-
-        value = try object.map { element in
+        self.value = try object.map { element in
             try ObjectProfiler.shared.object(application: application, jsonValue: element)
         }
     }
 
     public required init?(coder aDecoder: NSCoder) {
-        value = (aDecoder.decodeObject(forKey: "value") as? [Element]) ?? []
+        self.value = (aDecoder.decodeObject(forKey: "value") as? [Element]) ?? []
     }
 
     public func encode(with aCoder: NSCoder) {
-        aCoder.encode(value, forKey: "value")
+        aCoder.encode(self.value, forKey: "value")
     }
 
     public func copy(with zone: NSZone?) -> Any {
-        return LCArray(value)
+        return LCArray(self.value)
     }
 
     public override func isEqual(_ object: Any?) -> Bool {
         if let object = object as? LCArray {
-            return object === self || object.value == value
+            return object === self || object.value == self.value
         } else {
             return false
         }
     }
 
     public func makeIterator() -> IndexingIterator<[Element]> {
-        return value.makeIterator()
+        return self.value.makeIterator()
     }
 
     public var startIndex: Int {
@@ -84,83 +78,96 @@ public final class LCArray: NSObject, LCValue, LCValueExtension, Collection, Exp
     }
 
     public var endIndex: Int {
-        return value.count
+        return self.value.count
     }
 
     public func index(after i: Int) -> Int {
-        return value.index(after: i)
+        return self.value.index(after: i)
     }
 
     public subscript(index: Int) -> LCValue {
-        get { return value[index] }
+        get {
+            return self.value[index]
+        }
     }
 
     public var jsonValue: Any {
-        return value.map { element in element.jsonValue }
-    }
-
-    func formattedJSONString(indentLevel: Int, numberOfSpacesForOneIndentLevel: Int = 4) -> String {
-        if value.isEmpty {
-            return "[]"
-        }
-
-        let lastIndent = " " * (numberOfSpacesForOneIndentLevel * indentLevel)
-        let bodyIndent = " " * (numberOfSpacesForOneIndentLevel * (indentLevel + 1))
-        let body = value
-            .map { value in (value as! LCValueExtension).formattedJSONString(indentLevel: indentLevel + 1, numberOfSpacesForOneIndentLevel: numberOfSpacesForOneIndentLevel) }
-            .joined(separator: ",\n" + bodyIndent)
-
-        return "[\n\(bodyIndent)\(body)\n\(lastIndent)]"
+        return self.value.map { $0.jsonValue }
     }
 
     public var jsonString: String {
-        return formattedJSONString(indentLevel: 0)
+        return self.formattedJSONString(indentLevel: 0)
     }
 
     public var rawValue: Any {
-        let v: [Any] = self.value.map { element in element.rawValue }
-        return v
+        return self.value.map { $0.rawValue }
     }
+}
 
+extension LCArray: LCValueExtension {
+    
     var lconValue: Any? {
-        return value.compactMap { element in (element as? LCValueExtension)?.lconValue }
+        return self.value.compactMap { ($0 as? LCValueExtension)?.lconValue }
     }
     
     static func instance(application: LCApplication) -> LCValue {
-        return self.init([])
+        return self.init()
     }
-
+    
     func forEachChild(_ body: (_ child: LCValue) throws -> Void) rethrows {
-        try forEach { element in try body(element) }
+        try forEach { try body($0) }
     }
-
+    
     func add(_ other: LCValue) throws -> LCValue {
-        throw LCError(code: .invalidType, reason: "Object cannot be added.")
+        throw LCError(
+            code: .invalidType,
+            reason: "\(LCArray.self) cannot do `add(_:)`.")
     }
-
+    
     func concatenate(_ other: LCValue, unique: Bool) throws -> LCValue {
-        let result   = LCArray(value)
-        let elements = (other as! LCArray).value
-
+        guard let elements = (other as? LCArray)?.value else {
+            throw LCError(
+                code: .invalidType,
+                reason: "\(LCArray.self) cannot do `concatenate(_:unique:)` with a \(type(of: other)) object.")
+        }
+        let result = LCArray(self.value)
         result.concatenateInPlace(elements, unique: unique)
-
         return result
     }
-
+    
     func concatenateInPlace(_ elements: [Element], unique: Bool) {
-        value = unique ? (value +~ elements) : (value + elements)
+        self.value = unique
+            ? (self.value +~ elements)
+            : (self.value + elements)
     }
-
+    
     func differ(_ other: LCValue) throws -> LCValue {
-        let result   = LCArray(value)
-        let elements = (other as! LCArray).value
-
+        guard let elements = (other as? LCArray)?.value else {
+            throw LCError(
+                code: .invalidType,
+                reason: "\(LCArray.self) cannot do `differ(_:)` with a \(type(of: other)) object.")
+        }
+        let result = LCArray(self.value)
         result.differInPlace(elements)
-
         return result
     }
-
+    
     func differInPlace(_ elements: [Element]) {
-        value = value - elements
+        self.value = (self.value - elements)
+    }
+    
+    func formattedJSONString(indentLevel: Int, numberOfSpacesForOneIndentLevel: Int = 4) -> String {
+        if self.value.isEmpty {
+            return "[]"
+        }
+        let lastIndent = " " * (numberOfSpacesForOneIndentLevel * indentLevel)
+        let bodyIndent = " " * (numberOfSpacesForOneIndentLevel * (indentLevel + 1))
+        let body = self.value
+            .compactMap {
+                ($0 as? LCValueExtension)?.formattedJSONString(
+                    indentLevel: indentLevel + 1,
+                    numberOfSpacesForOneIndentLevel: numberOfSpacesForOneIndentLevel) }
+            .joined(separator: ",\n" + bodyIndent)
+        return "[\n\(bodyIndent)\(body)\n\(lastIndent)]"
     }
 }
