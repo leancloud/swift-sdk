@@ -368,7 +368,7 @@ open class IMCategorizedMessage: IMMessage, IMMessageCategorizing {
         try super.set(content: content)
     }
     
-    var rawData: [String: Any] = [:]
+    public internal(set) var rawData: [String: Any] = [:]
     
     /// Get and set value via subscript syntax.
     public subscript(key: String) -> Any? {
