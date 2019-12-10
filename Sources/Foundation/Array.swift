@@ -28,6 +28,11 @@ public class LCArray: NSObject, LCValue, Collection, ExpressibleByArrayLiteral {
         self.init()
         self.value = value.map { $0.lcValue }
     }
+    
+    public convenience init(_ array: LCArray) {
+        self.init()
+        self.value = array.value
+    }
 
     public convenience required init(arrayLiteral elements: LCValueConvertible...) {
         self.init(elements)
