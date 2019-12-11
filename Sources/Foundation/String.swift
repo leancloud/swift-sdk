@@ -27,6 +27,11 @@ public final class LCString: NSObject, LCValue, LCValueExtension, ExpressibleByS
         self.init()
         self.value = value
     }
+    
+    public convenience init(_ string: LCString) {
+        self.init()
+        self.value = string.value
+    }
 
     public convenience required init(unicodeScalarLiteral value: UnicodeScalarLiteralType) {
         self.init(String(value))
