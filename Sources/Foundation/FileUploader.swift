@@ -211,14 +211,18 @@ class FileUploader {
         static private func getMIMEType(filenameExtension: String) -> String? {
             if filenameExtension.isEmpty {
                 return nil
-            } else if
-                let uti = UTTypeCreatePreferredIdentifierForTag(kUTTagClassFilenameExtension, filenameExtension as CFString, nil)?.takeRetainedValue(),
-                let mimeType = UTTypeCopyPreferredTagWithClass(uti, kUTTagClassMIMEType)?.takeRetainedValue()
-            {
-                return mimeType as String
-            } else {
-                return nil
             }
+            #if canImport(MobileCoreServices)
+            if let uti = UTTypeCreatePreferredIdentifierForTag(
+                kUTTagClassFilenameExtension, filenameExtension as CFString, nil)?
+                .takeRetainedValue(),
+                let mimeType = UTTypeCopyPreferredTagWithClass(
+                    uti, kUTTagClassMIMEType)?
+                    .takeRetainedValue() {
+                return mimeType as String
+            }
+            #endif
+            return nil
         }
 
         static func getMIMEType(filename: String?) -> String? {

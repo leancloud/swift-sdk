@@ -153,6 +153,22 @@ public class LCFile: LCObject {
         })
     }
 
+    func paddingInfo(from remoteURL: LCString) {
+        if let metaData = self.metaData {
+            metaData["__source"] = "external"
+        } else {
+            self.metaData = LCDictionary(["__source": "external"])
+        }
+        if self.name == nil {
+            self.name = LCString((remoteURL.value as NSString).lastPathComponent)
+        }
+        if self.mimeType == nil {
+            if let mimeType = FileUploader.FileAttributes.getMIMEType(filename: self.name?.value) {
+                self.mimeType = LCString(mimeType)
+            }
+        }
+    }
+    
     /**
      Save current file and call handler in background thread.
 
@@ -184,21 +200,7 @@ public class LCFile: LCObject {
                 self.handleUploadResult(result, completion: completion)
             })
         } else if let remoteURL = url {
-            if let metaData = self.metaData {
-                metaData["__source"] = "external".lcString
-            } else {
-                self.metaData = LCDictionary(["__source": "external".lcString])
-            }
-            
-            if self.name == nil {
-                self.name = (remoteURL.value as NSString).lastPathComponent.lcString
-            }
-            
-            if self.mimeType == nil {
-                if let mimeType = FileUploader.FileAttributes.getMIMEType(filename: self.name?.value) {
-                    self.mimeType = mimeType.lcString
-                }
-            }
+            self.paddingInfo(from: remoteURL)
             
             var parameters = dictionary.jsonValue as? [String: Any]
             parameters?.removeValue(forKey: "__type")

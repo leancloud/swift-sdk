@@ -124,20 +124,40 @@ class LCFileTestCase: BaseTestCase {
         }
     }
     
-    func testObjectAssociateFile() {
+    func testObjectPointFile() {
         do {
             let file = LCFile(
                 payload: .fileURL(
                     fileURL: bundleResourceURL(name: "test", ext: "jpg")))
             XCTAssertTrue(file.save().isSuccess)
+            
             let object = LCObject(className: "AssociateFile")
             try object.set("image", value: file)
             XCTAssertTrue(object.save().isSuccess)
-            let fetchObject = LCObject(className: "AssociateFile", objectId: object.objectId!.value)
+            
+            let fetchObject = LCObject(className: "AssociateFile", objectId: object.objectId!)
             XCTAssertTrue(fetchObject.fetch().isSuccess)
             XCTAssertTrue(fetchObject["image"] is LCFile)
         } catch {
             XCTFail("\(error)")
         }
+    }
+    
+    func testObjectPointNewFile() {
+        let object1 = TestObject()
+        object1.fileField = LCFile(url: "https://example.com/image.png")
+        XCTAssertTrue(object1.save().isSuccess)
+        
+        let file = LCFile(objectId: object1.fileField!.objectId!)
+        XCTAssertTrue(file.fetch().isSuccess)
+        XCTAssertNotNil(file.metaData)
+        XCTAssertNotNil(file.mimeType)
+        XCTAssertNotNil(file.name)
+        
+        let object2 = TestObject()
+        object2.fileField = LCFile(
+            payload: .fileURL(
+                fileURL: bundleResourceURL(name: "test", ext: "jpg")))
+        XCTAssertNotNil(object2.save().error)
     }
 }
