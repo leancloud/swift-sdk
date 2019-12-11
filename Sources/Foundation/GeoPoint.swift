@@ -42,6 +42,12 @@ public final class LCGeoPoint: NSObject, LCValue, LCValueExtension {
         self.latitude = latitude
         self.longitude = longitude
     }
+    
+    public convenience init(_ geoPoint: LCGeoPoint) {
+        self.init()
+        self.latitude = geoPoint.latitude
+        self.longitude = geoPoint.longitude
+    }
 
     init?(dictionary: [String: Any]) {
         guard let type = dictionary["__type"] as? String else {

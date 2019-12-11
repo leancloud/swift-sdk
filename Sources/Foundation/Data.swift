@@ -28,9 +28,14 @@ public final class LCData: NSObject, LCValue, LCValueExtension {
         super.init()
     }
 
-    public convenience init(_ data: Data) {
+    public convenience init(_ value: Data) {
         self.init()
-        value = data
+        self.value = value
+    }
+    
+    public convenience init(_ data: LCData) {
+        self.init()
+        self.value = data.value
     }
 
     init?(base64EncodedString: String) {

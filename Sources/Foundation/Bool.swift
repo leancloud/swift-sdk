@@ -24,6 +24,11 @@ public final class LCBool: NSObject, LCValue, LCValueExtension, ExpressibleByBoo
         self.init()
         self.value = value
     }
+    
+    public convenience init(_ bool: LCBool) {
+        self.init()
+        self.value = bool.value
+    }
 
     public convenience required init(booleanLiteral value: BooleanLiteralType) {
         self.init(value)

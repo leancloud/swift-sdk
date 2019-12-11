@@ -39,9 +39,14 @@ public final class LCDate: NSObject, LCValue, LCValueExtension {
         super.init()
     }
 
-    public convenience init(_ date: Date) {
+    public convenience init(_ value: Date) {
         self.init()
-        value = date
+        self.value = value
+    }
+    
+    public convenience init(_ date: LCDate) {
+        self.init()
+        self.value = date.value
     }
 
     init?(isoString: String) {

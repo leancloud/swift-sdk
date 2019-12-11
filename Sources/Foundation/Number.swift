@@ -24,6 +24,11 @@ public final class LCNumber: NSObject, LCValue, LCValueExtension, ExpressibleByF
         self.init()
         self.value = value
     }
+    
+    public convenience init(_ number: LCNumber) {
+        self.init()
+        self.value = number.value
+    }
 
     public convenience required init(floatLiteral value: FloatLiteralType) {
         self.init(value)

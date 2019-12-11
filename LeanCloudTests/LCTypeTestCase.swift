@@ -32,6 +32,7 @@ class LCTypeTestCase: BaseTestCase {
     func testBoolConvertible() {
         XCTAssertEqual(convert(true) as? LCBool, true)
         XCTAssertEqual(LCBool(true).boolValue, true)
+        XCTAssertFalse(LCBool(LCBool()).value)
     }
 
     func testIntegerConvertible() {
@@ -50,11 +51,13 @@ class LCTypeTestCase: BaseTestCase {
     func testFloatConvertible() {
         XCTAssertEqual(convert(Float(42))  as? LCNumber, 42)
         XCTAssertEqual(convert(Double(42)) as? LCNumber, 42)
+        XCTAssertEqual(LCNumber(), LCNumber(LCNumber()))
     }
 
     func testStringConvertible() {
         XCTAssertEqual(convert("foo") as? LCString, "foo")
         XCTAssertEqual(convert(NSString(string: "foo")) as? LCString, "foo")
+        XCTAssertEqual(LCString(), LCString(LCString()))
     }
     
     func testArrayInit() {
@@ -102,11 +105,17 @@ class LCTypeTestCase: BaseTestCase {
     func testDataConvertible() {
         let data = Data()
         XCTAssertEqual(convert(data) as? LCData, LCData(data))
+        XCTAssertTrue(LCData(LCData()).value.isEmpty)
     }
 
     func testDateConvertible() {
         let date = Date()
         XCTAssertEqual(convert(date) as? LCDate, LCDate(date))
+        XCTAssertEqual(LCDate(date), LCDate(LCDate(date)))
+    }
+    
+    func testGeoPoint() {
+        XCTAssertEqual(LCGeoPoint(), LCGeoPoint(LCGeoPoint()))
     }
 
     func archiveThenUnarchive<T>(_ object: T) -> T {
