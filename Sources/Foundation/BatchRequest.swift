@@ -35,43 +35,24 @@ class BatchRequest {
     }
 
     func getBody(internalId: String) -> [String: Any] {
-        var body: [String: Any] = [:]
-
-        body["__internalId"] = internalId
-
+        var body: [String: Any] = ["__internalId": internalId]
         var children: [(String, LCObject)] = []
-
-        operationTable?.forEach { (key, operation) in
-            switch operation.name {
-            case .set:
-                /* If object is newborn, put it in __children field. */
-                if let child = operation.value as? LCObject {
-                    if !child.hasObjectId {
-                        children.append((key, child))
-                        break
-                    }
-                }
-
-                body[key] = operation.lconValue
-            default:
+        self.operationTable?.forEach { (key, operation) in
+            if case .set = operation.name,
+                let child = operation.value as? LCObject,
+                !child.hasObjectId {
+                children.append((key, child))
+            } else {
                 body[key] = operation.lconValue
             }
         }
-
-        if children.count > 0 {
-            var list: [Any] = []
-
-            children.forEach { (key, child) in
-                list.append([
-                    "className": child.actualClassName,
-                    "cid": child.internalId,
-                    "key": key
-                ])
+        if !children.isEmpty {
+            body["__children"] = children.map { (key, child) -> [String: String] in
+                ["className": child.actualClassName,
+                 "cid": child.internalId,
+                 "key": key]
             }
-
-            body["__children"] = list
         }
-
         return body
     }
 
