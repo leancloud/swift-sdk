@@ -52,6 +52,15 @@ class ObjectUpdater {
         let toposort = try ObjectProfiler.shared.toposort(objects)
 
         try toposort.forEach { object in
+            if !object.hasObjectId,
+                let file = object as? LCFile {
+                guard let remoteURL = file.url else {
+                    throw LCError(
+                        code: .notFound,
+                        reason: "External URL not found.")
+                }
+                file.paddingInfo(from: remoteURL)
+            }
             requests.append(contentsOf: try BatchRequestBuilder.buildRequests(object, parameters: parameters))
         }
 
