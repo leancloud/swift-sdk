@@ -21,11 +21,13 @@ class LCObjectTestCase: BaseTestCase {
         XCTAssertNil(wObject)
     }
 
-    func testSaveObject() {
+    func testSave() {
         let object = TestObject()
 
         XCTAssertTrue(object.save().isSuccess)
         XCTAssertNotNil(object.objectId)
+        
+        XCTAssertTrue(object.save().isSuccess)
     }
     
     func testSaveObjectWithOption() {
@@ -90,7 +92,7 @@ class LCObjectTestCase: BaseTestCase {
         XCTAssertNotNil(newbornOrphan5.objectId)
     }
 
-    func testBatchSave() {
+    func testSaveObjects() {
         let object1 = TestObject()
         let object2 = TestObject()
 
@@ -115,6 +117,8 @@ class LCObjectTestCase: BaseTestCase {
         XCTAssertNotNil(object4.objectId)
         XCTAssertNotNil(newbornOrphan1.objectId)
         XCTAssertNotNil(newbornOrphan2.objectId)
+        
+        XCTAssertTrue(LCObject.save([]).isSuccess)
     }
 
     func testPrimitiveProperty() {
@@ -240,6 +244,8 @@ class LCObjectTestCase: BaseTestCase {
         XCTAssertEqual(LCError.InternalErrorCode(rawValue: LCObject.fetch([object, newborn]).error!._code), .notFound)
         XCTAssertEqual(LCError.ServerErrorCode(rawValue: LCObject.fetch([object, notFound]).error!._code), .objectNotFound)
         XCTAssertTrue(LCObject.fetch([object, child]).isSuccess)
+        
+        XCTAssertTrue(LCObject.fetch([]).isSuccess)
     }
     
     func testFetchWithKeys() {
@@ -272,7 +278,7 @@ class LCObjectTestCase: BaseTestCase {
         XCTAssertTrue(object.fetch().isFailure)
     }
 
-    func testDeleteAll() {
+    func testDeleteObjects() {
         let object1 = TestObject()
         let object2 = TestObject()
 
@@ -289,6 +295,8 @@ class LCObjectTestCase: BaseTestCase {
         XCTAssertTrue(LCObject.delete([object1, object2]).isSuccess)
         XCTAssertFalse(shadow1.save().isSuccess)
         XCTAssertFalse(shadow2.save().isSuccess)
+        
+        XCTAssertTrue(LCObject.delete([]).isSuccess)
     }
 
     func testKVO() {

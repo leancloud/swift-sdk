@@ -62,44 +62,39 @@ class ObjectUpdater {
         return jsonRequests
     }
 
-    /**
-     Send a list of batch requests synchronously.
-
-     - parameter requests: A list of batch requests.
-     - returns: The response of request.
-     */
-    private static func saveInOneBatchRequest(_ objects: [LCObject], parameters: [String: Any]?, completionInBackground completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
-        let httpClient: HTTPClient = (objects.first?.application ?? LCApplication.default).httpClient
-        
-        var requests: [Any]
-
+    private static func saveInOneBatchRequest(
+        _ objects: [LCObject],
+        parameters: [String: Any]?,
+        completionInBackground completion: @escaping (LCBooleanResult) -> Void)
+        -> LCRequest
+    {
+        let httpClient: HTTPClient = (objects.first?.application ?? .default).httpClient
+        guard !objects.isEmpty else {
+            return httpClient.request(object: .success, completionHandler: completion)
+        }
         do {
-            requests = try createSaveBatchRequests(objects: objects, parameters: parameters)
-        } catch let error {
+            let requests = try createSaveBatchRequests(objects: objects, parameters: parameters)
+            if requests.isEmpty {
+                return httpClient.request(object: .success, completionHandler: completion)
+            } else {
+                return httpClient.request(
+                    .post, "batch/save",
+                    parameters: ["requests": requests])
+                { response in
+                    let result = LCBooleanResult(response: response)
+                    if case .success = result {
+                        self.updateObjects(objects, response)
+                        objects.forEach { object in
+                            object.discardChanges()
+                            object.objectDidSave()
+                        }
+                    }
+                    completion(result)
+                }
+            }
+        } catch {
             return httpClient.request(error: error, completionHandler: completion)
         }
-
-        let parameters = ["requests": requests]
-
-        let request = httpClient.request(.post, "batch/save", parameters: parameters) { response in
-            let result = LCBooleanResult(response: response)
-
-            switch result {
-            case .success:
-                updateObjects(objects, response)
-
-                objects.forEach { object in
-                    object.discardChanges()
-                    object.objectDidSave()
-                }
-            case .failure:
-                break
-            }
-
-            completion(result)
-        }
-
-        return request
     }
 
     /**
@@ -209,37 +204,33 @@ class ObjectUpdater {
 
         return sequenceRequest
     }
-
-    /**
-     Delete a batch of objects in one request synchronously.
-
-     - parameter objects: An array of objects to be deleted.
-
-     - returns: The response of deletion request.
-     */
-    static func delete(_ objects: [LCObject], completionInBackground completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
-        let httpClient: HTTPClient = (objects.first?.application ?? LCApplication.default).httpClient
-        
-        if objects.isEmpty {
-            return httpClient.request(object: .success) { result in
-                completion(result)
+    
+    static func delete(
+        _ objects: [LCObject],
+        completionInBackground completion: @escaping (LCBooleanResult) -> Void)
+        -> LCRequest
+    {
+        let httpClient: HTTPClient = (objects.first?.application ?? .default).httpClient
+        guard !objects.isEmpty else {
+            return httpClient.request(object: .success, completionHandler: completion)
+        }
+        do {
+            let requests = try objects.unique.map { object in
+                try BatchRequest(object: object, method: .delete)
+                    .jsonValue()
             }
-        } else {
-            var requests: [Any]
-
-            do {
-                requests = try objects.unique.map { object in
-                    try BatchRequest(object: object, method: .delete).jsonValue()
+            if requests.isEmpty {
+                return httpClient.request(object: .success, completionHandler: completion)
+            } else {
+                return httpClient.request(
+                    .post, "batch",
+                    parameters: ["requests": requests])
+                { response in
+                    completion(LCBooleanResult(response: response))
                 }
-            } catch let error {
-                return httpClient.request(error: error, completionHandler: completion)
             }
-
-            let parameters = ["requests": requests]
-
-            return httpClient.request(.post, "batch", parameters: parameters) { response in
-                completion(LCBooleanResult(response: response))
-            }
+        } catch {
+            return httpClient.request(error: error, completionHandler: completion)
         }
     }
 
@@ -305,50 +296,38 @@ class ObjectUpdater {
             return result
         }
     }
-
-    /**
-     Fetch multiple objects in one request synchronously.
-
-     - parameter objects: An array of objects to be fetched.
-
-     - returns: The response of fetching request.
-     */
-    static func fetch(_ objects: [LCObject], keys: [String]?, completionInBackground completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
-        let httpClient: HTTPClient = (objects.first?.application ?? LCApplication.default).httpClient
-        
-        if objects.isEmpty {
-            return httpClient.request(object: .success) { result in
-                completion(result)
+    
+    static func fetch(
+        _ objects: [LCObject],
+        keys: [String]?,
+        completionInBackground completion: @escaping (LCBooleanResult) -> Void)
+        -> LCRequest
+    {
+        let httpClient: HTTPClient = (objects.first?.application ?? .default).httpClient
+        guard !objects.isEmpty else {
+            return httpClient.request(object: .success, completionHandler: completion)
+        }
+        do {
+            var keysParameters: [String: Any]?
+            if let keys = keys {
+                keysParameters = ["keys": keys.joined(separator: ",")]
             }
-        } else {
-            var requests: [Any]
-
-            do {
-                var onlyIncludeKeys: [String: Any]?
-                if let keys: [String] = keys {
-                    onlyIncludeKeys = ["keys": keys.joined(separator: ",")]
-                }
-                requests = try objects.unique.map { object in
-                    try BatchRequest(object: object, method: .get, parameters: onlyIncludeKeys).jsonValue()
-                }
-            } catch let error {
-                return httpClient.request(error: error, completionHandler: completion)
+            let requests = try objects.unique.map { object in
+                try BatchRequest(object: object, method: .get, parameters: keysParameters)
+                    .jsonValue()
             }
-
-            let parameters = ["requests": requests]
-
-            return httpClient.request(.post, "batch", parameters: parameters) { response in
+            return httpClient.request(
+                .post, "batch",
+                parameters: ["requests": requests])
+            { response in
                 var result = LCBooleanResult(response: response)
-
-                switch result {
-                case .success:
-                    result = handleObjectFetchedResponse(response, objects)
-                case .failure:
-                    break
+                if case .success = result {
+                    result = self.handleObjectFetchedResponse(response, objects)
                 }
-
                 completion(result)
             }
+        } catch {
+            return httpClient.request(error: error, completionHandler: completion)
         }
     }
 }
