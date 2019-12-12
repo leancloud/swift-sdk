@@ -193,7 +193,7 @@ class FileUploader {
          - parameter filename: The file name.
          */
         static private func getResourceKey(filename: String?) -> String {
-            let key = Utility.uuid()
+            let key = Utility.uuid
 
             guard let filename = filename else {
                 return key
@@ -262,9 +262,7 @@ class FileUploader {
         parameters["mime_type"] = attributes.mimeType
 
         var metaData: [String: Any] = (file.metaData?.jsonValue as? [String: Any]) ?? [:]
-
-        metaData["size"] = attributes.size
-        metaData["mime_type"] = attributes.mimeType
+        metaData.merge(["size": attributes.size]) { (current, _) in current }
 
         parameters["metaData"] = metaData
         parameters.removeValue(forKey: "__type")
@@ -306,7 +304,8 @@ class FileUploader {
     private func writeToQiniu(
         tokens: FileTokens,
         attributes: FileAttributes,
-        progress: @escaping (Double) -> Void,
+        progressQueue: DispatchQueue,
+        progress: ((Double) -> Void)?,
         completion: @escaping (LCBooleanResult) -> Void) -> LCRequest
     {
         let token = tokens.token
@@ -353,26 +352,24 @@ class FileUploader {
             }
         }
          
-        let request = self.session.upload(
-            multipartFormData: multipartFormData,
-            to: tokens.uploadingURLString,
-            method: .post)
+        let request = self.session
+            .upload(
+                multipartFormData: multipartFormData,
+                to: tokens.uploadingURLString,
+                method: .post)
             .validate()
-            .uploadProgress(closure: { (object) in
-                progress(object.fractionCompleted)
-            })
-            .response(
-                queue: self.file
-                    .application
-                    .httpClient
-                    .defaultCompletionDispatchQueue,
-                completionHandler: { (response) in
-                    if let error = response.error {
-                        completion(.failure(error: LCError(error: error)))
-                    } else {
-                        completion(.success)
-                    }
-            })
+        if let progress = progress {
+            request.uploadProgress(queue: progressQueue) {
+                progress($0.fractionCompleted)
+            }
+        }
+        request.response(queue: self.file.application.httpClient.defaultCompletionDispatchQueue) { (response) in
+            if let error = response.error {
+                completion(.failure(error: LCError(error: error)))
+            } else {
+                completion(.success)
+            }
+        }
         
         let sequenceRequest = LCSequenceRequest()
         sequenceRequest.setCurrentRequest(request)
@@ -384,7 +381,8 @@ class FileUploader {
     private func writeToQCloud(
         tokens: FileTokens,
         attributes: FileAttributes,
-        progress: @escaping (Double) -> Void,
+        progressQueue: DispatchQueue,
+        progress: ((Double) -> Void)?,
         completion: @escaping (LCBooleanResult) -> Void) -> LCRequest
     {
         let payload  = self.payload
@@ -402,27 +400,25 @@ class FileUploader {
             multipartFormData.append("upload".data(using: .utf8)!, withName: "op")
         }
 
-        let request = self.session.upload(
-            multipartFormData: multipartFormData,
-            to: tokens.uploadingURLString,
-            method: .post,
-            headers: HTTPHeaders(["Authorization": tokens.token]))
+        let request = self.session
+            .upload(
+                multipartFormData: multipartFormData,
+                to: tokens.uploadingURLString,
+                method: .post,
+                headers: HTTPHeaders(["Authorization": tokens.token]))
             .validate()
-            .uploadProgress(closure: { object in
-                progress(object.fractionCompleted)
-            })
-            .response(
-                queue: self.file
-                    .application
-                    .httpClient
-                    .defaultCompletionDispatchQueue,
-                completionHandler: { response in
-                    if let error = response.error {
-                        completion(.failure(error: LCError(error: error)))
-                    } else {
-                        completion(.success)
-                    }
-            })
+        if let progress = progress {
+            request.uploadProgress(queue: progressQueue) {
+                progress($0.fractionCompleted)
+            }
+        }
+        request.response(queue: self.file.application.httpClient.defaultCompletionDispatchQueue) { response in
+            if let error = response.error {
+                completion(.failure(error: LCError(error: error)))
+            } else {
+                completion(.success)
+            }
+        }
         
         let sequenceRequest = LCSequenceRequest()
         sequenceRequest.setCurrentRequest(request)
@@ -434,7 +430,8 @@ class FileUploader {
     private func writeToS3(
         tokens: FileTokens,
         attributes: FileAttributes,
-        progress: @escaping (Double) -> Void,
+        progressQueue: DispatchQueue,
+        progress: ((Double) -> Void)?,
         completion: @escaping (LCBooleanResult) -> Void) -> LCRequest
     {
         let uploadingURLString = tokens.uploadingURLString
@@ -454,23 +451,19 @@ class FileUploader {
             uploadRequest = self.session.upload(fileURL, to: uploadingURLString, method: .put, headers: HTTPHeaders(headers))
         }
 
-        uploadRequest
-            .validate()
-            .uploadProgress(closure: { object in
-                progress(object.fractionCompleted)
-            })
-            .response(
-                queue: self.file
-                    .application
-                    .httpClient
-                    .defaultCompletionDispatchQueue,
-                completionHandler: { response in
-                    if let error = response.error {
-                        completion(.failure(error: LCError(error: error)))
-                    } else {
-                        completion(.success)
-                    }
-            })
+        uploadRequest.validate()
+        if let progress = progress {
+            uploadRequest.uploadProgress(queue: progressQueue) {
+                progress($0.fractionCompleted)
+            }
+        }
+        uploadRequest.response(queue: self.file.application.httpClient.defaultCompletionDispatchQueue) { response in
+            if let error = response.error {
+                completion(.failure(error: LCError(error: error)))
+            } else {
+                completion(.success)
+            }
+        }
 
         let request = LCSingleRequest(request: uploadRequest)
         uploadRequest.resume()
@@ -481,16 +474,32 @@ class FileUploader {
     private func write(
         tokens: FileTokens,
         attributes: FileAttributes,
-        progress: @escaping (Double) -> Void,
+        progressQueue: DispatchQueue,
+        progress: ((Double) -> Void)?,
         completion: @escaping (LCBooleanResult) -> Void) -> LCRequest
     {
         switch tokens.provider {
         case .qiniu:
-            return writeToQiniu(tokens: tokens, attributes: attributes, progress: progress, completion: completion)
+            return writeToQiniu(
+                tokens: tokens,
+                attributes: attributes,
+                progressQueue: progressQueue,
+                progress: progress,
+                completion: completion)
         case .qcloud:
-            return writeToQCloud(tokens: tokens, attributes: attributes, progress: progress, completion: completion)
+            return writeToQCloud(
+                tokens: tokens,
+                attributes: attributes,
+                progressQueue: progressQueue,
+                progress: progress,
+                completion: completion)
         case .s3:
-            return writeToS3(tokens: tokens, attributes: attributes, progress: progress, completion: completion)
+            return writeToS3(
+                tokens: tokens,
+                attributes: attributes,
+                progressQueue: progressQueue,
+                progress: progress,
+                completion: completion)
         }
     }
 
@@ -557,7 +566,8 @@ class FileUploader {
      - returns: The upload request.
      */
     func upload(
-        progress: @escaping (Double) -> Void,
+        progressQueue: DispatchQueue,
+        progress: ((Double) -> Void)?,
         completion: @escaping (LCBooleanResult) -> Void) -> LCRequest
     {
         let httpClient: HTTPClient = self.file.application.httpClient
@@ -590,7 +600,12 @@ class FileUploader {
                 let typedTokens = value.typedTokens
 
                 // If file is touched, write resource to third-party file provider.
-                let writeRequest = self.write(tokens: typedTokens, attributes: attributes, progress: progress) { result in
+                let writeRequest = self.write(
+                    tokens: typedTokens,
+                    attributes: attributes,
+                    progressQueue: progressQueue,
+                    progress: progress)
+                { result in
                     self.close(result: result, tokens: plainTokens, touchParameters: touchParameters)
                     self.feedback(result: result, tokens: typedTokens)
                     completion(result)
