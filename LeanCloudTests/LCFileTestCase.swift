@@ -11,9 +11,60 @@ import XCTest
 
 class LCFileTestCase: BaseTestCase {
     
+    func testInitDeinit() {
+        var f: LCFile! = LCFile()
+        weak var wf = f
+        f = nil
+        XCTAssertNil(wf)
+    }
+    
     func testSave() {
         let fileURL = bundleResourceURL(name: "test", ext: "png")
-        XCTAssertTrue(LCFile(payload: .fileURL(fileURL: fileURL)).save().isSuccess)
+        
+        var file1: LCFile! = LCFile(payload: .fileURL(fileURL: fileURL))
+        XCTAssertTrue(file1.save().isSuccess)
+        XCTAssertNotNil(file1.mimeType)
+        XCTAssertNotNil(file1.key)
+        XCTAssertNotNil(file1.name)
+        XCTAssertNotNil(file1.metaData?.size as? LCNumber)
+        XCTAssertNotNil(file1.bucket)
+        XCTAssertNotNil(file1.provider)
+        XCTAssertNotNil(file1.url)
+        XCTAssertNotNil(file1.objectId)
+        
+        var file2: LCFile! = LCFile(payload: .data(data: try! Data(contentsOf: fileURL)))
+        file2.name = "image.png"
+        XCTAssertTrue(file2.save().isSuccess)
+        XCTAssertNotNil(file2.mimeType)
+        XCTAssertNotNil(file2.key)
+        XCTAssertNotNil(file2.name)
+        XCTAssertNotNil(file2.metaData?.size as? LCNumber)
+        XCTAssertNotNil(file2.bucket)
+        XCTAssertNotNil(file2.provider)
+        XCTAssertNotNil(file2.url)
+        XCTAssertNotNil(file2.objectId)
+        
+        var file3: LCFile! = LCFile(url: file2.url!)
+        XCTAssertTrue(file3.save().isSuccess)
+        XCTAssertNotNil(file3.mimeType)
+        XCTAssertNotNil(file3.name)
+        XCTAssertEqual(file3.metaData?.__source as? LCString, LCString("external"))
+        XCTAssertNotNil(file3.url)
+        XCTAssertNotNil(file3.objectId)
+        
+        XCTAssertNotNil(file1.save().error)
+        XCTAssertNotNil(file2.save().error)
+        XCTAssertNotNil(file3.save().error)
+        
+        weak var wFile1 = file1
+        weak var wFile2 = file2
+        weak var wFile3 = file3
+        file1 = nil
+        file2 = nil
+        file3 = nil
+        XCTAssertNil(wFile1)
+        XCTAssertNil(wFile2)
+        XCTAssertNil(wFile3)
     }
     
     func upload(payload: LCFile.Payload) {

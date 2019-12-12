@@ -51,6 +51,9 @@ class BaseTestCase: XCTestCase {
         super.tearDown()
     }
     
+    var object: LCObject {
+        return LCObject(className: "\(type(of: self))")
+    }
 }
 
 extension BaseTestCase {
