@@ -153,7 +153,7 @@ public class LCFile: LCObject {
         })
     }
 
-    func paddingInfo(from remoteURL: LCString) {
+    func paddingInfo(remoteURL: LCString) {
         if let metaData = self.metaData {
             metaData["__source"] = "external"
         } else {
@@ -198,10 +198,9 @@ public class LCFile: LCObject {
         if let payload = payload {
             return upload(payload: payload, progress: progress, completion: { result in
                 self.handleUploadResult(result, completion: completion)
-            })
-        } else if let remoteURL = url {
-            self.paddingInfo(from: remoteURL)
-            
+            }
+        } else if let remoteURL = self.url {
+            self.paddingInfo(remoteURL: remoteURL)
             var parameters = dictionary.jsonValue as? [String: Any]
             parameters?.removeValue(forKey: "__type")
             parameters?.removeValue(forKey: "className")

@@ -59,7 +59,7 @@ class ObjectUpdater {
                         code: .notFound,
                         reason: "External URL not found.")
                 }
-                file.paddingInfo(from: remoteURL)
+                file.paddingInfo(remoteURL: remoteURL)
             }
             requests.append(contentsOf: try BatchRequestBuilder.buildRequests(object, parameters: parameters))
         }
