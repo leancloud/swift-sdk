@@ -51,8 +51,13 @@ class BaseTestCase: XCTestCase {
         super.tearDown()
     }
     
-    var object: LCObject {
-        return LCObject(className: "\(type(of: self))")
+    func object(_ objectId: LCStringConvertible? = nil) -> LCObject {
+        let className = "\(type(of: self))"
+        if let objectId = objectId {
+            return LCObject(className: className, objectId: objectId)
+        } else {
+            return LCObject(className: className)
+        }
     }
 }
 
@@ -70,7 +75,6 @@ extension BaseTestCase {
         exp.isInverted = true
         wait(for: [exp], timeout: seconds)
     }
-    
 }
 
 extension BaseTestCase {
@@ -79,7 +83,6 @@ extension BaseTestCase {
         return Bundle(for: type(of: self))
             .url(forResource: name, withExtension: ext)!
     }
-    
 }
 
 extension BaseTestCase {
@@ -94,8 +97,7 @@ extension BaseTestCase {
         self.expecting(
             timeout: BaseTestCase.timeout,
             expectation: { exp },
-            testcase: testcase
-        )
+            testcase: testcase)
     }
     
     func expecting(
@@ -105,20 +107,18 @@ extension BaseTestCase {
         self.expecting(
             timeout: BaseTestCase.timeout,
             expectation: expectation,
-            testcase: testcase
-        )
+            testcase: testcase)
     }
     
     func expecting(
         timeout: TimeInterval,
-        expectation: (() -> XCTestExpectation),
+        expectation: () -> XCTestExpectation,
         testcase: (XCTestExpectation) -> Void)
     {
         self.multiExpecting(
             timeout: timeout,
             expectations: { [expectation()] },
-            testcase: { testcase($0[0]) }
-        )
+            testcase: { testcase($0[0]) })
     }
     
     func multiExpecting(
@@ -130,7 +130,6 @@ extension BaseTestCase {
         testcase(exps)
         wait(for: exps, timeout: timeout)
     }
-    
 }
 
 extension LCApplication {
@@ -180,5 +179,4 @@ extension LCApplication {
                 self.id.md5.lowercased(),
                 isDirectory: true)
     }
-    
 }
