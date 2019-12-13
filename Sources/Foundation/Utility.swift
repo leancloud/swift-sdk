@@ -14,9 +14,8 @@ import IOKit
 #endif
 
 class Utility {
-    static func uuid() -> String {
-        let uuid = NSUUID().uuidString
-        return (uuid as NSString).replacingOccurrences(of: "-", with: "").lowercased()
+    static var uuid: String {
+        return UUID().uuidString.replacingOccurrences(of: "-", with: "").lowercased()
     }
 
     static func jsonString(_ object: Any) -> String {

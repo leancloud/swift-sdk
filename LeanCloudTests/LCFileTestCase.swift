@@ -11,99 +11,203 @@ import XCTest
 
 class LCFileTestCase: BaseTestCase {
     
-    func testSave() {
-        let fileURL = bundleResourceURL(name: "test", ext: "png")
-        XCTAssertTrue(LCFile(payload: .fileURL(fileURL: fileURL)).save().isSuccess)
+    func testDeinit() {
+        var f: LCFile! = LCFile()
+        weak var wf = f
+        f = nil
+        XCTAssertNil(wf)
     }
     
-    func upload(payload: LCFile.Payload) {
-        let file = LCFile(payload: payload)
-
-        var result: LCBooleanResult?
-        var progress: Double?
-
-        _ = file.save(
-            progress: { value in
-                progress = value
-            },
-            completion: { aResult in
-                result = aResult
-            })
-
-        busywait { result != nil }
-
-        switch result! {
-        case .success:
-            break
-        case .failure(let error):
-            XCTFail(error.localizedDescription)
-        }
-
-        XCTAssertNotNil(file.objectId)
-        XCTAssertEqual(progress, 1)
-
-        XCTAssertTrue(file.delete().isSuccess)
+    func testSave() {
+        let fileURL = bundleResourceURL(name: "test", ext: "png")
+        let application = LCApplication.default
+        
+        var file1: LCFile! = LCFile(
+            application: application,
+            payload: .fileURL(fileURL: fileURL))
+        XCTAssertTrue(file1.save().isSuccess)
+        XCTAssertNotNil(file1.mimeType)
+        XCTAssertNotNil(file1.key)
+        XCTAssertNotNil(file1.name)
+        XCTAssertNotNil(file1.metaData?.size as? LCNumber)
+        XCTAssertNotNil(file1.bucket)
+        XCTAssertNotNil(file1.provider)
+        XCTAssertNotNil(file1.url)
+        XCTAssertNotNil(file1.objectId)
+        XCTAssertNotNil(file1.createdAt)
+        XCTAssertNotNil(file1.save().error)
+        
+        var file2: LCFile! = LCFile(
+            application: application,
+            payload: .data(data: try! Data(contentsOf: fileURL)))
+        file2.name = "image.png"
+        XCTAssertTrue(file2.save().isSuccess)
+        XCTAssertNotNil(file2.mimeType)
+        XCTAssertNotNil(file2.key)
+        XCTAssertNotNil(file2.name)
+        XCTAssertNotNil(file2.metaData?.size as? LCNumber)
+        XCTAssertNotNil(file2.bucket)
+        XCTAssertNotNil(file2.provider)
+        XCTAssertNotNil(file2.url)
+        XCTAssertNotNil(file2.objectId)
+        XCTAssertNotNil(file2.createdAt)
+        XCTAssertNotNil(file2.save().error)
+        
+        var file3: LCFile! = LCFile(
+            application: application,
+            url: file2.url!)
+        XCTAssertTrue(file3.save().isSuccess)
+        XCTAssertNotNil(file3.mimeType)
+        XCTAssertNotNil(file3.name)
+        XCTAssertEqual(file3.metaData?.__source as? LCString, LCString("external"))
+        XCTAssertNotNil(file3.url)
+        XCTAssertNotNil(file3.objectId)
+        XCTAssertNotNil(file3.createdAt)
+        XCTAssertNotNil(file3.save().error)
+        
+        delay()
+        
+        weak var wFile1 = file1
+        weak var wFile2 = file2
+        weak var wFile3 = file3
+        file1 = nil
+        file2 = nil
+        file3 = nil
+        XCTAssertNil(wFile1)
+        XCTAssertNil(wFile2)
+        XCTAssertNil(wFile3)
     }
-
-    func testUploadData() {
-        if let data = "Hello".data(using: .utf8) {
-            upload(payload: .data(data: data))
-        } else {
-            XCTFail("Malformed data")
-        }
+    
+    func testSaveUS() {
+        let fileURL = bundleResourceURL(name: "test", ext: "png")
+        let application = LCRouterTestCase.usApplication
+        
+        var file1: LCFile! = LCFile(
+            application: application,
+            payload: .fileURL(fileURL: fileURL))
+        XCTAssertTrue(file1.save().isSuccess)
+        XCTAssertNotNil(file1.mimeType)
+        XCTAssertNotNil(file1.key)
+        XCTAssertNotNil(file1.name)
+        XCTAssertNotNil(file1.metaData?.size as? LCNumber)
+        XCTAssertNotNil(file1.bucket)
+        XCTAssertNotNil(file1.provider)
+        XCTAssertNotNil(file1.url)
+        XCTAssertNotNil(file1.objectId)
+        XCTAssertNotNil(file1.createdAt)
+        XCTAssertNotNil(file1.save().error)
+        
+        var file2: LCFile! = LCFile(
+            application: application,
+            payload: .data(data: try! Data(contentsOf: fileURL)))
+        file2.name = "image.png"
+        XCTAssertTrue(file2.save().isSuccess)
+        XCTAssertNotNil(file2.mimeType)
+        XCTAssertNotNil(file2.key)
+        XCTAssertNotNil(file2.name)
+        XCTAssertNotNil(file2.metaData?.size as? LCNumber)
+        XCTAssertNotNil(file2.bucket)
+        XCTAssertNotNil(file2.provider)
+        XCTAssertNotNil(file2.url)
+        XCTAssertNotNil(file2.objectId)
+        XCTAssertNotNil(file2.createdAt)
+        XCTAssertNotNil(file2.save().error)
+        
+        var file3: LCFile! = LCFile(
+            application: application,
+            url: file2.url!)
+        XCTAssertTrue(file3.save().isSuccess)
+        XCTAssertNotNil(file3.mimeType)
+        XCTAssertNotNil(file3.name)
+        XCTAssertEqual(file3.metaData?.__source as? LCString, LCString("external"))
+        XCTAssertNotNil(file3.url)
+        XCTAssertNotNil(file3.objectId)
+        XCTAssertNotNil(file3.createdAt)
+        XCTAssertNotNil(file3.save().error)
+        
+        delay()
+        
+        weak var wFile1 = file1
+        weak var wFile2 = file2
+        weak var wFile3 = file3
+        file1 = nil
+        file2 = nil
+        file3 = nil
+        XCTAssertNil(wFile1)
+        XCTAssertNil(wFile2)
+        XCTAssertNil(wFile3)
     }
-
-    func testUploadFile() {
-        let bundle = Bundle(for: type(of: self))
-
-        if let fileURL = bundle.url(forResource: "test", withExtension: "zip") {
-            upload(payload: .fileURL(fileURL: fileURL))
-        } else {
-            XCTFail("File not found")
+    
+    func testSaveAsync() {
+        let fileURL = bundleResourceURL(name: "test", ext: "png")
+        var file: LCFile! = LCFile(payload: .fileURL(fileURL: fileURL))
+        
+        expecting { (exp) in
+            file.save(progress: { (progress) in
+                XCTAssertTrue(Thread.isMainThread)
+                print(progress)
+            }) { (result) in
+                XCTAssertTrue(Thread.isMainThread)
+                XCTAssertTrue(result.isSuccess)
+                XCTAssertNil(result.error)
+                exp.fulfill()
+            }
         }
+        
+        delay()
+        
+        weak var wf: LCFile? = file
+        file = nil
+        XCTAssertNil(wf)
     }
-
-    func testUploadURL() {
-        guard let url = URL(string: "https://example.com/image.png") else {
-            XCTFail("Bad file URL")
-            return
-        }
-
-        let file = LCFile(url: url)
-
-        file.name = "image.png"
-        file.mimeType = "image/png"
-
+    
+    func testFetch() {
+        let fileURL = bundleResourceURL(name: "test", ext: "png")
+        let savedFile = LCFile(payload: .fileURL(fileURL: fileURL))
+        XCTAssertTrue(savedFile.save().isSuccess)
+        
+        let file = LCFile(objectId: savedFile.objectId!)
+        XCTAssertTrue(file.fetch().isSuccess)
+        XCTAssertEqual(savedFile.mimeType, file.mimeType)
+        XCTAssertEqual(savedFile.key, file.key)
+        XCTAssertEqual(savedFile.name, file.name)
+        XCTAssertEqual(savedFile.metaData?.size as? LCNumber, file.metaData?.size as? LCNumber)
+        XCTAssertEqual(savedFile.bucket, file.bucket)
+        XCTAssertEqual(savedFile.provider, file.provider)
+        XCTAssertEqual(savedFile.url, file.url)
+        XCTAssertEqual(savedFile.objectId, file.objectId)
+        XCTAssertEqual(savedFile.createdAt, file.createdAt)
+    }
+    
+    func testPointer() {
+        let fileURL = bundleResourceURL(name: "test", ext: "png")
+        let file = LCFile(payload: .fileURL(fileURL: fileURL))
         XCTAssertTrue(file.save().isSuccess)
-
-        let shadow = LCFile(objectId: file.objectId!)
-
-        XCTAssertTrue(shadow.fetch().isSuccess)
-
-        XCTAssertEqual(shadow.name, "image.png")
-        XCTAssertEqual(shadow.mimeType, "image/png")
-    }
-
-    func testFilePointer() {
-        let file = LCFile(url: "https://example.com/image.png")
-
-        XCTAssertTrue(file.save().isSuccess)
-        XCTAssertNotNil(file.objectId)
-
-        let object = TestObject()
-
+        
+        let object = self.object()
         object.fileField = file
-
         XCTAssertTrue(object.save().isSuccess)
-        XCTAssertNotNil(object.objectId)
-
-        let shadow = TestObject(objectId: object.objectId!)
-
-        XCTAssertNil(shadow.fileField)
-        XCTAssertTrue(shadow.fetch().isSuccess)
-        XCTAssertNotNil(shadow.fileField)
-
-        XCTAssertEqual(shadow.fileField, file)
+        
+        let objectShadow = self.object(object.objectId!)
+        XCTAssertTrue(objectShadow.fetch().isSuccess)
+        
+        let shadowFile = objectShadow.fileField as? LCFile
+        XCTAssertNotNil(shadowFile)
+        XCTAssertEqual(shadowFile?.mimeType, file.mimeType)
+        XCTAssertEqual(shadowFile?.key, file.key)
+        XCTAssertEqual(shadowFile?.name, file.name)
+        XCTAssertEqual(shadowFile?.metaData?.size as? LCNumber, file.metaData?.size as? LCNumber)
+        XCTAssertEqual(shadowFile?.bucket, file.bucket)
+        XCTAssertEqual(shadowFile?.provider, file.provider)
+        XCTAssertEqual(shadowFile?.url, file.url)
+        XCTAssertEqual(shadowFile?.objectId, file.objectId)
+        XCTAssertEqual(shadowFile?.createdAt, file.createdAt)
+        
+        object.fileField = LCFile()
+        XCTAssertNotNil(object.save().error)
+        
+        object.fileField = LCFile(url: file.url!)
+        XCTAssertTrue(object.save().isSuccess)
     }
     
     func testThumbnailURL() {
@@ -122,42 +226,5 @@ class LCFileTestCase: BaseTestCase {
                     XCTAssertNotNil(UIImage(data: (try! Data(contentsOf: file.thumbnailURL(thumbnail)!))))
                 }
         }
-    }
-    
-    func testObjectPointFile() {
-        do {
-            let file = LCFile(
-                payload: .fileURL(
-                    fileURL: bundleResourceURL(name: "test", ext: "jpg")))
-            XCTAssertTrue(file.save().isSuccess)
-            
-            let object = LCObject(className: "AssociateFile")
-            try object.set("image", value: file)
-            XCTAssertTrue(object.save().isSuccess)
-            
-            let fetchObject = LCObject(className: "AssociateFile", objectId: object.objectId!)
-            XCTAssertTrue(fetchObject.fetch().isSuccess)
-            XCTAssertTrue(fetchObject["image"] is LCFile)
-        } catch {
-            XCTFail("\(error)")
-        }
-    }
-    
-    func testObjectPointNewFile() {
-        let object1 = TestObject()
-        object1.fileField = LCFile(url: "https://example.com/image.png")
-        XCTAssertTrue(object1.save().isSuccess)
-        
-        let file = LCFile(objectId: object1.fileField!.objectId!)
-        XCTAssertTrue(file.fetch().isSuccess)
-        XCTAssertNotNil(file.metaData)
-        XCTAssertNotNil(file.mimeType)
-        XCTAssertNotNil(file.name)
-        
-        let object2 = TestObject()
-        object2.fileField = LCFile(
-            payload: .fileURL(
-                fileURL: bundleResourceURL(name: "test", ext: "jpg")))
-        XCTAssertNotNil(object2.save().error)
     }
 }

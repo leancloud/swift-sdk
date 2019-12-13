@@ -505,11 +505,7 @@ extension Bool: LCBoolConvertible {
 
 extension NSNumber: LCNumberConvertible, LCBoolConvertible {
     public var lcValue: LCValue {
-        if ObjectProfiler.shared.isBoolean(self) {
-            return lcBool
-        }
-
-        return lcNumber
+        return ObjectProfiler.shared.isBoolean(self) ? lcBool : lcNumber
     }
 
     public var lcNumber: LCNumber {
@@ -537,7 +533,7 @@ extension NSString: LCStringConvertible {
     }
 
     public var lcString: LCString {
-        return LCString(String(self))
+        return (self as String).lcString
     }
 }
 
@@ -551,14 +547,23 @@ extension URL: LCStringConvertible {
     }
 }
 
+extension NSURL: LCStringConvertible {
+    public var lcValue: LCValue {
+        return lcString
+    }
+    
+    public var lcString: LCString {
+        return (self as URL).lcString
+    }
+}
+
 extension Array: LCValueConvertible, LCArrayConvertible where Element: LCValueConvertible {
     public var lcValue: LCValue {
         return lcArray
     }
 
     public var lcArray: LCArray {
-        let value = map { element in element.lcValue }
-        return LCArray(value)
+        return LCArray(self)
     }
 }
 
@@ -568,8 +573,7 @@ extension Dictionary: LCValueConvertible, LCDictionaryConvertible where Key == S
     }
 
     public var lcDictionary: LCDictionary {
-        let value = mapValue { value in value.lcValue }
-        return LCDictionary(value)
+        return LCDictionary(self)
     }
 }
 
@@ -589,7 +593,7 @@ extension NSData: LCDataConvertible {
     }
 
     public var lcData: LCData {
-        return LCData(self as Data)
+        return (self as Data).lcData
     }
 }
 
@@ -609,11 +613,11 @@ extension NSDate: LCDateConvertible {
     }
 
     public var lcDate: LCDate {
-        return LCDate(self as Date)
+        return (self as Date).lcDate
     }
 }
 
-extension LCNull: LCValueConvertible, LCNullConvertible {
+extension LCNull: LCNullConvertible {
     public var lcValue: LCValue {
         return self
     }
@@ -623,7 +627,7 @@ extension LCNull: LCValueConvertible, LCNullConvertible {
     }
 }
 
-extension LCNumber: LCValueConvertible, LCNumberConvertible {
+extension LCNumber: LCNumberConvertible {
     public var lcValue: LCValue {
         return self
     }
@@ -633,7 +637,7 @@ extension LCNumber: LCValueConvertible, LCNumberConvertible {
     }
 }
 
-extension LCBool: LCValueConvertible, LCBoolConvertible {
+extension LCBool: LCBoolConvertible {
     public var lcValue: LCValue {
         return self
     }
@@ -643,7 +647,7 @@ extension LCBool: LCValueConvertible, LCBoolConvertible {
     }
 }
 
-extension LCString: LCValueConvertible, LCStringConvertible {
+extension LCString: LCStringConvertible {
     public var lcValue: LCValue {
         return self
     }
@@ -653,7 +657,7 @@ extension LCString: LCValueConvertible, LCStringConvertible {
     }
 }
 
-extension LCArray: LCValueConvertible, LCArrayConvertible {
+extension LCArray: LCArrayConvertible {
     public var lcValue: LCValue {
         return self
     }
@@ -663,7 +667,7 @@ extension LCArray: LCValueConvertible, LCArrayConvertible {
     }
 }
 
-extension LCDictionary: LCValueConvertible, LCDictionaryConvertible {
+extension LCDictionary: LCDictionaryConvertible {
     public var lcValue: LCValue {
         return self
     }
@@ -691,7 +695,7 @@ extension LCGeoPoint: LCValueConvertible {
     }
 }
 
-extension LCData: LCValueConvertible, LCDataConvertible {
+extension LCData: LCDataConvertible {
     public var lcValue: LCValue {
         return self
     }
@@ -701,7 +705,7 @@ extension LCData: LCValueConvertible, LCDataConvertible {
     }
 }
 
-extension LCDate: LCValueConvertible, LCDateConvertible {
+extension LCDate: LCDateConvertible {
     public var lcValue: LCValue {
         return self
     }

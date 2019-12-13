@@ -577,6 +577,7 @@ extension IMConversation {
     ///   - options: @see `MessageSendOptions`.
     ///   - priority: @see `IMChatRoom.MessagePriority`.
     ///   - pushData: The push data of APNs.
+    ///   - progressQueue: The queue where the progress be called. default is main.
     ///   - progress: The file uploading progress.
     ///   - completion: callback.
     public func send(
@@ -584,6 +585,7 @@ extension IMConversation {
         options: MessageSendOptions = .default,
         priority: IMChatRoom.MessagePriority? = nil,
         pushData: [String: Any]? = nil,
+        progressQueue: DispatchQueue = .main,
         progress: ((Double) -> Void)? = nil,
         completion: @escaping (LCBooleanResult) -> Void)
         throws
@@ -608,6 +610,7 @@ extension IMConversation {
         try self.preprocess(
             message: message,
             pushData: pushData,
+            progressQueue: progressQueue,
             progress: progress)
         { (client, pushDataString: String?, error: LCError?) in
             if let error = error {
@@ -689,6 +692,7 @@ extension IMConversation {
     private func preprocess(
         message: IMMessage,
         pushData: [String: Any]? = nil,
+        progressQueue: DispatchQueue,
         progress: ((Double) -> Void)?,
         completion: @escaping (IMClient, String?, LCError?) -> Void)
         throws
@@ -709,10 +713,9 @@ extension IMConversation {
                 return
         }
         file.save(
-            // TODO: progress queue
-            progress: { (value) in progress?(value) },
-            completionQueue: client.application.httpClient
-                .defaultCompletionDispatchQueue)
+            progressQueue: progressQueue,
+            progress: progress,
+            completionQueue: client.application.httpClient.defaultCompletionDispatchQueue)
         { (result) in
             switch result {
             case .success:
@@ -855,11 +858,13 @@ extension IMConversation {
     /// - Parameters:
     ///   - oldMessage: The sent message to be updated.
     ///   - newMessage: The message which has new content.
+    ///   - progressQueue: The queue where the progress be called. default is main.
     ///   - progress: The file uploading progress.
     ///   - completion: callback.
     public func update(
         oldMessage: IMMessage,
         to newMessage: IMMessage,
+        progressQueue: DispatchQueue = .main,
         progress: ((Double) -> Void)? = nil,
         completion: @escaping (LCBooleanResult) -> Void)
         throws
@@ -879,7 +884,11 @@ extension IMConversation {
                 code: .inconsistency,
                 reason: "the status of new message should be \(IMMessage.Status.none).")
         }
-        try self.preprocess(message: newMessage, progress: progress) { (client, _, error: LCError?) in
+        try self.preprocess(
+            message: newMessage,
+            progressQueue: progressQueue,
+            progress: progress)
+        { (client, _, error: LCError?) in
             if let error: LCError = error {
                 client.eventQueue.async {
                     completion(.failure(error: error))

@@ -8,13 +8,15 @@
 
 import Foundation
 
-/**
- LeanCloud file type.
- */
+/// LeanCloud File Type
 public class LCFile: LCObject {
+    
+    public final override class func objectClassName() -> String {
+        return "_File"
+    }
 
     /// The file URL.
-    @objc dynamic public var url: LCString?
+    @objc public dynamic var url: LCString?
 
     /**
      The file key.
@@ -22,19 +24,19 @@ public class LCFile: LCObject {
      It's the resource key of third-party file hosting provider.
      It may be nil for some providers.
      */
-    @objc dynamic public var key: LCString?
+    @objc public dynamic var key: LCString?
 
     /// The file name.
-    @objc dynamic public var name: LCString?
+    @objc public dynamic var name: LCString?
 
     /// The file meta data.
-    @objc dynamic public var metaData: LCDictionary?
+    @objc public dynamic var metaData: LCDictionary?
 
     /// The file hosting provider.
-    @objc dynamic public var provider: LCString?
+    @objc public dynamic var provider: LCString?
 
     /// The file bucket.
-    @objc dynamic public var bucket: LCString?
+    @objc public dynamic var bucket: LCString?
 
     /**
      The MIME type of file.
@@ -51,60 +53,53 @@ public class LCFile: LCObject {
             self["mime_type"] = newValue
         }
     }
-
+    
+    /// File Payload.
+    public enum Payload {
+        /// File content represented by `Data`.
+        case data(data: Data)
+        /// File content represented by `URL`. it is the path to a local file.
+        case fileURL(fileURL: URL)
+    }
+    
+    /// @see `Payload`.
+    public private(set) var payload: Payload?
+    
+    // MARK: Init
+    
+    /// Create a file using default application.
     public required init() {
         super.init()
     }
     
+    /// Create a file using a application.
+    /// - Parameter application: The application which this file belong to.
     public required init(application: LCApplication) {
         super.init(application: application)
     }
-
-    /**
-     Create file with URL.
-
-     - parameter url: The file URL.
-     */
-    public init(
-        application: LCApplication = LCApplication.default,
-        url: LCStringConvertible) {
-        super.init(application: application)
+    
+    /// Create a file with a URL.
+    /// - Parameters:
+    ///   - application: The application which this file belong to. default is default application.
+    ///   - url: The location of a resource on a remote server.
+    public convenience init(
+        application: LCApplication = .default,
+        url: LCStringConvertible)
+    {
+        self.init(application: application)
         self.url = url.lcString
     }
-
-    /**
-     The file payload.
-
-     This type represents a resource to be uploaded.
-     */
-    public enum Payload {
-
-        /// File content represented by data.
-        case data(data: Data)
-
-        /// File content represented by file URL.
-        case fileURL(fileURL: URL)
-
-    }
-
-    /// The payload to be uploaded.
-    private(set) var payload: Payload?
-
-    /**
-     Create file with content.
-
-     - parameter content: The file content.
-     */
-    public init(
-        application: LCApplication = LCApplication.default,
+    
+    /// Create a file from payload.
+    /// - Parameters:
+    ///   - application: The application which this file belong to. default is default application.
+    ///   - payload: @see `Payload`.
+    public convenience init(
+        application: LCApplication = .default,
         payload: Payload)
     {
-        super.init(application: application)
+        self.init(application: application)
         self.payload = payload
-    }
-
-    public final override class func objectClassName() -> String {
-        return "_File"
     }
     
     // MARK: Save
@@ -112,48 +107,36 @@ public class LCFile: LCObject {
     /// Save file synchronously.
     public func save() -> LCBooleanResult {
         return expect { fulfill in
-            self.save(
-                progressInBackground: { _ in },
-                completion: { result in fulfill(result) })
+            self.save(progressOn: .main, progress: nil) { result in
+                fulfill(result)
+            }
         }
     }
     
     /// Save file asynchronously.
-    /// - Parameter completionQueue: The queue where the completion on.
-    /// - Parameter completion: The callback of result.
-    @discardableResult
-    public func save(
-        completionQueue: DispatchQueue = .main,
-        completion: @escaping (LCBooleanResult) -> Void)
-        -> LCRequest
-    {
-        return save(
-            progress: { _ in },
-            completionQueue: completionQueue,
-            completion: completion)
-    }
-    
-    /// Save file asynchronously.
+    /// - Parameter progressQueue: The queue where the progress be called. default is main.
     /// - Parameter progress: The progress of saving.
-    /// - Parameter completionQueue: The queue where the completion on.
+    /// - Parameter completionQueue: The queue where the completion be called. default is main.
     /// - Parameter completion: The callback of result.
     @discardableResult
     public func save(
-        progress: @escaping (Double) -> Void,
+        progressQueue: DispatchQueue = .main,
+        progress: ((Double) -> Void)? = nil,
         completionQueue: DispatchQueue = .main,
         completion: @escaping (LCBooleanResult) -> Void)
         -> LCRequest
     {
-        return save(
-            progressInBackground: progress,
-            completion: { result in
-                completionQueue.async {
-                    completion(result)
-                }
-        })
+        return self.save(
+            progressOn: progressQueue,
+            progress: progress)
+        { result in
+            completionQueue.async {
+                completion(result)
+            }
+        }
     }
 
-    func paddingInfo(from remoteURL: LCString) {
+    func paddingInfo(remoteURL: LCString) {
         if let metaData = self.metaData {
             metaData["__source"] = "external"
         } else {
@@ -169,86 +152,50 @@ public class LCFile: LCObject {
         }
     }
     
-    /**
-     Save current file and call handler in background thread.
-
-     - parameter progress: The progress handler.
-     - parameter completion: The completion handler.
-
-     - returns: The request of saving.
-     */
     @discardableResult
     private func save(
-        progressInBackground progress: @escaping (Double) -> Void,
+        progressOn queue: DispatchQueue,
+        progress: ((Double) -> Void)?,
         completion: @escaping (LCBooleanResult) -> Void)
         -> LCRequest
     {
         let httpClient: HTTPClient = self.application.httpClient
-        
-        if let _ = objectId {
-            let error = LCError(
-                code: .inconsistency,
-                reason: "Cannot update file after it has been saved.")
-
-            return httpClient.request(error: error) { result in
-                completion(result)
-            }
+        guard self.objectId == nil else {
+            return httpClient.request(
+                error: LCError(
+                    code: .inconsistency,
+                    reason: "Can not update file after it has been saved."),
+                completionHandler: completion)
         }
-
-        if let payload = payload {
-            return upload(payload: payload, progress: progress, completion: { result in
+        if let payload = self.payload {
+            return FileUploader(file: self, payload: payload).upload(
+                progressQueue: queue,
+                progress: progress)
+            { result in
                 self.handleUploadResult(result, completion: completion)
-            })
-        } else if let remoteURL = url {
-            self.paddingInfo(from: remoteURL)
-            
+            }
+        } else if let remoteURL = self.url {
+            self.paddingInfo(remoteURL: remoteURL)
             var parameters = dictionary.jsonValue as? [String: Any]
             parameters?.removeValue(forKey: "__type")
             parameters?.removeValue(forKey: "className")
-
-            return httpClient.request(.post, "files", parameters: parameters) { response in
-                let result = LCValueResult<LCDictionary>(response: response)
-                self.handleSaveResult(result, completion: completion)
+            return httpClient.request(
+                .post, "files",
+                parameters: parameters)
+            { response in
+                self.handleSaveResult(
+                    LCValueResult<LCDictionary>(response: response),
+                    completion: completion)
             }
         } else {
-            let error = LCError(code: .notFound, reason: "No payload or URL to upload.")
-
-            return httpClient.request(error: error) { result in
-                completion(result)
-            }
+            return httpClient.request(
+                error: LCError(
+                    code: .notFound,
+                    reason: "No payload or URL to save."),
+                completionHandler: completion)
         }
     }
-
-    /**
-     Upload payload.
-
-     - parameter payload: The payload to be uploaded.
-     - parameter progress: The progress handler.
-     - parameter completion: The completion handler.
-
-     - returns: The uploading request.
-     */
-    private func upload(
-        payload: Payload,
-        progress: @escaping (Double) -> Void,
-        completion: @escaping (LCBooleanResult) -> Void)
-        -> LCRequest
-    {
-        let uploader = FileUploader(file: self, payload: payload)
-
-        return uploader.upload(
-            progress: progress,
-            completion: completion)
-    }
-
-    /**
-     Handle result for payload uploading.
-
-     If result is successful, it will discard changes.
-
-     - parameter result: The save result.
-     - parameter completion: The completion closure.
-     */
+    
     private func handleUploadResult(
         _ result: LCBooleanResult,
         completion: (LCBooleanResult) -> Void)
@@ -261,15 +208,7 @@ public class LCFile: LCObject {
         }
         completion(result)
     }
-
-    /**
-     Handle result for saving.
-
-     If result is successful, it will discard changes.
-
-     - parameter result: The save result.
-     - parameter completion: The completion closure.
-     */
+    
     private func handleSaveResult(
         _ result: LCValueResult<LCDictionary>,
         completion: (LCBooleanResult) -> Void)

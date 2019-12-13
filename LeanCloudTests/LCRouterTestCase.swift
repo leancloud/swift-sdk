@@ -12,8 +12,8 @@ import XCTest
 class LCRouterTestCase: BaseTestCase {
     
     static let usApplication = try! LCApplication(
-        id: "Aexzfa0OETv4wzLpAb44E48Y-MdYXbMMI",
-        key: "4u1YuP1Oz4AW2WScKb5RJN4f"
+        id: "jenSt9nvWtuJtmurdE28eg5M-MdYXbMMI",
+        key: "8VLPsDlskJi8KsKppED4xKS0"
     )
     
     var appRouter: AppRouter {
@@ -104,28 +104,28 @@ class LCRouterTestCase: BaseTestCase {
     func testFallbackURL() {
         XCTAssertEqual(
             appRouter.fallbackURL(module: .api, path: "foo"),
-            URL(string: "https://\("Aexzfa0O".lowercased()).api.lncldglobal.com/foo"))
+            URL(string: "https://\("jenSt9nv".lowercased()).api.lncldglobal.com/foo"))
         XCTAssertEqual(
             appRouter.fallbackURL(module: .api, path: "/foo"),
-            URL(string: "https://\("Aexzfa0O".lowercased()).api.lncldglobal.com/foo"))
+            URL(string: "https://\("jenSt9nv".lowercased()).api.lncldglobal.com/foo"))
         XCTAssertEqual(
             appRouter.fallbackURL(module: .rtm, path: "foo"),
-            URL(string: "https://\("Aexzfa0O".lowercased()).rtm.lncldglobal.com/foo"))
+            URL(string: "https://\("jenSt9nv".lowercased()).rtm.lncldglobal.com/foo"))
         XCTAssertEqual(
             appRouter.fallbackURL(module: .rtm, path: "/foo"),
-            URL(string: "https://\("Aexzfa0O".lowercased()).rtm.lncldglobal.com/foo"))
+            URL(string: "https://\("jenSt9nv".lowercased()).rtm.lncldglobal.com/foo"))
         XCTAssertEqual(
             appRouter.fallbackURL(module: .push, path: "foo"),
-            URL(string: "https://\("Aexzfa0O".lowercased()).push.lncldglobal.com/foo"))
+            URL(string: "https://\("jenSt9nv".lowercased()).push.lncldglobal.com/foo"))
         XCTAssertEqual(
             appRouter.fallbackURL(module: .push, path: "/foo"),
-            URL(string: "https://\("Aexzfa0O".lowercased()).push.lncldglobal.com/foo"))
+            URL(string: "https://\("jenSt9nv".lowercased()).push.lncldglobal.com/foo"))
         XCTAssertEqual(
             appRouter.fallbackURL(module: .engine, path: "foo"),
-            URL(string: "https://\("Aexzfa0O".lowercased()).engine.lncldglobal.com/foo"))
+            URL(string: "https://\("jenSt9nv".lowercased()).engine.lncldglobal.com/foo"))
         XCTAssertEqual(
             appRouter.fallbackURL(module: .engine, path: "/foo"),
-            URL(string: "https://\("Aexzfa0O".lowercased()).engine.lncldglobal.com/foo"))
+            URL(string: "https://\("jenSt9nv".lowercased()).engine.lncldglobal.com/foo"))
     }
     
     func testCachedHost() {
