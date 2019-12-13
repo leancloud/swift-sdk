@@ -17,14 +17,8 @@
   * If you **found a bug**, open an issue, or open a ticket in [LeanTicket][LeanTicket].
   * If you **want to contribute**, submit a pull request.
 
-## Installation
+## Installation & Quick Start
 
-Please read the [installation][installation] page.
+Please read [this documentation][doc].
 
-## Quick Start
-
-Please read the [quick start][quick-start] page.
-
-[LeanTicket]: https://leanticket.cn/t/leancloud
-[quick-start]: https://github.com/leancloud/swift-sdk/wiki/Quick-Start
-[installation]: https://github.com/leancloud/swift-sdk/wiki/Installation
+[doc]: https://docs.leancloud.app/sdk_setup-swift.html
