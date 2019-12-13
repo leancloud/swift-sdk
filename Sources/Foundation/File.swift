@@ -104,22 +104,41 @@ public class LCFile: LCObject {
     
     // MARK: Save
     
+    /// Save Options
+    public struct Options: OptionSet {
+        public let rawValue: Int
+        
+        public init(rawValue: Int) {
+            self.rawValue = rawValue
+        }
+        
+        /// Using "/\(LCFile.name)" as URL suffix when creating file from payload.
+        public static let keepFileName = Options(rawValue: 1 << 0)
+    }
+    
     /// Save file synchronously.
-    public func save() -> LCBooleanResult {
+    /// - Parameter options: @see `LCFile.Options`, default is none.
+    public func save(options: LCFile.Options = []) -> LCBooleanResult {
         return expect { fulfill in
-            self.save(progressOn: .main, progress: nil) { result in
+            self.save(
+                options: options,
+                progressOn: .main,
+                progress: nil)
+            { result in
                 fulfill(result)
             }
         }
     }
     
     /// Save file asynchronously.
+    /// - Parameter options: @see `LCFile.Options`, default is none.
     /// - Parameter progressQueue: The queue where the progress be called. default is main.
     /// - Parameter progress: The progress of saving.
     /// - Parameter completionQueue: The queue where the completion be called. default is main.
     /// - Parameter completion: The callback of result.
     @discardableResult
     public func save(
+        options: LCFile.Options = [],
         progressQueue: DispatchQueue = .main,
         progress: ((Double) -> Void)? = nil,
         completionQueue: DispatchQueue = .main,
@@ -127,6 +146,7 @@ public class LCFile: LCObject {
         -> LCRequest
     {
         return self.save(
+            options: options,
             progressOn: progressQueue,
             progress: progress)
         { result in
@@ -154,6 +174,7 @@ public class LCFile: LCObject {
     
     @discardableResult
     private func save(
+        options: LCFile.Options,
         progressOn queue: DispatchQueue,
         progress: ((Double) -> Void)?,
         completion: @escaping (LCBooleanResult) -> Void)
@@ -168,12 +189,15 @@ public class LCFile: LCObject {
                 completionHandler: completion)
         }
         if let payload = self.payload {
-            return FileUploader(file: self, payload: payload).upload(
-                progressQueue: queue,
-                progress: progress)
-            { result in
-                self.handleUploadResult(result, completion: completion)
-            }
+            return FileUploader(
+                file: self,
+                payload: payload,
+                options: options).upload(
+                    progressQueue: queue,
+                    progress: progress,
+                    completion: { result in
+                        self.handleUploadResult(result, completion: completion)
+                })
         } else if let remoteURL = self.url {
             self.paddingInfo(remoteURL: remoteURL)
             var parameters = dictionary.jsonValue as? [String: Any]

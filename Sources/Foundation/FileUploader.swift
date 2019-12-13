@@ -17,22 +17,14 @@ import MobileCoreServices
  File uploader.
  */
 class FileUploader {
-
-    /// The file to be uploaded.
     let file: LCFile
-
-    /// The file payload to be uploaded.
     let payload: LCFile.Payload
+    let options: LCFile.Options
 
-    /**
-     Create file uploader with file.
-
-     - parameter file: The file to be uploaded.
-     - parameter payload: The file payload to be uploaded.
-     */
-    init(file: LCFile, payload: LCFile.Payload) {
+    init(file: LCFile, payload: LCFile.Payload, options: LCFile.Options) {
         self.file = file
         self.payload = payload
+        self.options = options
         let configuration = URLSessionConfiguration.default
         configuration.urlCache = nil
         self.session = Session(
@@ -260,6 +252,9 @@ class FileUploader {
         parameters["key"] = attributes.resourceKey
         parameters["name"] = attributes.name
         parameters["mime_type"] = attributes.mimeType
+        if self.options.contains(.keepFileName) {
+            parameters["keep_file_name"] = true
+        }
 
         var metaData: [String: Any] = (file.metaData?.jsonValue as? [String: Any]) ?? [:]
         metaData.merge(["size": attributes.size]) { (current, _) in current }

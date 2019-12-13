@@ -161,6 +161,13 @@ class LCFileTestCase: BaseTestCase {
         XCTAssertNil(wf)
     }
     
+    func testSaveOptions() {
+        let fileURL = bundleResourceURL(name: "test", ext: "png")
+        let file = LCFile(payload: .fileURL(fileURL: fileURL))
+        XCTAssertTrue(file.save(options: .keepFileName).isSuccess)
+        XCTAssertTrue(file.url!.value.hasSuffix("/test.png"))
+    }
+    
     func testFetch() {
         let fileURL = bundleResourceURL(name: "test", ext: "png")
         let savedFile = LCFile(payload: .fileURL(fileURL: fileURL))
