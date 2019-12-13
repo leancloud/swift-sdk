@@ -210,10 +210,21 @@ class LCFileTestCase: BaseTestCase {
         XCTAssertEqual(shadowFile?.objectId, file.objectId)
         XCTAssertEqual(shadowFile?.createdAt, file.createdAt)
         
-        object.fileField = LCFile()
+        object.fileField = LCFile(payload: .fileURL(fileURL: fileURL))
         XCTAssertNotNil(object.save().error)
-        
         object.fileField = LCFile(url: file.url!)
+        XCTAssertTrue(object.save().isSuccess)
+        
+        object.filesField = [
+            LCFile(payload: .fileURL(fileURL: fileURL)),
+            LCFile(payload: .fileURL(fileURL: fileURL))]
+        XCTAssertNotNil(object.save().error)
+        object.filesField = [LCFile(url: file.url!), LCFile(url: file.url!)]
+        XCTAssertTrue(object.save().isSuccess)
+        
+        object.fileMapField = ["file1": LCFile(payload: .fileURL(fileURL: fileURL))]
+        XCTAssertNotNil(object.save().error)
+        object.fileMapField = ["file1": LCFile(url: file.url!)]
         XCTAssertTrue(object.save().isSuccess)
     }
     
