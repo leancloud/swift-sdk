@@ -81,7 +81,7 @@ public final class LCGeoPoint: NSObject, LCValue, LCValueExtension {
     }
 
     public func copy(with zone: NSZone?) -> Any {
-        return LCGeoPoint(latitude: latitude, longitude: longitude)
+        return LCGeoPoint(self)
     }
 
     public override func isEqual(_ object: Any?) -> Bool {
