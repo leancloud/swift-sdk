@@ -464,152 +464,19 @@ class OperationReducer {
      - REMOVE
      */
     class Array: OperationReducer {
-        var operationTable: [Operation.Name:Operation] = [:]
-
+        var operationSequence: [Operation] = []
+        
         override class func validOperationNames() -> [Operation.Name] {
             return [.set, .delete, .add, .addUnique, .remove]
         }
-
+        
         override func reduce(_ operation: Operation) throws {
             try super.validate(operation)
-
-            switch operation.name {
-            case .set:
-                reset()
-                setOperation(operation)
-            case .delete:
-                reset()
-                setOperation(operation)
-            case .add:
-                try removeObjects(operation, .remove)
-                try removeObjects(operation, .addUnique)
-
-                if hasOperation(.set) || hasOperation(.delete) {
-                    try addObjects(operation, .set)
-                } else {
-                    try addObjects(operation, .add)
-                }
-            case .addUnique:
-                try removeObjects(operation, .add)
-                try removeObjects(operation, .remove)
-
-                if hasOperation(.set) || hasOperation(.delete) {
-                    try addObjects(operation, .set, unique: true)
-                } else {
-                    try addObjects(operation, .addUnique, unique: true)
-                }
-            case .remove:
-                try removeObjects(operation, .set)
-                try removeObjects(operation, .add)
-                try removeObjects(operation, .addUnique)
-
-                try addObjects(operation, .remove, unique: true)
-            default:
-                break
-            }
+            self.operationSequence.append(operation)
         }
-
+        
         override func operations() -> [Operation] {
-            var operationTable = self.operationTable
-            removeEmptyOperation(&operationTable, [.add, .addUnique, .remove])
-            return Swift.Array(operationTable.values)
-        }
-
-        /**
-         Remove empty operations from operation table.
-
-         - parameter operationTable: The operation table.
-         - parameter operationNames: A set of operation names that specify which operation should be removed from operation table if it is empty.
-         */
-        func removeEmptyOperation(_ operationTable: inout [Operation.Name:Operation], _ operationNames:Set<Operation.Name>) {
-            operationNames.forEach { (operationName) in
-                if let operation = operationTable[operationName] {
-                    if !hasObjects(operation) {
-                        operationTable[operationName] = nil
-                    }
-                }
-            }
-        }
-
-        /**
-         Check whether an operation has objects.
-
-         - parameter operation: The operation.
-
-         - returns: true if operation has objects, false otherwise.
-         */
-        func hasObjects(_ operation: Operation) -> Bool {
-            if let array = operation.value as? LCArray {
-                return !array.value.isEmpty
-            } else {
-                return false
-            }
-        }
-
-        /**
-         Check whether an operation existed for given operation name.
-
-         - parameter name: The operation name.
-
-         - returns: true if operation existed for operation name, false otherwise.
-         */
-        func hasOperation(_ name: Operation.Name) -> Bool {
-            return operationTable[name] != nil
-        }
-
-        /**
-         Remove objects from operation specified by operation name.
-
-         - parameter operation:     The operation that contains objects to be removed.
-         - parameter operationName: The operation name that specifies operation from which the objects will be removed.
-         */
-        func removeObjects(_ operation: Operation, _ operationName: Operation.Name) throws {
-            guard let rhs = operation.value as? LCArray else {
-                return
-            }
-            guard let lhs = operationTable[operationName]?.value as? LCArray else {
-                return
-            }
-
-            let operation = try Operation(name: operation.name, key: operation.key, value: try lhs.differ(rhs))
-
-            setOperation(operation)
-        }
-
-        /**
-         Add objects in an operation from operation specified by operation name.
-
-         - parameter operation:     The operation that contains objects to be removed.
-         - parameter operationName: The operation name that specifies operation from which the objects will be removed.
-         */
-        func addObjects(_ operation: Operation, _ operationName: Operation.Name, unique: Bool = false) throws {
-            guard var value = operation.value else {
-                return
-            }
-
-            if let baseValue = operationTable[operationName]?.value as? LCArray {
-                value = try baseValue.concatenate(value, unique: unique)
-            }
-
-            let operation = try Operation(name: operationName, key: operation.key, value: value)
-
-            setOperation(operation)
-        }
-
-        /**
-         Set operation to operation table.
-
-         - parameter operation: The operation to set.
-         */
-        func setOperation(_ operation: Operation) {
-            self.operationTable[operation.name] = operation
-        }
-
-        /**
-         Reset operation table.
-         */
-        func reset() {
-            self.operationTable = [:]
+            return self.operationSequence
         }
     }
 
@@ -625,21 +492,15 @@ class OperationReducer {
         override class func validOperationNames() -> [Operation.Name] {
             return [.addRelation, .removeRelation]
         }
+    }
+}
 
-        override func reduce(_ operation: Operation) throws {
-            try super.validate(operation)
-
-            switch operation.name {
-            case .addRelation:
-                try removeObjects(operation, .removeRelation)
-                try addObjects(operation, .addRelation)
-            case .removeRelation:
-                try removeObjects(operation, .addRelation)
-                try addObjects(operation, .removeRelation, unique: true)
-            default:
-                break
-            }
-        }
-        /* Stub class. */
+private extension LCError {
+    
+    static func malformedKey(_ key: String) -> LCError {
+        return LCError(
+            code: .malformedData,
+            reason: "Malformed key.",
+            userInfo: ["key": key])
     }
 }
