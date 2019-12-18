@@ -797,6 +797,13 @@ extension IMClient {
         let conversation: IMConversation
         if let conv: IMConversation = self.convCollection[convID] {
             conv.safeExecuting(operation: .rawDataMerging(data: attr), client: self)
+            #if canImport(GRDB)
+            if conv.isUnique {
+                conv.tryUpdateLocalStorageData(
+                    client: self,
+                    rawData: conv.sync(conv.rawData))
+            }
+            #endif
             conversation = conv
         } else {
             let key = IMConversation.Key.self
