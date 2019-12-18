@@ -30,16 +30,43 @@ class Operation {
         case addRelation    = "AddRelation"
         case removeRelation = "RemoveRelation"
     }
+    
+    enum Key {
+        case key(_ key: String)
+        case keyPath(key: String, path: [String])
+        
+        var rawValue: String {
+            switch self {
+            case let .key(v):
+                return v
+            case let .keyPath(key: v, path: _):
+                return v
+            }
+        }
+        
+        init(key: String) throws {
+            if key.contains(".") {
+                let keys = key.components(separatedBy: ".")
+                guard let fk = keys.first, !fk.isEmpty,
+                    let lk = keys.last, !lk.isEmpty else {
+                        throw LCError.malformedKey(key)
+                }
+                try Operation.validateKey(fk)
+                self = .keyPath(key: key, path: keys)
+            } else {
+                try Operation.validateKey(key)
+                self = .key(key)
+            }
+        }
+    }
 
     let name: Name
-    let key: String
+    let key: Key
     let value: LCValue?
-
-    required init(name: Name, key: String, value: LCValue?) throws {
-        try Operation.validateKey(key)
-
-        self.name  = name
-        self.key   = key
+    
+    init(name: Name, key: String, value: LCValue?) throws {
+        self.name = name
+        self.key = try Key.init(key: key)
         self.value = value?.copy(with: nil) as? LCValue
     }
 
@@ -93,7 +120,7 @@ class Operation {
         ]
 
         guard key.range(of: "^[a-z0-9][a-z0-9_]*$", options: options) != nil else {
-            throw LCError(code: .malformedData, reason: "Malformed key.", userInfo: ["key": key])
+            throw LCError.malformedKey(key)
         }
     }
 
@@ -169,24 +196,19 @@ class OperationHub {
      - parameter operation: The operation which you want to reduce.
      */
     func reduce(_ operation: Operation) throws {
-        let key = operation.key
-        let operationReducer = operationReducerTable[key]
-
-        if let operationReducer = operationReducer {
+        let key = operation.key.rawValue
+        if let operationReducer = self.operationReducerTable[key] {
             try operationReducer.reduce(operation)
-        } else if let operationReducerType = try operationReducerType(operation) {
+        } else if let operationReducerType = try self.operationReducerType(operation) {
             let operationReducer = operationReducerType.init()
-
-            operationReducerTable[key] = operationReducer
-
-            if let unreducedOperation = unreducedOperationTable[key] {
-                unreducedOperationTable.removeValue(forKey: key)
+            self.operationReducerTable[key] = operationReducer
+            if let unreducedOperation = self.unreducedOperationTable[key] {
+                self.unreducedOperationTable.removeValue(forKey: key)
                 try operationReducer.reduce(unreducedOperation)
             }
-
             try operationReducer.reduce(operation)
         } else {
-            unreducedOperationTable[key] = operation
+            self.unreducedOperationTable[key] = operation
         }
     }
 
@@ -201,13 +223,14 @@ class OperationHub {
         guard let object = self.object else {
             throw LCError(code: .inconsistency, reason: "Object not exist.")
         }
-        
-        let propertyName = operation.key
-        let propertyType = ObjectProfiler.shared.getLCValue(object, propertyName)
-
-        if let propertyType = propertyType {
-            return Operation.reducerType(propertyType)
-        } else {
+        switch operation.key {
+        case let .key(propertyName):
+            if let propertyType = ObjectProfiler.shared.getLCValue(object, propertyName) {
+                return Operation.reducerType(propertyType)
+            } else {
+                return try operation.reducerType()
+            }
+        case .keyPath:
             return try operation.reducerType()
         }
     }
@@ -420,24 +443,21 @@ class OperationReducer {
                 }
                 return try Operation(
                     name: .set,
-                    key: operation.key,
-                    value: try (lhsValue).add(rhsValue)
-                )
+                    key: operation.key.rawValue,
+                    value: try (lhsValue).add(rhsValue))
             case (.increment, .increment):
                 guard let lhsValue = lhs.value as? LCValueExtension, let rhsValue = rhs.value else {
                     throw LCError(code: .invalidType, reason: "Invalid value type.")
                 }
                 return try Operation(
                     name: .increment,
-                    key: operation.key,
-                    value: try (lhsValue).add(rhsValue)
-                )
+                    key: operation.key.rawValue,
+                    value: try (lhsValue).add(rhsValue))
             case (.delete,    .increment):
                 return try Operation(
                     name: .set,
-                    key: operation.key,
-                    value: rhs.value
-                )
+                    key: operation.key.rawValue,
+                    value: rhs.value)
             default:
                 return nil
             }

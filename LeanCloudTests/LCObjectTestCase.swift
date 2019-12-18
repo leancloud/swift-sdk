@@ -507,6 +507,66 @@ class LCObjectTestCase: BaseTestCase {
         XCTAssertEqual(object[dictionaryKey]?.dictionaryValue?["1"] as? String, "a")
         XCTAssertEqual(object[dictionaryKey]?.dictionaryValue?["2"] as? Double, 42)
     }
+    
+    func testKeyPath() {
+        do {
+            let object = self.object()
+            try object.set("foo.bar", value: 1)
+            XCTFail()
+        } catch {
+            XCTAssertTrue(error is LCError)
+        }
+        
+        let object = self.object()
+        object.dictionaryField = LCDictionary([
+            "number": 1,
+            "foo": "foo",
+            "foos": ["bar"],
+            "unset": "unset"])
+        object.stringField = "string literal"
+        XCTAssertTrue(object.save().isSuccess)
+        
+        do {
+            try object.increase("dictionaryField.number")
+            try object.set("dictionaryField.foo", value: "bar")
+            try object.unset("dictionaryField.unset")
+            try object.append("dictionaryField.foos", element: "bars")
+            try object.remove("dictionaryField.foos", element: "bar")
+            try object.append("dictionaryField.foos", element: "bar", unique: true)
+            XCTAssertTrue(object.save().isSuccess)
+            let dictionaryField = object.dictionaryField as? LCDictionary
+            XCTAssertNil(dictionaryField?.unset)
+            XCTAssertEqual(dictionaryField?.number as? LCNumber, LCNumber(2))
+            XCTAssertEqual(dictionaryField?.foo as? LCString, LCString("bar"))
+            XCTAssertEqual(dictionaryField?.foos as? LCArray, LCArray(["bars", "bar"]))
+            XCTAssertNil(object["dictionaryField.number"])
+            XCTAssertNil(object["dictionaryField.unset"])
+            XCTAssertNil(object["dictionaryField.foo"])
+            XCTAssertNil(object["dictionaryField.foos"])
+            
+            let shadow = self.object(object.objectId)
+            XCTAssertTrue(shadow.fetch().isSuccess)
+            XCTAssertEqual(shadow.dictionaryField as? LCDictionary, dictionaryField)
+        } catch {
+            XCTFail("\(error)")
+        }
+        
+        do {
+            try object.set("stringField.foo", value: "bar")
+            XCTAssertNotNil(object.save().error)
+            XCTAssertEqual(object.stringField as? LCString, LCString("string literal"))
+            XCTAssertNil(object["stringField.foo"])
+        } catch {
+            XCTFail("\(error)")
+        }
+        
+        do {
+            try object.insertRelation("dictionaryField.relation", object: self.object())
+            XCTFail()
+        } catch {
+            XCTAssertTrue(error is LCError)
+        }
+    }
 }
 
 class TestObject: LCObject {

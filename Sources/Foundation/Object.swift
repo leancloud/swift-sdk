@@ -304,187 +304,174 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
     public static func register() {
         ObjectProfiler.shared.registerClass(self)
     }
-
-    /**
-     Load a property for key.
-
-     If the property value for key is already existed and type is mismatched, it will throw an exception.
-
-     - parameter key: The key to load.
-
-     - returns: The property value.
-     */
+    
+    // MARK: Key Value Change
+    
     func getProperty<Value: LCValue>(_ key: String) throws -> Value? {
-        let value = propertyTable[key]
-
+        let value = self.propertyTable[key]
         if let value = value {
             guard value is Value else {
-                let reason = String(format: "Failed to get property for name \"%@\" with type \"%s\".", key, class_getName(Value.self))
-                throw LCError(code: .invalidType, reason: reason)
+                throw LCError(
+                    code: .invalidType,
+                    reason: "Failed to get property, Type mismatch.",
+                    userInfo: [
+                        "key": key,
+                        "source_type": "\(type(of: value))",
+                        "target_type": "\(Value.self)"])
             }
         }
-
         return value as? Value
     }
-
-    /**
-     Load a property for key.
-
-     If the property value for key is not existed, it will initialize the property.
-     If the property value for key is already existed and type is mismatched, it will throw an exception.
-
-     - parameter key: The key to load.
-
-     - returns: The property value.
-     */
+    
     func loadProperty<Value: LCValue>(_ key: String) throws -> Value {
-        if let value: Value = try getProperty(key) {
+        if let value: Value = try self.getProperty(key) {
             return value
         }
-
-        guard
-            let type = Value.self as? LCValueExtension.Type,
-            let value = type.instance(application: self.application) as? Value
-        else {
-            let reason = String(format: "Failed to load property for name \"%@\" with type \"%s\".", key, class_getName(Value.self))
-            throw LCError(code: .invalidType, reason: reason)
+        guard let type = Value.self as? LCValueExtension.Type,
+            let value = type.instance(application: self.application) as? Value else {
+                throw LCError(
+                    code: .invalidType,
+                    reason: "Failed to load property, Type cannot be instantiated.",
+                    userInfo: [
+                        "key": key,
+                        "target_type": "\(Value.self)"])
         }
-
-        propertyTable[key] = value
-
+        self.propertyTable[key] = value
         return value
     }
-
-    /**
-     Update property with operation.
-
-     - parameter operation: The operation used to update property.
-     */
+    
     func updateProperty(_ operation: Operation) throws {
-        let key   = operation.key
-        let name  = operation.name
+        guard case let .key(key) = operation.key else {
+            return
+        }
         let value = operation.value
-
-        willChangeValue(forKey: key)
-
-        switch name {
-        case .set:
-            propertyTable[key] = value
-        case .delete:
-            propertyTable[key] = nil
+        switch operation.name {
+        case .set, .delete:
+            self.willChangeValue(forKey: key)
+            self.propertyTable[key] = value
+            self.didChangeValue(forKey: key)
         case .increment:
             guard let number = value as? LCNumber else {
-                throw LCError(code: .invalidType, reason: "Failed to increase property.")
+                throw LCError(
+                    code: .invalidType,
+                    reason: "Failed to increase property, Type mismatch.",
+                    userInfo: ["key": key, "value_type": "\(type(of: value))"])
             }
-
-            let amount = number.value
-            let property: LCNumber = try loadProperty(key)
-
-            property.addInPlace(amount)
-        case .add:
+            let property: LCNumber = try self.loadProperty(key)
+            self.willChangeValue(forKey: key)
+            property.addInPlace(number.value)
+            self.didChangeValue(forKey: key)
+        case .add, .addUnique, .remove:
             guard let array = value as? LCArray else {
-                throw LCError(code: .invalidType, reason: "Failed to add objects to property.")
+                let reason = (operation.name == .remove)
+                    ? "Failed to remove objects from property"
+                    : "Failed to add objects to property"
+                throw LCError(
+                    code: .invalidType,
+                    reason: "\(reason), Type mismatch.",
+                    userInfo: ["key": key, "value_type": "\(type(of: value))"])
             }
-
-            let elements = array.value
-            let property: LCArray = try loadProperty(key)
-
-            property.concatenateInPlace(elements, unique: false)
-        case .addUnique:
-            guard let array = value as? LCArray else {
-                throw LCError(code: .invalidType, reason: "Failed to add objects to property by unique.")
+            if operation.name == .remove {
+                let property: LCArray? = try self.getProperty(key)
+                self.willChangeValue(forKey: key)
+                property?.differInPlace(array.value)
+                self.didChangeValue(forKey: key)
+            } else {
+                let property: LCArray = try self.loadProperty(key)
+                self.willChangeValue(forKey: key)
+                property.concatenateInPlace(array.value, unique: (operation.name == .addUnique))
+                self.didChangeValue(forKey: key)
             }
-
-            let elements = array.value
-            let property: LCArray = try loadProperty(key)
-
-            property.concatenateInPlace(elements, unique: true)
-        case .remove:
-            guard let array = value as? LCArray else {
-                throw LCError(code: .invalidType, reason: "Failed to remove objects from property.")
+        case .addRelation, .removeRelation:
+            guard let array = value as? LCArray,
+                let elements = array.value as? [LCRelation.Element] else {
+                    let reason = (operation.name == .addRelation)
+                        ? "Failed to add relations to property"
+                        : "Failed to remove relations from property"
+                    throw LCError(
+                        code: .invalidType,
+                        reason: "\(reason), Type mismatch.",
+                        userInfo: ["key": key, "value_type": "\(type(of: value))"])
             }
-
-            let elements = array.value
-            let property: LCArray? = try getProperty(key)
-
-            property?.differInPlace(elements)
-        case .addRelation:
-            guard
-                let array = value as? LCArray,
-                let elements = array.value as? [LCRelation.Element]
-            else {
-                throw LCError(code: .invalidType, reason: "Failed to add relations to property.")
+            if operation.name == .addRelation {
+                let relation: LCRelation = try self.loadProperty(key)
+                self.willChangeValue(forKey: key)
+                try relation.appendElements(elements)
+                self.didChangeValue(forKey: key)
+            } else {
+                let relation: LCRelation? = try self.getProperty(key)
+                self.willChangeValue(forKey: key)
+                relation?.removeElements(elements)
+                self.didChangeValue(forKey: key)
             }
-
-            let relation = try loadProperty(key) as LCRelation
-
-            try relation.appendElements(elements)
-        case .removeRelation:
-            guard
-                let array = value as? LCArray,
-                let elements = array.value as? [LCRelation.Element]
-            else {
-                throw LCError(code: .invalidType, reason: "Failed to remove relations from property.")
-            }
-
-            let relation: LCRelation? = try getProperty(key)
-
-            relation?.removeElements(elements)
-        }
-
-        didChangeValue(forKey: key)
-    }
-
-    /**
-     Synchronize property table.
-
-     This method will synchronize nonnull instance variables into property table.
-
-     Q: Why we need this method?
-
-     A: When a property is set through dot syntax in initializer, its corresponding setter hook will not be called,
-        it will result in that some properties will not be added into property table.
-     */
-    func synchronizePropertyTable() {
-        ObjectProfiler.shared.iterateProperties(self) { (key, _) in
-            guard let ivarValue = Runtime.instanceVariableValue(self, key) as? LCValue else {
-                return
-            }
-            if let value = self.propertyTable[key]?.lcValue,
-                value === ivarValue {
-                return
-            }
-            self.propertyTable[key] = ivarValue
         }
     }
-
-    /**
-     Add an operation.
-
-     - parameter name:  The operation name.
-     - parameter key:   The operation key.
-     - parameter value: The operation value.
-     */
+    
+    func updateByKeyPath(_ operation: Operation) throws {
+        guard case let .keyPath(key: _, path: path) = operation.key else {
+            return
+        }
+        var dictionary: LCDictionary?
+        for (index, key) in path.enumerated() {
+            if index == 0 {
+                dictionary = self[key] as? LCDictionary
+            } else if index != (path.count - 1) {
+                dictionary = dictionary?[key] as? LCDictionary
+            }
+        }
+        if let dictionary = dictionary, let key = path.last {
+            let value = operation.value
+            switch operation.name {
+            case .set, .delete:
+                dictionary[key] = value
+            case .increment:
+                if let value = value as? LCNumber,
+                    let number = dictionary[key] as? LCNumber {
+                    number.addInPlace(value.value)
+                }
+            case .add, .addUnique, .remove:
+                if let value = value as? LCArray,
+                    let array = dictionary[key] as? LCArray {
+                    if operation.name == .remove {
+                        array.differInPlace(value.value)
+                    } else {
+                        array.concatenateInPlace(value.value, unique: (operation.name == .addUnique))
+                    }
+                }
+            default:
+                break
+            }
+        }
+    }
+    
     func addOperation(_ name: Operation.Name, _ key: String, _ value: LCValue? = nil) throws {
         let operation = try Operation(name: name, key: key, value: value)
-
-        try updateProperty(operation)
-        try operationHub?.reduce(operation)
+        switch operation.key {
+        case .key:
+            try self.updateProperty(operation)
+        case .keyPath:
+            guard self.hasObjectId else {
+                throw LCError(
+                    code: .notFound,
+                    reason: "Object ID not found, Key-Path is unavailable on an object without a valid ID.",
+                    userInfo: ["key": key])
+            }
+            guard operation.name != .addRelation,
+                operation.name != .removeRelation else {
+                    throw LCError(
+                        code: .inconsistency,
+                        reason: "Relation operation is unavailable for Key-Path.",
+                        userInfo: ["key": key])
+            }
+            try self.updateByKeyPath(operation)
+        }
+        try self.operationHub?.reduce(operation)
     }
-
-    /**
-     Transform value for key.
-
-     - parameter key:   The key for which the value should be transformed.
-     - parameter value: The value to be transformed.
-
-     - returns: The transformed value for key.
-     */
+    
     func transformValue(_ key: String, _ value: LCValue?) -> LCValue? {
         guard let value = value else {
             return nil
         }
-
         switch key {
         case "ACL":
             return LCACL(jsonValue: value.jsonValue)
@@ -494,20 +481,18 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
             return value
         }
     }
-
-    /**
-     Update a property.
-
-     - parameter key:   The property key to be updated.
-     - parameter value: The property value.
-     */
+    
     func update(_ key: String, _ value: LCValue?) {
-        willChangeValue(forKey: key)
-        propertyTable[key] = transformValue(key, value)
-        didChangeValue(forKey: key)
+        self.willChangeValue(forKey: key)
+        self.propertyTable[key] = self.transformValue(key, value)
+        self.didChangeValue(forKey: key)
     }
     
-    // MARK: CRUD
+    func discardChanges() {
+        self.operationHub?.reset()
+    }
+    
+    // MARK: Operation
 
     /**
      Get and set value via subscript syntax.
