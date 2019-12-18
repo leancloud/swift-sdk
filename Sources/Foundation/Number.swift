@@ -47,7 +47,7 @@ public final class LCNumber: NSObject, LCValue, LCValueExtension, ExpressibleByF
     }
 
     public func copy(with zone: NSZone?) -> Any {
-        return LCNumber(value)
+        return LCNumber(self)
     }
 
     public override func isEqual(_ object: Any?) -> Bool {

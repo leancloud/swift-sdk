@@ -75,7 +75,7 @@ public final class LCData: NSObject, LCValue, LCValueExtension {
     }
 
     public func copy(with zone: NSZone?) -> Any {
-        return LCData((value as NSData).copy() as! Data)
+        return LCData(self)
     }
 
     public override func isEqual(_ object: Any?) -> Bool {

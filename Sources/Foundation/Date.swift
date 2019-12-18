@@ -109,7 +109,7 @@ public final class LCDate: NSObject, LCValue, LCValueExtension {
     }
 
     public func copy(with zone: NSZone?) -> Any {
-        return LCDate((value as NSDate).copy() as! Date)
+        return LCDate(self)
     }
 
     public override func isEqual(_ object: Any?) -> Bool {

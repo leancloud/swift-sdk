@@ -43,7 +43,7 @@ public final class LCBool: NSObject, LCValue, LCValueExtension, ExpressibleByBoo
     }
 
     public func copy(with zone: NSZone?) -> Any {
-        return LCBool(value)
+        return LCBool(self)
     }
 
     public override func isEqual(_ object: Any?) -> Bool {

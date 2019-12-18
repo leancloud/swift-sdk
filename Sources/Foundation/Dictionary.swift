@@ -80,7 +80,7 @@ public final class LCDictionary: NSObject, LCValue, LCValueExtension, Collection
     }
 
     public func copy(with zone: NSZone?) -> Any {
-        return LCDictionary(value)
+        return LCDictionary(self)
     }
 
     public override func isEqual(_ object: Any?) -> Bool {

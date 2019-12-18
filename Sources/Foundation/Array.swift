@@ -63,7 +63,7 @@ public class LCArray: NSObject, LCValue, Collection, ExpressibleByArrayLiteral {
     }
 
     public func copy(with zone: NSZone?) -> Any {
-        return LCArray(self.value)
+        return LCArray(self)
     }
 
     public override func isEqual(_ object: Any?) -> Bool {

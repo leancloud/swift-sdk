@@ -54,7 +54,7 @@ public final class LCString: NSObject, LCValue, LCValueExtension, ExpressibleByS
     }
 
     public func copy(with zone: NSZone?) -> Any {
-        return LCString(value)
+        return LCString(self)
     }
 
     public override func isEqual(_ object: Any?) -> Bool {
