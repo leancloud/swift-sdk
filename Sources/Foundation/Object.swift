@@ -41,12 +41,31 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
 
     /// The table of all properties.
     lazy var dictionary: LCDictionary = {
-        self.synchronizePropertyTable()
+        /**
+         Synchronize property table.
+         
+         This method will synchronize nonnull instance variables into property table.
+         
+         Q: Why we need this method?
+         
+         A: When a property is set through dot syntax in initializer, its corresponding setter hook will not be called,
+         it will result in that some properties will not be added into property table.
+         */
+        ObjectProfiler.shared.iterateProperties(self) { (key, _) in
+            guard let ivarValue = Runtime.instanceVariableValue(self, key) as? LCValue else {
+                return
+            }
+            if let value = self.propertyTable[key]?.lcValue,
+                value === ivarValue {
+                return
+            }
+            self.propertyTable[key] = ivarValue
+        }
         return self.propertyTable
     }()
 
-    var hasObjectId: Bool {
-        return objectId != nil
+    public var hasObjectId: Bool {
+        return self.objectId != nil
     }
     
     private(set) var objectClassName: String?
@@ -80,6 +99,34 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
         } else {
             return true
         }
+    }
+    
+    // MARK: Subclassing
+    
+    /**
+     Set class name of current type.
+     
+     The default implementation returns the class name without root module.
+     
+     - returns: The class name of current type.
+     */
+    open class func objectClassName() -> String {
+        let className = String(validatingUTF8: class_getName(self))!
+        
+        /* Strip root namespace to cope with application package name's change. */
+        if let index = className.firstIndex(of: ".") {
+            let startIndex: String.Index = className.index(after: index)
+            return String(className[startIndex...])
+        } else {
+            return className
+        }
+    }
+    
+    /**
+     Register current object class manually.
+     */
+    public static func register() {
+        ObjectProfiler.shared.registerClass(self)
     }
     
     // MARK: Initialization
@@ -151,7 +198,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
         }
     }
     
-    // MARK: Serialization
+    // MARK: NSCoding
     
     /// Returns an object initialized from data in a given unarchiver.
     /// - Parameter coder: An unarchiver object.
@@ -182,10 +229,16 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
             coder.encode(objectClassName, forKey: "objectClassName")
         }
     }
-
+    
+    // MARK: NSCopying
+    
+    /// Will not do copying, just return a pointer to this object.
+    /// - Parameter zone: Unused, just pass nil.
     open func copy(with zone: NSZone?) -> Any {
         return self
     }
+    
+    // MARK: NSObjectProtocol
 
     open override func isEqual(_ object: Any?) -> Bool {
         if let object = object as? LCObject {
@@ -203,10 +256,14 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
     open override func value(forUndefinedKey key: String) -> Any? {
         return nil
     }
+    
+    // MARK: Sequence
 
     open func makeIterator() -> DictionaryIterator<String, LCValue> {
         return dictionary.makeIterator()
     }
+    
+    // MARK: LCValue
 
     open var jsonValue: Any {
         var result: [String: Any] = [:]
@@ -221,21 +278,23 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
         return result
     }
 
-    func formattedJSONString(indentLevel: Int, numberOfSpacesForOneIndentLevel: Int = 4) -> String {
-        let dictionary = LCDictionary(self.dictionary)
-
-        dictionary["__type"] = "Object".lcString
-        dictionary["className"] = actualClassName.lcString
-
-        return dictionary.formattedJSONString(indentLevel: indentLevel, numberOfSpacesForOneIndentLevel: numberOfSpacesForOneIndentLevel)
-    }
-
     open var jsonString: String {
         return formattedJSONString(indentLevel: 0)
     }
 
     public var rawValue: Any {
         return self
+    }
+    
+    // MARK: LCValueExtension
+    
+    func formattedJSONString(indentLevel: Int, numberOfSpacesForOneIndentLevel: Int = 4) -> String {
+        let dictionary = LCDictionary(self.dictionary)
+        
+        dictionary["__type"] = "Object".lcString
+        dictionary["className"] = actualClassName.lcString
+        
+        return dictionary.formattedJSONString(indentLevel: indentLevel, numberOfSpacesForOneIndentLevel: numberOfSpacesForOneIndentLevel)
     }
 
     var lconValue: Any? {
@@ -248,15 +307,6 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
             "className" : actualClassName,
             "objectId"  : objectId.value
         ]
-    }
-
-    /**
-     Get preferred batch request.
-
-     If returns nil, it will use the default batch request.
-     */
-    func preferredBatchRequest(method: HTTPClient.Method, path: String, internalId: String) throws -> [String: Any]? {
-        return nil
     }
     
     static func instance(application: LCApplication) -> LCValue {
@@ -277,32 +327,6 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
 
     func differ(_ other: LCValue) throws -> LCValue {
         throw LCError(code: .invalidType, reason: "Object cannot be differed.")
-    }
-
-    /**
-     Set class name of current type.
-
-     The default implementation returns the class name without root module.
-
-     - returns: The class name of current type.
-     */
-    open class func objectClassName() -> String {
-        let className = String(validatingUTF8: class_getName(self))!
-
-        /* Strip root namespace to cope with application package name's change. */
-        if let index = className.firstIndex(of: ".") {
-            let startIndex: String.Index = className.index(after: index)
-            return String(className[startIndex...])
-        } else {
-            return className
-        }
-    }
-
-    /**
-     Register current object class manually.
-     */
-    public static func register() {
-        ObjectProfiler.shared.registerClass(self)
     }
     
     // MARK: Key Value Change
@@ -494,9 +518,6 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
     
     // MARK: Operation
 
-    /**
-     Get and set value via subscript syntax.
-     */
     open subscript(key: String) -> LCValueConvertible? {
         get {
             return self.get(key)
@@ -541,9 +562,9 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
      */
     open func set(_ key: String, value: LCValueConvertible?) throws {
         if let value = value?.lcValue {
-            try addOperation(.set, key, value)
+            try self.addOperation(.set, key, value)
         } else {
-            try addOperation(.delete, key)
+            try self.addOperation(.delete, key)
         }
     }
 
@@ -553,7 +574,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
      - parameter key: The key for which to unset.
      */
     open func unset(_ key: String) throws {
-        try addOperation(.delete, key, nil)
+        try self.addOperation(.delete, key)
     }
 
     /**
@@ -563,7 +584,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
      - parameter amount: The amount to increase. If no amount is specified, 1 is used by default. 
      */
     open func increase(_ key: String, by: LCNumberConvertible = 1) throws {
-        try addOperation(.increment, key, by.lcNumber)
+        try self.addOperation(.increment, key, by.lcNumber)
     }
 
     /**
@@ -573,7 +594,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
      - parameter element: The element to append.
      */
     open func append(_ key: String, element: LCValueConvertible) throws {
-        try addOperation(.add, key, LCArray([element.lcValue]))
+        try self.addOperation(.add, key, LCArray([element.lcValue]))
     }
 
     /**
@@ -583,7 +604,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
      - parameter elements: The array of elements to append.
      */
     open func append(_ key: String, elements: LCArrayConvertible) throws {
-        try addOperation(.add, key, elements.lcArray)
+        try self.addOperation(.add, key, elements.lcArray)
     }
 
     /**
@@ -596,7 +617,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
                           otherwise, element will always be appended.
      */
     open func append(_ key: String, element: LCValueConvertible, unique: Bool) throws {
-        try addOperation(unique ? .addUnique : .add, key, LCArray([element.lcValue]))
+        try self.addOperation(unique ? .addUnique : .add, key, LCArray([element.lcValue]))
     }
 
     /**
@@ -609,7 +630,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
      - parameter unique:   Whether append element by unique or not.
      */
     open func append(_ key: String, elements: LCArrayConvertible, unique: Bool) throws {
-        try addOperation(unique ? .addUnique : .add, key, elements.lcArray)
+        try self.addOperation(unique ? .addUnique : .add, key, elements.lcArray)
     }
 
     /**
@@ -619,7 +640,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
      - parameter element: The element to remove.
      */
     open func remove(_ key: String, element: LCValueConvertible) throws {
-        try addOperation(.remove, key, LCArray([element.lcValue]))
+        try self.addOperation(.remove, key, LCArray([element.lcValue]))
     }
 
     /**
@@ -629,7 +650,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
      - parameter elements: The array of elements to remove.
      */
     open func remove(_ key: String, elements: LCArrayConvertible) throws {
-        try addOperation(.remove, key, elements.lcArray)
+        try self.addOperation(.remove, key, elements.lcArray)
     }
 
     /**
@@ -650,7 +671,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
      - parameter object: The object to insert.
      */
     open func insertRelation(_ key: String, object: LCObject) throws {
-        try addOperation(.addRelation, key, LCArray([object]))
+        try self.addOperation(.addRelation, key, LCArray([object]))
     }
 
     /**
@@ -660,42 +681,9 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
      - parameter object: The object to remove.
      */
     open func removeRelation(_ key: String, object: LCObject) throws {
-        try addOperation(.removeRelation, key, LCArray([object]))
-    }
-
-    /**
-     Validate object before saving.
-
-     Subclass can override this method to add custom validation logic.
-     */
-    func validateBeforeSaving() throws {
-        /* Validate circular reference. */
-    }
-
-    /**
-     Discard changes by removing all change operations.
-     */
-    func discardChanges() {
-        operationHub?.reset()
-    }
-
-    /**
-     The method which will be called when object itself did save.
-     */
-    func objectDidSave() {
-        /* Nop */
+        try self.addOperation(.removeRelation, key, LCArray([object]))
     }
     
-    private static func assertObjectsApplication(_ objects: [LCObject]) -> Bool {
-        let sharedApplication = (objects.first?.application ?? LCApplication.default)
-        for object in objects {
-            if object.application !== sharedApplication {
-                return false
-            }
-        }
-        return true
-    }
-
     // MARK: Save
     
     /// Options for saving.
