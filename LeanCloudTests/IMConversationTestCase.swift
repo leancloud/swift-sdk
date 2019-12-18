@@ -367,48 +367,49 @@ class IMConversationTestCase: RTMBaseTestCase {
     }
     
     func testServiceConversationSubscription() {
-        guard
-            let client = newOpenedClient(),
-            let serviceConversationID = IMConversationTestCase.newServiceConversation()
-            else
-        {
-            XCTFail()
-            return
+        guard let client = newOpenedClient(),
+            let serviceConversationID = IMConversationTestCase.newServiceConversation() else {
+                XCTFail()
+                return
         }
         
         delay()
         
         var serviceConversation: IMServiceConversation?
         
-        let queryExp = expectation(description: "conv query")
-        try! client.conversationQuery.getConversation(by: serviceConversationID) { (result) in
-            XCTAssertTrue(result.isSuccess)
-            XCTAssertNil(result.error)
-            serviceConversation = (result.value as? IMServiceConversation)
-            queryExp.fulfill()
-        }
-        wait(for: [queryExp], timeout: timeout)
-        
-        let checkExp = expectation(description: "check subscription")
-        checkExp.expectedFulfillmentCount = 3
-        serviceConversation?.checkSubscription(completion: { (result) in
-            XCTAssertTrue(result.isSuccess)
-            XCTAssertNil(result.error)
-            XCTAssertEqual(result.value, false)
-            checkExp.fulfill()
-            try! serviceConversation?.subscribe(completion: { (result) in
+        expecting { (exp) in
+            try! client.conversationQuery.getConversation(by: serviceConversationID) { (result) in
                 XCTAssertTrue(result.isSuccess)
                 XCTAssertNil(result.error)
-                checkExp.fulfill()
-                serviceConversation?.checkSubscription(completion: { (result) in
+                serviceConversation = (result.value as? IMServiceConversation)
+                XCTAssertEqual(serviceConversation?.isSubscribed, false)
+                exp.fulfill()
+            }
+        }
+        
+        expecting(
+            description: "service conversation subscription",
+            count: 3)
+        { (exp) in
+            serviceConversation?.checkSubscription(completion: { (result) in
+                XCTAssertTrue(result.isSuccess)
+                XCTAssertNil(result.error)
+                XCTAssertEqual(result.value, false)
+                exp.fulfill()
+                try! serviceConversation?.subscribe(completion: { (result) in
                     XCTAssertTrue(result.isSuccess)
                     XCTAssertNil(result.error)
-                    XCTAssertEqual(result.value, true)
-                    checkExp.fulfill()
+                    XCTAssertEqual(serviceConversation?.isSubscribed, true)
+                    exp.fulfill()
+                    serviceConversation?.checkSubscription(completion: { (result) in
+                        XCTAssertTrue(result.isSuccess)
+                        XCTAssertNil(result.error)
+                        XCTAssertEqual(result.value, true)
+                        exp.fulfill()
+                    })
                 })
             })
-        })
-        wait(for: [checkExp], timeout: timeout)
+        }
     }
     
     func testNormalConversationUnreadEvent() {

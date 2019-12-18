@@ -26,6 +26,7 @@ public class IMConversation {
         case unique = "unique"
         case transient = "tr"
         case system = "sys"
+        case joined = "joined"
         case temporary = "temp"
         case temporaryTTL = "ttl"
         case convType = "conv_type"
@@ -2211,11 +2212,8 @@ extension IMConversation {
     }
 
     private func needUpdateMembers(members: [String], updatedDateString: String?) -> Bool {
-        guard
-            self.convType != .transient,
-            self.convType != .system,
-            !members.isEmpty else
-        {
+        if (self.convType == .transient) ||
+            (self.convType != .system && members.isEmpty) {
             return false
         }
         if let dateString: String = updatedDateString,
@@ -2234,20 +2232,24 @@ extension IMConversation {
         guard self.needUpdateMembers(members: joinedMembers, updatedDateString: udate) else {
             return
         }
-        let newMembers: [String]
-        if var originMembers: [String] = self.members {
-            for member in joinedMembers {
-                if !originMembers.contains(member) {
-                    originMembers.append(member)
-                }
-            }
-            newMembers = originMembers
+        if self.convType == .system {
+            self.safeUpdatingRawData(key: .joined, value: true)
         } else {
-            newMembers = joinedMembers
-        }
-        self.safeUpdatingRawData(key: .members, value: newMembers)
-        if let udateString: String = udate {
-            self.safeUpdatingRawData(key: .updatedAt, value: udateString)
+            let newMembers: [String]
+            if var originMembers: [String] = self.members {
+                for member in joinedMembers {
+                    if !originMembers.contains(member) {
+                        originMembers.append(member)
+                    }
+                }
+                newMembers = originMembers
+            } else {
+                newMembers = joinedMembers
+            }
+            self.safeUpdatingRawData(key: .members, value: newMembers)
+            if let udateString: String = udate {
+                self.safeUpdatingRawData(key: .updatedAt, value: udateString)
+            }
         }
         #if canImport(GRDB)
         if let _ = client.localStorage {
@@ -2262,19 +2264,30 @@ extension IMConversation {
         guard self.needUpdateMembers(members: leftMembers, updatedDateString: udate) else {
             return
         }
-        if leftMembers.contains(self.clientID) {
-            self.isOutdated = true
-        }
-        if var originMembers: [String] = self.members {
-            for member in leftMembers {
-                if let index = originMembers.firstIndex(of: member) {
-                    originMembers.remove(at: index)
-                }
+        if self.convType == .system {
+            self.safeUpdatingRawData(key: .joined, value: false)
+        } else {
+            if leftMembers.contains(self.clientID) {
+                self.isOutdated = true
             }
-            self.safeUpdatingRawData(key: .members, value: originMembers)
-        }
-        if let udate = udate {
-            self.safeUpdatingRawData(key: .updatedAt, value: udate)
+            if var originMembers: [String] = self.members {
+                for member in leftMembers {
+                    if let index = originMembers.firstIndex(of: member) {
+                        originMembers.remove(at: index)
+                    }
+                }
+                self.safeUpdatingRawData(key: .members, value: originMembers)
+            }
+            if let udate = udate {
+                self.safeUpdatingRawData(key: .updatedAt, value: udate)
+            }
+            self.sync(closure: {
+                if let _ = self._memberInfoTable {
+                    for member in leftMembers {
+                        self._memberInfoTable?.removeValue(forKey: member)
+                    }
+                }
+            })
         }
         #if canImport(GRDB)
         if let _ = client.localStorage {
@@ -2285,13 +2298,6 @@ extension IMConversation {
                 outdated: tuple.1)
         }
         #endif
-        self.sync(closure: {
-            if let _ = self._memberInfoTable {
-                for member in leftMembers {
-                    self._memberInfoTable?.removeValue(forKey: member)
-                }
-            }
-        })
     }
 
     private class KeyAndDictionary {
@@ -2699,6 +2705,11 @@ public class IMChatRoom: IMConversation {
 
 /// IM Service Conversation
 public class IMServiceConversation: IMConversation {
+    
+    /// Whether this service conversation has been subscribed by the client.
+    public var isSubscribed: Bool? {
+        return self.safeDecodingRawData(with: .joined)
+    }
 
     @available(*, unavailable)
     public override func update(attribution data: [String : Any], completion: @escaping (LCBooleanResult) -> Void) throws {
