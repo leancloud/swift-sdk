@@ -257,7 +257,7 @@ public class LCFile: LCObject {
     }
     
     @available(*, unavailable)
-    public override class func save(_ objects: [LCObject], options: [LCObject.SaveOption] = [], completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
+    public override class func save(_ objects: [LCObject], options: [LCObject.SaveOption] = [], completionQueue: DispatchQueue = .main, completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
         fatalError("not support")
     }
     
@@ -267,7 +267,7 @@ public class LCFile: LCObject {
     }
     
     @available(*, unavailable)
-    public override func save(options: [LCObject.SaveOption] = [], completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
+    public override func save(options: [LCObject.SaveOption] = [], completionQueue: DispatchQueue = .main, completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
         fatalError("not support")
     }
 }

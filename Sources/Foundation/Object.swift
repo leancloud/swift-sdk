@@ -41,12 +41,31 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
 
     /// The table of all properties.
     lazy var dictionary: LCDictionary = {
-        self.synchronizePropertyTable()
+        /**
+         Synchronize property table.
+         
+         This method will synchronize nonnull instance variables into property table.
+         
+         Q: Why we need this method?
+         
+         A: When a property is set through dot syntax in initializer, its corresponding setter hook will not be called,
+         it will result in that some properties will not be added into property table.
+         */
+        ObjectProfiler.shared.iterateProperties(self) { (key, _) in
+            guard let ivarValue = Runtime.instanceVariableValue(self, key) as? LCValue else {
+                return
+            }
+            if let value = self.propertyTable[key]?.lcValue,
+                value === ivarValue {
+                return
+            }
+            self.propertyTable[key] = ivarValue
+        }
         return self.propertyTable
     }()
 
-    var hasObjectId: Bool {
-        return objectId != nil
+    public var hasObjectId: Bool {
+        return self.objectId != nil
     }
     
     private(set) var objectClassName: String?
@@ -80,6 +99,34 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
         } else {
             return true
         }
+    }
+    
+    // MARK: Subclassing
+    
+    /**
+     Set class name of current type.
+     
+     The default implementation returns the class name without root module.
+     
+     - returns: The class name of current type.
+     */
+    open class func objectClassName() -> String {
+        let className = String(validatingUTF8: class_getName(self))!
+        
+        /* Strip root namespace to cope with application package name's change. */
+        if let index = className.firstIndex(of: ".") {
+            let startIndex: String.Index = className.index(after: index)
+            return String(className[startIndex...])
+        } else {
+            return className
+        }
+    }
+    
+    /**
+     Register current object class manually.
+     */
+    public static func register() {
+        ObjectProfiler.shared.registerClass(self)
     }
     
     // MARK: Initialization
@@ -151,7 +198,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
         }
     }
     
-    // MARK: Serialization
+    // MARK: NSCoding
     
     /// Returns an object initialized from data in a given unarchiver.
     /// - Parameter coder: An unarchiver object.
@@ -182,10 +229,16 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
             coder.encode(objectClassName, forKey: "objectClassName")
         }
     }
-
+    
+    // MARK: NSCopying
+    
+    /// Will not do copying, just return a pointer to this object.
+    /// - Parameter zone: Unused, just pass nil.
     open func copy(with zone: NSZone?) -> Any {
         return self
     }
+    
+    // MARK: NSObjectProtocol
 
     open override func isEqual(_ object: Any?) -> Bool {
         if let object = object as? LCObject {
@@ -203,10 +256,14 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
     open override func value(forUndefinedKey key: String) -> Any? {
         return nil
     }
+    
+    // MARK: Sequence
 
     open func makeIterator() -> DictionaryIterator<String, LCValue> {
         return dictionary.makeIterator()
     }
+    
+    // MARK: LCValue
 
     open var jsonValue: Any {
         var result: [String: Any] = [:]
@@ -221,21 +278,23 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
         return result
     }
 
-    func formattedJSONString(indentLevel: Int, numberOfSpacesForOneIndentLevel: Int = 4) -> String {
-        let dictionary = LCDictionary(self.dictionary)
-
-        dictionary["__type"] = "Object".lcString
-        dictionary["className"] = actualClassName.lcString
-
-        return dictionary.formattedJSONString(indentLevel: indentLevel, numberOfSpacesForOneIndentLevel: numberOfSpacesForOneIndentLevel)
-    }
-
     open var jsonString: String {
         return formattedJSONString(indentLevel: 0)
     }
 
     public var rawValue: Any {
         return self
+    }
+    
+    // MARK: LCValueExtension
+    
+    func formattedJSONString(indentLevel: Int, numberOfSpacesForOneIndentLevel: Int = 4) -> String {
+        let dictionary = LCDictionary(self.dictionary)
+        
+        dictionary["__type"] = "Object".lcString
+        dictionary["className"] = actualClassName.lcString
+        
+        return dictionary.formattedJSONString(indentLevel: indentLevel, numberOfSpacesForOneIndentLevel: numberOfSpacesForOneIndentLevel)
     }
 
     var lconValue: Any? {
@@ -248,15 +307,6 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
             "className" : actualClassName,
             "objectId"  : objectId.value
         ]
-    }
-
-    /**
-     Get preferred batch request.
-
-     If returns nil, it will use the default batch request.
-     */
-    func preferredBatchRequest(method: HTTPClient.Method, path: String, internalId: String) throws -> [String: Any]? {
-        return nil
     }
     
     static func instance(application: LCApplication) -> LCValue {
@@ -277,32 +327,6 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
 
     func differ(_ other: LCValue) throws -> LCValue {
         throw LCError(code: .invalidType, reason: "Object cannot be differed.")
-    }
-
-    /**
-     Set class name of current type.
-
-     The default implementation returns the class name without root module.
-
-     - returns: The class name of current type.
-     */
-    open class func objectClassName() -> String {
-        let className = String(validatingUTF8: class_getName(self))!
-
-        /* Strip root namespace to cope with application package name's change. */
-        if let index = className.firstIndex(of: ".") {
-            let startIndex: String.Index = className.index(after: index)
-            return String(className[startIndex...])
-        } else {
-            return className
-        }
-    }
-
-    /**
-     Register current object class manually.
-     */
-    public static func register() {
-        ObjectProfiler.shared.registerClass(self)
     }
     
     // MARK: Key Value Change
@@ -494,9 +518,6 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
     
     // MARK: Operation
 
-    /**
-     Get and set value via subscript syntax.
-     */
     open subscript(key: String) -> LCValueConvertible? {
         get {
             return self.get(key)
@@ -541,9 +562,9 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
      */
     open func set(_ key: String, value: LCValueConvertible?) throws {
         if let value = value?.lcValue {
-            try addOperation(.set, key, value)
+            try self.addOperation(.set, key, value)
         } else {
-            try addOperation(.delete, key)
+            try self.addOperation(.delete, key)
         }
     }
 
@@ -553,7 +574,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
      - parameter key: The key for which to unset.
      */
     open func unset(_ key: String) throws {
-        try addOperation(.delete, key, nil)
+        try self.addOperation(.delete, key)
     }
 
     /**
@@ -563,7 +584,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
      - parameter amount: The amount to increase. If no amount is specified, 1 is used by default. 
      */
     open func increase(_ key: String, by: LCNumberConvertible = 1) throws {
-        try addOperation(.increment, key, by.lcNumber)
+        try self.addOperation(.increment, key, by.lcNumber)
     }
 
     /**
@@ -573,7 +594,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
      - parameter element: The element to append.
      */
     open func append(_ key: String, element: LCValueConvertible) throws {
-        try addOperation(.add, key, LCArray([element.lcValue]))
+        try self.addOperation(.add, key, LCArray([element.lcValue]))
     }
 
     /**
@@ -583,7 +604,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
      - parameter elements: The array of elements to append.
      */
     open func append(_ key: String, elements: LCArrayConvertible) throws {
-        try addOperation(.add, key, elements.lcArray)
+        try self.addOperation(.add, key, elements.lcArray)
     }
 
     /**
@@ -596,7 +617,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
                           otherwise, element will always be appended.
      */
     open func append(_ key: String, element: LCValueConvertible, unique: Bool) throws {
-        try addOperation(unique ? .addUnique : .add, key, LCArray([element.lcValue]))
+        try self.addOperation(unique ? .addUnique : .add, key, LCArray([element.lcValue]))
     }
 
     /**
@@ -609,7 +630,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
      - parameter unique:   Whether append element by unique or not.
      */
     open func append(_ key: String, elements: LCArrayConvertible, unique: Bool) throws {
-        try addOperation(unique ? .addUnique : .add, key, elements.lcArray)
+        try self.addOperation(unique ? .addUnique : .add, key, elements.lcArray)
     }
 
     /**
@@ -619,7 +640,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
      - parameter element: The element to remove.
      */
     open func remove(_ key: String, element: LCValueConvertible) throws {
-        try addOperation(.remove, key, LCArray([element.lcValue]))
+        try self.addOperation(.remove, key, LCArray([element.lcValue]))
     }
 
     /**
@@ -629,7 +650,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
      - parameter elements: The array of elements to remove.
      */
     open func remove(_ key: String, elements: LCArrayConvertible) throws {
-        try addOperation(.remove, key, elements.lcArray)
+        try self.addOperation(.remove, key, elements.lcArray)
     }
 
     /**
@@ -650,7 +671,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
      - parameter object: The object to insert.
      */
     open func insertRelation(_ key: String, object: LCObject) throws {
-        try addOperation(.addRelation, key, LCArray([object]))
+        try self.addOperation(.addRelation, key, LCArray([object]))
     }
 
     /**
@@ -660,85 +681,65 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
      - parameter object: The object to remove.
      */
     open func removeRelation(_ key: String, object: LCObject) throws {
-        try addOperation(.removeRelation, key, LCArray([object]))
-    }
-
-    /**
-     Validate object before saving.
-
-     Subclass can override this method to add custom validation logic.
-     */
-    func validateBeforeSaving() throws {
-        /* Validate circular reference. */
-    }
-
-    /**
-     Discard changes by removing all change operations.
-     */
-    func discardChanges() {
-        operationHub?.reset()
-    }
-
-    /**
-     The method which will be called when object itself did save.
-     */
-    func objectDidSave() {
-        /* Nop */
+        try self.addOperation(.removeRelation, key, LCArray([object]))
     }
     
-    private static func assertObjectsApplication(_ objects: [LCObject]) -> Bool {
-        let sharedApplication = (objects.first?.application ?? LCApplication.default)
-        for object in objects {
-            if object.application !== sharedApplication {
-                return false
-            }
-        }
-        return true
-    }
-
     // MARK: Save
     
+    /// Options for saving.
     public enum SaveOption {
+        /// Saved success result will return all data of this object.
         case fetchWhenSave
+        /// Only the object match the query condition can be saved.
         case query(LCQuery)
     }
-
-    /**
-     Save a batch of objects in one request synchronously.
-
-     - parameter objects: An array of objects to be saved.
-
-     - returns: The result of deletion request.
-     */
-    public class func save(_ objects: [LCObject], options: [SaveOption] = []) -> LCBooleanResult {
+    
+    /// Save a batch of objects in one request synchronously.
+    /// - Parameters:
+    ///   - objects: An array of objects to be saved.
+    ///   - options: @see `LCObject.SaveOption`, default is none option, it will be applyed to all objects.
+    public class func save(
+        _ objects: [LCObject],
+        options: [LCObject.SaveOption] = [])
+        -> LCBooleanResult
+    {
         assert(self.assertObjectsApplication(objects), "objects with multiple applications.")
         return expect { fulfill in
-            save(objects, options: options, completionInBackground: { result in
+            self.save(objects, options: options, completionInBackground: { result in
                 fulfill(result)
             })
         }
     }
-
-    /**
-     Save a batch of objects in one request asynchronously.
-
-     - parameter objects: An array of objects to be saved.
-     - parameter completion: The completion callback closure.
-
-     - returns: The request of saving.
-     */
+    
+    /// Save a batch of objects in one request asynchronously.
+    /// - Parameters:
+    ///   - objects: An array of objects to be saved.
+    ///   - options: @see `LCObject.SaveOption`, default is none option, it will be applyed to all objects.
+    ///   - completionQueue: The queue where the completion be called, default is main.
+    ///   - completion: The callback of result.
     @discardableResult
-    public class func save(_ objects: [LCObject], options: [SaveOption] = [], completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
+    public class func save(
+        _ objects: [LCObject],
+        options: [LCObject.SaveOption] = [],
+        completionQueue: DispatchQueue = .main,
+        completion: @escaping (LCBooleanResult) -> Void)
+        -> LCRequest
+    {
         assert(self.assertObjectsApplication(objects), "objects with multiple applications.")
-        return save(objects, options: options, completionInBackground: { result in
-            mainQueueAsync {
+        return self.save(objects, options: options, completionInBackground: { result in
+            completionQueue.async {
                 completion(result)
             }
         })
     }
 
     @discardableResult
-    static func save(_ objects: [LCObject], options: [SaveOption], completionInBackground completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
+    static func save(
+        _ objects: [LCObject],
+        options: [SaveOption],
+        completionInBackground completion: @escaping (LCBooleanResult) -> Void)
+        -> LCRequest
+    {
         assert(self.assertObjectsApplication(objects), "objects with multiple applications.")
         var parameters: [String: Any] = [:]
         for option in options {
@@ -753,94 +754,100 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
         }
         return ObjectUpdater.save(objects, parameters: (parameters.isEmpty ? nil : parameters), completionInBackground: completion)
     }
-
-    /**
-     Save object and its all descendant objects synchronously.
-
-     - returns: The result of saving request.
-     */
-    public func save(options: [SaveOption] = []) -> LCBooleanResult {
+    
+    /// Save object and its all descendant objects synchronously.
+    /// - Parameter options: @see `LCObject.SaveOption`, default is none option.
+    public func save(options: [LCObject.SaveOption] = []) -> LCBooleanResult {
         return type(of: self).save([self], options: options)
     }
-
-    /**
-     Save object and its all descendant objects asynchronously.
-
-     - parameter completion: The completion callback closure.
-
-     - returns: The request of saving.
-     */
+    
+    /// Save object and its all descendant objects asynchronously.
+    /// - Parameters:
+    ///   - options: @see `LCObject.SaveOption`, default is none option.
+    ///   - completionQueue: The queue where the completion be called, default is main.
+    ///   - completion: The callback of result.
     @discardableResult
-    public func save(options: [SaveOption] = [], completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
-        return type(of: self).save([self], options: options, completion: completion)
+    public func save(
+        options: [LCObject.SaveOption] = [],
+        completionQueue: DispatchQueue = .main,
+        completion: @escaping (LCBooleanResult) -> Void)
+        -> LCRequest
+    {
+        return type(of: self).save(
+            [self],
+            options: options,
+            completionQueue: completionQueue,
+            completion: completion)
     }
 
     // MARK: Delete
-
-    /**
-     Delete a batch of objects in one request synchronously.
-
-     - parameter objects: An array of objects to be deleted.
-
-     - returns: The result of deletion request.
-     */
+    
+    /// Delete a batch of objects in one request synchronously.
+    /// - Parameter objects: An array of objects to be deleted.
     public static func delete(_ objects: [LCObject]) -> LCBooleanResult {
         assert(self.assertObjectsApplication(objects), "objects with multiple applications.")
         return expect { fulfill in
             delete(objects, completionInBackground: fulfill)
         }
     }
-
-    /**
-     Delete a batch of objects in one request asynchronously.
-
-     - parameter objects: An array of objects to be deleted.
-     - parameter completion: The completion callback closure.
-
-     - returns: The request of deletion.
-     */
+    
+    /// Delete a batch of objects in one request asynchronously.
+    /// - Parameters:
+    ///   - objects: An array of objects to be deleted.
+    ///   - completionQueue: The queue where the completion be called, default is main.
+    ///   - completion: The callback of result.
     @discardableResult
-    public static func delete(_ objects: [LCObject], completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
+    public static func delete(
+        _ objects: [LCObject],
+        completionQueue: DispatchQueue = .main,
+        completion: @escaping (LCBooleanResult) -> Void)
+        -> LCRequest
+    {
         assert(self.assertObjectsApplication(objects), "objects with multiple applications.")
-        return delete(objects, completionInBackground: { result in mainQueueAsync { completion(result) } } )
+        return delete(objects, completionInBackground: { result in
+            completionQueue.async {
+                completion(result)
+            }
+        })
     }
 
     @discardableResult
-    private static func delete(_ objects: [LCObject], completionInBackground completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
+    private static func delete(
+        _ objects: [LCObject],
+        completionInBackground completion: @escaping (LCBooleanResult) -> Void)
+        -> LCRequest
+    {
         assert(self.assertObjectsApplication(objects), "objects with multiple applications.")
         return ObjectUpdater.delete(objects, completionInBackground: completion)
     }
-
-    /**
-     Delete current object synchronously.
-
-     - returns: The result of deletion request.
-     */
+    
+    /// Delete current object synchronously.
     public func delete() -> LCBooleanResult {
         return type(of: self).delete([self])
     }
-
-    /**
-     Delete current object asynchronously.
-
-     - parameter completion: The completion callback closure.
-
-     - returns: The request of deletion.
-     */
+    
+    /// Delete current object asynchronously.
+    /// - Parameters:
+    ///   - completionQueue: The queue where the completion be called, default is main.
+    ///   - completion: The callback of result.
     @discardableResult
-    public func delete(_ completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
-        return type(of: self).delete([self], completion: completion)
+    public func delete(
+        completionQueue: DispatchQueue = .main,
+        completion: @escaping (LCBooleanResult) -> Void)
+        -> LCRequest
+    {
+        return type(of: self).delete(
+            [self],
+            completionQueue: completionQueue,
+            completion: completion)
     }
 
     // MARK: Fetch
-
-    /**
-     Fetch a batch of objects in one request synchronously.
-
-     - parameter objects: An array of objects to be fetched.
-
-     - returns: The result of fetching request.
-     */
+    
+    /// Fetch a batch of objects in one request synchronously.
+    /// - Parameters:
+    ///   - objects: An array of objects to be fetched.
+    ///   - keys: Specify only the key-value of the keys will be fetched, default fetch all key-value, it will be applyed to all objects.
     public static func fetch(_ objects: [LCObject], keys: [String]? = nil) -> LCBooleanResult {
         assert(self.assertObjectsApplication(objects), "objects with multiple applications.")
         return expect { fulfill in
@@ -849,47 +856,86 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
             })
         }
     }
-
-    /**
-     Fetch a batch of objects in one request asynchronously.
-
-     - parameter completion: The completion callback closure.
-     - parameter objects: An array of objects to be fetched.
-
-     - returns: The request of fetching.
-     */
+    
+    /// Fetch a batch of objects in one request asynchronously.
+    /// - Parameters:
+    ///   - objects: An array of objects to be fetched.
+    ///   - keys: Specify only the key-value of the keys will be fetched, default fetch all key-value., it will be applyed to all objects
+    ///   - completionQueue: The queue where the completion be called, default is main.
+    ///   - completion: The callback of result.
     @discardableResult
-    public static func fetch(_ objects: [LCObject], keys: [String]? = nil, completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
+    public static func fetch(
+        _ objects: [LCObject],
+        keys: [String]? = nil,
+        completionQueue: DispatchQueue = .main,
+        completion: @escaping (LCBooleanResult) -> Void)
+        -> LCRequest
+    {
         assert(self.assertObjectsApplication(objects), "objects with multiple applications.")
         return fetch(objects, keys: keys, completionInBackground: { result in
-            mainQueueAsync {
+            completionQueue.async {
                 completion(result)
             }
         })
     }
 
     @discardableResult
-    private static func fetch(_ objects: [LCObject], keys: [String]?, completionInBackground completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
+    private static func fetch(
+        _ objects: [LCObject],
+        keys: [String]?,
+        completionInBackground completion: @escaping (LCBooleanResult) -> Void)
+        -> LCRequest
+    {
         assert(self.assertObjectsApplication(objects), "objects with multiple applications.")
         return ObjectUpdater.fetch(objects, keys: keys, completionInBackground: completion)
     }
-
-    /**
-     Fetch object from server synchronously.
-
-     - returns: The result of fetching request.
-     */
+    
+    /// Fetch object from server synchronously.
+    /// - Parameter keys: Specify only the key-value of the keys will be fetched, default fetch all key-value.
     public func fetch(keys: [String]? = nil) -> LCBooleanResult {
         return type(of: self).fetch([self], keys: keys)
     }
-
-    /**
-     Fetch object from server asynchronously.
-
-     - parameter completion: The completion callback closure.
-     */
+    
+    /// Fetch object from server asynchronously.
+    /// - Parameters:
+    ///   - keys: Specify only the key-value of the keys will be fetched, default fetch all key-value.
+    ///   - completionQueue: The queue where the completion be called, default is main.
+    ///   - completion: The callback of result.
     @discardableResult
-    public func fetch(keys: [String]? = nil, completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
-        return type(of: self).fetch([self], keys: keys, completion: completion)
+    public func fetch(
+        keys: [String]? = nil,
+        completionQueue: DispatchQueue = .main,
+        completion: @escaping (LCBooleanResult) -> Void)
+        -> LCRequest
+    {
+        return type(of: self).fetch(
+            [self],
+            keys: keys,
+            completionQueue: completionQueue,
+            completion: completion)
+    }
+    
+    // MARK: Misc
+    
+    func preferredBatchRequest(method: HTTPClient.Method, path: String, internalId: String) throws -> [String: Any]? {
+        return nil
+    }
+    
+    func validateBeforeSaving() throws {
+        /* Nop */
+    }
+    
+    func objectDidSave() {
+        /* Nop */
+    }
+    
+    private static func assertObjectsApplication(_ objects: [LCObject]) -> Bool {
+        let sharedApplication = (objects.first?.application ?? .default)
+        for object in objects {
+            if object.application !== sharedApplication {
+                return false
+            }
+        }
+        return true
     }
 }
