@@ -18,7 +18,7 @@ public struct LCError: Error {
     /// Underlying error.
     public private(set) var underlyingError: Error?
 
-    /// ref: https://github.com/leancloud/paas/wiki/SDK-Internal-Error-Definition
+    /// ref: https://github.com/leancloud/rfcs/wiki/SDK-Internal-Error-Definition
     enum InternalErrorCode: Int {
         // session/client
         case commandTimeout             = 9000
@@ -89,7 +89,9 @@ public struct LCError: Error {
         if let error = error as? LCError {
             self = error
         } else {
-            self = LCError(underlyingError: error)
+            var err = LCError(code: .underlyingError)
+            err.underlyingError = error
+            self = err
         }
     }
 
@@ -105,17 +107,6 @@ public struct LCError: Error {
 
     init(code: ServerErrorCode, reason: String? = nil, userInfo: UserInfo? = nil) {
         self = LCError(code: code.rawValue, reason: reason, userInfo: userInfo)
-    }
-
-    /**
-     Initialize with underlying error.
-
-     - parameter underlyingError: The underlying error.
-     */
-    init(underlyingError: Error) {
-        var error = LCError(code: InternalErrorCode.underlyingError, reason: nil, userInfo: nil)
-        error.underlyingError = underlyingError
-        self = error
     }
 }
 
