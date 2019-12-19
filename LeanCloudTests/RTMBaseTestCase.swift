@@ -12,13 +12,4 @@ import XCTest
 class RTMBaseTestCase: BaseTestCase {
     
     let testableRTMURL: URL = URL(string: "wss://rtm51.leancloud.cn")!
-    
-    var uuid: String {
-        return UUID().uuidString.replacingOccurrences(of: "-", with: "")
-    }
-    
-    static var uuid: String {
-        return UUID().uuidString.replacingOccurrences(of: "-", with: "")
-    }
-
 }

@@ -11,6 +11,18 @@ import XCTest
 
 class BaseTestCase: XCTestCase {
     
+    let timeout: TimeInterval = 60.0
+    
+    static let timeout: TimeInterval = 60.0
+    
+    var uuid: String {
+        return UUID().uuidString.replacingOccurrences(of: "-", with: "")
+    }
+    
+    static var uuid: String {
+        return UUID().uuidString.replacingOccurrences(of: "-", with: "")
+    }
+    
     struct AppInfo {
         let id: String
         let key: String
@@ -22,9 +34,6 @@ class BaseTestCase: XCTestCase {
         key: "7g5pPsI55piz2PRLPWK5MPz0",
         serverURL: "https://s5vdi3ie.lc-cn-n1-shared.com"
     )
-    
-    static let timeout: TimeInterval = 60.0
-    let timeout: TimeInterval = 60.0
     
     override class func setUp() {
         super.setUp()

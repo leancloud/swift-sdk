@@ -11,6 +11,26 @@ import XCTest
 
 class LCUserTestCase: BaseTestCase {
     
+    func testLoginWithSessionToken() {
+        let user = LCUser()
+        user.username = self.uuid.lcString
+        user.password = self.uuid.lcString
+        XCTAssertTrue(user.signUp().isSuccess)
+        
+        let logedinUser = LCUser.logIn(sessionToken: user.sessionToken!.value).object
+        XCTAssertEqual(logedinUser?.username, user.username)
+        
+        expecting { (exp) in
+            LCUser.logIn(sessionToken: logedinUser!.sessionToken!.value) { (result) in
+                XCTAssertTrue(Thread.isMainThread)
+                XCTAssertTrue(result.isSuccess)
+                XCTAssertNil(result.error)
+                XCTAssertEqual(result.object?.username, user.username)
+                exp.fulfill()
+            }
+        }
+    }
+    
     func testSignUpAndLogIn() {
         let user = LCUser()
         let application = user.application
