@@ -1214,7 +1214,7 @@
 			repositoryURL = "https://github.com/groue/GRDB.swift";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 4.6.2;
+				minimumVersion = 4.7.0;
 			};
 		};
 		D35EB5BB2328A6E000763E4E /* XCRemoteSwiftPackageReference "Alamofire" */ = {
