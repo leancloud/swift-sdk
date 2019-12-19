@@ -2216,9 +2216,9 @@ extension IMConversation {
             (self.convType != .system && members.isEmpty) {
             return false
         }
-        if let dateString: String = updatedDateString,
-            let newUpdatedDate: Date = LCDate.dateFromString(dateString) {
-            if let originUpdatedDate: Date = self.updatedAt {
+        if let updatedDateString = updatedDateString,
+            let newUpdatedDate = LCDate.dateFromString(updatedDateString) {
+            if let originUpdatedDate = self.updatedAt ?? self.createdAt {
                 return (newUpdatedDate >= originUpdatedDate)
             } else {
                 return true
@@ -2247,9 +2247,9 @@ extension IMConversation {
                 newMembers = joinedMembers
             }
             self.safeUpdatingRawData(key: .members, value: newMembers)
-            if let udateString: String = udate {
-                self.safeUpdatingRawData(key: .updatedAt, value: udateString)
-            }
+        }
+        if let udate = udate {
+            self.safeUpdatingRawData(key: .updatedAt, value: udate)
         }
         #if canImport(GRDB)
         if let _ = client.localStorage {
@@ -2278,9 +2278,6 @@ extension IMConversation {
                 }
                 self.safeUpdatingRawData(key: .members, value: originMembers)
             }
-            if let udate = udate {
-                self.safeUpdatingRawData(key: .updatedAt, value: udate)
-            }
             self.sync(closure: {
                 if let _ = self._memberInfoTable {
                     for member in leftMembers {
@@ -2288,6 +2285,9 @@ extension IMConversation {
                     }
                 }
             })
+        }
+        if let udate = udate {
+            self.safeUpdatingRawData(key: .updatedAt, value: udate)
         }
         #if canImport(GRDB)
         if let _ = client.localStorage {
@@ -2315,10 +2315,10 @@ extension IMConversation {
         udate: String?,
         client: IMClient)
     {
-        guard let udateString = udate,
-            let newUpdatedDate = LCDate.dateFromString(udateString),
-            let originUpdateDate = self.updatedAt,
-            newUpdatedDate > originUpdateDate else {
+        guard let udate = udate,
+            let newUpdatedDate = LCDate.dateFromString(udate),
+            let originUpdateDate = self.updatedAt ?? self.createdAt,
+            newUpdatedDate >= originUpdateDate else {
                 return
         }
         var rawDataCopy = self.sync(self.rawData)
@@ -2346,7 +2346,7 @@ extension IMConversation {
                 rawDataCopy = dictionary
             }
         }
-        rawDataCopy[Key.updatedAt.rawValue] = udateString
+        rawDataCopy[Key.updatedAt.rawValue] = udate
         self.sync(self.rawData = rawDataCopy)
         #if canImport(GRDB)
         self.tryUpdateLocalStorageData(
@@ -2383,8 +2383,11 @@ extension IMConversation {
     }
 
     private func safeUpdatingMutedMembers(op: IMOpType, udate: String?, client: IMClient) {
-        guard let udate: String = udate else {
-            return
+        guard let udate = udate,
+            let newUpdatedDate = LCDate.dateFromString(udate),
+            let originUpdatedDate = self.updatedAt ?? self.createdAt,
+            newUpdatedDate >= originUpdatedDate else {
+                return
         }
         let newMutedMembers: [String]
         switch op {
@@ -2517,10 +2520,9 @@ extension IMConversation {
             do {
                 let data = try JSONSerialization.data(withJSONObject: rawData)
                 sets.append(.rawData(data))
-                if
-                    let updatedAt: String = IMConversation.decoding(key: .updatedAt, from: rawData),
-                    let date: Date = LCDate.dateFromString(updatedAt)
-                {
+                if let dateString: String = IMConversation.decoding(key: .updatedAt, from: rawData)
+                    ?? IMConversation.decoding(key: .createdAt, from: rawData),
+                    let date = LCDate.dateFromString(dateString) {
                     let updatedTimestamp = Int64(date.timeIntervalSince1970 * 1000.0)
                     sets.append(.updatedTimestamp(updatedTimestamp))
                 }
@@ -2840,19 +2842,16 @@ public class IMTemporaryConversation: IMConversation {
 
     /// Expiration.
     public var expiration: Date? {
-        guard
-            let ttl = self.timeToLive,
-            let createDate: Date = self.createdAt
-            else
-        {
-            return nil
+        guard let ttl = self.timeToLive,
+            let createDate = self.createdAt else {
+                return nil
         }
         return Date(timeInterval: TimeInterval(ttl), since: createDate)
     }
 
     /// Time to Live.
     public var timeToLive: Int? {
-        return safeDecodingRawData(with: .temporaryTTL)
+        return self.safeDecodingRawData(with: .temporaryTTL)
     }
 
     @available(*, unavailable)

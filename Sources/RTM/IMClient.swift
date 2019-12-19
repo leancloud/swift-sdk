@@ -817,9 +817,6 @@ extension IMClient {
             }
             if convMessage.hasCdate {
                 attr[key.createdAt.rawValue] = convMessage.cdate
-                if !tuple.option.isUnique {
-                    attr[key.updatedAt.rawValue] = convMessage.cdate
-                }
             }
             if convMessage.hasUniqueID {
                 attr[key.uniqueId.rawValue] = convMessage.uniqueID

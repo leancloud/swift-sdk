@@ -318,11 +318,13 @@ extension IMLocalStorage {
                 return 0
             }
         }
+        let createdTS = millisecondFromKey(.createdAt)
+        let updatedTS = millisecondFromKey(.updatedAt)
         let arguments: StatementArguments = [
             conversationID,
             try JSONSerialization.data(withJSONObject: rawData),
-            millisecondFromKey(.updatedAt),
-            millisecondFromKey(.createdAt),
+            (updatedTS > 0 ? updatedTS : createdTS),
+            createdTS,
             false]
         try self.dbPool.write { db in
             try db.execute(sql: sql, arguments: arguments)
