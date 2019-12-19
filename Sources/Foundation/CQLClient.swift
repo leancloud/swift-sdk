@@ -114,13 +114,15 @@ public final class LCCQLClient {
      */
     @discardableResult
     public static func execute(
-        application: LCApplication = LCApplication.default,
-        _ cql: String, parameters: LCArrayConvertible? = nil,
+        application: LCApplication = .default,
+        _ cql: String,
+        parameters: LCArrayConvertible? = nil,
+        completionQueue: DispatchQueue = .main,
         completion: @escaping (_ result: LCCQLResult) -> Void)
         -> LCRequest
     {
         return execute(application: application, cql, parameters: parameters, completionInBackground: { result in
-            mainQueueAsync {
+            completionQueue.async {
                 completion(result)
             }
         })

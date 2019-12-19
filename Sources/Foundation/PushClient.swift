@@ -52,18 +52,19 @@ public class LCPush {
     /// - Returns: Request
     @discardableResult
     public static func send(
-        application: LCApplication = LCApplication.default,
+        application: LCApplication = .default,
         data: [String: Any],
         query: LCQuery? = nil,
         channels: [String]? = nil,
         pushDate: Date? = nil,
         expirationDate: Date? = nil,
         expirationInterval: TimeInterval? = nil,
+        completionQueue: DispatchQueue = .main,
         completion: @escaping (LCBooleanResult) -> Void)
         -> LCRequest
     {
         return self.send(application: application, data: data, query: query, channels: channels, pushDate: pushDate, expirationDate: expirationDate, expirationInterval: expirationInterval, completionInBackground: { (result) in
-            mainQueueAsync {
+            completionQueue.async {
                 completion(result)
             }
         })

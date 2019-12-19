@@ -114,12 +114,8 @@ open class LCUser: LCObject {
     }
     
     // MARK: Sign up
-
-    /**
-     Sign up an user.
-
-     - returns: The result of signing up request.
-     */
+    
+    /// Sign up an user synchronously.
     public func signUp() -> LCBooleanResult {
         return expect { fulfill in
             self.signUp(completionInBackground: { result in
@@ -127,16 +123,19 @@ open class LCUser: LCObject {
             })
         }
     }
-
-    /**
-     Sign up an user asynchronously.
-
-     - parameter completion: The completion callback closure.
-     */
+    
+    /// Sign up an user asynchronously.
+    /// - Parameters:
+    ///   - completionQueue: The queue where `completion` be executed, default is main.
+    ///   - completion: Result callback.
     @discardableResult
-    public func signUp(_ completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
-        return signUp(completionInBackground: { result in
-            mainQueueAsync {
+    public func signUp(
+        completionQueue: DispatchQueue = .main,
+        completion: @escaping (LCBooleanResult) -> Void)
+        -> LCRequest
+    {
+        return self.signUp(completionInBackground: { result in
+            completionQueue.async {
                 completion(result)
             }
         })
@@ -148,47 +147,48 @@ open class LCUser: LCObject {
     }
 
     // MARK: Log in with username and password
-
-    /**
-     Log in with username and password.
-     
-     - parameter username: The username.
-     - parameter password: The password.
-
-     - returns: The result of login request.
-     */
-    public static func logIn<User: LCUser>(
-        application: LCApplication = LCApplication.default,
-        username: String,
-        password: String)
-        -> LCValueResult<User>
-    {
+    
+    /// Log in with username and password synchronously.
+    /// - Parameters:
+    ///   - application: The application the user belong to, default is `LCApplication.default`.
+    ///   - username: The name of the user.
+    ///   - password: The password of the user.
+    public static func logIn<User: LCUser>(application: LCApplication = .default, username: String, password: String) -> LCValueResult<User> {
         return expect { fulfill in
-            logIn(application: application, username: username, password: password, completionInBackground: { result in
-                fulfill(result)
+            self.logIn(
+                application: application,
+                username: username,
+                password: password,
+                completionInBackground: { result in
+                    fulfill(result)
             })
         }
     }
-
-    /**
-     Log in with username and password asynchronously.
-
-     - parameter username:   The username.
-     - parameter password:   The password.
-     - parameter completion: The completion callback closure.
-     */
+    
+    /// Log in with username and password asynchronously.
+    /// - Parameters:
+    ///   - application: The application the user belong to, default is `LCApplication.default`.
+    ///   - username: The name of the user.
+    ///   - password: The password of the user.
+    ///   - completionQueue: The queue where `completion` be executed, default is main.
+    ///   - completion: Result callback.
     @discardableResult
     public static func logIn<User: LCUser>(
-        application: LCApplication = LCApplication.default,
+        application: LCApplication = .default,
         username: String,
         password: String,
+        completionQueue: DispatchQueue = .main,
         completion: @escaping (LCValueResult<User>) -> Void)
         -> LCRequest
     {
-        return logIn(application: application, username: username, password: password, completionInBackground: { result in
-            mainQueueAsync {
-                completion(result)
-            }
+        return self.logIn(
+            application: application,
+            username: username,
+            password: password,
+            completionInBackground: { result in
+                completionQueue.async {
+                    completion(result)
+                }
         })
     }
 
@@ -200,56 +200,57 @@ open class LCUser: LCObject {
         completionInBackground completion: @escaping (LCValueResult<User>) -> Void)
         -> LCRequest
     {
-        let parameters = [
-            "username": username,
-            "password": password
-        ]
-
-        let request = logIn(application: application, parameters: parameters, completionInBackground: completion)
-
-        return request
+        return self.logIn(
+            application: application,
+            parameters: [
+                "username": username,
+                "password": password],
+            completionInBackground: completion)
     }
     
     // MARK: Log in with email and password
     
-    /// Log in with email and password.
-    ///
+    /// Log in with email and password synchronously.
     /// - Parameters:
-    ///   - email: The email.
-    ///   - password: The password.
-    /// - Returns: The result of login request.
-    public static func logIn<User: LCUser>(
-        application: LCApplication = LCApplication.default,
-        email: String,
-        password: String)
-        -> LCValueResult<User>
-    {
+    ///   - application: The application the user belong to, default is `LCApplication.default`.
+    ///   - email: The email of the user.
+    ///   - password: The password of the user.
+    public static func logIn<User: LCUser>(application: LCApplication = .default, email: String, password: String) -> LCValueResult<User> {
         return expect { fulfill in
-            logIn(application: application, email: email, password: password, completionInBackground: { result in
-                fulfill(result)
+            self.logIn(
+                application: application,
+                email: email,
+                password: password,
+                completionInBackground: { result in
+                    fulfill(result)
             })
         }
     }
     
-    /// Log in with email and password.
-    ///
+    /// Log in with email and password asynchronously.
     /// - Parameters:
-    ///   - email: The email.
-    ///   - password: The password.
-    ///   - completion: The completion callback closure.
-    /// - Returns: The result of login request.
+    ///   - application: The application the user belong to, default is `LCApplication.default`.
+    ///   - email: The email of the user.
+    ///   - password: The password of the user.
+    ///   - completionQueue: The queue where `completion` be executed, default is main.
+    ///   - completion: Result callback.
     @discardableResult
     public static func logIn<User: LCUser>(
-        application: LCApplication = LCApplication.default,
+        application: LCApplication = .default,
         email: String,
         password: String,
+        completionQueue: DispatchQueue = .main,
         completion: @escaping (LCValueResult<User>) -> Void)
         -> LCRequest
     {
-        return logIn(application: application, email: email, password: password, completionInBackground: { (result) in
-            mainQueueAsync {
-                completion(result)
-            }
+        return self.logIn(
+            application: application,
+            email: email,
+            password: password,
+            completionInBackground: { (result) in
+                completionQueue.async {
+                    completion(result)
+                }
         })
     }
     
@@ -261,58 +262,57 @@ open class LCUser: LCObject {
         completionInBackground completion: @escaping (LCValueResult<User>) -> Void)
         -> LCRequest
     {
-        let parameters = [
-            "email": email,
-            "password": password
-        ]
-        
-        let request = logIn(application: application, parameters: parameters, completionInBackground: completion)
-        
-        return request
+        return self.logIn(
+            application: application,
+            parameters: [
+                "email": email,
+                "password": password],
+            completionInBackground: completion)
     }
 
     // MARK: Log in with phone number and password
-
-    /**
-     Log in with mobile phone number and password.
-
-     - parameter username: The mobile phone number.
-     - parameter password: The password.
-
-     - returns: The result of login request.
-     */
-    public static func logIn<User: LCUser>(
-        application: LCApplication = LCApplication.default,
-        mobilePhoneNumber: String,
-        password: String)
-        -> LCValueResult<User>
-    {
+    
+    /// Log in with mobile phone number and password synchronously.
+    /// - Parameters:
+    ///   - application: The application the user belong to, default is `LCApplication.default`.
+    ///   - mobilePhoneNumber: The mobile phone number of the user.
+    ///   - password: The password of the user.
+    public static func logIn<User: LCUser>(application: LCApplication = .default, mobilePhoneNumber: String, password: String) -> LCValueResult<User> {
         return expect { fulfill in
-            logIn(application: application, mobilePhoneNumber: mobilePhoneNumber, password: password, completionInBackground: { result in
-                fulfill(result)
+            self.logIn(
+                application: application,
+                mobilePhoneNumber: mobilePhoneNumber,
+                password: password,
+                completionInBackground: { result in
+                    fulfill(result)
             })
         }
     }
-
-    /**
-     Log in with mobile phone number and password asynchronously.
-
-     - parameter mobilePhoneNumber: The mobile phone number.
-     - parameter password:          The password.
-     - parameter completion:        The completion callback closure.
-     */
+    
+    /// Log in with mobile phone number and password asynchronously.
+    /// - Parameters:
+    ///   - application: The application the user belong to, default is `LCApplication.default`.
+    ///   - mobilePhoneNumber: The mobile phone number of the user.
+    ///   - password: The password of the user.
+    ///   - completionQueue: The queue where `completion` be executed, default is main.
+    ///   - completion: Result callback.
     @discardableResult
     public static func logIn<User: LCUser>(
-        application: LCApplication = LCApplication.default,
+        application: LCApplication = .default,
         mobilePhoneNumber: String,
         password: String,
+        completionQueue: DispatchQueue = .main,
         completion: @escaping (LCValueResult<User>) -> Void)
         -> LCRequest
     {
-        return logIn(application: application, mobilePhoneNumber: mobilePhoneNumber, password: password, completionInBackground: { result in
-            mainQueueAsync {
-                completion(result)
-            }
+        return self.logIn(
+            application: application,
+            mobilePhoneNumber: mobilePhoneNumber,
+            password: password,
+            completionInBackground: { result in
+                completionQueue.async {
+                    completion(result)
+                }
         })
     }
 
@@ -324,58 +324,57 @@ open class LCUser: LCObject {
         completionInBackground completion: @escaping (LCValueResult<User>) -> Void)
         -> LCRequest
     {
-        let parameters = [
-            "password": password,
-            "mobilePhoneNumber": mobilePhoneNumber
-        ]
-
-        let request = logIn(application: application, parameters: parameters, completionInBackground: completion)
-
-        return request
+        return self.logIn(
+            application: application,
+            parameters: [
+                "password": password,
+                "mobilePhoneNumber": mobilePhoneNumber],
+            completionInBackground: completion)
     }
 
     // MARK: Log in with phone number and verification code
-
-    /**
-     Log in with mobile phone number and verification code.
-
-     - parameter mobilePhoneNumber: The mobile phone number.
-     - parameter verificationCode:  The verification code.
-
-     - returns: The result of login request.
-     */
-    public static func logIn<User: LCUser>(
-        application: LCApplication = LCApplication.default,
-        mobilePhoneNumber: String,
-        verificationCode: String)
-        -> LCValueResult<User>
-    {
+    
+    /// Log in with mobile phone number and verification code synchronously.
+    /// - Parameters:
+    ///   - application: The application the user belong to, default is `LCApplication.default`.
+    ///   - mobilePhoneNumber: The mobile phone number of the user.
+    ///   - verificationCode: The verification code sent to `mobilePhoneNumber`.
+    public static func logIn<User: LCUser>(application: LCApplication = .default, mobilePhoneNumber: String, verificationCode: String) -> LCValueResult<User> {
         return expect { fulfill in
-            logIn(application: application, mobilePhoneNumber: mobilePhoneNumber, verificationCode: verificationCode, completionInBackground: { result in
-                fulfill(result)
+            self.logIn(
+                application: application,
+                mobilePhoneNumber: mobilePhoneNumber,
+                verificationCode: verificationCode,
+                completionInBackground: { result in
+                    fulfill(result)
             })
         }
     }
-
-    /**
-     Log in with mobile phone number and verification code asynchronously.
-
-     - parameter mobilePhoneNumber: The mobile phone number.
-     - parameter verificationCode:  The verification code.
-     - parameter completion:        The completion callback closure.
-     */
+    
+    /// Log in with mobile phone number and verification code asynchronously.
+    /// - Parameters:
+    ///   - application: The application the user belong to, default is `LCApplication.default`.
+    ///   - mobilePhoneNumber: The mobile phone number of the user.
+    ///   - verificationCode: The verification code sent to `mobilePhoneNumber`.
+    ///   - completionQueue: The queue where `completion` be executed, default is main.
+    ///   - completion: Result callback.
     @discardableResult
     public static func logIn<User: LCUser>(
-        application: LCApplication = LCApplication.default,
+        application: LCApplication = .default,
         mobilePhoneNumber: String,
         verificationCode: String,
+        completionQueue: DispatchQueue = .main,
         completion: @escaping (LCValueResult<User>) -> Void)
         -> LCRequest
     {
-        return logIn(application: application, mobilePhoneNumber: mobilePhoneNumber, verificationCode: verificationCode, completionInBackground: { result in
-            mainQueueAsync {
-                completion(result)
-            }
+        return self.logIn(
+            application: application,
+            mobilePhoneNumber: mobilePhoneNumber,
+            verificationCode: verificationCode,
+            completionInBackground: { result in
+                completionQueue.async {
+                    completion(result)
+                }
         })
     }
 
@@ -387,26 +386,16 @@ open class LCUser: LCObject {
         completionInBackground completion: @escaping (LCValueResult<User>) -> Void)
         -> LCRequest
     {
-        let parameters = [
-            "smsCode": verificationCode,
-            "mobilePhoneNumber": mobilePhoneNumber
-        ]
-
-        let request = logIn(application: application, parameters: parameters, completionInBackground: completion)
-
-        return request
+        return self.logIn(
+            application: application,
+            parameters: [
+                "smsCode": verificationCode,
+                "mobilePhoneNumber": mobilePhoneNumber],
+            completionInBackground: completion)
     }
 
     // MARK: Log in with parameters
-
-    /**
-     Log in with parameters asynchronously.
-
-     - parameter parameters: The login parameters.
-     - parameter completion: The completion callback, it will be called in background thread.
-
-     - returns: A login request.
-     */
+    
     @discardableResult
     private static func logIn<User: LCUser>(
         application: LCApplication,
@@ -414,69 +403,62 @@ open class LCUser: LCObject {
         completionInBackground completion: @escaping (LCValueResult<User>) -> Void)
         -> LCRequest
     {
-        let request = application.httpClient.request(.post, "login", parameters: parameters) { response in
+        return application.httpClient.request(
+            .post, "login",
+            parameters: parameters)
+        { response in
             let result = LCValueResult<User>(response: response)
-
             switch result {
             case .success(let user):
                 application.currentUser = user
             case .failure:
                 break
             }
-
             completion(result)
         }
-
-        return request
     }
 
     // MARK: Log in with session token
-
-    /**
-     Log in with session token.
-
-     - parameter sessionToken: The session token.
-
-     - returns: The result of login request.
-     */
-    public static func logIn<User: LCUser>(
-        application: LCApplication = LCApplication.default,
-        sessionToken: String)
-        -> LCValueResult<User>
-    {
+    
+    /// Log in with session token synchronously.
+    /// - Parameters:
+    ///   - application: The application the user belong to, default is `LCApplication.default`.
+    ///   - sessionToken: The session token of the user.
+    public static func logIn<User: LCUser>(application: LCApplication = .default, sessionToken: String) -> LCValueResult<User> {
         return expect { fulfill in
-            logIn(application: application, sessionToken: sessionToken, completionInBackground: { (result: LCValueResult<User>) in
-                fulfill(result)
+            self.logIn(
+                application: application,
+                sessionToken: sessionToken,
+                completionInBackground: { (result) in
+                    fulfill(result)
             })
         }
     }
-
-    /**
-     Log in with session token asynchronously.
-
-     - parameter sessionToken: The session token.
-     - parameter completion:   The completion callback closure, it will be called in main thread.
-     */
+    
+    /// Log in with session token asynchronously.
+    /// - Parameters:
+    ///   - application: The application the user belong to, default is `LCApplication.default`.
+    ///   - sessionToken: The session token of the user.
+    ///   - completionQueue: The queue where `completion` be executed, default is main.
+    ///   - completion: Result callback.
     @discardableResult
     public static func logIn<User: LCUser>(
-        application: LCApplication = LCApplication.default,
+        application: LCApplication = .default,
         sessionToken: String,
+        completionQueue: DispatchQueue = .main,
         completion: @escaping (LCValueResult<User>) -> Void)
         -> LCRequest
     {
-        return logIn(application: application, sessionToken: sessionToken, completionInBackground: { result in
-            mainQueueAsync {
-                completion(result)
-            }
+        return self.logIn(
+            application: application,
+            sessionToken: sessionToken,
+            completionInBackground: { result in
+                completionQueue.async {
+                    completion(result)
+                }
         })
     }
-
-    /**
-     Log in with session token asynchronously.
-
-     - parameter sessionToken: The session token.
-     - parameter completion:   The completion callback closure, it will be called in a background thread.
-     */
+    
     @discardableResult
     private static func logIn<User: LCUser>(
         application: LCApplication,
@@ -484,71 +466,64 @@ open class LCUser: LCObject {
         completionInBackground completion: @escaping (LCValueResult<User>) -> Void)
         -> LCRequest
     {
-        let httpClient: HTTPClient = application.httpClient
-        let className = objectClassName()
-        let classEndpoint = httpClient.getClassEndpoint(className: className)
-
-        let endpoint = "\(classEndpoint)/me"
-        let parameters = ["session_token": sessionToken]
-
-        let request = httpClient.request(.get, endpoint, parameters: parameters) { response in
+        return application.httpClient.request(
+            .get, "users/me",
+            parameters: ["session_token": sessionToken])
+        { response in
             let result = LCValueResult<User>(response: response)
-
             switch result {
             case .success(let user):
                 application.currentUser = user
             case .failure:
                 break
             }
-
             completion(result)
         }
-
-        return request
     }
 
     // MARK: Sign up or log in with phone number and verification code
-
-    /**
-     Sign up or log in with mobile phone number and verification code.
-
-     This method will sign up a user automatically if user for mobile phone number not found.
-
-     - parameter mobilePhoneNumber: The mobile phone number.
-     - parameter verificationCode:  The verification code.
-     */
-    public static func signUpOrLogIn<User: LCUser>(
-        application: LCApplication = LCApplication.default,
-        mobilePhoneNumber: String,
-        verificationCode: String)
-        -> LCValueResult<User>
-    {
+    
+    /// Sign up or log in with mobile phone number and verification code synchronously.
+    /// - Parameters:
+    ///   - application: The application the user belong to, default is `LCApplication.default`.
+    ///   - mobilePhoneNumber: The mobile phone number of the user.
+    ///   - verificationCode: The verification code sent to `mobilePhoneNumber`.
+    public static func signUpOrLogIn<User: LCUser>(application: LCApplication = .default, mobilePhoneNumber: String, verificationCode: String) -> LCValueResult<User> {
         return expect { fulfill in
-            signUpOrLogIn(application: application, mobilePhoneNumber: mobilePhoneNumber, verificationCode: verificationCode, completionInBackground: { result in
-                fulfill(result)
+            self.signUpOrLogIn(
+                application: application,
+                mobilePhoneNumber: mobilePhoneNumber,
+                verificationCode: verificationCode,
+                completionInBackground: { result in
+                    fulfill(result)
             })
         }
     }
-
-    /**
-     Sign up or log in with mobile phone number and verification code asynchronously.
-
-     - parameter mobilePhoneNumber: The mobile phone number.
-     - parameter verificationCode:  The verification code.
-     - parameter completion:        The completion callback closure.
-     */
+    
+    /// Sign up or log in with mobile phone number and verification code asynchronously.
+    /// - Parameters:
+    ///   - application: The application the user belong to, default is `LCApplication.default`.
+    ///   - mobilePhoneNumber: The mobile phone number of the user.
+    ///   - verificationCode: The verification code sent to `mobilePhoneNumber`.
+    ///   - completionQueue: The queue where `completion` be executed, default is main.
+    ///   - completion: Result callback.
     @discardableResult
     public static func signUpOrLogIn<User: LCUser>(
-        application: LCApplication = LCApplication.default,
+        application: LCApplication = .default,
         mobilePhoneNumber: String,
         verificationCode: String,
+        completionQueue: DispatchQueue = .main,
         completion: @escaping (LCValueResult<User>) -> Void)
         -> LCRequest
     {
-        return signUpOrLogIn(application: application, mobilePhoneNumber: mobilePhoneNumber, verificationCode: verificationCode, completionInBackground: { result in
-            mainQueueAsync {
-                completion(result)
-            }
+        return self.signUpOrLogIn(
+            application: application,
+            mobilePhoneNumber: mobilePhoneNumber,
+            verificationCode: verificationCode,
+            completionInBackground: { result in
+                completionQueue.async {
+                    completion(result)
+                }
         })
     }
 
@@ -560,72 +535,67 @@ open class LCUser: LCObject {
         completionInBackground completion: @escaping (LCValueResult<User>) -> Void)
         -> LCRequest
     {
-        let parameters = [
-            "smsCode": verificationCode,
-            "mobilePhoneNumber": mobilePhoneNumber
-        ]
-
-        let request = application.httpClient.request(.post, "usersByMobilePhone", parameters: parameters) { response in
+        return application.httpClient.request(
+            .post, "usersByMobilePhone",
+            parameters: [
+                "smsCode": verificationCode,
+                "mobilePhoneNumber": mobilePhoneNumber])
+        { response in
             let result = LCValueResult<User>(response: response)
-
             switch result {
             case .success(let user):
                 application.currentUser = user
             case .failure:
                 break
             }
-
             completion(result)
         }
-
-        return request
     }
-
-    /**
-     Log out current user.
-     */
-    public static func logOut(application: LCApplication = LCApplication.default) {
+    
+    /// Log out current user of the application.
+    /// - Parameter application: The application current user belong to, default is `LCApplication.default`.
+    public static func logOut(application: LCApplication = .default) {
         application.currentUser = nil
     }
 
     // MARK: Send verification mail
-
-    /**
-     Request to send a verification mail to specified email address.
-
-     - parameter email: The email address to where the mail will be sent.
-
-     - returns: The result of verification request.
-     */
-    public static func requestVerificationMail(
-        application: LCApplication = LCApplication.default,
-        email: String)
-        -> LCBooleanResult
-    {
+    
+    /// Request to send a verification mail to specified email address synchronously.
+    /// - Parameters:
+    ///   - application: The application the user belong to, default is `LCApplication.default`.
+    ///   - email: The email address where the mail will be sent to.
+    public static func requestVerificationMail(application: LCApplication = .default, email: String) -> LCBooleanResult {
         return expect { fulfill in
-            requestVerificationMail(application: application, email: email, completionInBackground: { result in
-                fulfill(result)
+            self.requestVerificationMail(
+                application: application,
+                email: email,
+                completionInBackground: { result in
+                    fulfill(result)
             })
         }
     }
-
-    /**
-     Request to send a verification mail to specified email address asynchronously.
-
-     - parameter email:      The email address to where the mail will be sent.
-     - parameter completion: The completion callback closure.
-     */
+    
+    /// Request to send a verification mail to specified email address asynchronously.
+    /// - Parameters:
+    ///   - application: The application the user belong to, default is `LCApplication.default`.
+    ///   - email: The email address where the mail will be sent to.
+    ///   - completionQueue: The queue where `completion` be executed, default is main.
+    ///   - completion: Result callback.
     @discardableResult
     public static func requestVerificationMail(
-        application: LCApplication = LCApplication.default,
+        application: LCApplication = .default,
         email: String,
+        completionQueue: DispatchQueue = .main,
         completion: @escaping (LCBooleanResult) -> Void)
         -> LCRequest
     {
-        return requestVerificationMail(application: application, email: email, completionInBackground: { result in
-            mainQueueAsync {
-                completion(result)
-            }
+        return self.requestVerificationMail(
+            application: application,
+            email: email,
+            completionInBackground: { result in
+                completionQueue.async {
+                    completion(result)
+                }
         })
     }
 
@@ -636,51 +606,52 @@ open class LCUser: LCObject {
         completionInBackground completion: @escaping (LCBooleanResult) -> Void)
         -> LCRequest
     {
-        let parameters = ["email": email]
-        let request = application.httpClient.request(.post, "requestEmailVerify", parameters: parameters) { response in
+        return application.httpClient.request(
+            .post, "requestEmailVerify",
+            parameters: ["email": email])
+        { response in
             completion(LCBooleanResult(response: response))
         }
-        return request
     }
 
     // MARK: Send verification code
-
-    /**
-     Request to send a verification code to specified mobile phone number.
-
-     - parameter mobilePhoneNumber: The mobile phone number where the verification code will be sent to.
-
-     - returns: The result of request.
-     */
-    public static func requestVerificationCode(
-        application: LCApplication = LCApplication.default,
-        mobilePhoneNumber: String)
-        -> LCBooleanResult
-    {
+    
+    /// Request to send a verification code to specified mobile phone number synchronously.
+    /// - Parameters:
+    ///   - application: The application the user belong to, default is `LCApplication.default`.
+    ///   - mobilePhoneNumber: The mobile phone number where the verification code will be sent to.
+    public static func requestVerificationCode(application: LCApplication = .default, mobilePhoneNumber: String) -> LCBooleanResult {
         return expect { fulfill in
-            requestVerificationCode(application: application, mobilePhoneNumber: mobilePhoneNumber, completionInBackground: { result in
-                fulfill(result)
+            self.requestVerificationCode(
+                application: application,
+                mobilePhoneNumber: mobilePhoneNumber,
+                completionInBackground: { result in
+                    fulfill(result)
             })
         }
     }
-
-    /**
-     Request to send a verification code to specified mobile phone number asynchronously.
-
-     - parameter mobilePhoneNumber: The mobile phone number where the verification code will be sent to.
-     - parameter completion:        The completion callback closure.
-     */
+    
+    /// Request to send a verification code to specified mobile phone number asynchronously.
+    /// - Parameters:
+    ///   - application: The application the user belong to, default is `LCApplication.default`.
+    ///   - mobilePhoneNumber: The mobile phone number where the verification code will be sent to.
+    ///   - completionQueue: The queue where `completion` be executed, default is main.
+    ///   - completion: Result callback.
     @discardableResult
     public static func requestVerificationCode(
-        application: LCApplication = LCApplication.default,
+        application: LCApplication = .default,
         mobilePhoneNumber: String,
+        completionQueue: DispatchQueue = .main,
         completion: @escaping (LCBooleanResult) -> Void)
         -> LCRequest
     {
-        return requestVerificationCode(application: application, mobilePhoneNumber: mobilePhoneNumber, completionInBackground: { result in
-            mainQueueAsync {
-                completion(result)
-            }
+        return self.requestVerificationCode(
+            application: application,
+            mobilePhoneNumber: mobilePhoneNumber,
+            completionInBackground: { result in
+                completionQueue.async {
+                    completion(result)
+                }
         })
     }
 
@@ -691,55 +662,57 @@ open class LCUser: LCObject {
         completionInBackground completion: @escaping (LCBooleanResult) -> Void)
         -> LCRequest
     {
-        let parameters = ["mobilePhoneNumber": mobilePhoneNumber]
-        let request = application.httpClient.request(.post, "requestMobilePhoneVerify", parameters: parameters) { response in
+        return application.httpClient.request(
+            .post, "requestMobilePhoneVerify",
+            parameters: ["mobilePhoneNumber": mobilePhoneNumber])
+        { response in
             completion(LCBooleanResult(response: response))
         }
-        return request
     }
 
     // MARK: Verify phone number
-
-    /**
-     Verify a mobile phone number.
-
-     - parameter mobilePhoneNumber: The mobile phone number.
-     - parameter verificationCode:  The verification code.
-
-     - returns: The result of verification request.
-     */
-    public static func verifyMobilePhoneNumber(
-        application: LCApplication = LCApplication.default,
-        _ mobilePhoneNumber: String,
-        verificationCode: String)
-        -> LCBooleanResult
-    {
+    
+    /// Verify mobile phone number with code synchronously.
+    /// - Parameters:
+    ///   - application: The application the user belong to, default is `LCApplication.default`.
+    ///   - mobilePhoneNumber: The mobile phone number of the user.
+    ///   - verificationCode: The verification code sent to `mobilePhoneNumber`.
+    public static func verifyMobilePhoneNumber(application: LCApplication = .default, _ mobilePhoneNumber: String, verificationCode: String) -> LCBooleanResult {
         return expect { fulfill in
-            verifyMobilePhoneNumber(application: application, mobilePhoneNumber, verificationCode: verificationCode, completionInBackground: { result in
-                fulfill(result)
+            self.verifyMobilePhoneNumber(
+                application: application,
+                mobilePhoneNumber,
+                verificationCode: verificationCode,
+                completionInBackground: { result in
+                    fulfill(result)
             })
         }
     }
-
-    /**
-     Verify mobile phone number with code asynchronously.
-
-     - parameter mobilePhoneNumber: The mobile phone number.
-     - parameter verificationCode:  The verification code.
-     - parameter completion:        The completion callback closure.
-     */
+    
+    /// Verify mobile phone number with code asynchronously.
+    /// - Parameters:
+    ///   - application: The application the user belong to, default is `LCApplication.default`.
+    ///   - mobilePhoneNumber: The mobile phone number of the user.
+    ///   - verificationCode: The verification code sent to `mobilePhoneNumber`.
+    ///   - completionQueue: The queue where `completion` be executed, default is main.
+    ///   - completion: Result callback.
     @discardableResult
     public static func verifyMobilePhoneNumber(
-        application: LCApplication = LCApplication.default,
+        application: LCApplication = .default,
         _ mobilePhoneNumber: String,
         verificationCode: String,
+        completionQueue: DispatchQueue = .main,
         completion: @escaping (LCBooleanResult) -> Void)
         -> LCRequest
     {
-        return verifyMobilePhoneNumber(application: application, mobilePhoneNumber, verificationCode: verificationCode, completionInBackground: { result in
-            mainQueueAsync {
-                completion(result)
-            }
+        return self.verifyMobilePhoneNumber(
+            application: application,
+            mobilePhoneNumber,
+            verificationCode: verificationCode,
+            completionInBackground: { result in
+                completionQueue.async {
+                    completion(result)
+                }
         })
     }
 
@@ -751,51 +724,52 @@ open class LCUser: LCObject {
         completionInBackground completion: @escaping (LCBooleanResult) -> Void)
         -> LCRequest
     {
-        let parameters = ["mobilePhoneNumber": mobilePhoneNumber]
-        let request = application.httpClient.request(.get, "verifyMobilePhone/\(verificationCode)", parameters: parameters) { response in
+        return application.httpClient.request(
+            .get, "verifyMobilePhone/\(verificationCode)",
+            parameters: ["mobilePhoneNumber": mobilePhoneNumber])
+        { response in
             completion(LCBooleanResult(response: response))
         }
-        return request
     }
 
     // MARK: Send a login verification code
-
-    /**
-     Request a verification code for login with mobile phone number.
-
-     - parameter mobilePhoneNumber: The mobile phone number where the verification code will be sent to.
-
-     - returns: The result of request.
-     */
-    public static func requestLoginVerificationCode(
-        application: LCApplication = LCApplication.default,
-        mobilePhoneNumber: String)
-        -> LCBooleanResult
-    {
+    
+    /// Request a verification code for login with mobile phone number synchronously.
+    /// - Parameters:
+    ///   - application: The application the user belong to, default is `LCApplication.default`.
+    ///   - mobilePhoneNumber: The mobile phone number where the verification code will be sent to.
+    public static func requestLoginVerificationCode(application: LCApplication = .default, mobilePhoneNumber: String) -> LCBooleanResult {
         return expect { fulfill in
-            requestLoginVerificationCode(application: application, mobilePhoneNumber: mobilePhoneNumber, completionInBackground: { result in
-                fulfill(result)
+            self.requestLoginVerificationCode(
+                application: application,
+                mobilePhoneNumber: mobilePhoneNumber,
+                completionInBackground: { result in
+                    fulfill(result)
             })
         }
     }
-
-    /**
-     Request a verification code for login with mobile phone number asynchronously.
-
-     - parameter mobilePhoneNumber: The mobile phone number where the verification code message will be sent to.
-     - parameter completion:        The completion callback closure.
-     */
+    
+    /// Request a verification code for login with mobile phone number asynchronously.
+    /// - Parameters:
+    ///   - application: The application the user belong to, default is `LCApplication.default`.
+    ///   - mobilePhoneNumber: The mobile phone number where the verification code will be sent to.
+    ///   - completionQueue: The queue where `completion` be executed, default is main.
+    ///   - completion: Result callback.
     @discardableResult
     public static func requestLoginVerificationCode(
-        application: LCApplication = LCApplication.default,
+        application: LCApplication = .default,
         mobilePhoneNumber: String,
+        completionQueue: DispatchQueue = .main,
         completion: @escaping (LCBooleanResult) -> Void)
         -> LCRequest
     {
-        return requestLoginVerificationCode(application: application, mobilePhoneNumber: mobilePhoneNumber, completionInBackground: { result in
-            mainQueueAsync {
-                completion(result)
-            }
+        return self.requestLoginVerificationCode(
+            application: application,
+            mobilePhoneNumber: mobilePhoneNumber,
+            completionInBackground: { result in
+                completionQueue.async {
+                    completion(result)
+                }
         })
     }
 
@@ -806,52 +780,52 @@ open class LCUser: LCObject {
         completionInBackground completion: @escaping (LCBooleanResult) -> Void)
         -> LCRequest
     {
-        let parameters = ["mobilePhoneNumber": mobilePhoneNumber]
-        let request = application.httpClient.request(.post, "requestLoginSmsCode", parameters: parameters) { response in
+        return application.httpClient.request(
+            .post, "requestLoginSmsCode",
+            parameters: ["mobilePhoneNumber": mobilePhoneNumber])
+        { response in
             completion(LCBooleanResult(response: response))
         }
-
-        return request
     }
 
     // MARK: Send password reset mail
-
-    /**
-     Request password reset mail.
-
-     - parameter email: The email address where the password reset mail will be sent to.
-
-     - returns: The result of request.
-     */
-    public static func requestPasswordReset(
-        application: LCApplication = LCApplication.default,
-        email: String)
-        -> LCBooleanResult
-    {
+    
+    /// Request password reset mail synchronously.
+    /// - Parameters:
+    ///   - application: The application the user belong to, default is `LCApplication.default`.
+    ///   - email: The email address where the password reset mail will be sent to.
+    public static func requestPasswordReset(application: LCApplication = .default, email: String) -> LCBooleanResult {
         return expect { fulfill in
-            requestPasswordReset(application: application, email: email, completionInBackground: { result in
-                fulfill(result)
+            self.requestPasswordReset(
+                application: application,
+                email: email,
+                completionInBackground: { result in
+                    fulfill(result)
             })
         }
     }
-
-    /**
-     Request password reset email asynchronously.
-
-     - parameter email:      The email address where the password reset email will be sent to.
-     - parameter completion: The completion callback closure.
-     */
+    
+    /// Request password reset email asynchronously.
+    /// - Parameters:
+    ///   - application: The application the user belong to, default is `LCApplication.default`.
+    ///   - email: The email address where the password reset mail will be sent to.
+    ///   - completionQueue: The queue where `completion` be executed, default is main.
+    ///   - completion: Result callback.
     @discardableResult
     public static func requestPasswordReset(
-        application: LCApplication = LCApplication.default,
+        application: LCApplication = .default,
         email: String,
+        completionQueue: DispatchQueue = .main,
         completion: @escaping (LCBooleanResult) -> Void)
         -> LCRequest
     {
-        return requestPasswordReset(application: application, email: email, completionInBackground: { result in
-            mainQueueAsync {
-                completion(result)
-            }
+        return self.requestPasswordReset(
+            application: application,
+            email: email,
+            completionInBackground: { result in
+                completionQueue.async {
+                    completion(result)
+                }
         })
     }
 
@@ -862,52 +836,51 @@ open class LCUser: LCObject {
         completionInBackground completion: @escaping (LCBooleanResult) -> Void)
         -> LCRequest
     {
-        let parameters = ["email": email]
-        let request = application.httpClient.request(.post, "requestPasswordReset", parameters: parameters) { response in
+        return application.httpClient.request(
+            .post, "requestPasswordReset",
+            parameters: ["email": email])
+        { response in
             completion(LCBooleanResult(response: response))
         }
-
-        return request
     }
 
     // MARK: Send password reset short message
-
-    /**
-     Request password reset verification code.
-
-     - parameter mobilePhoneNumber: The mobile phone number where the password reset verification code will be sent to.
-
-     - returns: The result of request.
-     */
-    public static func requestPasswordReset(
-        application: LCApplication = LCApplication.default,
-        mobilePhoneNumber: String)
-        -> LCBooleanResult
-    {
+    
+    /// Request password reset verification code synchronously.
+    /// - Parameters:
+    ///   - application: The application the user belong to, default is `LCApplication.default`.
+    ///   - mobilePhoneNumber: The mobile phone number where the password reset verification code will be sent to.
+    public static func requestPasswordReset(application: LCApplication = .default, mobilePhoneNumber: String) -> LCBooleanResult {
         return expect { fulfill in
-            requestPasswordReset(application: application, mobilePhoneNumber: mobilePhoneNumber, completionInBackground: { result in
-                fulfill(result)
+            self.requestPasswordReset(
+                application: application,
+                mobilePhoneNumber: mobilePhoneNumber,
+                completionInBackground: { result in
+                    fulfill(result)
             })
         }
     }
-
-    /**
-     Request password reset verification code asynchronously.
-
-     - parameter mobilePhoneNumber: The mobile phone number where the password reset verification code will be sent to.
-     - parameter completion:        The completion callback closure.
-     */
-    @discardableResult
-    public static func requestPasswordReset(
-        application: LCApplication = LCApplication.default,
+    
+    /// Request password reset verification code asynchronously.
+    /// - Parameters:
+    ///   - application: The application the user belong to, default is `LCApplication.default`.
+    ///   - mobilePhoneNumber: The mobile phone number where the password reset verification code will be sent to.
+    ///   - completionQueue: The queue where `completion` be executed, default is main.
+    ///   - completion: Result callback.
+    @discardableResult public static func requestPasswordReset(
+        application: LCApplication = .default,
         mobilePhoneNumber: String,
+        completionQueue: DispatchQueue = .main,
         completion: @escaping (LCBooleanResult) -> Void)
         -> LCRequest
     {
-        return requestPasswordReset(application: application, mobilePhoneNumber: mobilePhoneNumber, completionInBackground: { result in
-            mainQueueAsync {
-                completion(result)
-            }
+        return self.requestPasswordReset(
+            application: application,
+            mobilePhoneNumber: mobilePhoneNumber,
+            completionInBackground: { result in
+                completionQueue.async {
+                    completion(result)
+                }
         })
     }
 
@@ -918,65 +891,70 @@ open class LCUser: LCObject {
         completionInBackground completion: @escaping (LCBooleanResult) -> Void)
         -> LCRequest
     {
-        let parameters = ["mobilePhoneNumber": mobilePhoneNumber]
-        let request = application.httpClient.request(.post, "requestPasswordResetBySmsCode", parameters: parameters) { response in
+        return application.httpClient.request(
+            .post, "requestPasswordResetBySmsCode",
+            parameters: ["mobilePhoneNumber": mobilePhoneNumber])
+        { response in
             completion(LCBooleanResult(response: response))
         }
-
-        return request
     }
 
     // MARK: Reset password with verification code and new password
-
-    /**
-     Reset password with verification code and new password.
-
-     - note: 
-     This method will reset password of `LCUser.current`.
-     If `LCUser.current` is nil, in other words, no user logged in,
-     password reset will be failed because of permission.
-
-     - parameter mobilePhoneNumber: The mobile phone number of user.
-     - parameter verificationCode:  The verification code in password reset message.
-     - parameter newPassword:       The new password.
-
-     - returns: The result of reset request.
-     */
-    public static func resetPassword(
-        application: LCApplication = LCApplication.default,
-        mobilePhoneNumber: String,
-        verificationCode: String,
-        newPassword: String)
-        -> LCBooleanResult
-    {
+    
+    /// Reset password with verification code and new password synchronously.
+    /// This method will reset password of current user.
+    /// If current user is nil, in other words, no user logged in,
+    /// Password reset will be failed because of permission.
+    ///
+    /// - Parameters:
+    ///   - application: The application current user belong to, default is `LCApplication.default`.
+    ///   - mobilePhoneNumber: The mobile phone number of current user.
+    ///   - verificationCode: The verification code in password reset message.
+    ///   - newPassword: The new password of current user.
+    public static func resetPassword(application: LCApplication = .default, mobilePhoneNumber: String, verificationCode: String, newPassword: String) -> LCBooleanResult {
         return expect { fulfill in
-            resetPassword(application: application, mobilePhoneNumber: mobilePhoneNumber, verificationCode: verificationCode, newPassword: newPassword, completionInBackground: { result in
-                fulfill(result)
+            self.resetPassword(
+                application: application,
+                mobilePhoneNumber: mobilePhoneNumber,
+                verificationCode: verificationCode,
+                newPassword: newPassword,
+                completionInBackground: { result in
+                    fulfill(result)
             })
         }
     }
 
-    /**
-     Reset password with verification code and new password asynchronously.
-
-     - parameter mobilePhoneNumber: The mobile phone number of user.
-     - parameter verificationCode:  The verification code in password reset message.
-     - parameter newPassword:       The new password.
-     - parameter completion:        The completion callback closure.
-     */
+    /// Reset password with verification code and new password asynchronously.
+    /// This method will reset password of current user.
+    /// If current user is nil, in other words, no user logged in,
+    /// Password reset will be failed because of permission.
+    ///
+    /// - Parameters:
+    ///   - application: The application current user belong to, default is `LCApplication.default`.
+    ///   - mobilePhoneNumber: The mobile phone number of current user.
+    ///   - verificationCode: The verification code in password reset message.
+    ///   - newPassword: The new password of current user.
+    ///   - completionQueue: The queue where `completion` be executed, default is main.
+    ///   - completion: Result callback.
     @discardableResult
     public static func resetPassword(
-        application: LCApplication = LCApplication.default,
+        application: LCApplication = .default,
         mobilePhoneNumber: String,
         verificationCode: String,
         newPassword: String,
+        completionQueue: DispatchQueue = .main,
         completion: @escaping (LCBooleanResult) -> Void)
         -> LCRequest
     {
-        return resetPassword(application: application, mobilePhoneNumber: mobilePhoneNumber, verificationCode: verificationCode, newPassword: newPassword, completionInBackground: { result in
-            mainQueueAsync {
-                completion(result)
-            }
+        return self.resetPassword(
+            application: application,
+            mobilePhoneNumber: mobilePhoneNumber,
+            verificationCode: verificationCode,
+            newPassword: newPassword,
+            completionInBackground: { result in
+                completionQueue.async {
+                    completion(result)
+                }
         })
     }
 
@@ -989,73 +967,81 @@ open class LCUser: LCObject {
         completionInBackground completion: @escaping (LCBooleanResult) -> Void)
         -> LCRequest
     {
-        let parameters = [
-            "password": newPassword,
-            "mobilePhoneNumber": mobilePhoneNumber
-        ]
-        let request = application.httpClient.request(.put, "resetPasswordBySmsCode/\(verificationCode)", parameters: parameters) { response in
+        return application.httpClient.request(
+            .put, "resetPasswordBySmsCode/\(verificationCode)",
+            parameters: [
+                "password": newPassword,
+                "mobilePhoneNumber": mobilePhoneNumber])
+        { response in
             completion(LCBooleanResult(response: response))
         }
-
-        return request
     }
 
     // MARK: Update password with new password
-
-    /**
-     Update password for user.
-
-     - parameter oldPassword: The old password.
-     - parameter newPassword: The new password.
-
-     - returns: The result of update request.
-     */
+    
+    /// Update password for user synchronously.
+    /// - Parameters:
+    ///   - oldPassword: The old password of the user.
+    ///   - newPassword: The new password of the user.
     public func updatePassword(oldPassword: String, newPassword: String) -> LCBooleanResult {
         return expect { fulfill in
-            self.updatePassword(oldPassword: oldPassword, newPassword: newPassword, completionInBackground: { result in
-                fulfill(result)
+            self.updatePassword(
+                oldPassword: oldPassword,
+                newPassword: newPassword,
+                completionInBackground: { result in
+                    fulfill(result)
             })
         }
     }
 
-    /**
-     Update password for user asynchronously.
-
-     - parameter oldPassword: The old password.
-     - parameter newPassword: The new password.
-     - parameter completion:  The completion callback closure.
-     */
+    /// Update password for user asynchronously.
+    /// - Parameters:
+    ///   - oldPassword: The old password of the user.
+    ///   - newPassword: The new password of the user.
+    ///   - completionQueue: The queue where `completion` be executed, default is main.
+    ///   - completion: Result callback.
     @discardableResult
-    public func updatePassword(oldPassword: String, newPassword: String, completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
-        return updatePassword(oldPassword: oldPassword, newPassword: newPassword, completionInBackground: { result in
-            mainQueueAsync {
-                completion(result)
-            }
+    public func updatePassword(
+        oldPassword: String,
+        newPassword: String,
+        completionQueue: DispatchQueue = .main,
+        completion: @escaping (LCBooleanResult) -> Void)
+        -> LCRequest
+    {
+        return self.updatePassword(
+            oldPassword: oldPassword,
+            newPassword: newPassword,
+            completionInBackground: { result in
+                completionQueue.async {
+                    completion(result)
+                }
         })
     }
 
     @discardableResult
     private func updatePassword(oldPassword: String, newPassword: String, completionInBackground completion: @escaping (LCBooleanResult) -> Void) -> LCRequest {
         let httpClient: HTTPClient = self.application.httpClient
-        
         guard let endpoint = httpClient.getObjectEndpoint(object: self) else {
             return httpClient.request(
-                error: LCError(code: .notFound, reason: "User not found."),
+                error: LCError(
+                    code: .notFound,
+                    reason: "Object ID not found."),
                 completionHandler: completion)
         }
-        guard let sessionToken = sessionToken else {
+        guard let sessionToken = self.sessionToken?.value else {
             return httpClient.request(
-                error: LCError(code: .notFound, reason: "Session token not found."),
+                error: LCError(
+                    code: .notFound,
+                    reason: "Session Token not found."),
                 completionHandler: completion)
         }
-
-        let parameters = [
-            "old_password": oldPassword,
-            "new_password": newPassword
-        ]
-        let headers = [HTTPClient.HeaderFieldName.session: sessionToken.value]
-
-        let request = httpClient.request(.put, "\(endpoint)/updatePassword", parameters: parameters, headers: headers) { response in
+        return httpClient.request(
+            .put, "\(endpoint)/updatePassword",
+            parameters: [
+                "old_password": oldPassword,
+                "new_password": newPassword],
+            headers: [HTTPClient.HeaderFieldName.session: sessionToken])
+        { response in
             if let error = LCError(response: response) {
                 completion(.failure(error: error))
             } else {
@@ -1065,8 +1051,6 @@ open class LCUser: LCObject {
                 completion(.success)
             }
         }
-
-        return request
     }
     
     // MARK: Auth Data
@@ -1142,7 +1126,7 @@ open class LCUser: LCObject {
     ///   - unionID: The union ID of the auth data.
     ///   - unionIDPlatform: The platform of the `unionID`. @see `AuthDataPlatform`.
     ///   - options: @see `AuthDataOptions`.
-    ///   - completionQueue: The queue where the `completion` be executed, default is main.
+    ///   - completionQueue: The queue where `completion` be executed, default is main.
     ///   - completion: Result callback.
     @discardableResult
     public func logIn(
@@ -1255,7 +1239,7 @@ open class LCUser: LCObject {
     ///   - unionID: The union ID of the auth data.
     ///   - unionIDPlatform: The platform of the `unionID`. @see `AuthDataPlatform`.
     ///   - options: @see `AuthDataOptions`.
-    ///   - completionQueue: The queue where the `completion` be executed, default is main.
+    ///   - completionQueue: The queue where `completion` be executed, default is main.
     ///   - completion: Result callback.
     @discardableResult
     public func associate(
@@ -1289,18 +1273,17 @@ open class LCUser: LCObject {
         unionIDPlatform: AuthDataPlatform?,
         options: AuthDataOptions?,
         completionInBackground completion: @escaping (LCBooleanResult) -> Void)
-        throws
-        -> LCRequest
+        throws -> LCRequest
     {
         guard let objectID = self.objectId?.value else {
             throw LCError(
-                code: .inconsistency,
-                reason: "object id not found.")
+                code: .notFound,
+                reason: "Object ID not found.")
         }
         guard let sessionToken = self.sessionToken?.value else {
             throw LCError(
-                code: .inconsistency,
-                reason: "session token not found.")
+                code: .notFound,
+                reason: "Session Token not found.")
         }
         
         var authData = authData
@@ -1369,7 +1352,7 @@ open class LCUser: LCObject {
     /// Disassociate the user with third party auth data asynchronously.
     /// - Parameters:
     ///   - platform: The platform of third party account. @see `AuthDataPlatform`.
-    ///   - completionQueue: The queue where the `completion` be executed, default is main.
+    ///   - completionQueue: The queue where `completion` be executed, default is main.
     ///   - completion: Result callback.
     @discardableResult
     public func disassociate(
@@ -1395,13 +1378,13 @@ open class LCUser: LCObject {
     {
         guard let objectID = self.objectId?.value else {
             throw LCError(
-                code: .inconsistency,
-                reason: "object id not found.")
+                code: .notFound,
+                reason: "Object ID not found.")
         }
         guard let sessionToken = self.sessionToken?.value else {
             throw LCError(
-                code: .inconsistency,
-                reason: "session token not found.")
+                code: .notFound,
+                reason: "Session Token not found.")
         }
         
         let path: String = "users/\(objectID)"

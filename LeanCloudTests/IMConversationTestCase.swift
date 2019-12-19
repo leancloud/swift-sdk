@@ -73,9 +73,7 @@ class IMConversationTestCase: RTMBaseTestCase {
             XCTAssertFalse(conv.isUnique)
             XCTAssertNil(conv.uniqueID)
             XCTAssertEqual(conv.creator, clientA.ID)
-            XCTAssertNotNil(conv.createdAt)
-            XCTAssertNotNil(conv.updatedAt)
-            XCTAssertEqual(conv.createdAt, conv.updatedAt)
+            XCTAssertNotNil(conv.updatedAt ?? conv.createdAt)
             XCTAssertFalse(conv.isMuted)
             XCTAssertFalse(conv.isOutdated)
             XCTAssertNil(conv.lastMessage)
@@ -1068,7 +1066,7 @@ class IMConversationTestCase: RTMBaseTestCase {
             XCTAssertTrue(result.isSuccess)
             XCTAssertNil(result.error)
             conversation = result.value
-            previousUpdatedAt = result.value?.updatedAt
+            previousUpdatedAt = conversation?.updatedAt ?? conversation?.createdAt
             createExp.fulfill()
         }
         wait(for: [createExp], timeout: timeout)
@@ -1363,7 +1361,7 @@ class IMConversationTestCase: RTMBaseTestCase {
             XCTAssertTrue(result.isSuccess)
             XCTAssertNil(result.error)
             convA = result.value
-            previousUpdatedAt = result.value?.updatedAt
+            previousUpdatedAt = convA?.updatedAt ?? convA?.createdAt
             createConvExp.fulfill()
         }
         wait(for: [createConvExp], timeout: timeout)
