@@ -276,17 +276,6 @@ extension LCError {
 }
 
 /**
- Dispatch task in main queue asynchronously.
-
- - parameter task: The task to be dispatched.
- */
-func mainQueueAsync(task: @escaping () -> Void) {
-    DispatchQueue.main.async {
-        task()
-    }
-}
-
-/**
  Dispatch task in main queue synchronously.
 
  - parameter task: The task to be dispatched.

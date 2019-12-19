@@ -60,14 +60,15 @@ public class LCCaptchaClient {
     /// - Returns: Request.
     @discardableResult
     public static func requestCaptcha(
-        application: LCApplication = LCApplication.default,
+        application: LCApplication = .default,
         width: Double? = nil,
         height: Double? = nil,
+        completionQueue: DispatchQueue = .main,
         completion: @escaping (LCGenericResult<Captcha>) -> Void)
         -> LCRequest
     {
         return self.requestCaptcha(application: application, width: width, height: height, completionInBackground: { (result) in
-            mainQueueAsync {
+            completionQueue.async {
                 completion(result)
             }
         })
@@ -139,14 +140,15 @@ public class LCCaptchaClient {
     /// - Returns: Request.
     @discardableResult
     public static func verifyCaptcha(
-        application: LCApplication = LCApplication.default,
+        application: LCApplication = .default,
         code: String,
         captchaToken: String,
+        completionQueue: DispatchQueue = .main,
         completion: @escaping (LCGenericResult<Verification>) -> Void)
         -> LCRequest
     {
         return self.verifyCaptcha(application: application, code: code, captchaToken: captchaToken, completionInBackground: { (result) in
-            mainQueueAsync {
+            completionQueue.async {
                 completion(result)
             }
         })

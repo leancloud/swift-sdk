@@ -114,12 +114,13 @@ public final class LCSMSClient {
      */
     @discardableResult
     public static func requestShortMessage(
-        application: LCApplication = LCApplication.default,
+        application: LCApplication = .default,
         mobilePhoneNumber: String,
         templateName: String = "Register_Notice",
         signatureName: String = "LeanCloud",
         captchaVerificationToken: String? = nil,
         variables: LCDictionaryConvertible? = nil,
+        completionQueue: DispatchQueue = .main,
         completion: @escaping (LCBooleanResult) -> Void)
         -> LCRequest
     {
@@ -131,7 +132,7 @@ public final class LCSMSClient {
         )
 
         return requestShortMessage(application: application, mobilePhoneNumber: mobilePhoneNumber, parameters: parameters, completionInBackground: { result in
-            mainQueueAsync {
+            completionQueue.async {
                 completion(result)
             }
         })
@@ -173,16 +174,17 @@ public final class LCSMSClient {
      */
     @discardableResult
     public static func requestVerificationCode(
-        application: LCApplication = LCApplication.default,
+        application: LCApplication = .default,
         mobilePhoneNumber: String,
         applicationName: String? = nil,
         operation: String? = nil,
         timeToLive: UInt? = nil,
+        completionQueue: DispatchQueue = .main,
         completion: @escaping (LCBooleanResult) -> Void)
         -> LCRequest
     {
         return requestVerificationCode(application: application, mobilePhoneNumber: mobilePhoneNumber, applicationName: applicationName, operation: operation, timeToLive: timeToLive, completionInBackground: { result in
-            mainQueueAsync {
+            completionQueue.async {
                 completion(result)
             }
         })
@@ -209,12 +211,8 @@ public final class LCSMSClient {
         if let timeToLive = timeToLive {
             parameters.ttl = timeToLive
         }
-
-        return requestShortMessage(application: application, mobilePhoneNumber: mobilePhoneNumber, parameters: parameters, completionInBackground: { result in
-            mainQueueAsync {
-                completion(result)
-            }
-        })
+        
+        return requestShortMessage(application: application, mobilePhoneNumber: mobilePhoneNumber, parameters: parameters, completionInBackground: completion)
     }
 
     /**
@@ -244,13 +242,14 @@ public final class LCSMSClient {
      */
     @discardableResult
     public static func requestVoiceVerificationCode(
-        application: LCApplication = LCApplication.default,
+        application: LCApplication = .default,
         mobilePhoneNumber: String,
+        completionQueue: DispatchQueue = .main,
         completion: @escaping (LCBooleanResult) -> Void)
         -> LCRequest
     {
         return requestVoiceVerificationCode(application: application, mobilePhoneNumber: mobilePhoneNumber, completionInBackground: { result in
-            mainQueueAsync {
+            completionQueue.async {
                 completion(result)
             }
         })
@@ -264,12 +263,8 @@ public final class LCSMSClient {
         -> LCRequest
     {
         let parameters = LCDictionary(["smsType": "voice"])
-
-        return requestShortMessage(application: application, mobilePhoneNumber: mobilePhoneNumber, parameters: parameters, completionInBackground: { result in
-            mainQueueAsync {
-                completion(result)
-            }
-        })
+        
+        return requestShortMessage(application: application, mobilePhoneNumber: mobilePhoneNumber, parameters: parameters, completionInBackground: completion)
     }
 
     /**
@@ -302,14 +297,15 @@ public final class LCSMSClient {
      */
     @discardableResult
     public static func verifyMobilePhoneNumber(
-        application: LCApplication = LCApplication.default,
+        application: LCApplication = .default,
         _ mobilePhoneNumber: String,
         verificationCode: String,
+        completionQueue: DispatchQueue = .main,
         completion: @escaping (LCBooleanResult) -> Void)
         -> LCRequest
     {
         return verifyMobilePhoneNumber(application: application, mobilePhoneNumber, verificationCode: verificationCode, completionInBackground: { result in
-            mainQueueAsync {
+            completionQueue.async {
                 completion(result)
             }
         })
