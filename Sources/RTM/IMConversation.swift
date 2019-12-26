@@ -2491,11 +2491,13 @@ extension IMConversation {
                 return nil
         }
         var content: IMMessage.Content? = nil
-        /* always check `binaryMsg` firstly */
-        if let data: Data = IMConversation.decoding(key: .lastMessageBinary, from: data) {
-            content = .data(data)
-        } else if let string: String = IMConversation.decoding(key: .lastMessageString, from: data) {
-            content = .string(string)
+        if let msg: String = IMConversation.decoding(key: .lastMessageString, from: data) {
+            if let isBinary: Bool = IMConversation.decoding(key: .lastMessageBinary, from: data), isBinary,
+                let data = Data(base64Encoded: msg) {
+                content = .data(data)
+            } else {
+                content = .string(msg)
+            }
         }
         return IMMessage.instance(
             application: client.application,
