@@ -757,6 +757,80 @@ class IMMessageTestCase: RTMBaseTestCase {
         XCTAssertTrue(success)
     }
     
+    func testBinaryMessage() {
+        guard let tuples = convenienceInit(),
+            let clientA = tuples.first?.client,
+            let clientB = tuples.last?.client,
+            let delegatorB = tuples.last?.delegator,
+            let conversation = tuples.first?.conversation else {
+                XCTFail()
+                return
+        }
+        
+        let binaryData = "bin".data(using: .utf8)!
+        let message = IMMessage()
+        try! message.set(content: .data(binaryData))
+        
+        expecting(count: 4) { (exp) in
+            delegatorB.conversationEvent = { client, conv, event in
+                switch event {
+                case .unreadMessageCountUpdated:
+                    exp.fulfill() // 2 times
+                case let .message(event: messageEvent):
+                    if case let .received(message: rMessage) = messageEvent {
+                        XCTAssertEqual(rMessage.content?.data, binaryData)
+                        conv.read()
+                        exp.fulfill()
+                    }
+                default:
+                    break
+                }
+            }
+            try! conversation.send(message: message, options: [.needReceipt]) { (result) in
+                XCTAssertTrue(result.isSuccess)
+                XCTAssertNil(result.error)
+                exp.fulfill()
+            }
+        }
+        
+        delay()
+        delegatorB.reset()
+        
+        expecting { (exp) in
+            let newMessage = IMMessage()
+            try! newMessage.set(content: .data(binaryData))
+            newMessage.isAllMembersMentioned = true
+            newMessage.mentionedMembers = [clientB.ID]
+            try! conversation.update(oldMessage: message, to: newMessage) { (result) in
+                XCTAssertTrue(result.isSuccess)
+                XCTAssertNil(result.error)
+                exp.fulfill()
+            }
+        }
+        
+        delay()
+        
+        expecting { (exp) in
+            let query = clientA.conversationQuery
+            query.options = [.containLastMessage]
+            try! query.getConversation(by: conversation.ID) { (result) in
+                XCTAssertTrue(result.isSuccess)
+                XCTAssertNil(result.error)
+                XCTAssertEqual(conversation.lastMessage?.content?.data, binaryData)
+                exp.fulfill()
+            }
+        }
+        
+        expecting { (exp) in
+            try! conversation.queryMessage { (result) in
+                XCTAssertTrue(result.isSuccess)
+                XCTAssertNil(result.error)
+                XCTAssertEqual(result.value?.first?.content?.data, binaryData)
+                exp.fulfill()
+            }
+        }
+    }
+    
     func testMessageUpdating() {
         let oldMessage = IMMessage()
         let oldContent: String = "old"
@@ -1326,7 +1400,6 @@ class IMMessageTestCase: RTMBaseTestCase {
         XCTAssertEqual(conversation.lastMessage?.ID, sentTuples.last?.0)
         XCTAssertEqual(conversation.lastMessage?.sentTimestamp, sentTuples.last?.1)
     }
-
 }
 
 extension IMMessageTestCase {
