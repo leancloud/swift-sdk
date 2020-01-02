@@ -216,7 +216,9 @@ open class IMMessage {
         return message
     }
     
-    var isTransient: Bool = false
+    /// Whether the message is transient.
+    public internal(set) var isTransient: Bool = false
+    
     var isWill: Bool = false
     
     /// ref: https://github.com/leancloud/avoscloud-push/blob/develop/push-server/doc/protocol.md#消息
