@@ -93,6 +93,7 @@
 		D393EDBE21D38206001CBB2B /* IMMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D393EDBD21D38206001CBB2B /* IMMessage.swift */; };
 		D39C50A822D4683C00CFCB43 /* PushClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = D39C50A722D4683C00CFCB43 /* PushClient.swift */; };
 		D39C50AA22D47BA700CFCB43 /* LCPushTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = D39C50A922D47BA700CFCB43 /* LCPushTestCase.swift */; };
+		D3A4A7EB23BDD9920010B2F1 /* LCSMSTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A4A7EA23BDD9920010B2F1 /* LCSMSTestCase.swift */; };
 		D3AB32D8227D983E00DCE794 /* CaptchaClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3AB32D7227D983E00DCE794 /* CaptchaClient.swift */; };
 		D3AC7BA821AE9C1A00C6C557 /* IMClientTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3AC7BA721AE9C1A00C6C557 /* IMClientTestCase.swift */; };
 		D3B600842281679400F2E556 /* LCApplicationTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B600832281679400F2E556 /* LCApplicationTestCase.swift */; };
@@ -235,6 +236,7 @@
 		D393EDBD21D38206001CBB2B /* IMMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IMMessage.swift; sourceTree = "<group>"; };
 		D39C50A722D4683C00CFCB43 /* PushClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushClient.swift; sourceTree = "<group>"; };
 		D39C50A922D47BA700CFCB43 /* LCPushTestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCPushTestCase.swift; sourceTree = "<group>"; };
+		D3A4A7EA23BDD9920010B2F1 /* LCSMSTestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCSMSTestCase.swift; sourceTree = "<group>"; };
 		D3AB32D7227D983E00DCE794 /* CaptchaClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptchaClient.swift; sourceTree = "<group>"; };
 		D3AC7BA721AE9C1A00C6C557 /* IMClientTestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IMClientTestCase.swift; sourceTree = "<group>"; };
 		D3B600832281679400F2E556 /* LCApplicationTestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCApplicationTestCase.swift; sourceTree = "<group>"; };
@@ -364,6 +366,7 @@
 				D3BBFB40225D944100B75BA1 /* LCLocalStorageContextTestCase.swift */,
 				D363343522CDB0D300995DC1 /* LCEngineTestCase.swift */,
 				D39C50A922D47BA700CFCB43 /* LCPushTestCase.swift */,
+				D3A4A7EA23BDD9920010B2F1 /* LCSMSTestCase.swift */,
 				D33A8DA921F577F2005B84A9 /* RTMBaseTestCase.swift */,
 				1123922B2191669100ECCBCC /* RTMRouterTestCase.swift */,
 				D3DAD03B218DA402008BCD37 /* RTMConnectionTestCase.swift */,
@@ -744,6 +747,7 @@
 				D3665C3721FEAAC1005B44B0 /* IMMessageTestCase.swift in Sources */,
 				83D0DE6F1CC7B3FF00FC204E /* LCQueryTestCase.swift in Sources */,
 				D363343622CDB0D300995DC1 /* LCEngineTestCase.swift in Sources */,
+				D3A4A7EB23BDD9920010B2F1 /* LCSMSTestCase.swift in Sources */,
 				114E1E852153A3ED00DA7DB0 /* LCFileTestCase.swift in Sources */,
 				D39C50AA22D47BA700CFCB43 /* LCPushTestCase.swift in Sources */,
 				83BC11D61CDD76E900D7E7A6 /* LCACLTestCase.swift in Sources */,
