@@ -268,6 +268,7 @@ public class IMConversation {
         #endif
     }
     
+    /// Raw data of the conversation.
     public private(set) var rawData: RawData {
         set {
             self.sync(self._rawData = newValue)
