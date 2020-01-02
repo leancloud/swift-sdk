@@ -801,7 +801,7 @@ extension IMClient {
             if conv.isUnique {
                 conv.tryUpdateLocalStorageData(
                     client: self,
-                    rawData: conv.sync(conv.rawData))
+                    rawData: conv.rawData)
             }
             #endif
             conversation = conv

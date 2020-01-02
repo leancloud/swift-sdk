@@ -241,7 +241,7 @@ public class IMConversation {
     {
         self.ID = ID
         self.client = client
-        self.rawData = rawData
+        self._rawData = rawData
         self.clientID = client.ID
         self.convType = convType
         let uniqueID = rawData[Key.uniqueId.rawValue] as? String
@@ -267,8 +267,16 @@ public class IMConversation {
         }
         #endif
     }
-
-    private(set) var rawData: RawData
+    
+    public private(set) var rawData: RawData {
+        set {
+            self.sync(self._rawData = newValue)
+        }
+        get {
+            return self.sync(self._rawData)
+        }
+    }
+    private var _rawData: RawData
 
     let lock: NSLock = NSLock()
 
@@ -2183,8 +2191,8 @@ extension IMConversation {
             return
         }
         let rawData = self.sync(closure: { () -> RawData in
-            self.rawData.merge(data) { (_, new) in new }
-            return self.rawData
+            self._rawData.merge(data) { (_, new) in new }
+            return self._rawData
         })
         #if canImport(GRDB)
         self.tryUpdateLocalStorageData(client: client, rawData: rawData)
@@ -2193,7 +2201,7 @@ extension IMConversation {
 
     private func operationRawDataReplaced(data: RawData, client: IMClient) {
         self.sync(closure: {
-            self.rawData = data
+            self._rawData = data
             self._isOutdated = false
         })
         if let message = self.decodingLastMessage(data: data, client: client) {
@@ -2248,14 +2256,17 @@ extension IMConversation {
             }
             self.safeUpdatingRawData(key: .members, value: newMembers)
         }
-        if let udate = udate {
-            self.safeUpdatingRawData(key: .updatedAt, value: udate)
-        }
+        let rawData = self.sync(closure: { () -> RawData in
+            if let udate = udate {
+                self.updatingRawData(key: .updatedAt, value: udate)
+            }
+            return self._rawData
+        })
         #if canImport(GRDB)
         if let _ = client.localStorage {
             self.tryUpdateLocalStorageData(
                 client: client,
-                rawData: self.sync(self.rawData))
+                rawData: rawData)
         }
         #endif
     }
@@ -2286,12 +2297,14 @@ extension IMConversation {
                 }
             })
         }
-        if let udate = udate {
-            self.safeUpdatingRawData(key: .updatedAt, value: udate)
-        }
+        let tuple = self.sync(closure: { () -> (RawData, Bool) in
+            if let udate = udate {
+                self.updatingRawData(key: .updatedAt, value: udate)
+            }
+            return (self._rawData, self._isOutdated)
+        })
         #if canImport(GRDB)
         if let _ = client.localStorage {
-            let tuple = self.sync((self.rawData, self._isOutdated))
             self.tryUpdateLocalStorageData(
                 client: client,
                 rawData: tuple.0,
@@ -2321,7 +2334,7 @@ extension IMConversation {
             newUpdatedDate >= originUpdateDate else {
                 return
         }
-        var rawDataCopy = self.sync(self.rawData)
+        var rawDataCopy = self.rawData
         for keyPath in attr.keys {
             var stack: [KeyAndDictionary] = []
             var modifiedValue: Any?
@@ -2347,7 +2360,7 @@ extension IMConversation {
             }
         }
         rawDataCopy[Key.updatedAt.rawValue] = udate
-        self.sync(self.rawData = rawDataCopy)
+        self.rawData = rawDataCopy
         #if canImport(GRDB)
         self.tryUpdateLocalStorageData(
             client: client,
@@ -2413,7 +2426,7 @@ extension IMConversation {
         let rawData = self.sync(closure: { () -> RawData in
             self.updatingRawData(key: .mutedMembers, value: newMutedMembers)
             self.updatingRawData(key: .updatedAt, value: udate)
-            return self.rawData
+            return self._rawData
         })
         #if canImport(GRDB)
         self.tryUpdateLocalStorageData(client: client, rawData: rawData)
@@ -2556,7 +2569,7 @@ extension IMConversation {
     }
 
     func decodingRawData<T>(with string: String) -> T? {
-        return IMConversation.decoding(string: string, from: self.rawData)
+        return IMConversation.decoding(string: string, from: self._rawData)
     }
 
     static func decoding<T>(key: Key, from data: RawData) -> T? {
@@ -2580,7 +2593,7 @@ extension IMConversation {
     }
 
     func updatingRawData(string: String, value: Any) {
-        self.rawData[string] = value
+        self._rawData[string] = value
     }
 }
 
