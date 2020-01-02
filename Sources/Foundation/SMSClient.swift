@@ -8,110 +8,54 @@
 
 import Foundation
 
-/**
- Short message service (SMS) client.
-
- You can use this class to send short message to mobile phone.
- */
-public final class LCSMSClient {
-    /**
-     Request a short message.
-
-     - parameter mobilePhoneNumber: The mobile phone number where short message will be sent to.
-     - parameter parameters:        The request parameters.
-
-     - returns: The result of short message request.
-     */
-    private static func requestShortMessage(
-        application: LCApplication,
-        mobilePhoneNumber: String,
-        parameters: LCDictionaryConvertible?)
-        -> LCBooleanResult
-    {
-        return expect { fulfill in
-            requestShortMessage(application: application, mobilePhoneNumber: mobilePhoneNumber, parameters: parameters, completionInBackground: { result in
-                fulfill(result)
-            })
-        }
-    }
-
-    @discardableResult
-    private static func requestShortMessage(
-        application: LCApplication,
-        mobilePhoneNumber: String,
-        parameters: LCDictionaryConvertible?,
-        completionInBackground completion: @escaping (LCBooleanResult) -> Void)
-        -> LCRequest
-    {
-        let parameters = parameters?.lcDictionary ?? LCDictionary()
-
-        parameters["mobilePhoneNumber"] = LCString(mobilePhoneNumber)
-
-        let request = application.httpClient.request(.post, "requestSmsCode", parameters: parameters.lconValue as? [String: Any]) { response in
-            completion(LCBooleanResult(response: response))
-        }
-
-        return request
-    }
-
-    private static func createRequestParameters(
-        templateName: String,
-        signatureName: String,
-        captchaVerificationToken: String?,
-        variables: LCDictionaryConvertible?)
-        -> LCDictionary
-    {
-        let parameters = variables?.lcDictionary ?? LCDictionary()
-
-        parameters["template"] = templateName.lcString /* template is a reserved name. */
-        parameters["sign"] = signatureName.lcString
-        if let captchaVerificationToken = captchaVerificationToken {
-            parameters["validate_token"] = captchaVerificationToken.lcString
-        }
-
-        return parameters
-    }
-
-    /**
-     Request a short message.
-
-     - parameter mobilePhoneNumber: The mobile phone number where short message will be sent to.
-     - parameter templateName:      The template name.
-     - parameter variables:         The variables used to substitute placeholders in template.
-
-     - returns: The result of short message request.
-     */
+/// Short Message Service (SMS) Client, you can use it to send short message to mobile phone.
+public class LCSMSClient {
+    
+    // MARK: Request Short Message
+    
+    /// Request a short message synchronously.
+    /// - Parameters:
+    ///   - application: The application, default is `LCApplication.default`.
+    ///   - mobilePhoneNumber: The mobile phone number where short message will be sent to.
+    ///   - templateName: The template name.
+    ///   - signatureName: The signature name.
+    ///   - captchaVerificationToken: The token return by captcha verification for requesting sms.
+    ///   - variables: The custom variables.
     public static func requestShortMessage(
-        application: LCApplication = LCApplication.default,
+        application: LCApplication = .default,
         mobilePhoneNumber: String,
-        templateName: String = "Register_Notice",
-        signatureName: String = "LeanCloud",
+        templateName: String? = nil,
+        signatureName: String? = nil,
         captchaVerificationToken: String? = nil,
         variables: LCDictionaryConvertible? = nil)
         -> LCBooleanResult
     {
-        let parameters = createRequestParameters(
+        let parameters = self.createRequestParameters(
             templateName: templateName,
             signatureName: signatureName,
             captchaVerificationToken: captchaVerificationToken,
-            variables: variables
-        )
-
+            variables: variables)
         return expect { fulfill in
-            requestShortMessage(application: application, mobilePhoneNumber: mobilePhoneNumber, parameters: parameters, completionInBackground: { result in
-                fulfill(result)
+            self.requestShortMessage(
+                application: application,
+                mobilePhoneNumber: mobilePhoneNumber,
+                parameters: parameters,
+                completionInBackground: { result in
+                    fulfill(result)
             })
         }
     }
-
-    /**
-     Request a short message asynchronously.
-
-     - parameter mobilePhoneNumber: The mobile phone number where verification code will be sent to.
-     - parameter templateName:      The template name.
-     - parameter variables:         The variables used to substitute placeholders in template.
-     - parameter completion:        The completion callback closure.
-     */
+    
+    /// Request a short message asynchronously.
+    /// - Parameters:
+    ///   - application: The application, default is `LCApplication.default`.
+    ///   - mobilePhoneNumber: The mobile phone number where short message will be sent to.
+    ///   - templateName: The template name.
+    ///   - signatureName: The signature name.
+    ///   - captchaVerificationToken: The token return by captcha verification for requesting sms.
+    ///   - variables: The custom variables.
+    ///   - completionQueue: The queue where `completion` be executed, default is main.
+    ///   - completion: Result callback.
     @discardableResult
     public static func requestShortMessage(
         application: LCApplication = .default,
@@ -128,28 +72,67 @@ public final class LCSMSClient {
             templateName: templateName,
             signatureName: signatureName,
             captchaVerificationToken: captchaVerificationToken,
-            variables: variables
-        )
-
-        return requestShortMessage(application: application, mobilePhoneNumber: mobilePhoneNumber, parameters: parameters, completionInBackground: { result in
-            completionQueue.async {
-                completion(result)
-            }
+            variables: variables)
+        return self.requestShortMessage(
+            application: application,
+            mobilePhoneNumber: mobilePhoneNumber,
+            parameters: parameters,
+            completionInBackground: { result in
+                completionQueue.async {
+                    completion(result)
+                }
         })
     }
 
-    /**
-     Request a verification code.
+    @discardableResult
+    private static func requestShortMessage(
+        application: LCApplication,
+        mobilePhoneNumber: String,
+        parameters: LCDictionaryConvertible?,
+        completionInBackground completion: @escaping (LCBooleanResult) -> Void)
+        -> LCRequest
+    {
+        let parameters = parameters?.lcDictionary ?? LCDictionary()
+        parameters["mobilePhoneNumber"] = LCString(mobilePhoneNumber)
+        return application.httpClient.request(
+            .post, "requestSmsCode",
+            parameters: parameters.lconValue as? [String: Any])
+        { response in
+            completion(LCBooleanResult(response: response))
+        }
+    }
 
-     - parameter mobilePhoneNumber: The mobile phone number where verification code will be sent to.
-     - parameter applicationName:   The application name. If absent, defaults to application name in web console.
-     - parameter operation:         The operation. If absent, defaults to "\u77ed\u4fe1\u9a8c\u8bc1".
-     - parameter timeToLive:        The time to live of short message, in minutes. Defaults to 10 minutes.
-
-     - returns: The result of verification code request.
-     */
+    private static func createRequestParameters(
+        templateName: String?,
+        signatureName: String?,
+        captchaVerificationToken: String?,
+        variables: LCDictionaryConvertible?)
+        -> LCDictionary
+    {
+        let parameters = variables?.lcDictionary ?? LCDictionary()
+        if let templateName = templateName {
+            parameters["template"] = LCString(templateName)
+        }
+        if let signatureName = signatureName {
+            parameters["sign"] = LCString(signatureName)
+        }
+        if let captchaVerificationToken = captchaVerificationToken {
+            parameters["validate_token"] = LCString(captchaVerificationToken)
+        }
+        return parameters
+    }
+    
+    // MARK: Request Verification Code
+    
+    /// Request a verification code synchronously.
+    /// - Parameters:
+    ///   - application: The application, default is `LCApplication.default`.
+    ///   - mobilePhoneNumber: The mobile phone number where verification code will be sent to.
+    ///   - applicationName: The name of application in the short message, default is the name of application in console.
+    ///   - operation: The name of operation in the short message, default is "短信验证".
+    ///   - timeToLive: The time to live(unit is minute) of the verification code, default is 10 minutes.
     public static func requestVerificationCode(
-        application: LCApplication = LCApplication.default,
+        application: LCApplication = .default,
         mobilePhoneNumber: String,
         applicationName: String? = nil,
         operation: String? = nil,
@@ -157,21 +140,27 @@ public final class LCSMSClient {
         -> LCBooleanResult
     {
         return expect { fulfill in
-            requestVerificationCode(application: application, mobilePhoneNumber: mobilePhoneNumber, applicationName: applicationName, operation: operation, timeToLive: timeToLive, completionInBackground: { result in
-                fulfill(result)
+            self.requestVerificationCode(
+                application: application,
+                mobilePhoneNumber: mobilePhoneNumber,
+                applicationName: applicationName,
+                operation: operation,
+                timeToLive: timeToLive,
+                completionInBackground: { result in
+                    fulfill(result)
             })
         }
     }
-
-    /**
-     Request a verification code asynchronously.
-
-     - parameter mobilePhoneNumber: The mobile phone number where verification code will be sent to.
-     - parameter applicationName:   The application name. If absent, defaults to application name in web console.
-     - parameter operation:         The operation. If absent, defaults to "\u77ed\u4fe1\u9a8c\u8bc1".
-     - parameter timeToLive:        The time to live of short message, in minutes. Defaults to 10 minutes.
-     - parameter completion:        The completion callback closure.
-     */
+    
+    /// Request a verification code asynchronously.
+    /// - Parameters:
+    ///   - application: The application, default is `LCApplication.default`.
+    ///   - mobilePhoneNumber: The mobile phone number where verification code will be sent to.
+    ///   - applicationName: The name of application in the short message, default is the name of application in console.
+    ///   - operation: The name of operation in the short message, default is "短信验证".
+    ///   - timeToLive: The time to live(unit is minute) of the verification code, default is 10 minutes.
+    ///   - completionQueue: The queue where `completion` be executed, default is main.
+    ///   - completion: Result callback.
     @discardableResult
     public static func requestVerificationCode(
         application: LCApplication = .default,
@@ -183,10 +172,16 @@ public final class LCSMSClient {
         completion: @escaping (LCBooleanResult) -> Void)
         -> LCRequest
     {
-        return requestVerificationCode(application: application, mobilePhoneNumber: mobilePhoneNumber, applicationName: applicationName, operation: operation, timeToLive: timeToLive, completionInBackground: { result in
-            completionQueue.async {
-                completion(result)
-            }
+        return self.requestVerificationCode(
+            application: application,
+            mobilePhoneNumber: mobilePhoneNumber,
+            applicationName: applicationName,
+            operation: operation,
+            timeToLive: timeToLive,
+            completionInBackground: { result in
+                completionQueue.async {
+                    completion(result)
+                }
         })
     }
 
@@ -201,45 +196,49 @@ public final class LCSMSClient {
         -> LCRequest
     {
         let parameters = LCDictionary()
-
         if let operation = operation {
-            parameters.op = operation
+            parameters["op"] = LCString(operation)
         }
         if let applicationName = applicationName {
-            parameters.name = applicationName
+            parameters["name"] = LCString(applicationName)
         }
         if let timeToLive = timeToLive {
-            parameters.ttl = timeToLive
+            parameters["ttl"] = LCNumber(Double(timeToLive))
         }
-        
-        return requestShortMessage(application: application, mobilePhoneNumber: mobilePhoneNumber, parameters: parameters, completionInBackground: completion)
+        return self.requestShortMessage(
+            application: application,
+            mobilePhoneNumber: mobilePhoneNumber,
+            parameters: parameters,
+            completionInBackground: completion)
     }
-
-    /**
-     Request a voice verification code.
-
-     - parameter mobilePhoneNumber: The mobile phone number where verification code will be sent to.
-
-     - returns: The result of verification code request.
-     */
+    
+    // MARK: Request Voice Verification Code
+    
+    /// Request a voice verification code synchronously.
+    /// - Parameters:
+    ///   - application: The application, default is `LCApplication.default`.
+    ///   - mobilePhoneNumber: The mobile phone number be called.
     public static func requestVoiceVerificationCode(
-        application: LCApplication = LCApplication.default,
+        application: LCApplication = .default,
         mobilePhoneNumber: String)
         -> LCBooleanResult
     {
         return expect { fulfill in
-            requestVoiceVerificationCode(application: application, mobilePhoneNumber: mobilePhoneNumber, completionInBackground: { result in
-                fulfill(result)
+            self.requestVoiceVerificationCode(
+                application: application,
+                mobilePhoneNumber: mobilePhoneNumber,
+                completionInBackground: { result in
+                    fulfill(result)
             })
         }
     }
-
-    /**
-     Request a voice verification code asynchronously.
-
-     - parameter mobilePhoneNumber: The mobile phone number where verification code will be sent to.
-     - parameter completion:        The completion callback closure.
-     */
+    
+    /// Request a voice verification code asynchronously.
+    /// - Parameters:
+    ///   - application: The application, default is `LCApplication.default`.
+    ///   - mobilePhoneNumber: The mobile phone number be called.
+    ///   - completionQueue: The queue where `completion` be executed, default is main.
+    ///   - completion: Result callback.
     @discardableResult
     public static func requestVoiceVerificationCode(
         application: LCApplication = .default,
@@ -248,10 +247,13 @@ public final class LCSMSClient {
         completion: @escaping (LCBooleanResult) -> Void)
         -> LCRequest
     {
-        return requestVoiceVerificationCode(application: application, mobilePhoneNumber: mobilePhoneNumber, completionInBackground: { result in
-            completionQueue.async {
-                completion(result)
-            }
+        return self.requestVoiceVerificationCode(
+            application: application,
+            mobilePhoneNumber: mobilePhoneNumber,
+            completionInBackground: { result in
+                completionQueue.async {
+                    completion(result)
+                }
         })
     }
 
@@ -262,41 +264,45 @@ public final class LCSMSClient {
         completionInBackground completion: @escaping (LCBooleanResult) -> Void)
         -> LCRequest
     {
-        let parameters = LCDictionary(["smsType": "voice"])
-        
-        return requestShortMessage(application: application, mobilePhoneNumber: mobilePhoneNumber, parameters: parameters, completionInBackground: completion)
+        return self.requestShortMessage(
+            application: application,
+            mobilePhoneNumber: mobilePhoneNumber,
+            parameters: LCDictionary(["smsType": "voice"]),
+            completionInBackground: completion)
     }
-
-    /**
-     Verify mobile phone number.
-
-     - parameter mobilePhoneNumber: The mobile phone number which you want to verify.
-     - parameter verificationCode:  The verification code.
-
-     - returns: The result of verification request.
-     */
+    
+    // MARK: Verify Verification Code
+    
+    /// Verify a verification code synchronously.
+    /// - Parameters:
+    ///   - application: The application, default is `LCApplication.default`.
+    ///   - mobilePhoneNumber: The mobile phone number which you want to verify.
+    ///   - verificationCode: The verification code which sent to the mobile phone number.
     public static func verifyMobilePhoneNumber(
-        application: LCApplication = LCApplication.default,
+        application: LCApplication = .default,
         _ mobilePhoneNumber: String,
         verificationCode: String)
         -> LCBooleanResult
     {
         return expect { fulfill in
-            verifyMobilePhoneNumber(application: application, mobilePhoneNumber, verificationCode: verificationCode, completionInBackground: { result in
-                fulfill(result)
+            self.verifyMobilePhoneNumber(
+                application: application,
+                mobilePhoneNumber,
+                verificationCode: verificationCode,
+                completionInBackground: { result in
+                    fulfill(result)
             })
         }
     }
-
-    /**
-     Verify mobile phone number asynchronously.
-
-     - parameter mobilePhoneNumber: The mobile phone number which you want to verify.
-     - parameter verificationCode:  The verification code.
-     - parameter completion:        The completion callback closure.
-     */
-    @discardableResult
-    public static func verifyMobilePhoneNumber(
+    
+    /// Verify a verification code asynchronously.
+    /// - Parameters:
+    ///   - application: The application, default is `LCApplication.default`.
+    ///   - mobilePhoneNumber: The mobile phone number which you want to verify.
+    ///   - verificationCode: The verification code which sent to the mobile phone number.
+    ///   - completionQueue: The queue where `completion` be executed, default is main.
+    ///   - completion: Result callback.
+    @discardableResult public static func verifyMobilePhoneNumber(
         application: LCApplication = .default,
         _ mobilePhoneNumber: String,
         verificationCode: String,
@@ -304,10 +310,14 @@ public final class LCSMSClient {
         completion: @escaping (LCBooleanResult) -> Void)
         -> LCRequest
     {
-        return verifyMobilePhoneNumber(application: application, mobilePhoneNumber, verificationCode: verificationCode, completionInBackground: { result in
-            completionQueue.async {
-                completion(result)
-            }
+        return self.verifyMobilePhoneNumber(
+            application: application,
+            mobilePhoneNumber,
+            verificationCode: verificationCode,
+            completionInBackground: { result in
+                completionQueue.async {
+                    completion(result)
+                }
         })
     }
 
@@ -319,14 +329,11 @@ public final class LCSMSClient {
         completionInBackground completion: @escaping (LCBooleanResult) -> Void)
         -> LCRequest
     {
-        let verificationCode = verificationCode.urlPathEncoded
-        let mobilePhoneNumber = mobilePhoneNumber.urlQueryEncoded
-        let endpoint = "verifySmsCode/\(verificationCode)?mobilePhoneNumber=\(mobilePhoneNumber)"
-
-        let request = application.httpClient.request(.post, endpoint) { response in
+        return application.httpClient.request(
+            .post, "verifySmsCode/\(verificationCode)",
+            parameters: ["mobilePhoneNumber": mobilePhoneNumber])
+        { response in
             completion(LCBooleanResult(response: response))
         }
-
-        return request
     }
 }
