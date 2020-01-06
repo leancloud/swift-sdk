@@ -37,11 +37,15 @@ public class IMConversationQuery: LCQuery {
     
     let eventQueue: DispatchQueue?
     
+    // MARK: Init
+    
     init(client: IMClient, eventQueue: DispatchQueue? = nil) {
         self.eventQueue = eventQueue
         self.client = client
         super.init(application: client.application, className: "_Conversation")
     }
+    
+    // MARK: Combine
     
     /**
      Get logic AND of another query.
@@ -77,6 +81,11 @@ public class IMConversationQuery: LCQuery {
         return result
     }
     
+    // MARK: Where Condition
+    
+    /// If this property is a non-nil value, query will always use it as where condition, default is nil.
+    public var whereString: String?
+    
     /// Add constraint in query.
     ///
     /// - Parameters:
@@ -105,6 +114,8 @@ public class IMConversationQuery: LCQuery {
         }
         try super.where(key, constraint)
     }
+    
+    // MARK: Find
     
     /// Get Conversation by ID.
     ///
@@ -356,9 +367,11 @@ private extension IMConversationQuery {
     
     func whereAndSort() throws -> (whereString: String?, sortString: String?) {
         let dictionary = self.lconValue
-        var whereString: String? = nil
-        var sortString: String? = nil
-        if let whereCondition: Any = dictionary["where"] {
+        var whereString: String?
+        var sortString: String?
+        if let whereCondition = self.whereString {
+            whereString = whereCondition
+        } else if let whereCondition: Any = dictionary["where"] {
             let data = try JSONSerialization.data(withJSONObject: whereCondition)
             whereString = String(data: data, encoding: .utf8)
         }
