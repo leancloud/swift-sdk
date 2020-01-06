@@ -8,6 +8,7 @@
 
 import Foundation
 
+/// LeanCloud SDK Defining Error
 public struct LCError: Error {
     public typealias UserInfo = [String: Any]
 
@@ -15,11 +16,11 @@ public struct LCError: Error {
     public let reason: String?
     public let userInfo: UserInfo?
 
-    /// Underlying error.
+    /// underlying error, only when `code` equals to `9977`, then this property is non-nil.
     public private(set) var underlyingError: Error?
 
     /// ref: https://github.com/leancloud/rfcs/wiki/SDK-Internal-Error-Definition
-    enum InternalErrorCode: Int {
+    public enum InternalErrorCode: Int {
         // session/client
         case commandTimeout             = 9000
         case connectionLost             = 9001
@@ -38,7 +39,7 @@ public struct LCError: Error {
         case inconsistency              = 9976
         case underlyingError            = 9977
         
-        var description: String? {
+        var message: String? {
             switch self {
             case .commandTimeout:
                 return "Out command timeout"
@@ -71,8 +72,9 @@ public struct LCError: Error {
             }
         }
     }
-
-    enum ServerErrorCode: Int {
+    
+    /// ref: https://leancloud.cn/docs/error_code.html
+    public enum ServerErrorCode: Int {
         case objectNotFound = 101
         case sessionConflict = 4111
         case sessionTokenExpired = 4112
@@ -85,7 +87,7 @@ public struct LCError: Error {
 
      - parameter error: The error to be converted.
      */
-    init(error: Error) {
+    public init(error: Error) {
         if let error = error as? LCError {
             self = error
         } else {
@@ -102,7 +104,7 @@ public struct LCError: Error {
     }
 
     init(code: InternalErrorCode, reason: String? = nil, userInfo: UserInfo? = nil) {
-        self = LCError(code: code.rawValue, reason: (reason ?? code.description), userInfo: userInfo)
+        self = LCError(code: code.rawValue, reason: (reason ?? code.message), userInfo: userInfo)
     }
 
     init(code: ServerErrorCode, reason: String? = nil, userInfo: UserInfo? = nil) {
@@ -110,32 +112,56 @@ public struct LCError: Error {
     }
 }
 
-extension LCError: LocalizedError {
+extension LCError: CustomStringConvertible, CustomDebugStringConvertible {
 
-    public var failureReason: String? {
-        return reason ?? underlyingError?.localizedDescription
+    public var description: String {
+        var description = "\(LCError.self)(code: \(self.code)"
+        if let reason = self.reason {
+            description += ", reason: \"\(reason)\""
+        }
+        if let userInfo = self.userInfo {
+            description += ", userInfo: \(userInfo)"
+        }
+        if let underlyingError = self.underlyingError {
+            description += ", underlyingError: \(underlyingError)"
+        }
+        return "\(description))"
     }
 
+    public var debugDescription: String {
+        return self.description
+    }
+}
+
+extension LCError: LocalizedError {
+    
+    public var errorDescription: String? {
+        return self.description
+    }
+    
+    public var failureReason: String? {
+        return self.reason
+            ?? self.underlyingError?.localizedDescription
+    }
 }
 
 extension LCError: CustomNSError {
-
+    
     public static var errorDomain: String {
         return String(describing: self)
     }
-
+    
+    public var errorCode: Int {
+        return self.code
+    }
+    
     public var errorUserInfo: [String : Any] {
-        if let userInfo = userInfo {
+        if let userInfo = self.userInfo {
             return userInfo
-        } else if let underlyingError = underlyingError {
+        } else if let underlyingError = self.underlyingError {
             return (underlyingError as NSError).userInfo
         } else {
             return [:]
         }
     }
-
-    public var errorCode: Int {
-        return code
-    }
-
 }
