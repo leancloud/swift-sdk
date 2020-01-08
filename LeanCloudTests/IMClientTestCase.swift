@@ -104,35 +104,41 @@ class IMClientTestCase: RTMBaseTestCase {
     
     func testOpenWithSignature() {
         let user = LCUser()
-        user.username = UUID().uuidString.lcString
-        user.password = UUID().uuidString.lcString
-        
+        user.username = self.uuid.lcString
+        user.password = self.uuid.lcString
         XCTAssertTrue(user.signUp().isSuccess)
         
-        if let objectID = user.objectId?.value, let sessionToken = user.sessionToken?.value {
-            
-            var clientWithUser: IMClient! = try! IMClient(user: user, options: [])
-            expecting { (exp) in
-                clientWithUser.open(completion: { (result) in
-                    XCTAssertTrue(result.isSuccess)
-                    XCTAssertNil(result.error)
-                    exp.fulfill()
-                })
-            }
-            
-            clientWithUser = nil
-            delay()
-            
-            let signatureDelegator = SignatureDelegator()
-            signatureDelegator.sessionToken = sessionToken
-            let clientWithID = try! IMClient(ID: objectID, options: [], signatureDelegate: signatureDelegator)
-            expecting { (exp) in
-                clientWithID.open(completion: { (result) in
-                    XCTAssertTrue(result.isSuccess)
-                    XCTAssertNil(result.error)
-                    exp.fulfill()
-                })
-            }
+        guard let objectID = user.objectId?.value,
+            let sessionToken = user.sessionToken?.value else {
+                XCTFail()
+                return
+        }
+        
+        var clientFromUser: IMClient! = try! IMClient(
+            user: user,
+            options: [])
+        expecting { (exp) in
+            clientFromUser.open(completion: { (result) in
+                XCTAssertTrue(result.isSuccess)
+                XCTAssertNil(result.error)
+                exp.fulfill()
+            })
+        }
+        clientFromUser = nil
+        delay()
+        
+        let signatureDelegator = SignatureDelegator()
+        signatureDelegator.sessionToken = sessionToken
+        let clientFromID = try! IMClient(
+            ID: objectID,
+            options: [],
+            signatureDelegate: signatureDelegator)
+        expecting { (exp) in
+            clientFromID.open(completion: { (result) in
+                XCTAssertTrue(result.isSuccess)
+                XCTAssertNil(result.error)
+                exp.fulfill()
+            })
         }
     }
     
@@ -624,24 +630,29 @@ extension IMClientTestCase {
         
         func getOpenSignature(client: IMClient, completion: @escaping (IMSignature) -> Void) {
             guard let sessionToken = self.sessionToken else {
+                XCTFail()
                 return
             }
-            let application = client.application
-            let httpClient: HTTPClient = application.httpClient
-            let url = application.v2router.route(path: "rtm/clients/sign", module: .api)!
-            let parameters: [String: Any] = ["session_token": sessionToken]
-            _ = httpClient.request(url: url, method: .get, parameters: parameters) { (response) in
-                guard
-                    let value = response.value as? [String: Any],
+            _ = client.application.httpClient.request(
+                url: client.application.v2router.route(
+                    path: "rtm/clients/sign",
+                    module: .api)!,
+                method: .get,
+                parameters: ["session_token": sessionToken])
+            { (response) in
+                guard let value = response.value as? [String: Any],
                     let client_id = value["client_id"] as? String,
                     client_id == client.ID,
                     let signature = value["signature"] as? String,
                     let timestamp = value["timestamp"] as? Int64,
-                    let nonce = value["nonce"] as? String else
-                {
-                    return
+                    let nonce = value["nonce"] as? String else {
+                        XCTFail()
+                        return
                 }
-                completion(IMSignature(signature: signature, timestamp: timestamp, nonce: nonce))
+                completion(IMSignature(
+                    signature: signature,
+                    timestamp: timestamp,
+                    nonce: nonce))
             }
         }
         
@@ -653,9 +664,8 @@ extension IMClientTestCase {
                     signatureHandler(client, signature)
                 }
             default:
-                break
+                XCTFail()
             }
         }
     }
-    
 }
