@@ -1473,6 +1473,7 @@ extension IMConversation {
         signature: IMSignature? = nil)
         -> IMGenericCommand
     {
+        assert(op == .add || op == .remove)
         var outCommand = IMGenericCommand()
         outCommand.cmd = .conv
         outCommand.op = op
@@ -1500,19 +1501,25 @@ extension IMConversation {
             let signatureDelegate = client.signatureDelegate {
             let action: IMSignature.Action
             if op == .add {
-                action = .add(memberIDs: members, toConversation: self)
+                action = .add(
+                    memberIDs: members,
+                    toConversation: self)
             } else {
-                action = .remove(memberIDs: members, fromConversation: self)
+                action = .remove(
+                    memberIDs: members,
+                    fromConversation: self)
             }
             client.eventQueue.async {
-                signatureDelegate.client(client, action: action, signatureHandler: { (client, signature) in
+                signatureDelegate.client(
+                    client, action: action)
+                { (client, signature) in
                     client.serialQueue.async {
                         completion(client, self.newConvAddRemoveCommand(
                             members: members,
                             op: op,
                             signature: signature))
                     }
-                })
+                }
             }
         } else {
             completion(client, self.newConvAddRemoveCommand(
@@ -1812,19 +1819,23 @@ extension IMConversation {
             let signatureDelegate = client.signatureDelegate {
             let action: IMSignature.Action
             if op == .block {
-                action = .conversationBlocking(self, blockedMemberIDs: members)
+                action = .conversationBlocking(
+                    self, blockedMemberIDs: members)
             } else {
-                action = .conversationUnblocking(self, unblockedMemberIDs: members)
+                action = .conversationUnblocking(
+                    self, unblockedMemberIDs: members)
             }
             client.eventQueue.async {
-                signatureDelegate.client(client, action: action, signatureHandler: { (client, signature) in
+                signatureDelegate.client(
+                    client, action: action)
+                { (client, signature) in
                     client.serialQueue.async {
                         completion(client, self.newBlacklistBlockUnblockCommand(
                             members: members,
                             op: op,
                             signature: signature))
                     }
-                })
+                }
             }
         } else {
             completion(client, self.newBlacklistBlockUnblockCommand(
