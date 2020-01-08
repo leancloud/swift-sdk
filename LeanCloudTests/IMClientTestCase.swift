@@ -312,24 +312,29 @@ class IMClientTestCase: RTMBaseTestCase {
     }
     
     func testSessionTokenExpired() {
-        let client: IMClient = try! IMClient(ID: uuid, options: [])
-        let delegator: Delegator = Delegator()
-        client.delegate = delegator
+        let delegator = Delegator()
+        let client = try! IMClient(
+            ID: self.uuid,
+            options: [],
+            delegate: delegator)
         
-        let openExp = expectation(description: "open")
-        client.open { (result) in
-            XCTAssertTrue(result.isSuccess)
-            openExp.fulfill()
+        expecting { (exp) in
+            client.open { (result) in
+                XCTAssertTrue(result.isSuccess)
+                XCTAssertNil(result.error)
+                exp.fulfill()
+            }
         }
-        wait(for: [openExp], timeout: timeout)
         
-        client.test_change(sessionToken: uuid, sessionTokenExpiration: Date(timeIntervalSinceNow: 36000))
+        client.sessionToken = self.uuid
+        client.sessionTokenExpiration = Date(timeIntervalSinceNow: 36000)
         
-        let exp = expectation(description: "Pause, Resume, First Reopen Then Session Token Expired and Second Reopen Success")
-        exp.expectedFulfillmentCount = 4
-        exp.assertForOverFulfill = true
-        delegator.clientEvent = { c, event in
-            if c === client {
+        expecting(
+            description: "Pause -> Resume -> First-Reopen Then session token expired, Final Second-Reopen success",
+            count: 4)
+        { (exp) in
+            delegator.clientEvent = { c, event in
+                XCTAssertTrue(c === client)
                 switch event {
                 case .sessionDidPause(error: _):
                     exp.fulfill()
@@ -341,22 +346,19 @@ class IMClientTestCase: RTMBaseTestCase {
                     XCTFail()
                 }
             }
+            let _ = NotificationCenter.default.addObserver(
+                forName: IMClient.TestSessionTokenExpiredNotification,
+                object: client,
+                queue: .main
+            ) { (notification) in
+                XCTAssertEqual(
+                    (notification.userInfo?["error"] as? LCError)?.code,
+                    LCError.ServerErrorCode.sessionTokenExpired.rawValue)
+                exp.fulfill()
+            }
+            client.connection.disconnect()
+            client.connection.connect()
         }
-        let _ = NotificationCenter.default.addObserver(
-            forName: IMClient.TestSessionTokenExpiredNotification,
-            object: client,
-            queue: OperationQueue.main
-        ) { (notification) in
-            let error = notification.userInfo?["error"] as? LCError
-            XCTAssertEqual(
-                error?.code,
-                LCError.ServerErrorCode.sessionTokenExpired.rawValue
-            )
-            exp.fulfill()
-        }
-        client.connection.disconnect()
-        client.connection.connect()
-        wait(for: [exp], timeout: timeout)
     }
     
     func testReportDeviceToken() {
