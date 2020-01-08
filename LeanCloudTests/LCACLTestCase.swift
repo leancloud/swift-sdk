@@ -11,16 +11,6 @@ import XCTest
 
 class LCACLTestCase: BaseTestCase {
 
-    override func setUp() {
-        super.setUp()
-        // Put setup code here. This method is called before the invocation of each test method in the class.
-    }
-    
-    override func tearDown() {
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
-        super.tearDown()
-    }
-
     func testGetAndSet() {
         let acl = LCACL()
 
@@ -60,4 +50,28 @@ class LCACLTestCase: BaseTestCase {
         XCTAssertTrue(object.fetch().isFailure)
     }
 
+    func testPublicRead() {
+        var user: LCUser! = LCUser()
+        user.username = uuid.lcString
+        user.password = uuid.lcString
+        XCTAssertTrue(user.signUp().isSuccess)
+        user = LCUser.logIn(
+            username: user.username!.value,
+            password: user.password!.value)
+            .object
+        XCTAssertNotNil(user)
+        
+        let object = self.object()
+        let acl = LCACL()
+        acl.setAccess(.read, allowed: true)
+        acl.setAccess(.write, allowed: false)
+        acl.setAccess(.read, allowed: false, forUserID: user.objectId!.value)
+        acl.setAccess(.write, allowed: true, forUserID: user.objectId!.value)
+        object.ACL = acl
+        XCTAssertTrue(object.save().isSuccess)
+        
+        let query = LCQuery(className: self.className)
+        query.whereKey("objectId", .equalTo(object.objectId!))
+        XCTAssertFalse(query.find().objects!.isEmpty)
+    }
 }

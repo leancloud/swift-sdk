@@ -59,13 +59,22 @@ class BaseTestCase: XCTestCase {
         LCApplication.default.unregister()
         super.tearDown()
     }
+}
+
+extension BaseTestCase {
+    
+    var className: String {
+        return "\(type(of: self))"
+    }
     
     func object(_ objectId: LCStringConvertible? = nil) -> LCObject {
-        let className = "\(type(of: self))"
         if let objectId = objectId {
-            return LCObject(className: className, objectId: objectId)
+            return LCObject(
+                className: self.className,
+                objectId: objectId)
         } else {
-            return LCObject(className: className)
+            return LCObject(
+                className: self.className)
         }
     }
 }
