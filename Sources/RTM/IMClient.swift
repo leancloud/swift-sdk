@@ -794,21 +794,29 @@ extension IMClient {
         }
     }
     
-    func conversationInstance<T: IMConversation>(inCommand: IMGenericCommand, tuple: ConversationCreationTuple) throws -> T {
+    func conversationInstance<T: IMConversation>(
+        inCommand: IMGenericCommand,
+        tuple: ConversationCreationTuple)
+        throws -> T
+    {
         assert(self.specificAssertion)
-        guard
-            let convMessage = (inCommand.hasConvMessage ? inCommand.convMessage : nil),
-            let convID: String = (convMessage.hasCid ? convMessage.cid : nil) else
-        {
-            throw LCError(code: .commandInvalid)
+        guard let convMessage = (inCommand.hasConvMessage ? inCommand.convMessage : nil),
+            let convID = (convMessage.hasCid ? convMessage.cid : nil) else {
+                throw LCError(
+                    code: .commandInvalid,
+                    userInfo: ["command": "\(inCommand)"])
         }
         var attr: [String: Any] = [:]
-        if let json: [String: Any] = try tuple.attrString?.jsonObject() {
+        if let json: [String: Any] = try tuple
+            .attrString?.jsonObject() {
             attr = json
         }
         let conversation: IMConversation
-        if let conv: IMConversation = self.convCollection[convID] {
-            conv.safeExecuting(operation: .rawDataMerging(data: attr), client: self)
+        if let conv = self.convCollection[convID] {
+            conv.safeExecuting(
+                operation: .rawDataMerging(
+                    data: attr),
+                client: self)
             #if canImport(GRDB)
             if conv.isUnique {
                 conv.tryUpdateLocalStorageData(
@@ -837,19 +845,27 @@ extension IMClient {
                 attr[key.temporaryTTL.rawValue] = convMessage.tempConvTtl
             }
             if let rawData: IMConversation.RawData = try attr.jsonObject() {
-                conversation = IMConversation.instance(ID: convID, rawData: rawData, client: self, caching: true)
-                self.convCollection[convID] = conversation
+                conversation = IMConversation.instance(
+                    ID: convID,
+                    rawData: rawData,
+                    client: self,
+                    caching: true)
             } else {
-                throw LCError(code: .malformedData)
+                throw LCError(
+                    code: .malformedData,
+                    userInfo: ["data": attr])
             }
         }
         if let conversation = conversation as? T {
+            self.convCollection[convID] = conversation
             return conversation
         } else {
             throw LCError(
                 code: .invalidType,
-                reason: "conversation<T: \(type(of: conversation))> can't cast to type: \(T.self)."
-            )
+                reason: "conversation type casting failed.",
+                userInfo: [
+                    "sourceType": "\(type(of: conversation))",
+                    "targetType": "\(T.self)"])
         }
     }
 }
