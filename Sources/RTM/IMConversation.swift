@@ -346,6 +346,12 @@ public class IMConversation {
     public func remove(members: Set<String>, completion: @escaping (MemberResult) -> Void) throws {
         try self.update(members: members, op: .remove, completion: completion)
     }
+    
+    /// Get count of members in this conversation. if it's chat-room, the success result means count of online-members.
+    /// - Parameter completion: Result callback.
+    public func countMembers(completion: @escaping (LCCountResult) -> Void) {
+        self._countMembers(completion: completion)
+    }
 
     /// Mute this conversation.
     ///
@@ -1588,7 +1594,41 @@ extension IMConversation {
             })
         }
     }
-
+    
+    private func _countMembers(completion: @escaping (LCCountResult) -> Void) {
+        self.client?.sendCommand(constructor: { () -> IMGenericCommand in
+            var outCommand = IMGenericCommand()
+            outCommand.cmd = .conv
+            outCommand.op = .count
+            var convCommand = IMConvCommand()
+            convCommand.cid = self.ID
+            outCommand.convMessage = convCommand
+            return outCommand
+        }) { (client, result) in
+            switch result {
+            case .inCommand(let inCommand):
+                assert(client.specificAssertion)
+                if inCommand.hasConvMessage,
+                    inCommand.convMessage.hasCount {
+                    client.eventQueue.async {
+                        completion(.success(
+                            count: Int(inCommand.convMessage.count)))
+                    }
+                } else {
+                    client.eventQueue.async {
+                        completion(.failure(
+                            error: LCError(
+                                code: .commandInvalid)))
+                    }
+                }
+            case .error(let error):
+                client.eventQueue.async {
+                    completion(.failure(
+                        error: error))
+                }
+            }
+        }
+    }
 }
 
 extension IMConversation {
@@ -2653,38 +2693,10 @@ public class IMChatRoom: IMConversation {
     }
     #endif
 
-    /// Get count of online clients in this Chat Room.
-    ///
-    /// - Parameter completion: callback.
+    /// Get count of online-members in this chat-room.
+    /// - Parameter completion: Result callback.
     public func getOnlineMembersCount(completion: @escaping (LCCountResult) -> Void) {
-        self.client?.sendCommand(constructor: { () -> IMGenericCommand in
-            var outCommand = IMGenericCommand()
-            outCommand.cmd = .conv
-            outCommand.op = .count
-            var convCommand = IMConvCommand()
-            convCommand.cid = self.ID
-            outCommand.convMessage = convCommand
-            return outCommand
-        }, completion: { (client, result) in
-            switch result {
-            case .inCommand(let inCommand):
-                assert(client.specificAssertion)
-                if inCommand.hasConvMessage, inCommand.convMessage.hasCount {
-                    client.eventQueue.async {
-                        let count = Int(inCommand.convMessage.count)
-                        completion(.success(count: count))
-                    }
-                } else {
-                    client.eventQueue.async {
-                        completion(.failure(error: LCError(code: .commandInvalid)))
-                    }
-                }
-            case .error(let error):
-                client.eventQueue.async {
-                    completion(.failure(error: error))
-                }
-            }
-        })
+        self.countMembers(completion: completion)
     }
 
     /// Get online clients in this Chat Room.
@@ -2738,6 +2750,11 @@ public class IMServiceConversation: IMConversation {
     /// Whether this service conversation has been subscribed by the client.
     public var isSubscribed: Bool? {
         return self.safeDecodingRawData(with: .joined)
+    }
+    
+    @available(*, unavailable)
+    public override func countMembers(completion: @escaping (LCCountResult) -> Void) {
+        completion(.failure(error: LCError.conversationNotSupport(convType: type(of: self))))
     }
 
     @available(*, unavailable)
@@ -2899,6 +2916,10 @@ public class IMTemporaryConversation: IMConversation {
     @available(*, unavailable)
     public override func remove(members: Set<String>, completion: @escaping (IMConversation.MemberResult) -> Void) throws {
         throw LCError.conversationNotSupport(convType: type(of: self))
+    }
+    
+    public override func countMembers(completion: @escaping (LCCountResult) -> Void) {
+        completion(.failure(error: LCError.conversationNotSupport(convType: type(of: self))))
     }
 
     @available(*, unavailable)
