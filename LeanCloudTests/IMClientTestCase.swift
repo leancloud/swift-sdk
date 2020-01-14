@@ -257,23 +257,29 @@ class IMClientTestCase: RTMBaseTestCase {
         
         expecting(
             description: "client1 resume with deviceToken1 fail, and set deviceToken2 then resume success",
-            count: 2)
+            count: 3)
         { (exp) in
             client1.open(options: []) { (result) in
                 XCTAssertEqual(
                     result.error?.code,
                     LCError.ServerErrorCode.sessionConflict.rawValue)
-                installation1.set(
-                    deviceToken: installation2.deviceToken!.value,
-                    apnsTeamId: "LeanCloud"
-                )
-                self.delay()
-                client1.open(options: []) { (result) in
-                    XCTAssertTrue(result.isSuccess)
-                    XCTAssertNil(result.error)
-                    exp.fulfill()
-                }
                 exp.fulfill()
+                client1.open(options: [.reconnect]) { (result) in
+                    XCTAssertEqual(
+                        result.error?.code,
+                        LCError.ServerErrorCode.sessionConflict.rawValue)
+                    exp.fulfill()
+                    installation1.set(
+                        deviceToken: installation2.deviceToken!.value,
+                        apnsTeamId: "LeanCloud"
+                    )
+                    self.delay()
+                    client1.open(options: []) { (result) in
+                        XCTAssertTrue(result.isSuccess)
+                        XCTAssertNil(result.error)
+                        exp.fulfill()
+                    }
+                }
             }
         }
         
