@@ -703,12 +703,10 @@ class IMConversationTestCase: RTMBaseTestCase {
     }
     
     func testMembersChange() {
-        guard
-            let clientA = newOpenedClient(),
-            let clientB = newOpenedClient() else
-        {
-            XCTFail()
-            return
+        guard let clientA = newOpenedClient(),
+            let clientB = newOpenedClient() else {
+                XCTFail()
+                return
         }
         
         let delegatorA = IMClientTestCase.Delegator()
@@ -718,13 +716,10 @@ class IMConversationTestCase: RTMBaseTestCase {
         
         var convA: IMConversation?
         
-        multiExpecting(expectations: { () -> [XCTestExpectation] in
-            let exp = self.expectation(description: "create conversation")
-            exp.expectedFulfillmentCount = 5
-            return [exp]
-        }) { (exps) in
-            let exp = exps[0]
-            
+        expecting(
+            description: "create conversation",
+            count: 5)
+        { (exp) in
             delegatorA.conversationEvent = { client, conv, event in
                 switch event {
                 case let .joined(byClientID: byClientID, at: at):
@@ -742,7 +737,6 @@ class IMConversationTestCase: RTMBaseTestCase {
                     break
                 }
             }
-            
             delegatorB.conversationEvent = { client, conv, event in
                 switch event {
                 case let .joined(byClientID: byClientID, at: at):
@@ -760,7 +754,6 @@ class IMConversationTestCase: RTMBaseTestCase {
                     break
                 }
             }
-            
             try! clientA.createConversation(clientIDs: [clientB.ID]) { (result) in
                 XCTAssertTrue(result.isSuccess)
                 XCTAssertNil(result.error)
@@ -772,13 +765,10 @@ class IMConversationTestCase: RTMBaseTestCase {
         let convB = clientB.convCollection[convA?.ID ?? ""]
         XCTAssertNotNil(convB)
         
-        multiExpecting(expectations: { () -> [XCTestExpectation] in
-            let exp = self.expectation(description: "leave")
-            exp.expectedFulfillmentCount = 3
-            return [exp]
-        }) { (exps) in
-            let exp = exps[0]
-            
+        expecting(
+            description: "leave",
+            count: 3)
+        { (exp) in
             delegatorA.conversationEvent = { client, conv, event in
                 switch event {
                 case let .membersLeft(members: members, byClientID: byClientID, at: at):
@@ -794,7 +784,6 @@ class IMConversationTestCase: RTMBaseTestCase {
                     break
                 }
             }
-            
             delegatorB.conversationEvent = { client, conv, event in
                 switch event {
                 case let .left(byClientID: byClientID, at: at):
@@ -808,7 +797,6 @@ class IMConversationTestCase: RTMBaseTestCase {
                     break
                 }
             }
-            
             try! convB?.leave(completion: { (result) in
                 XCTAssertTrue(Thread.isMainThread)
                 XCTAssertTrue(result.isSuccess)
@@ -817,13 +805,10 @@ class IMConversationTestCase: RTMBaseTestCase {
             })
         }
         
-        multiExpecting(expectations: { () -> [XCTestExpectation] in
-            let exp = self.expectation(description: "join")
-            exp.expectedFulfillmentCount = 4
-            return [exp]
-        }) { (exps) in
-            let exp = exps[0]
-            
+        expecting(
+            description: "join",
+            count: 4)
+        { (exp) in
             delegatorA.conversationEvent = { client, conv, event in
                 switch event {
                 case let .membersJoined(members: members, byClientID: byClientID, at: at):
@@ -840,7 +825,6 @@ class IMConversationTestCase: RTMBaseTestCase {
                     break
                 }
             }
-            
             delegatorB.conversationEvent = { client, conv, event in
                 switch event {
                 case let .joined(byClientID: byClientID, at: at):
@@ -865,7 +849,6 @@ class IMConversationTestCase: RTMBaseTestCase {
                     break
                 }
             }
-            
             try! convB?.join(completion: { (result) in
                 XCTAssertTrue(Thread.isMainThread)
                 XCTAssertTrue(result.isSuccess)
@@ -874,13 +857,10 @@ class IMConversationTestCase: RTMBaseTestCase {
             })
         }
         
-        multiExpecting(expectations: { () -> [XCTestExpectation] in
-            let exp = self.expectation(description: "remove")
-            exp.expectedFulfillmentCount = 3
-            return [exp]
-        }) { (exps) in
-            let exp = exps[0]
-            
+        expecting(
+            description: "remove",
+            count: 3)
+        { (exp) in
             delegatorA.conversationEvent = { client, conv, event in
                 switch event {
                 case let .membersLeft(members: members, byClientID: byClientID, at: at):
@@ -896,7 +876,6 @@ class IMConversationTestCase: RTMBaseTestCase {
                     break
                 }
             }
-            
             delegatorB.conversationEvent = { client, conv, event in
                 switch event {
                 case let .left(byClientID: byClientID, at: at):
@@ -910,7 +889,6 @@ class IMConversationTestCase: RTMBaseTestCase {
                     break
                 }
             }
-            
             try! convA?.remove(members: [clientB.ID], completion: { (result) in
                 XCTAssertTrue(Thread.isMainThread)
                 XCTAssertTrue(result.isSuccess)
@@ -919,13 +897,10 @@ class IMConversationTestCase: RTMBaseTestCase {
             })
         }
         
-        multiExpecting(expectations: { () -> [XCTestExpectation] in
-            let exp = self.expectation(description: "add")
-            exp.expectedFulfillmentCount = 4
-            return [exp]
-        }) { (exps) in
-            let exp = exps[0]
-            
+        expecting(
+            description: "add",
+            count: 4)
+        { (exp) in
             delegatorA.conversationEvent = { client, conv, event in
                 switch event {
                 case let .membersJoined(members: members, byClientID: byClientID, at: at):
@@ -942,7 +917,6 @@ class IMConversationTestCase: RTMBaseTestCase {
                     break
                 }
             }
-            
             delegatorB.conversationEvent = { client, conv, event in
                 switch event {
                 case let .joined(byClientID: byClientID, at: at):
@@ -967,7 +941,6 @@ class IMConversationTestCase: RTMBaseTestCase {
                     break
                 }
             }
-            
             try! convA?.add(members: [clientB.ID], completion: { (result) in
                 XCTAssertTrue(Thread.isMainThread)
                 XCTAssertTrue(result.isSuccess)
@@ -975,81 +948,101 @@ class IMConversationTestCase: RTMBaseTestCase {
                 exp.fulfill()
             })
         }
+        
+        expecting { (exp) in
+            convA?.countMembers(completion: { (result) in
+                XCTAssertTrue(Thread.isMainThread)
+                XCTAssertTrue(result.isSuccess)
+                XCTAssertNil(result.error)
+                XCTAssertEqual(result.intValue, 2);
+                exp.fulfill()
+            })
+        }
     }
     
     func testGetChatRoomOnlineMembers() {
-        guard
-            let clientA = newOpenedClient(),
-            let clientB = newOpenedClient()
-            else
-        {
-            XCTFail()
-            return
+        guard let clientA = newOpenedClient(),
+            let clientB = newOpenedClient() else {
+                XCTFail()
+                return
         }
         
-        var chatRoomA: IMChatRoom? = nil
+        var chatRoomA: IMChatRoom?
         
-        let createExp = expectation(description: "create chat room")
-        try? clientA.createChatRoom(completion: { (result) in
-            XCTAssertTrue(result.isSuccess)
-            XCTAssertNil(result.error)
-            chatRoomA = result.value
-            createExp.fulfill()
-        })
-        wait(for: [createExp], timeout: timeout)
-        
-        var chatRoomB: IMChatRoom? = nil
-        
-        let queryExp = expectation(description: "query chat room")
-        if let ID = chatRoomA?.ID {
-            try? clientB.conversationQuery.getConversation(by: ID, completion: { (result) in
+        expecting { (exp) in
+            try! clientA.createChatRoom(completion: { (result) in
                 XCTAssertTrue(result.isSuccess)
                 XCTAssertNil(result.error)
-                chatRoomB = result.value as? IMChatRoom
-                queryExp.fulfill()
+                chatRoomA = result.value
+                exp.fulfill()
             })
         }
-        wait(for: [queryExp], timeout: timeout)
         
-        let countExp = expectation(description: "get online count")
-        countExp.expectedFulfillmentCount = 6
-        chatRoomA?.getOnlineMembersCount(completion: { (result) in
-            XCTAssertTrue(result.isSuccess)
-            XCTAssertNil(result.error)
-            XCTAssertEqual(result.intValue, 1)
-            countExp.fulfill()
-            try? chatRoomB?.join(completion: { (result) in
-                XCTAssertTrue(result.isSuccess)
-                XCTAssertNil(result.error)
-                countExp.fulfill()
-                chatRoomA?.getOnlineMembersCount(completion: { (result) in
+        var chatRoomB: IMChatRoom?
+        
+        expecting { (exp) in
+            if let ID = chatRoomA?.ID {
+                try? clientB.conversationQuery.getConversation(by: ID, completion: { (result) in
                     XCTAssertTrue(result.isSuccess)
                     XCTAssertNil(result.error)
-                    XCTAssertEqual(result.intValue, 2)
-                    countExp.fulfill()
-                    chatRoomA?.getOnlineMembers(completion: { (result) in
+                    chatRoomB = result.value as? IMChatRoom
+                    exp.fulfill()
+                })
+            } else {
+                XCTFail()
+                exp.fulfill()
+            }
+        }
+        
+        expecting(
+            description: "get online count",
+            count: 7)
+        { (exp) in
+            chatRoomA?.getOnlineMembersCount(completion: { (result) in
+                XCTAssertTrue(result.isSuccess)
+                XCTAssertNil(result.error)
+                XCTAssertEqual(result.intValue, 1)
+                exp.fulfill()
+                try? chatRoomB?.join(completion: { (result) in
+                    XCTAssertTrue(result.isSuccess)
+                    XCTAssertNil(result.error)
+                    exp.fulfill()
+                    chatRoomA?.getOnlineMembersCount(completion: { (result) in
                         XCTAssertTrue(result.isSuccess)
                         XCTAssertNil(result.error)
-                        XCTAssertEqual(result.value?.count, 2)
-                        XCTAssertEqual(result.value?.contains(clientA.ID), true)
-                        XCTAssertEqual(result.value?.contains(clientB.ID), true)
-                        countExp.fulfill()
-                        try? chatRoomB?.leave(completion: { (result) in
+                        XCTAssertEqual(result.intValue, 2)
+                        exp.fulfill()
+                        chatRoomA?.getOnlineMembers(completion: { (result) in
                             XCTAssertTrue(result.isSuccess)
                             XCTAssertNil(result.error)
-                            countExp.fulfill()
-                            chatRoomA?.getOnlineMembersCount(completion: { (result) in
+                            XCTAssertEqual(result.value?.count, 2)
+                            XCTAssertEqual(result.value?.contains(clientA.ID), true)
+                            XCTAssertEqual(result.value?.contains(clientB.ID), true)
+                            exp.fulfill()
+                            try? chatRoomB?.leave(completion: { (result) in
                                 XCTAssertTrue(result.isSuccess)
                                 XCTAssertNil(result.error)
-                                XCTAssertEqual(result.intValue, 1)
-                                countExp.fulfill()
+                                exp.fulfill()
+                                chatRoomA?.getOnlineMembersCount(completion: { (result) in
+                                    XCTAssertTrue(Thread.isMainThread)
+                                    XCTAssertTrue(result.isSuccess)
+                                    XCTAssertNil(result.error)
+                                    XCTAssertEqual(result.intValue, 1)
+                                    exp.fulfill()
+                                    chatRoomA?.countMembers(completion: { (result) in
+                                        XCTAssertTrue(Thread.isMainThread)
+                                        XCTAssertTrue(result.isSuccess)
+                                        XCTAssertNil(result.error)
+                                        XCTAssertEqual(result.intValue, 1)
+                                        exp.fulfill()
+                                    })
+                                })
                             })
                         })
                     })
                 })
             })
-        })
-        wait(for: [countExp], timeout: timeout)
+        }
     }
     
     func testMuteAndUnmute() {
