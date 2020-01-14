@@ -430,29 +430,36 @@ extension IMClient {
     
     /// Options that can modify behaviors of session open operation.
     public struct SessionOpenOptions: OptionSet {
-        
         public let rawValue: Int
         
         public init(rawValue: Int) {
             self.rawValue = rawValue
         }
         
-        /// Default options is `forced`.
+        /// Default is `[.forced]`.
         public static let `default`: SessionOpenOptions = [.forced]
         
-        /// For two sessions of the same client (Application, ID and Tag are same), the later one will force to make the previous one offline. After later one opened success, the previous one will get session closed error (code: 4111).
+        /// For two sessions of the same client (have valid tag and application-id, client-id, client-tag are same), the later one will force to make the previous one offline. After later one opened success, the previous one will get session-closed-error(code: 4111).
         public static let forced = SessionOpenOptions(rawValue: 1 << 0)
         
+        /// Session open with this option means this opening is reconnect. if the session has been offline by other client, then open result is session-closed-error(code: 4111).
+        public static let reconnect = SessionOpenOptions(rawValue: 1 << 1)
+        
         /// ref: `https://github.com/leancloud/avoscloud-push/blob/develop/push-server/doc/protocol.md#sessionopen`
-        var r: Bool { return !contains(.forced) }
+        var r: Bool {
+            return self.contains(.reconnect)
+                || (self == [])
+        }
     }
     
-    /// Open IM session.
-    ///
+    /// Open session.
     /// - Parameters:
-    ///   - options: @see `IMClient.SessionOpenOptions`.
-    ///   - completion: callback.
-    public func open(options: SessionOpenOptions = .default, completion: @escaping (LCBooleanResult) -> Void) {
+    ///   - options: @see `IMClient.SessionOpenOptions`, default is `.default`, empty options equal to `[.reconnect]`.
+    ///   - completion: Result callback.
+    public func open(
+        options: SessionOpenOptions = .default,
+        completion: @escaping (LCBooleanResult) -> Void)
+    {
         self.serialQueue.async {
             guard self.openingCompletion == nil && self.sessionToken == nil else {
                 var reason: String = "cannot do repetitive operation."
@@ -479,9 +486,8 @@ extension IMClient {
         }
     }
     
-    /// Close IM session.
-    ///
-    /// - Parameter completion: callback.
+    /// Close session.
+    /// - Parameter completion: Result callback.
     public func close(completion: @escaping (LCBooleanResult) -> Void) {
         self.serialQueue.async {
             guard self.isSessionOpened else {
