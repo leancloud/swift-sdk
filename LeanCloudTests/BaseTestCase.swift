@@ -46,6 +46,14 @@ class BaseTestCase: XCTestCase {
             id: BaseTestCase.cnApp.id,
             key: BaseTestCase.cnApp.key,
             serverURL: BaseTestCase.cnApp.serverURL)
+        
+//        var config = LCApplication.Configuration()
+//        config.RTMCustomServerURL = RTMBaseTestCase.testableRTMURL
+//        try! LCApplication.default.set(
+//            id: BaseTestCase.cnApp.id,
+//            key: BaseTestCase.cnApp.key,
+//            serverURL: BaseTestCase.cnApp.serverURL,
+//            configuration: config)
     }
     
     override class func tearDown() {
