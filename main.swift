@@ -462,12 +462,15 @@ class JazzyTask: Task {
             toPath: APIDocsRepoSwiftDirectory)
     }
     
-    static func commitPush() throws {
+    static func commitPull() throws {
         guard GitTask(arguments: [
             "-C", APIDocsRepoSwiftDirectory, "pull"])
             .excute() else {
                 throw TaskError()
         }
+    }
+    
+    static func commitPush() throws {
         guard GitTask(arguments: [
             "-C", APIDocsRepoSwiftDirectory,
             "add", "-A"])
@@ -490,6 +493,7 @@ class JazzyTask: Task {
     static func update(currentVersion: VersionUpdater.Version) throws {
         try version()
         try checkAPIDocsRepoSwiftDirectory()
+        try commitPull()
         try generateDocumentation(currentVersion: currentVersion)
         try moveGeneratedDocumentationToRepo()
         try commitPush()
