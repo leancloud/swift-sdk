@@ -685,6 +685,7 @@ class IMConversationTestCase: RTMBaseTestCase {
         }
         wait(for: [largeUnreadExp], timeout: timeout)
         
+        delay()
         XCTAssertNotNil(clientB.lastUnreadNotifTime)
         
         let allReadExp = expectation(description: "all read")
