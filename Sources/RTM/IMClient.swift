@@ -509,6 +509,7 @@ extension IMClient {
             var outCommand = IMGenericCommand()
             outCommand.cmd = .session
             outCommand.op = .close
+            outCommand.peerID = self.ID
             outCommand.sessionMessage = IMSessionCommand()
             self.connection.send(command: outCommand, callingQueue: self.serialQueue) { [weak self] (result) in
                 guard let client: IMClient = self else { return }
