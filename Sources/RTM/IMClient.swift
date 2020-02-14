@@ -1530,11 +1530,14 @@ extension IMClient {
     
     func handleSessionOpenCallback(
         command: IMGenericCommand,
+        openCommand: IMGenericCommand? = nil,
         completion: ((LCBooleanResult) -> Void)? = nil)
     {
         assert(self.specificAssertion)
         switch (command.cmd, command.op) {
         case (.session, .opened):
+            self.openingCompletion = nil
+            self.openingOptions = nil
             let sessionMessage = command.sessionMessage
             if sessionMessage.hasSt && sessionMessage.hasStTtl {
                 self.sessionToken = sessionMessage.st
@@ -1552,6 +1555,11 @@ extension IMClient {
                     lastPatchTimestamp: (command.hasServerTs
                         ? command.serverTs
                         : nil))
+            }
+            if let openCommand = openCommand {
+                self.reportDeviceToken(
+                    token: self.currentDeviceToken,
+                    openCommand: openCommand)
             }
             self.eventQueue.async {
                 if let completion = completion {
@@ -2432,20 +2440,16 @@ extension IMClient: RTMConnectionDelegate {
                         return
                     }
                     assert(sClient.specificAssertion)
-                    sClient.openingCompletion = nil
-                    sClient.openingOptions = nil
                     switch result {
                     case .inCommand(let command):
                         sClient.handleSessionOpenCallback(
                             command: command,
+                            openCommand: openCommand,
                             completion: openingCompletion)
-                        sClient.reportDeviceToken(
-                            token: sClient.currentDeviceToken,
-                            openCommand: openCommand)
                     case .error(let error):
-                        sClient.eventQueue.async {
-                            openingCompletion(.failure(error: error))
-                        }
+                        sClient.sessionClosed(
+                            with: .failure(error: error),
+                            completion: openingCompletion)
                     }
                 }
             }
