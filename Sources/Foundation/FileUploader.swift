@@ -252,7 +252,8 @@ class FileUploader {
         parameters["key"] = attributes.resourceKey
         parameters["name"] = attributes.name
         parameters["mime_type"] = attributes.mimeType
-        if self.options.contains(.keepFileName) {
+        if self.options.contains(.keepFileName)
+            || self.file.keepFileName {
             parameters["keep_file_name"] = true
         }
 
