@@ -61,6 +61,8 @@ class IMConversationTestCase: RTMBaseTestCase {
         
         let convAssertion: (IMConversation, IMClient) -> Void = { conv, client in
             XCTAssertTrue(type(of: conv) == IMConversation.self)
+            XCTAssertEqual(conv.rawData["objectId"] as? String, conv.ID)
+            XCTAssertEqual(conv.rawData["conv_type"] as? Int, 1)
             XCTAssertEqual(conv.convType, .normal)
             XCTAssertEqual(conv.members?.count, 2)
             XCTAssertEqual(conv.members?.contains(clientA.ID), true)
@@ -209,6 +211,8 @@ class IMConversationTestCase: RTMBaseTestCase {
         try? clientA.createConversation(clientIDs: [clientA.ID, clientB.ID], completion: { (result) in
             if let conv: IMConversation = result.value {
                 XCTAssertTrue(type(of: conv) == IMConversation.self)
+                XCTAssertEqual(conv.rawData["objectId"] as? String, conv.ID)
+                XCTAssertEqual(conv.rawData["conv_type"] as? Int, 1)
                 XCTAssertEqual(conv.convType, .normal)
                 XCTAssertTrue(conv.isUnique)
                 XCTAssertNotNil(conv.uniqueID)
@@ -278,6 +282,8 @@ class IMConversationTestCase: RTMBaseTestCase {
             XCTAssertTrue(Thread.isMainThread)
             let chatRoom: IMChatRoom? = result.value
             XCTAssertEqual(chatRoom?.convType, .transient)
+            XCTAssertEqual(chatRoom?.rawData["objectId"] as? String, chatRoom?.ID)
+            XCTAssertEqual(chatRoom?.rawData["conv_type"] as? Int, 2)
             if let members = chatRoom?.members {
                 XCTAssertTrue(members.isEmpty)
             } else {
@@ -346,6 +352,8 @@ class IMConversationTestCase: RTMBaseTestCase {
             XCTAssertTrue(Thread.isMainThread)
             if let conv: IMTemporaryConversation = result.value {
                 XCTAssertEqual(conv.convType, .temporary)
+                XCTAssertEqual(conv.rawData["objectId"] as? String, conv.ID)
+                XCTAssertEqual(conv.rawData["conv_type"] as? Int, 4)
                 XCTAssertEqual(conv.timeToLive, Int(ttl))
             } else {
                 XCTFail()
@@ -380,6 +388,8 @@ class IMConversationTestCase: RTMBaseTestCase {
                 XCTAssertTrue(result.isSuccess)
                 XCTAssertNil(result.error)
                 serviceConversation = (result.value as? IMServiceConversation)
+                XCTAssertEqual(serviceConversation?.rawData["objectId"] as? String, serviceConversation?.ID)
+                XCTAssertEqual(serviceConversation?.rawData["conv_type"] as? Int, 3)
                 XCTAssertEqual(serviceConversation?.isSubscribed, false)
                 exp.fulfill()
             }
@@ -1186,6 +1196,8 @@ class IMConversationTestCase: RTMBaseTestCase {
             XCTAssertEqual(result.value?.convType, .normal)
             if let conv = result.value {
                 XCTAssertTrue(type(of: conv) == IMConversation.self)
+                XCTAssertEqual(conv.rawData["objectId"] as? String, conv.ID)
+                XCTAssertEqual(conv.rawData["conv_type"] as? Int, 1)
             }
             XCTAssertEqual(result.value?.members ?? [], [])
             XCTAssertNotNil(result.value?.lastMessage)
@@ -1199,6 +1211,8 @@ class IMConversationTestCase: RTMBaseTestCase {
             XCTAssertNil(result.error)
             XCTAssertEqual(result.value?.convType, .transient)
             if let conv = result.value as? IMChatRoom {
+                XCTAssertEqual(conv.rawData["objectId"] as? String, conv.ID)
+                XCTAssertEqual(conv.rawData["conv_type"] as? Int, 2)
                 XCTAssertTrue(type(of: conv) == IMChatRoom.self)
             }
             queryExp2.fulfill()
@@ -1211,6 +1225,8 @@ class IMConversationTestCase: RTMBaseTestCase {
             XCTAssertNil(result.error)
             XCTAssertEqual(result.value?.convType, .system)
             if let conv = result.value as? IMServiceConversation {
+                XCTAssertEqual(conv.rawData["objectId"] as? String, conv.ID)
+                XCTAssertEqual(conv.rawData["conv_type"] as? Int, 3)
                 XCTAssertTrue(type(of: conv) == IMServiceConversation.self)
             }
             queryExp3.fulfill()
@@ -1248,6 +1264,10 @@ class IMConversationTestCase: RTMBaseTestCase {
             XCTAssertTrue(result.isSuccess)
             XCTAssertNil(result.error)
             XCTAssertEqual(result.value?.count, 1)
+            if let conv = result.value?.first {
+                XCTAssertEqual(conv.rawData["objectId"] as? String, conv.ID)
+                XCTAssertEqual(conv.rawData["conv_type"] as? Int, 4)
+            }
             queryTempExp.fulfill()
         })
         wait(for: [queryTempExp], timeout: timeout)

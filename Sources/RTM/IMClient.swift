@@ -537,14 +537,14 @@ extension IMClient {
 extension IMClient {
     // MARK: Create Conversation
     
-    /// Create a Normal Conversation. Default is a Unique Conversation.
+    /// Create a Normal Conversation. Default is a Normal Unique Conversation.
     ///
     /// - Parameters:
     ///   - clientIDs: The set of client ID. it's the members of the conversation which will be created. the initialized members always contains current client's ID. if the created conversation is unique, and server has one unique conversation with the same members, that unique conversation will be returned.
     ///   - name: The name of the conversation.
     ///   - attributes: The attributes of the conversation.
     ///   - isUnique: True means create or get a unique conversation, default is true.
-    ///   - completion: callback.
+    ///   - completion: Result callback.
     public func createConversation(
         clientIDs: Set<String>,
         name: String? = nil,
@@ -558,8 +558,7 @@ extension IMClient {
             name: name,
             attributes: attributes,
             option: (isUnique ? .normalAndUnique : .normal),
-            completion: completion
-        )
+            completion: completion)
     }
     
     /// Create a Chat Room.
@@ -567,7 +566,7 @@ extension IMClient {
     /// - Parameters:
     ///   - name: The name of the chat room.
     ///   - attributes: The attributes of the chat room.
-    ///   - completion: callback.
+    ///   - completion: Result callback.
     public func createChatRoom(
         name: String? = nil,
         attributes: [String: Any]? = nil,
@@ -579,8 +578,7 @@ extension IMClient {
             name: name,
             attributes: attributes,
             option: .transient,
-            completion: completion
-        )
+            completion: completion)
     }
     
     /// Create a Temporary Conversation. Temporary Conversation is unique in it's Life Cycle.
@@ -588,7 +586,7 @@ extension IMClient {
     /// - Parameters:
     ///   - clientIDs: The set of client ID. it's the members of the conversation which will be created. the initialized members always contains this client's ID.
     ///   - timeToLive: The time interval for the life of the temporary conversation.
-    ///   - completion: callback.
+    ///   - completion: Result callback.
     public func createTemporaryConversation(
         clientIDs: Set<String>,
         timeToLive: Int32,
@@ -598,8 +596,7 @@ extension IMClient {
         try self.createConversation(
             clientIDs: clientIDs,
             option: .temporary(ttl: timeToLive),
-            completion: completion
-        )
+            completion: completion)
     }
     
     enum ConversationCreationOption {
@@ -654,8 +651,7 @@ extension IMClient {
         name: String?,
         attributes: [String: Any]?,
         option: ConversationCreationOption)
-        throws
-        -> ConversationCreationTuple
+        throws -> ConversationCreationTuple
     {
         var members: [String]
         if option.isTransient {
@@ -671,20 +667,18 @@ extension IMClient {
                 members.append(self.ID)
             }
         }
-        
         var attr: [String: Any] = [:]
-        if let name: String = name {
+        if let name = name {
             attr[IMConversation.Key.name.rawValue] = name
         }
-        if let attributes: [String: Any] = attributes {
+        if let attributes = attributes {
             attr[IMConversation.Key.attributes.rawValue] = attributes
         }
-        var attrString: String? = nil
+        var attrString: String?
         if !attr.isEmpty {
             let data = try JSONSerialization.data(withJSONObject: attr)
             attrString = String(data: data, encoding: .utf8)
         }
-        
         return (members, attrString, option)
     }
     
@@ -764,7 +758,6 @@ extension IMClient {
             name: name,
             attributes: attributes,
             option: option)
-        
         let sendingClosure: (IMClient, IMGenericCommand) -> Void = { (client, outCommand) in
             client.sendCommand(constructor: { outCommand }) { (client, result) in
                 switch result {
@@ -790,7 +783,6 @@ extension IMClient {
                 }
             }
         }
-        
         if option.isTemporary {
             sendingClosure(self, self.newConvStartCommand(
                 tuple: tuple))
@@ -808,63 +800,68 @@ extension IMClient {
     {
         assert(self.specificAssertion)
         guard let convMessage = (inCommand.hasConvMessage ? inCommand.convMessage : nil),
-            let convID = (convMessage.hasCid ? convMessage.cid : nil) else {
+            let conversationID = (convMessage.hasCid ? convMessage.cid : nil) else {
                 throw LCError(
                     code: .commandInvalid,
                     userInfo: ["command": "\(inCommand)"])
         }
-        var attr: [String: Any] = [:]
-        if let json: [String: Any] = try tuple
-            .attrString?.jsonObject() {
-            attr = json
+        var attributes: [String: Any] = [:]
+        if let attrObject: [String: Any] = try tuple.attrString?.jsonObject() {
+            attributes = attrObject
         }
         let conversation: IMConversation
-        if let conv = self.convCollection[convID] {
-            conv.safeExecuting(
+        if let existConversation = self.convCollection[conversationID] {
+            existConversation.safeExecuting(
                 operation: .rawDataMerging(
-                    data: attr),
+                    data: attributes),
                 client: self)
             #if canImport(GRDB)
-            if conv.isUnique {
-                conv.tryUpdateLocalStorageData(
+            if existConversation.isUnique {
+                existConversation.tryUpdateLocalStorageData(
                     client: self,
-                    rawData: conv.rawData)
+                    rawData: existConversation.rawData)
             }
             #endif
-            conversation = conv
+            conversation = existConversation
         } else {
             let key = IMConversation.Key.self
-            attr[key.convType.rawValue] = tuple.option.convType.rawValue
-            attr[key.creator.rawValue] = self.ID
-            if !tuple.option.isTransient {
-                attr[key.members.rawValue] = tuple.members
+            attributes[key.objectId.rawValue] = conversationID
+            attributes[key.convType.rawValue] = tuple.option.convType.rawValue
+            attributes[key.creator.rawValue] = self.ID
+            if tuple.option.isTransient {
+                attributes[key.transient.rawValue] = true
+            } else {
+                attributes[key.members.rawValue] = tuple.members
             }
             if tuple.option.isUnique {
-                attr[key.unique.rawValue] = true
+                attributes[key.unique.rawValue] = true
             }
             if convMessage.hasCdate {
-                attr[key.createdAt.rawValue] = convMessage.cdate
+                attributes[key.createdAt.rawValue] = convMessage.cdate
             }
             if convMessage.hasUniqueID {
-                attr[key.uniqueId.rawValue] = convMessage.uniqueID
+                attributes[key.uniqueId.rawValue] = convMessage.uniqueID
+            }
+            if tuple.option.isTemporary {
+                attributes[key.temporary.rawValue] = true
             }
             if convMessage.hasTempConvTtl {
-                attr[key.temporaryTTL.rawValue] = convMessage.tempConvTtl
+                attributes[key.temporaryTTL.rawValue] = convMessage.tempConvTtl
             }
-            if let rawData: IMConversation.RawData = try attr.jsonObject() {
+            if let rawData: IMConversation.RawData = try attributes.jsonObject() {
                 conversation = IMConversation.instance(
-                    ID: convID,
+                    ID: conversationID,
                     rawData: rawData,
                     client: self,
                     caching: true)
             } else {
                 throw LCError(
                     code: .malformedData,
-                    userInfo: ["data": attr])
+                    userInfo: ["data": attributes])
             }
         }
         if let conversation = conversation as? T {
-            self.convCollection[convID] = conversation
+            self.convCollection[conversationID] = conversation
             return conversation
         } else {
             throw LCError(
