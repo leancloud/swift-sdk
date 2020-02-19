@@ -200,6 +200,8 @@ public class IMConversation {
                 convType = .temporary
             }
         }
+        var rawData = rawData
+        rawData[Key.convType.rawValue] = convType.rawValue
         switch convType {
         case .normal:
             return IMConversation(
