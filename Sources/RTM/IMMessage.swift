@@ -243,6 +243,37 @@ open class IMMessage {
     }
 }
 
+extension IMMessage {
+    
+    public func padding(unsafeFlutterObject: Any) {
+        guard let data = unsafeFlutterObject as? [String: Any] else {
+            return
+        }
+        if let conversationId = data["conversationId"] as? String {
+            self.conversationID = conversationId
+        }
+        if let messageId = data["id"] as? String {
+            self.ID = messageId
+        }
+        if let from = data["from"] as? String {
+            self.fromClientID = from
+        }
+        if let timestamp = data["timestamp"] as? Int {
+            self.sentTimestamp = Int64(timestamp)
+        }
+        if let ackAt = data["ackAt"] as? Int {
+            self.deliveredTimestamp = Int64(ackAt)
+        }
+        if let readAt = data["readAt"] as? Int {
+            self.readTimestamp = Int64(readAt)
+        }
+        if let _ = self.ID,
+            let _ = self.sentTimestamp {
+            self.underlyingStatus = .sent
+        }
+    }
+}
+
 var IMCategorizedMessageTypeMap: [Int: IMCategorizedMessage.Type] = [
     IMCategorizedMessage.ReservedType.none.rawValue: IMCategorizedMessage.self,
     IMCategorizedMessage.ReservedType.text.rawValue: IMTextMessage.self,
