@@ -731,7 +731,11 @@ class IMMessageTestCase: RTMBaseTestCase {
     func testFileMessageSendingAndReceiving() {
         let message = IMFileMessage()
         let format: String = "zip"
-        message.file = LCFile(payload: .fileURL(fileURL: bundleResourceURL(name: "test", ext: format)))
+        let file = LCFile(payload: .fileURL(fileURL: bundleResourceURL(name: "test", ext: format)))
+        let name = "\(uuid).\(format)"
+        file.keepFileName = true
+        file.name = name.lcString
+        message.file = file
         let success = sendingAndReceiving(sentMessage: message) { (rMessage) in
             XCTAssertNotNil(rMessage?.file?.objectId?.value)
             XCTAssertEqual(rMessage?.format, format)
@@ -742,6 +746,7 @@ class IMMessageTestCase: RTMBaseTestCase {
             XCTAssertEqual(rMessage?.size, message.size)
             XCTAssertEqual(rMessage?.url, message.url)
         }
+        XCTAssertEqual(message.url?.absoluteString.hasSuffix(name), true)
         XCTAssertTrue(success)
     }
     
