@@ -3006,25 +3006,18 @@ public class IMTemporaryConversation: IMConversation {
     }
     #endif
 
-    /// Refresh temporary conversation's data.
-    ///
-    /// - Parameter completion: callback
+    /// Refresh data of temporary conversation.
+    /// - Parameter completion: Result callback.
     public override func refresh(completion: @escaping (LCBooleanResult) -> Void) throws {
-        try self.client?.conversationQuery.getTemporaryConversations(by: [self.ID], completion: { (result) in
+        try self.client?.conversationQuery.getTemporaryConversation(by: self.ID) { (result) in
             switch result {
-            case .success(value: let tempConvs):
-                if tempConvs.isEmpty {
-                    let error = LCError(code: .conversationNotFound)
-                    completion(.failure(error: error))
-                } else {
-                    completion(.success)
-                }
+            case .success:
+                completion(.success)
             case .failure(error: let error):
                 completion(.failure(error: error))
             }
-        })
+        }
     }
-
 }
 
 extension LCError {

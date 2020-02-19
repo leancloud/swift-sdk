@@ -172,6 +172,31 @@ public class IMConversationQuery: LCQuery {
         )
     }
     
+    /// Get Temporary Conversation by ID.
+    /// - Parameters:
+    ///   - ID: The ID of the temporary conversation.
+    ///   - completion: Result callback.
+    public func getTemporaryConversation(
+        by ID: String,
+        completion: @escaping (LCGenericResult<IMTemporaryConversation>) -> Void)
+        throws
+    {
+        try self.getTemporaryConversations(by: [ID]) { (result) in
+            switch result {
+            case .success(value: let conversations):
+                if let conversation = conversations.first {
+                    completion(.success(value: conversation))
+                } else {
+                    completion(.failure(
+                        error: LCError(
+                            code: .conversationNotFound)))
+                }
+            case .failure(error: let error):
+                completion(.failure(error: error))
+            }
+        }
+    }
+    
     /// Get Temporary Conversations by ID set.
     ///
     /// - Parameters:
