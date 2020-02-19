@@ -104,6 +104,9 @@ public class LCFile: LCObject {
     
     // MARK: Save
     
+    /// If set it to `true`, then will use "/\(LCFile.name)" as URL suffix when creating file from payload. default is `false`.
+    public var keepFileName: Bool = false
+    
     /// Save Options
     public struct Options: OptionSet {
         public let rawValue: Int
