@@ -1260,16 +1260,16 @@ class IMConversationTestCase: RTMBaseTestCase {
         wait(for: [queryAllExp], timeout: timeout)
         
         let queryTempExp = expectation(description: "query temporary conversation")
-        try? clientA.conversationQuery.getTemporaryConversations(by: [tempID], completion: { (result) in
+        try? clientA.conversationQuery.getTemporaryConversation(by: tempID) { (result) in
             XCTAssertTrue(result.isSuccess)
             XCTAssertNil(result.error)
-            XCTAssertEqual(result.value?.count, 1)
-            if let conv = result.value?.first {
+            XCTAssertNotNil(result.value)
+            if let conv = result.value {
                 XCTAssertEqual(conv.rawData["objectId"] as? String, conv.ID)
                 XCTAssertEqual(conv.rawData["conv_type"] as? Int, 4)
             }
             queryTempExp.fulfill()
-        })
+        }
         wait(for: [queryTempExp], timeout: timeout)
         
         clientA.convCollection.removeAll()

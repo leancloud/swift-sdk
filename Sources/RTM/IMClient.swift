@@ -1676,26 +1676,22 @@ extension IMClient {
         let query = IMConversationQuery(client: self)
         do {
             if ID.hasPrefix(IMTemporaryConversation.prefixOfID) {
-                try query.getTemporaryConversations(by: [ID], completion: { [weak self] (result) in
-                    guard let client: IMClient = self else { return }
+                try query.getTemporaryConversation(by: ID) { [weak self] (result) in
+                    guard let client = self else { return }
                     assert(client.specificAssertion)
                     switch result {
-                    case .success(value: let conversations):
-                        if let first: IMConversation = conversations.first {
-                            callback(client, .success(value: first))
-                        } else {
-                            callback(client, .failure(error: LCError(code: .conversationNotFound)))
-                        }
+                    case .success(value: let conversation):
+                        callback(client, .success(value: conversation))
                     case .failure(error: let error):
                         callback(client, .failure(error: error))
                     }
-                })
+                }
             } else {
-                try query.getConversation(by: ID, completion: { [weak self] (result) in
-                    guard let client: IMClient = self else { return }
+                try query.getConversation(by: ID) { [weak self] (result) in
+                    guard let client = self else { return }
                     assert(client.specificAssertion)
                     callback(client, result)
-                })
+                }
             }
         } catch {
             assert(self.specificAssertion)
@@ -1745,8 +1741,8 @@ extension IMClient {
         } else {
             let query = IMConversationQuery(client: self)
             do {
-                try query.getTemporaryConversations(by: IDs, completion: { [weak self] (result) in
-                    guard let client: IMClient = self else { return }
+                try query.getTemporaryConversations(by: IDs) { [weak self] (result) in
+                    guard let client = self else { return }
                     assert(client.specificAssertion)
                     switch result {
                     case .success(value: let conversations):
@@ -1754,7 +1750,7 @@ extension IMClient {
                     case .failure(error: let error):
                         completion(client, .failure(error: error))
                     }
-                })
+                }
             } catch {
                 assert(self.specificAssertion)
                 completion(self, .failure(error: LCError(error: error)))
