@@ -162,11 +162,13 @@ public class IMConversation {
     }
     private var _lastMessage: IMMessage? = nil
     
+    /// The last delivered date of message
     public var lastDeliveredAt: Date? {
         return IMClient.date(
             fromMillisecond: self.lastDeliveredTimestamp)
     }
     
+    /// The last delivered timestamp of message
     public internal(set) var lastDeliveredTimestamp: Int64? {
         set {
             self.sync(self._lastDeliveredTimestamp = newValue)
@@ -177,11 +179,13 @@ public class IMConversation {
     }
     private var _lastDeliveredTimestamp: Int64?
     
+    /// The last read date of message
     public var lastReadAt: Date? {
         return IMClient.date(
             fromMillisecond: self.lastReadTimestamp)
     }
     
+    /// The last read timestamp of message
     public internal(set) var lastReadTimestamp: Int64? {
         set {
             self.sync(self._lastReadTimestamp = newValue)
