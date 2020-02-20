@@ -269,6 +269,16 @@ class IMConversationTestCase: RTMBaseTestCase {
             clientA.convCollection.first?.value.uniqueID,
             clientB.convCollection.first?.value.uniqueID
         )
+        
+        expecting { (exp) in
+            clientA.convCollection.first?.value.checkJoined(completion: { (result) in
+                XCTAssertTrue(Thread.isMainThread)
+                XCTAssertTrue(result.isSuccess)
+                XCTAssertNil(result.error)
+                XCTAssertEqual(result.value, true)
+                exp.fulfill()
+            })
+        }
     }
     
     func testCreateChatRoom() {
