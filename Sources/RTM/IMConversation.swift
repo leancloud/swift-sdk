@@ -402,6 +402,12 @@ public class IMConversation {
     public func countMembers(completion: @escaping (LCCountResult) -> Void) {
         self._countMembers(completion: completion)
     }
+    
+    /// Check whether *client* joined this conversation.
+    /// - Parameter completion: Result callback.
+    public func checkJoined(completion: @escaping (LCGenericResult<Bool>) -> Void) {
+        self._checkJoined(completion: completion)
+    }
 
     /// Mute this conversation.
     ///
@@ -1711,6 +1717,52 @@ extension IMConversation {
             }
         }
     }
+    
+    func _checkJoined(completion: @escaping (LCGenericResult<Bool>) -> Void) {
+        self.client?.sendCommand(constructor: { () -> IMGenericCommand in
+            var outCommand = IMGenericCommand()
+            outCommand.cmd = .conv
+            outCommand.op = .isMember
+            var convCommand = IMConvCommand()
+            convCommand.cids = [self.ID]
+            outCommand.convMessage = convCommand
+            return outCommand
+        }, completion: { (client, result) in
+            switch result {
+            case .inCommand(let inCommand):
+                assert(client.specificAssertion)
+                do {
+                    if let convMessage = (inCommand.hasConvMessage ? inCommand.convMessage : nil),
+                        let jsonObject = (convMessage.hasResults ? convMessage.results : nil),
+                        let dataString = (jsonObject.hasData ? jsonObject.data : nil),
+                        let results: [String: Any] = try dataString.jsonObject(),
+                        let boolValue = results[self.ID] as? Bool {
+                        client.eventQueue.async {
+                            completion(.success(
+                                value: boolValue))
+                        }
+                    } else {
+                        client.eventQueue.async {
+                            completion(.failure(
+                                error: LCError(
+                                    code: .commandInvalid)))
+                        }
+                    }
+                } catch {
+                    client.eventQueue.async {
+                        completion(.failure(
+                            error: LCError(
+                                error: error)))
+                    }
+                }
+            case .error(let error):
+                client.eventQueue.async {
+                    completion(.failure(
+                        error: error))
+                }
+            }
+        })
+    }
 }
 
 extension IMConversation {
@@ -2744,6 +2796,11 @@ public class IMChatRoom: IMConversation {
         case normal = 2
         case low = 3
     }
+    
+    @available(*, unavailable)
+    public override func checkJoined(completion: @escaping (LCGenericResult<Bool>) -> Void) {
+        completion(.failure(error: LCError.conversationNotSupport(convType: type(of: self))))
+    }
 
     @available(*, unavailable)
     public override func read(message: IMMessage? = nil) {}
@@ -2917,52 +2974,12 @@ public class IMServiceConversation: IMConversation {
     public func unsubscribe(completion: @escaping (LCBooleanResult) -> Void) throws {
         try self.leave(completion: completion)
     }
-
-    /// Check whether subscribed this Service Conversation.
-    ///
-    /// - Parameter completion: callback, dispatch to client.eventQueue .
+    
+    /// Check whether *client* subscribed this conversation.
+    /// - Parameter completion: Result callback.
     public func checkSubscription(completion: @escaping (LCGenericResult<Bool>) -> Void) {
-        self.client?.sendCommand(constructor: { () -> IMGenericCommand in
-            var outCommand = IMGenericCommand()
-            outCommand.cmd = .conv
-            outCommand.op = .isMember
-            var convCommand = IMConvCommand()
-            convCommand.cids = [self.ID]
-            outCommand.convMessage = convCommand
-            return outCommand
-        }, completion: { (client, result) in
-            switch result {
-            case .inCommand(let inCommand):
-                assert(client.specificAssertion)
-                do {
-                    if
-                        let convMessage = (inCommand.hasConvMessage ? inCommand.convMessage : nil),
-                        let jsonObject = (convMessage.hasResults ? convMessage.results : nil),
-                        let dataString = (jsonObject.hasData ? jsonObject.data : nil),
-                        let results: [String: Any] = try dataString.jsonObject(),
-                        let boolValue: Bool = results[self.ID] as? Bool
-                    {
-                        client.eventQueue.async {
-                            completion(.success(value: boolValue))
-                        }
-                    } else {
-                        client.eventQueue.async {
-                            completion(.failure(error: LCError(code: .commandInvalid)))
-                        }
-                    }
-                } catch {
-                    client.eventQueue.async {
-                        completion(.failure(error: LCError(error: error)))
-                    }
-                }
-            case .error(let error):
-                client.eventQueue.async {
-                    completion(.failure(error: error))
-                }
-            }
-        })
+        self._checkJoined(completion: completion)
     }
-
 }
 
 /// IM Temporary Conversation
@@ -3005,7 +3022,13 @@ public class IMTemporaryConversation: IMConversation {
         throw LCError.conversationNotSupport(convType: type(of: self))
     }
     
+    @available(*, unavailable)
     public override func countMembers(completion: @escaping (LCCountResult) -> Void) {
+        completion(.failure(error: LCError.conversationNotSupport(convType: type(of: self))))
+    }
+    
+    @available(*, unavailable)
+    public override func checkJoined(completion: @escaping (LCGenericResult<Bool>) -> Void) {
         completion(.failure(error: LCError.conversationNotSupport(convType: type(of: self))))
     }
 
