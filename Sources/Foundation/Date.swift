@@ -32,7 +32,7 @@ public final class LCDate: NSObject, LCValue, LCValueExtension {
         return dateFormatter.string(from: date)
     }
 
-    var isoString: String {
+    public var isoString: String {
         return LCDate.stringFromDate(value)
     }
 
