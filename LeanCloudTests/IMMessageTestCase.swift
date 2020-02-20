@@ -1144,29 +1144,37 @@ class IMMessageTestCase: RTMBaseTestCase {
         delay()
         
         let getReadFlagExp = expectation(description: "get read flag timestamp")
-        ((try? sendingTuple?.conversation.getMessageReceiptFlag(completion: { (result) in
-            XCTAssertTrue(Thread.isMainThread)
-            XCTAssertTrue(result.isSuccess)
-            XCTAssertNil(result.error)
-            XCTAssertNotNil(result.value?.readFlagTimestamp)
-            XCTAssertNotNil(result.value?.readFlagTimestamp)
-            XCTAssertEqual(result.value?.readFlagTimestamp, result.value?.deliveredFlagTimestamp)
-            XCTAssertEqual(result.value?.readFlagDate, result.value?.deliveredFlagDate)
-            XCTAssertGreaterThan(result.value?.readFlagTimestamp ?? 0, message.sentTimestamp ?? 0)
-            getReadFlagExp.fulfill()
-        })) as ()??)
+        getReadFlagExp.expectedFulfillmentCount = 2
+        sendingTuple?.delegator.conversationEvent = { client, conv, event in
+            switch event {
+            case .lastDeliveredAtUpdated:
+                XCTAssertNotNil(conv.lastDeliveredAt)
+                getReadFlagExp.fulfill()
+            case .lastReadAtUpdated:
+                XCTAssertNotNil(conv.lastReadAt)
+                getReadFlagExp.fulfill()
+            default:
+                break
+            }
+        }
+        try! sendingTuple?.conversation.fetchReceiptTimestamps()
         wait(for: [getReadFlagExp], timeout: timeout)
         
         let sendNeedRCPMessageExp = expectation(description: "send need RCP message")
-        sendNeedRCPMessageExp.expectedFulfillmentCount = 3
-        sendingTuple?.delegator.messageEvent = { client, conv, event in
-            if conv === sendingTuple?.conversation {
-                switch event {
+        sendNeedRCPMessageExp.expectedFulfillmentCount = 4
+        sendingTuple?.delegator.conversationEvent = { client, conv, event in
+            switch event {
+            case .lastDeliveredAtUpdated:
+                sendNeedRCPMessageExp.fulfill()
+            case .message(event: let messageEvent):
+                switch messageEvent {
                 case .delivered(toClientID: _, messageID: _, deliveredTimestamp: _):
                     sendNeedRCPMessageExp.fulfill()
                 default:
                     break
                 }
+            default:
+                break
             }
         }
         receivingTuple?.delegator.conversationEvent = { client, conv, event in
@@ -1180,18 +1188,18 @@ class IMMessageTestCase: RTMBaseTestCase {
             }
         }
         let needRCPMessage = IMMessage()
-        try? needRCPMessage.set(content: .string("test"))
-        ((try? sendingTuple?.conversation.send(message: needRCPMessage, options: [.needReceipt], completion: { (result) in
+        try! needRCPMessage.set(content: .string("test"))
+        try! sendingTuple?.conversation.send(message: needRCPMessage, options: [.needReceipt], completion: { (result) in
             XCTAssertTrue(result.isSuccess)
             XCTAssertNil(result.error)
             sendNeedRCPMessageExp.fulfill()
-        })) as ()??)
+        })
         wait(for: [sendNeedRCPMessageExp], timeout: timeout)
         
         delay()
         
         let getDeliveredFlagExp = expectation(description: "get delivered flag timestamp")
-        ((try? sendingTuple?.conversation.getMessageReceiptFlag(completion: { (result) in
+        try! sendingTuple?.conversation.getMessageReceiptFlag(completion: { (result) in
             XCTAssertTrue(Thread.isMainThread)
             XCTAssertTrue(result.isSuccess)
             XCTAssertNil(result.error)
@@ -1201,7 +1209,7 @@ class IMMessageTestCase: RTMBaseTestCase {
             XCTAssertNotEqual(result.value?.deliveredFlagDate, result.value?.readFlagDate)
             XCTAssertGreaterThanOrEqual(result.value?.deliveredFlagTimestamp ?? 0, needRCPMessage.sentTimestamp ?? 0)
             getDeliveredFlagExp.fulfill()
-        })) as ()??)
+        })
         wait(for: [getDeliveredFlagExp], timeout: timeout)
         
         let client = try! IMClient(ID: uuid, options: [])

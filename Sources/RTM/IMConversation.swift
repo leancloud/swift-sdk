@@ -48,6 +48,8 @@ public class IMConversation {
     }
 
     let convType: ConvType
+    
+    // MARK: Property
 
     /// The client which this conversation belong to.
     public private(set) weak var client: IMClient?
@@ -110,6 +112,26 @@ public class IMConversation {
             return false
         }
     }
+    
+    /// Raw data of the conversation.
+    public private(set) var rawData: RawData {
+        set {
+            self.sync(self._rawData = newValue)
+        }
+        get {
+            return self.sync(self._rawData)
+        }
+    }
+    private var _rawData: RawData
+    
+    /// Get value via subscript syntax.
+    public subscript(key: String) -> Any? {
+        get {
+            return self.safeDecodingRawData(with: key)
+        }
+    }
+    
+    let lock: NSLock = NSLock()
 
     /// Indicates whether the data of conversation is outdated,
     /// after refresh, this property will be false.
@@ -139,6 +161,40 @@ public class IMConversation {
         }
     }
     private var _lastMessage: IMMessage? = nil
+    
+    /// The last delivered date of message
+    public var lastDeliveredAt: Date? {
+        return IMClient.date(
+            fromMillisecond: self.lastDeliveredTimestamp)
+    }
+    
+    /// The last delivered timestamp of message
+    public internal(set) var lastDeliveredTimestamp: Int64? {
+        set {
+            self.sync(self._lastDeliveredTimestamp = newValue)
+        }
+        get {
+            return self.sync(self._lastDeliveredTimestamp)
+        }
+    }
+    private var _lastDeliveredTimestamp: Int64?
+    
+    /// The last read date of message
+    public var lastReadAt: Date? {
+        return IMClient.date(
+            fromMillisecond: self.lastReadTimestamp)
+    }
+    
+    /// The last read timestamp of message
+    public internal(set) var lastReadTimestamp: Int64? {
+        set {
+            self.sync(self._lastReadTimestamp = newValue)
+        }
+        get {
+            return self.sync(self._lastReadTimestamp)
+        }
+    }
+    private var _lastReadTimestamp: Int64?
 
     /// The unread message count of the conversation
     public internal(set) var unreadMessageCount: Int {
@@ -167,13 +223,8 @@ public class IMConversation {
         return self.sync(self._memberInfoTable)
     }
     private var _memberInfoTable: [String: MemberInfo]?
-
-    /// Get value via subscript syntax.
-    public subscript(key: String) -> Any? {
-        get {
-            return self.safeDecodingRawData(with: key)
-        }
-    }
+    
+    // MARK: Initializer
 
     static func instance(
         ID: String,
@@ -270,18 +321,7 @@ public class IMConversation {
         #endif
     }
     
-    /// Raw data of the conversation.
-    public private(set) var rawData: RawData {
-        set {
-            self.sync(self._rawData = newValue)
-        }
-        get {
-            return self.sync(self._rawData)
-        }
-    }
-    private var _rawData: RawData
-
-    let lock: NSLock = NSLock()
+    // MARK: Function
 
     /// Clear unread messages that its sent timestamp less than the sent timestamp of the parameter message.
     ///
@@ -289,12 +329,20 @@ public class IMConversation {
     public func read(message: IMMessage? = nil) {
         self._read(message: message)
     }
-
-    /// Get the timestamp flag of message receipt.
-    ///
-    /// - Parameter completion: callback.
+    
+    /// Get the last message receipt timestamps in this conversation.
+    /// if the timestamps have been updated, then properties of this conversation, *lastReadAt* and *lastDeliveredAt*, will be updated.
+    /// after *lastReadAt* or *lastDeliveredAt* has been updated, the client will dispatch relative events, @see `IMConversationEvent`.
+    /// - Parameter completion: Result callback.
     public func getMessageReceiptFlag(completion: @escaping (LCGenericResult<MessageReceiptFlag>) -> Void) throws {
         try self._getMessageReceiptFlag(completion: completion)
+    }
+    
+    /// Fetch the last message receipt timestamps in this conversation.
+    /// if the timestamps have been updated, then properties of this conversation, *lastReadAt* and *lastDeliveredAt*, will be updated.
+    /// after *lastReadAt* or *lastDeliveredAt* has been updated, the client will dispatch relative events, @see `IMConversationEvent`.
+    public func fetchReceiptTimestamps() throws {
+        try self._getMessageReceiptFlag()
     }
 
     /// Join in this conversation.
@@ -1064,13 +1112,12 @@ extension IMConversation {
         }
     }
 
-    private func _getMessageReceiptFlag(completion: @escaping (LCGenericResult<MessageReceiptFlag>) -> Void) throws {
+    private func _getMessageReceiptFlag(completion: ((LCGenericResult<MessageReceiptFlag>) -> Void)? = nil) throws {
         if let options = self.client?.options {
             guard options.isProtobuf3 else {
                 throw LCError(
                     code: .inconsistency,
-                    reason: "only client init with \(IMClient.Options.receiveUnreadMessageCountAfterSessionDidOpen) support this function."
-                )
+                    reason: "Not support, client options not contains \(IMClient.Options.receiveUnreadMessageCountAfterSessionDidOpen).")
             }
         }
         self.client?.sendCommand(constructor: { () -> IMGenericCommand in
@@ -1085,29 +1132,62 @@ extension IMConversation {
             switch result {
             case .inCommand(let inCommand):
                 assert(client.specificAssertion)
-                client.eventQueue.async {
-                    if inCommand.hasConvMessage {
-                        let convMessage = inCommand.convMessage
-                        let readFlagTimestamp: Int64? = (convMessage.hasMaxReadTimestamp ? convMessage.maxReadTimestamp : nil)
-                        let deliveredFlagTimestamp = (convMessage.hasMaxAckTimestamp ? convMessage.maxAckTimestamp : nil)
-                        let flag = MessageReceiptFlag(
-                            readFlagTimestamp: readFlagTimestamp,
-                            deliveredFlagTimestamp: deliveredFlagTimestamp
-                        )
-                        completion(.success(value: flag))
-                    } else {
-                        let error = LCError(code: .commandInvalid)
-                        completion(.failure(error: error))
+                let rcpResult: LCGenericResult<MessageReceiptFlag>
+                if let convMessage = (inCommand.hasConvMessage ? inCommand.convMessage : nil) {
+                    let readTimestamp = (convMessage.hasMaxReadTimestamp ? convMessage.maxReadTimestamp : nil)
+                    if let timestamp = readTimestamp {
+                        self.process(rcpTimestamp: timestamp, isRead: true, client: client)
+                    }
+                    let deliveredTimestamp = (convMessage.hasMaxAckTimestamp ? convMessage.maxAckTimestamp : nil)
+                    if let timestamp = deliveredTimestamp {
+                        self.process(rcpTimestamp: timestamp, isRead: false, client: client)
+                    }
+                    rcpResult = .success(
+                        value: MessageReceiptFlag(
+                            readFlagTimestamp: readTimestamp,
+                            deliveredFlagTimestamp: deliveredTimestamp))
+                } else {
+                    rcpResult = .failure(
+                        error: LCError(
+                            code: .commandInvalid))
+                }
+                if let completion = completion {
+                    client.eventQueue.async {
+                        completion(rcpResult)
                     }
                 }
             case .error(let error):
-                client.eventQueue.async {
-                    completion(.failure(error: error))
+                if let completion = completion {
+                    client.eventQueue.async {
+                        completion(.failure(error: error))
+                    }
                 }
             }
         })
     }
 
+    func process(rcpTimestamp: Int64, isRead: Bool, client: IMClient) {
+        assert(client.specificAssertion)
+        var event: IMConversationEvent?
+        if isRead {
+            if rcpTimestamp > (self.lastReadTimestamp ?? 0) {
+                self.lastReadTimestamp = rcpTimestamp
+                event = .lastReadAtUpdated
+            }
+        } else {
+            if rcpTimestamp > (self.lastDeliveredTimestamp ?? 0) {
+                self.lastDeliveredTimestamp = rcpTimestamp
+                event = .lastDeliveredAtUpdated
+            }
+        }
+        if let event = event {
+            client.eventQueue.async {
+                client.delegate?.client(
+                    client, conversation: self,
+                    event: event)
+            }
+        }
+    }
 }
 
 extension IMConversation {
@@ -2670,6 +2750,11 @@ public class IMChatRoom: IMConversation {
 
     @available(*, unavailable)
     public override func getMessageReceiptFlag(completion: @escaping (LCGenericResult<IMConversation.MessageReceiptFlag>) -> Void) throws {
+        throw LCError.conversationNotSupport(convType: type(of: self))
+    }
+    
+    @available(*, unavailable)
+    public override func fetchReceiptTimestamps() throws {
         throw LCError.conversationNotSupport(convType: type(of: self))
     }
 

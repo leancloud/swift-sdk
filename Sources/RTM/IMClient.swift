@@ -2202,36 +2202,42 @@ extension IMClient {
     
     func process(rcpCommand: IMRcpCommand, serverTimestamp: Int64?) {
         assert(self.specificAssertion)
-        guard let conversationID: String = (rcpCommand.hasCid ? rcpCommand.cid : nil) else {
+        guard let conversationID = (rcpCommand.hasCid ? rcpCommand.cid : nil) else {
             return
         }
         self.getConversation(by: conversationID) { (client, result) in
             assert(client.specificAssertion)
             switch result {
             case .success(value: let conversation):
-                guard
-                    let messageID: String = (rcpCommand.hasID ? rcpCommand.id : nil),
-                    let timestamp: Int64 = (rcpCommand.hasT ? rcpCommand.t : nil)
-                    else
-                { return }
+                guard let messageID = (rcpCommand.hasID ? rcpCommand.id : nil),
+                    let timestamp = (rcpCommand.hasT ? rcpCommand.t : nil) else {
+                        return
+                }
                 let fromID = (rcpCommand.hasFrom ? rcpCommand.from : nil)
-                let event: IMMessageEvent
-                if rcpCommand.hasRead, rcpCommand.read {
-                    event = .read(
+                let isRead = (rcpCommand.hasRead ? rcpCommand.read : false)
+                let messageEvent: IMMessageEvent
+                if isRead {
+                    messageEvent = .read(
                         byClientID: fromID,
                         messageID: messageID,
-                        readTimestamp: timestamp
-                    )
+                        readTimestamp: timestamp)
                 } else {
-                    event = .delivered(
+                    messageEvent = .delivered(
                         toClientID: fromID,
                         messageID: messageID,
-                        deliveredTimestamp: timestamp
-                    )
+                        deliveredTimestamp: timestamp)
                 }
-                client.localRecord.update(lastServerTimestamp: serverTimestamp)
+                client.localRecord.update(
+                    lastServerTimestamp: serverTimestamp)
+                conversation.process(
+                    rcpTimestamp: timestamp,
+                    isRead: isRead,
+                    client: client)
                 client.eventQueue.async {
-                    client.delegate?.client(client, conversation: conversation, event: .message(event: event))
+                    client.delegate?.client(
+                        client, conversation: conversation,
+                        event: .message(
+                            event: messageEvent))
                 }
             case .failure(error: let error):
                 Logger.shared.error(error)
@@ -2514,83 +2520,68 @@ extension IMClient: RTMConnectionDelegate {
 // MARK: - Event
 
 /// The session event about the client.
-///
-/// - sessionDidOpen: Session opened event.
-/// - sessionDidResume: Session in resuming event.
-/// - sessionDidPause: Session paused event.
-/// - sessionDidClose: Session closed event.
 public enum IMClientEvent {
-    
+    /// Session opened event.
     case sessionDidOpen
-    
+    /// Session in resuming event.
     case sessionDidResume
-    
+    /// Session paused event.
     case sessionDidPause(error: LCError)
-    
+    /// Session closed event.
     case sessionDidClose(error: LCError)
 }
 
-/// The event about the conversation that belong to the client.
-///
-/// - joined: The client joined the conversation.
-/// - left: The client left the conversation.
-/// - membersJoined: The members joined the conversation.
-/// - membersLeft: The members left the conversation.
-/// - memberInfoChanged: The info of the member in the conversaiton has changed.
-/// - blocked: The client has been blocked in the conversation.
-/// - unblocked: The client has been unblocked int the conversation.
-/// - membersBlocked: The members have been blocked in the conversation.
-/// - membersUnblocked: The members have been unblocked in the conversation.
-/// - muted: The client has been muted in the conversation.
-/// - unmuted: The client has been unmuted in the conversation.
-/// - membersMuted: The members have been muted in the conversation.
-/// - membersUnmuted: The members have been unmuted in the conversation.
-/// - dataUpdated: The data of the conversation updated.
-/// - lastMessageUpdated: The last message of the conversation updated.
-/// - unreadMessageCountUpdated: The unread message count of the conversation updated.
-/// - message: Events about message in the conversation.
+/// The events about conversation that belong to the client.
 public enum IMConversationEvent {
-    
+    /// This client joined this conversation.
     case joined(byClientID: String?, at: Date?)
+    /// This client left this conversation.
     case left(byClientID: String?, at: Date?)
+    /// The members joined this conversation.
     case membersJoined(members: [String], byClientID: String?, at: Date?)
+    /// The members left this conversation.
     case membersLeft(members: [String], byClientID: String?, at: Date?)
-    
+    /// The info of the member in this conversaiton has been changed.
     case memberInfoChanged(info: IMConversation.MemberInfo, byClientID: String?, at: Date?)
-    
+    /// The client in this conversation has been blocked.
     case blocked(byClientID: String?, at: Date?)
+    /// The client int this conversation has been unblocked.
     case unblocked(byClientID: String?, at: Date?)
+    /// The members in this conversation have been blocked.
     case membersBlocked(members: [String], byClientID: String?, at: Date?)
+    /// The members in this conversation have been unblocked.
     case membersUnblocked(members: [String], byClientID: String?, at: Date?)
-    
+    /// The client in this conversation has been muted.
     case muted(byClientID: String?, at: Date?)
+    /// The client in this conversation has been unmuted.
     case unmuted(byClientID: String?, at: Date?)
+    /// The members in this conversation have been muted.
     case membersMuted(members: [String], byClientID: String?, at: Date?)
+    /// The members in this conversation have been unmuted.
     case membersUnmuted(members: [String], byClientID: String?, at: Date?)
-    
+    /// The data of this conversation has been updated.
     case dataUpdated(updatingData: [String: Any]?, updatedData: [String: Any]?, byClientID: String?, at: Date?)
-    
+    /// The last message of this conversation has been updated, if *newMessage* is *false*, means the message has been modified.
     case lastMessageUpdated(newMessage: Bool)
-    
+    /// The last delivered time of message to other in this conversation has been updated.
+    case lastDeliveredAtUpdated
+    /// The last read time of message by other in this conversation has been updated.
+    case lastReadAtUpdated
+    /// The unread message count for this client in this conversation has been updated.
     case unreadMessageCountUpdated
-    
+    /// The events about message that belong to this conversation, @see `IMMessageEvent`.
     case message(event: IMMessageEvent)
 }
 
-/// The event about the message that belong to the conversation.
-///
-/// - received: The client received message from the conversation.
-/// - updated: The message in the conversation has been updated.
-/// - delivered: The message sent to the conversation by the client has delivered to other.
-/// - read: The message sent to the conversation by the client has been read by other.
+/// The events about message that belong to the conversation.
 public enum IMMessageEvent {
-    
+    /// The new message received from this conversation.
     case received(message: IMMessage)
-    
+    /// The message in this conversation has been updated.
     case updated(updatedMessage: IMMessage, reason: IMMessage.PatchedReason?)
-    
+    /// The message has been delivered to other.
     case delivered(toClientID: String?, messageID: String, deliveredTimestamp: Int64)
-    
+    /// The message sent to other has been read.
     case read(byClientID: String?, messageID: String, readTimestamp: Int64)
 }
 
@@ -2598,20 +2589,17 @@ public enum IMMessageEvent {
 public protocol IMClientDelegate: class {
     
     /// Delegate function of the event about the client.
-    ///
     /// - Parameters:
-    ///   - client: Which the event belong to.
-    ///   - event: @see `IMClientEvent`
+    ///   - client: Which the *event* belong to.
+    ///   - event: Belong to the *client*, @see `IMClientEvent`.
     func client(_ client: IMClient, event: IMClientEvent)
     
     /// Delegate function of the event about the conversation.
-    ///
     /// - Parameters:
-    ///   - client: Which the conversation belong to.
-    ///   - conversation: Which the event belong to.
-    ///   - event: @see `IMConversationEvent`
+    ///   - client: Which the *conversation* belong to.
+    ///   - conversation: Which the *event* belong to.
+    ///   - event: Belong to the *conversation*, @see `IMConversationEvent`.
     func client(_ client: IMClient, conversation: IMConversation, event: IMConversationEvent)
-    
 }
 
 // MARK: - Signature
@@ -2626,7 +2614,6 @@ public protocol IMSignatureDelegate: class {
     ///   - action: @see `IMSignature.Action`.
     ///   - signatureHandler: The handler for the signature.
     func client(_ client: IMClient, action: IMSignature.Action, signatureHandler: @escaping (IMClient, IMSignature?) -> Void)
-    
 }
 
 public struct IMSignature {
