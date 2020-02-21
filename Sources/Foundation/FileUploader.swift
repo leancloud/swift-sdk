@@ -185,7 +185,7 @@ class FileUploader {
          - parameter filename: The file name.
          */
         static private func getResourceKey(filename: String?) -> String {
-            let key = Utility.uuid
+            let key = Utility.compactUUID
 
             guard let filename = filename else {
                 return key

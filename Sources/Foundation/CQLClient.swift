@@ -74,13 +74,16 @@ public final class LCCQLClient {
      */
     static func parameters(_ cql: String, parameters: LCArrayConvertible?) -> [String: Any] {
         var result = ["cql": cql]
-
-        if let parameters = parameters?.lcArray {
-            if !parameters.isEmpty {
-                result["pvalues"] = Utility.jsonString(parameters.lconValue!)
+        do {
+            if let parameters = parameters?.lcArray,
+                !parameters.isEmpty,
+                let lconValue = parameters.lconValue,
+                let jsonString = try Utility.jsonString(lconValue) {
+                result["pvalues"] = jsonString
             }
+        } catch {
+            Logger.shared.error(error)
         }
-
         return result
     }
 

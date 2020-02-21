@@ -575,7 +575,7 @@ open class IMCategorizedMessage: IMMessage, IMMessageCategorizing {
                 case let .fileURL(fileURL: fileURL):
                     mediaURL = fileURL
                 case let .data(data: data):
-                    var pathComponent = UUID().uuidString
+                    var pathComponent = Utility.compactUUID
                     if let format = format {
                         pathComponent = "\(pathComponent).\(format)"
                     }

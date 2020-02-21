@@ -81,7 +81,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
 
     /// The temp in-memory object identifier.
     lazy var internalId: String = {
-        UUID().uuidString.replacingOccurrences(of: "-", with: "").lowercased()
+        Utility.compactUUID
     }()
 
     /// Operation hub.

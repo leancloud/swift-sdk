@@ -674,7 +674,7 @@ extension IMConversation {
             !message.isTransient,
             !message.isWill {
             if message.dToken == nil {
-                message.dToken = UUID().uuidString.replacingOccurrences(of: "-", with: "")
+                message.dToken = Utility.compactUUID
             }
             message.sendingTimestamp = Int64(Date().timeIntervalSince1970 * 1000.0)
         }

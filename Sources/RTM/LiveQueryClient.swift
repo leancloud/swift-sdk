@@ -40,9 +40,9 @@ class LiveQueryClientManager {
         defer {
             self.mutex.unlock()
         }
-        var uuid = UUID().uuidString
+        var uuid = Utility.compactUUID
         while self.localInstanceIDSet.contains(uuid) {
-            uuid = UUID().uuidString
+            uuid = Utility.compactUUID
         }
         return uuid
     }

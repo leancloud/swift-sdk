@@ -90,12 +90,14 @@ public class LCQuery: NSObject, NSCopying, NSCoding {
     /// Parameters for query request.
     private var parameters: [String: Any] {
         var parameters = lconValue
-
-        /* Encode where field to string. */
-        if let object = parameters["where"] {
-            parameters["where"] = Utility.jsonString(object)
+        do {
+            if let object = parameters["where"],
+                let jsonString = try Utility.jsonString(object) {
+                parameters["where"] = jsonString
+            }
+        } catch {
+            Logger.shared.error(error)
         }
-
         return parameters
     }
 
