@@ -787,7 +787,8 @@ extension IMConversation {
         file.save(
             progressQueue: progressQueue,
             progress: progress,
-            completionQueue: client.application.httpClient.defaultCompletionDispatchQueue)
+            completionQueue: client.application.httpClient
+                .defaultCompletionConcurrentQueue)
         { (result) in
             switch result {
             case .success:

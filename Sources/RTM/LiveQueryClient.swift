@@ -88,7 +88,8 @@ class LiveQueryClient {
     
     let ID: LiveQueryClient.Identifier = "livequery-\(Utility.UDID)"
     
-    let serialQueue: DispatchQueue = DispatchQueue(label: "\(LiveQueryClient.self).serialQueue")
+    let serialQueue = DispatchQueue(
+        label: "LC.Swift.\(LiveQueryClient.self).serialQueue")
     
     var subscribingCallbackMap: [LiveQuery.LocalInstanceID: (LCGenericResult<Int64>) -> Void] = [:]
     var retainedLiveQueryMap: [LiveQuery.LocalInstanceID: LiveQuery.WeakWrapper] = [:]

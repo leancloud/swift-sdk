@@ -359,7 +359,10 @@ class FileUploader {
                 progress($0.fractionCompleted)
             }
         }
-        request.response(queue: self.file.application.httpClient.defaultCompletionDispatchQueue) { (response) in
+        request.response(
+            queue: self.file.application.httpClient
+                .defaultCompletionConcurrentQueue)
+        { (response) in
             if let error = response.error {
                 completion(.failure(error: LCError(error: error)))
             } else {
@@ -408,7 +411,10 @@ class FileUploader {
                 progress($0.fractionCompleted)
             }
         }
-        request.response(queue: self.file.application.httpClient.defaultCompletionDispatchQueue) { response in
+        request.response(
+            queue: self.file.application.httpClient
+                .defaultCompletionConcurrentQueue)
+        { response in
             if let error = response.error {
                 completion(.failure(error: LCError(error: error)))
             } else {
@@ -453,7 +459,10 @@ class FileUploader {
                 progress($0.fractionCompleted)
             }
         }
-        uploadRequest.response(queue: self.file.application.httpClient.defaultCompletionDispatchQueue) { response in
+        uploadRequest.response(
+            queue: self.file.application.httpClient
+                .defaultCompletionConcurrentQueue)
+        { response in
             if let error = response.error {
                 completion(.failure(error: LCError(error: error)))
             } else {

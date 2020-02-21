@@ -318,7 +318,7 @@ public class IMClient {
     // MARK: Internal Property
     
     let serialQueue = DispatchQueue(
-        label: "\(IMClient.self).serialQueue")
+        label: "LC.Swift.\(IMClient.self).serialQueue")
     
     let lock = NSLock()
     
