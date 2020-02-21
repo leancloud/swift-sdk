@@ -35,7 +35,7 @@ class LCUserTestCase: BaseTestCase {
         let user = LCUser()
         let application = user.application
 
-        let username = "user" + LeanCloud.Utility.uuid
+        let username = "user\(uuid)"
         let password = "qwerty"
 
         user.username = LCString(username)
