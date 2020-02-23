@@ -829,6 +829,17 @@ open class IMRecalledMessage: IMCategorizedMessage {
     public override init(application: LCApplication = LCApplication.default, url: URL, format: String? = nil) {
         super.init(application: application, url: url, format: format)
     }
+    
+    override func encodingMessageContent(application: LCApplication) throws {
+        let rawData = [ReservedKey.type.rawValue: type(of: self).messageType]
+        let data = try JSONSerialization.data(withJSONObject: rawData)
+        if let rawData = try JSONSerialization.jsonObject(with: data) as? [String: Any] {
+            self.rawData = rawData
+        }
+        if let contentString = String(data: data, encoding: .utf8) {
+            self.content = .string(contentString)
+        }
+    }
 }
 
 extension IMDirectCommand {

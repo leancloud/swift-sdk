@@ -925,18 +925,58 @@ extension IMConversation {
 
 extension IMConversation {
     // MARK: Message Updating
-
+    
     /// Update the content of a sent message.
-    ///
     /// - Parameters:
     ///   - oldMessage: The sent message to be updated.
     ///   - newMessage: The message which has new content.
-    ///   - progressQueue: The queue where the progress be called. default is main.
+    ///   - progressQueue: The queue where the *progress* be called, default is main.
     ///   - progress: The file uploading progress.
-    ///   - completion: callback.
+    ///   - completion: Result callback.
     public func update(
         oldMessage: IMMessage,
         to newMessage: IMMessage,
+        progressQueue: DispatchQueue = .main,
+        progress: ((Double) -> Void)? = nil,
+        completion: @escaping (LCBooleanResult) -> Void)
+        throws
+    {
+        try self.patch(
+            oldMessage: oldMessage,
+            newMessage: newMessage,
+            progressQueue: progressQueue,
+            progress: progress,
+            completion: completion)
+    }
+    
+    /// Recall a sent message.
+    /// - Parameters:
+    ///   - message: The message has been sent.
+    ///   - completion: Result callback.
+    public func recall(
+        message: IMMessage,
+        completion: @escaping (LCGenericResult<IMRecalledMessage>) -> Void)
+        throws
+    {
+        let recalledMessage = IMRecalledMessage()
+        try self.patch(
+            oldMessage: message,
+            newMessage: recalledMessage,
+            isRecall: true)
+        { (result) in
+            switch result {
+            case .success:
+                completion(.success(value: recalledMessage))
+            case .failure(error: let error):
+                completion(.failure(error: error))
+            }
+        }
+    }
+    
+    private func patch(
+        oldMessage: IMMessage,
+        newMessage: IMMessage,
+        isRecall: Bool = false,
         progressQueue: DispatchQueue = .main,
         progress: ((Double) -> Void)? = nil,
         completion: @escaping (LCBooleanResult) -> Void)
@@ -977,6 +1017,9 @@ extension IMConversation {
                 patchItem.cid = oldMessageConvID
                 patchItem.mid = oldMessageID
                 patchItem.timestamp = oldMessageTimestamp
+                if isRecall {
+                    patchItem.recall = true
+                }
                 if let content: IMMessage.Content = newMessage.content {
                     switch content {
                     case .data(let data):
@@ -1036,23 +1079,6 @@ extension IMConversation {
         }
     }
 
-    /// Recall a sent message.
-    ///
-    /// - Parameters:
-    ///   - message: The message has been sent.
-    ///   - completion: callback.
-    public func recall(message: IMMessage, completion: @escaping (LCGenericResult<IMRecalledMessage>) -> Void) throws {
-        let recalledMessage = IMRecalledMessage()
-        try self.update(oldMessage: message, to: recalledMessage, completion: { (result) in
-            switch result {
-            case .success:
-                completion(.success(value: recalledMessage))
-            case .failure(error: let error):
-                completion(.failure(error: error))
-            }
-        })
-    }
-
     func process(patchItem: IMPatchItem, client: IMClient) {
         assert(client.specificAssertion)
         guard let timestamp = (patchItem.hasTimestamp ? patchItem.timestamp : nil),
@@ -1093,7 +1119,6 @@ extension IMConversation {
                     event: .updated(updatedMessage: patchedMessage, reason: reason)))
         }
     }
-
 }
 
 extension IMConversation {
