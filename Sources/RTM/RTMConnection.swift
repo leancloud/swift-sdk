@@ -364,7 +364,8 @@ class RTMConnection {
     let lcimProtocol: LCIMProtocol
     let rtmRouter: RTMRouter?
     
-    let serialQueue: DispatchQueue = DispatchQueue(label: "\(RTMConnection.self).serialQueue")
+    let serialQueue = DispatchQueue(
+        label: "LC.Swift.\(RTMConnection.self).serialQueue")
     
     private(set) var instantMessagingDelegatorMap: [IMClient.Identifier: Delegator] = [:]
     private(set) var liveQueryDelegatorMap: [LiveQueryClient.Identifier: Delegator] = [:]

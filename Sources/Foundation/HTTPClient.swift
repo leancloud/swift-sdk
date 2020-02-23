@@ -84,7 +84,9 @@ class HTTPClient {
     }
 
     /// Default completion dispatch queue.
-    let defaultCompletionDispatchQueue = DispatchQueue(label: "LeanCloud.HTTPClient.Completion", attributes: .concurrent)
+    let defaultCompletionConcurrentQueue = DispatchQueue(
+        label: "LC.Swift.\(HTTPClient.self).defaultCompletionConcurrentQueue",
+        attributes: .concurrent)
 
     /// Create a signature for request.
     func createRequestSignature() -> String {
@@ -271,7 +273,7 @@ class HTTPClient {
         -> LCRequest
     {
         let completionDispatchQueue = completionDispatchQueue
-            ?? defaultCompletionDispatchQueue
+            ?? self.defaultCompletionConcurrentQueue
         
         guard let url = self.application.appRouter.route(path: path) else {
             completionDispatchQueue.sync {
@@ -362,7 +364,8 @@ class HTTPClient {
 
         let request = session.request(url, method: method, parameters: parameters, encoding: encoding, headers: headers).validate()
 
-        let completionDispatchQueue = completionDispatchQueue ?? defaultCompletionDispatchQueue
+        let completionDispatchQueue = completionDispatchQueue
+            ?? self.defaultCompletionConcurrentQueue
 
         request.lcDebugDescription()
         request.responseJSON(queue: completionDispatchQueue) { afResponse in
@@ -397,7 +400,8 @@ class HTTPClient {
         completionDispatchQueue: DispatchQueue? = nil,
         completionHandler: @escaping (T) -> Void) -> LCRequest
     {
-        let completionDispatchQueue = completionDispatchQueue ?? defaultCompletionDispatchQueue
+        let completionDispatchQueue = completionDispatchQueue
+            ?? self.defaultCompletionConcurrentQueue
 
         completionDispatchQueue.async {
             completionHandler(object)

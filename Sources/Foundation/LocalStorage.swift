@@ -97,8 +97,7 @@ class LocalStorageContext {
     
     func save<T: Codable>(table: T, to fileURL: URL, encoder: JSONEncoder = JSONEncoder()) throws {
         let tempFileURL: URL = URL(fileURLWithPath: NSTemporaryDirectory())
-            .appendingPathComponent(
-                UUID().uuidString)
+            .appendingPathComponent(Utility.compactUUID)
         try (try encoder.encode(table))
             .write(to: tempFileURL)
         if FileManager.default.fileExists(atPath: fileURL.path) {

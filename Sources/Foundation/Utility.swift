@@ -14,55 +14,45 @@ import IOKit
 #endif
 
 class Utility {
-    static var uuid: String {
-        return UUID().uuidString.replacingOccurrences(of: "-", with: "").lowercased()
-    }
-
-    static func jsonString(_ object: Any) -> String {
-        let data = try! JSONSerialization.data(withJSONObject: object, options: JSONSerialization.WritingOptions(rawValue: 0))
-        return String(data: data, encoding: String.Encoding.utf8)!
-    }
-
-    static let mainQueue = DispatchQueue.main
-
-    /**
-     Asynchronize a task into specified dispatch queue.
-
-     - parameter task:       The task to be asynchronized.
-     - parameter queue:      The dispatch queue into which the task will be enqueued.
-     - parameter completion: The completion closure to be called on main thread after task executed.
-     */
-    static func asynchronize<Result>(_ task: @escaping () -> Result, _ queue: DispatchQueue, _ completion: @escaping (Result) -> Void) {
-        queue.async {
-            let result = task()
-            mainQueue.async {
-                completion(result)
-            }
-        }
+    static var compactUUID: String {
+        return UUID().uuidString
+            .replacingOccurrences(of: "-", with: "")
+            .lowercased()
     }
     
     static var UDID: String {
         var udid: String?
         #if os(iOS) || os(tvOS)
-        if let identifierForVendor: String = UIDevice.current.identifierForVendor?.uuidString {
+        if let identifierForVendor = UIDevice.current
+            .identifierForVendor?.uuidString {
             udid = identifierForVendor
         }
         #elseif os(macOS)
-        let platformExpert: io_service_t = IOServiceGetMatchingService(
+        let platformExpert = IOServiceGetMatchingService(
             kIOMasterPortDefault,
             IOServiceMatching("IOPlatformExpertDevice")
         )
-        if let serialNumber: String = IORegistryEntryCreateCFProperty(
+        if let serialNumber = IORegistryEntryCreateCFProperty(
             platformExpert,
             kIOPlatformSerialNumberKey as CFString,
             kCFAllocatorDefault,
-            0).takeRetainedValue() as? String
-        {
+            0).takeRetainedValue() as? String {
             udid = serialNumber
         }
         IOObjectRelease(platformExpert)
         #endif
-        return (udid ?? UUID().uuidString).lowercased()
+        if let udid = udid {
+            return udid.lowercased()
+        } else {
+            return Utility.compactUUID
+        }
+    }
+    
+    static func jsonString(_ object: Any) throws -> String? {
+        return String(
+            data: try JSONSerialization.data(
+                withJSONObject: object),
+            encoding: .utf8)
     }
 }
 

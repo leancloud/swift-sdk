@@ -40,9 +40,9 @@ class LiveQueryClientManager {
         defer {
             self.mutex.unlock()
         }
-        var uuid = UUID().uuidString
+        var uuid = Utility.compactUUID
         while self.localInstanceIDSet.contains(uuid) {
-            uuid = UUID().uuidString
+            uuid = Utility.compactUUID
         }
         return uuid
     }
@@ -88,7 +88,8 @@ class LiveQueryClient {
     
     let ID: LiveQueryClient.Identifier = "livequery-\(Utility.UDID)"
     
-    let serialQueue: DispatchQueue = DispatchQueue(label: "\(LiveQueryClient.self).serialQueue")
+    let serialQueue = DispatchQueue(
+        label: "LC.Swift.\(LiveQueryClient.self).serialQueue")
     
     var subscribingCallbackMap: [LiveQuery.LocalInstanceID: (LCGenericResult<Int64>) -> Void] = [:]
     var retainedLiveQueryMap: [LiveQuery.LocalInstanceID: LiveQuery.WeakWrapper] = [:]
