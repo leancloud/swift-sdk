@@ -865,14 +865,13 @@ extension IMConversation {
     // MARK: Message Reading
 
     private func _read(message: IMMessage?) {
-        guard
-            self.unreadMessageCount > 0,
-            let readMessage: IMMessage = message ?? self.lastMessage,
-            let messageID: String = readMessage.ID,
-            let timestamp: Int64 = readMessage.sentTimestamp else
-        {
-            return
+        guard self.unreadMessageCount > 0,
+            let message = message ?? self.lastMessage,
+            let messageID = message.ID,
+            let timestamp = message.sentTimestamp else {
+                return
         }
+        self.isUnreadMessageContainMention = false
         self.client?.sendCommand(constructor: { () -> IMGenericCommand in
             var outCommand = IMGenericCommand()
             outCommand.cmd = .read
