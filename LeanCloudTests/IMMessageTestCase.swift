@@ -1161,11 +1161,9 @@ class IMMessageTestCase: RTMBaseTestCase {
         wait(for: [getReadFlagExp], timeout: timeout)
         
         let sendNeedRCPMessageExp = expectation(description: "send need RCP message")
-        sendNeedRCPMessageExp.expectedFulfillmentCount = 4
+        sendNeedRCPMessageExp.expectedFulfillmentCount = 3
         sendingTuple?.delegator.conversationEvent = { client, conv, event in
             switch event {
-            case .lastDeliveredAtUpdated:
-                sendNeedRCPMessageExp.fulfill()
             case .message(event: let messageEvent):
                 switch messageEvent {
                 case .delivered(toClientID: _, messageID: _, deliveredTimestamp: _):

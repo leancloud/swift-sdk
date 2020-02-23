@@ -2229,10 +2229,6 @@ extension IMClient {
                 }
                 client.localRecord.update(
                     lastServerTimestamp: serverTimestamp)
-                conversation.process(
-                    rcpTimestamp: timestamp,
-                    isRead: isRead,
-                    client: client)
                 client.eventQueue.async {
                     client.delegate?.client(
                         client, conversation: conversation,

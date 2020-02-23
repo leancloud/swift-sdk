@@ -1165,18 +1165,20 @@ extension IMConversation {
                 assert(client.specificAssertion)
                 let rcpResult: LCGenericResult<MessageReceiptFlag>
                 if let convMessage = (inCommand.hasConvMessage ? inCommand.convMessage : nil) {
-                    let readTimestamp = (convMessage.hasMaxReadTimestamp ? convMessage.maxReadTimestamp : nil)
-                    if let timestamp = readTimestamp {
-                        self.process(rcpTimestamp: timestamp, isRead: true, client: client)
-                    }
-                    let deliveredTimestamp = (convMessage.hasMaxAckTimestamp ? convMessage.maxAckTimestamp : nil)
-                    if let timestamp = deliveredTimestamp {
-                        self.process(rcpTimestamp: timestamp, isRead: false, client: client)
-                    }
+                    let maxReadTimestamp = (convMessage.hasMaxReadTimestamp
+                        ? convMessage.maxReadTimestamp
+                        : nil)
+                    let maxDeliveredTimestamp = (convMessage.hasMaxAckTimestamp
+                        ? convMessage.maxAckTimestamp
+                        : nil)
+                    self.process(
+                        maxReadTimestamp: maxReadTimestamp,
+                        maxDeliveredTimestamp: maxDeliveredTimestamp,
+                        client: client)
                     rcpResult = .success(
                         value: MessageReceiptFlag(
-                            readFlagTimestamp: readTimestamp,
-                            deliveredFlagTimestamp: deliveredTimestamp))
+                            readFlagTimestamp: maxReadTimestamp,
+                            deliveredFlagTimestamp: maxDeliveredTimestamp))
                 } else {
                     rcpResult = .failure(
                         error: LCError(
@@ -1197,25 +1199,28 @@ extension IMConversation {
         })
     }
 
-    func process(rcpTimestamp: Int64, isRead: Bool, client: IMClient) {
+    private func process(
+        maxReadTimestamp: Int64?,
+        maxDeliveredTimestamp: Int64?,
+        client: IMClient)
+    {
         assert(client.specificAssertion)
-        var event: IMConversationEvent?
-        if isRead {
-            if rcpTimestamp > (self.lastReadTimestamp ?? 0) {
-                self.lastReadTimestamp = rcpTimestamp
-                event = .lastReadAtUpdated
-            }
-        } else {
-            if rcpTimestamp > (self.lastDeliveredTimestamp ?? 0) {
-                self.lastDeliveredTimestamp = rcpTimestamp
-                event = .lastDeliveredAtUpdated
-            }
-        }
-        if let event = event {
+        if let maxReadTimestamp = maxReadTimestamp,
+            maxReadTimestamp > (self.lastReadTimestamp ?? 0) {
+            self.lastReadTimestamp = maxReadTimestamp
             client.eventQueue.async {
                 client.delegate?.client(
                     client, conversation: self,
-                    event: event)
+                    event: .lastReadAtUpdated)
+            }
+        }
+        if let maxDeliveredTimestamp = maxDeliveredTimestamp,
+            maxDeliveredTimestamp > (self.lastDeliveredTimestamp ?? 0) {
+            self.lastDeliveredTimestamp = maxDeliveredTimestamp
+            client.eventQueue.async {
+                client.delegate?.client(
+                    client, conversation: self,
+                    event: .lastDeliveredAtUpdated)
             }
         }
     }
