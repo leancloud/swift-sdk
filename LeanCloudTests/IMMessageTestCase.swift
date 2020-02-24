@@ -892,6 +892,7 @@ class IMMessageTestCase: RTMBaseTestCase {
         })) as ()??)
         wait(for: [exp], timeout: timeout)
         
+        delay()
         XCTAssertNotNil(receivingTuple?.client.localRecord.lastPatchTimestamp)
     }
     
@@ -917,6 +918,7 @@ class IMMessageTestCase: RTMBaseTestCase {
             XCTAssertEqual(patchedMessage.sentTimestamp, originMessage.sentTimestamp)
             XCTAssertEqual(originMessage.content?.string, oldContent)
             XCTAssertTrue(patchedMessage is IMRecalledMessage)
+            XCTAssertEqual((patchedMessage as? IMRecalledMessage)?.isRecall, true)
         }
         
         let exp = expectation(description: "message patch")
@@ -938,7 +940,7 @@ class IMMessageTestCase: RTMBaseTestCase {
                 break
             }
         }
-        ((try? sendingTuple?.conversation.recall(message: oldMessage, completion: { (result) in
+        try! sendingTuple?.conversation.recall(message: oldMessage, completion: { (result) in
             XCTAssertTrue(Thread.isMainThread)
             XCTAssertTrue(result.isSuccess)
             XCTAssertNil(result.error)
@@ -949,9 +951,10 @@ class IMMessageTestCase: RTMBaseTestCase {
                 XCTFail()
             }
             exp.fulfill()
-        })) as ()??)
+        })
         wait(for: [exp], timeout: timeout)
         
+        delay()
         XCTAssertNotNil(receivingTuple?.client.localRecord.lastPatchTimestamp)
     }
     

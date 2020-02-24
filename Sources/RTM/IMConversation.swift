@@ -958,10 +958,10 @@ extension IMConversation {
         throws
     {
         let recalledMessage = IMRecalledMessage()
+        recalledMessage.isRecall = true
         try self.patch(
             oldMessage: message,
-            newMessage: recalledMessage,
-            isRecall: true)
+            newMessage: recalledMessage)
         { (result) in
             switch result {
             case .success:
@@ -975,7 +975,6 @@ extension IMConversation {
     private func patch(
         oldMessage: IMMessage,
         newMessage: IMMessage,
-        isRecall: Bool = false,
         progressQueue: DispatchQueue = .main,
         progress: ((Double) -> Void)? = nil,
         completion: @escaping (LCBooleanResult) -> Void)
@@ -1016,7 +1015,8 @@ extension IMConversation {
                 patchItem.cid = oldMessageConvID
                 patchItem.mid = oldMessageID
                 patchItem.timestamp = oldMessageTimestamp
-                if isRecall {
+                if let recalledMessage = newMessage as? IMRecalledMessage,
+                    recalledMessage.isRecall {
                     patchItem.recall = true
                 }
                 if let content: IMMessage.Content = newMessage.content {
@@ -1095,6 +1095,11 @@ extension IMConversation {
             content: patchItem.lcMessageContent,
             isAllMembersMentioned: (patchItem.hasMentionAll ? patchItem.mentionAll : nil),
             mentionedMembers: (patchItem.mentionPids.isEmpty ? nil : patchItem.mentionPids))
+        if patchItem.hasRecall,
+            patchItem.recall,
+            let recalledMessage = patchedMessage as? IMRecalledMessage {
+            recalledMessage.isRecall = true
+        }
         self.safeUpdatingLastMessage(
             newMessage: patchedMessage,
             client: client)
