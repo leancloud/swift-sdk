@@ -722,7 +722,7 @@ extension RTMConnection {
             self.previousConnectingWorkItem = nil
         }
         if let socket = self.socket {
-            socket.delegate = nil
+            socket.advancedDelegate = nil
             socket.pongDelegate = nil
             socket.disconnect()
             self.socket = nil
@@ -835,7 +835,6 @@ extension RTMConnection: WebSocketAdvancedDelegate, WebSocketPongDelegate {
                 \n------ BEGIN LeanCloud In Command
                 \(socket)
                 \(inCommand)
-                \(response.lcDescription)
                 ------ END
                 """)
             if inCommand.hasI {
@@ -876,16 +875,6 @@ extension RTMConnection: WebSocketAdvancedDelegate, WebSocketPongDelegate {
             \n\(socket)
             \(response)
             """)
-    }
-}
-
-private extension WebSocket.WSResponse {
-    
-    var lcDescription: String {
-        return """
-        code: \(self.code)
-        frameCount: \(self.frameCount)
-        """
     }
 }
 

@@ -160,7 +160,7 @@ class ViewController: UITableViewController {
                 switch result {
                 case .success(objects: let objects):
                     if let object = objects.first {
-                        object.delete({ (result) in
+                        object.delete { (result) in
                             tableView.isUserInteractionEnabled = true
                             switch result {
                             case .success:
@@ -168,7 +168,7 @@ class ViewController: UITableViewController {
                             case .failure(error: let error):
                                 print(error)
                             }
-                        })
+                        }
                     } else {
                         tableView.isUserInteractionEnabled = true
                     }
