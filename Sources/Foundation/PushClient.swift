@@ -8,48 +8,60 @@
 
 import Foundation
 
+/// LeanCloud Push Client
 public class LCPush {
     
-    /// send push notification synchronously
-    ///
+    /// Send push notification synchronously.
     /// - Parameters:
-    ///   - application: The application
-    ///   - data: The data of the push message
-    ///   - query: The query condition, if this parameter be set, then `channels` will be ignored
-    ///   - channels: The channels condition, if `query` be set, then this parameter will be ignored
-    ///   - pushDate: The date of sending
-    ///   - expirationDate: The date of expiration
-    ///   - expirationInterval: If time interval since sending date is greater then this parameter, then the push expired
-    /// - Returns: Result
+    ///   - application: The application, default is `LCApplication.default`.
+    ///   - data: The body data of the push message.
+    ///   - query: The query condition, if this parameter be set, then `channels` will be ignored.
+    ///   - channels: The channels condition, if `query` be set, then this parameter will be ignored.
+    ///   - pushDate: The date when to send.
+    ///   - expirationDate: The expiration date of this push notification.
+    ///   - expirationInterval: The expiration interval from `pushDate` of this push notification.
+    ///   - extraParameters: The extra parameters, for some specific configuration.
+    /// - Returns: Boolean result, see `LCBooleanResult`.
     public static func send(
-        application: LCApplication = LCApplication.default,
+        application: LCApplication = .default,
         data: [String: Any],
         query: LCQuery? = nil,
         channels: [String]? = nil,
         pushDate: Date? = nil,
         expirationDate: Date? = nil,
-        expirationInterval: TimeInterval? = nil)
+        expirationInterval: TimeInterval? = nil,
+        extraParameters: [String: Any]? = nil)
         -> LCBooleanResult
     {
         return expect { (fulfill) in
-            self.send(application: application, data: data, query: query, channels: channels, pushDate: pushDate, expirationDate: expirationDate, expirationInterval: expirationInterval, completionInBackground: { (result) in
-                fulfill(result)
+            self.send(
+                application: application,
+                data: data,
+                query: query,
+                channels: channels,
+                pushDate: pushDate,
+                expirationDate: expirationDate,
+                expirationInterval: expirationInterval,
+                extraParameters: extraParameters,
+                completionInBackground: { (result) in
+                    fulfill(result)
             })
         }
     }
     
-    /// send push notification asynchronously
-    ///
+    /// Send push notification asynchronously.
     /// - Parameters:
-    ///   - application: The application
-    ///   - data: The data of the push message
-    ///   - query: The query condition, if this parameter be set, then `channels` will be ignored
-    ///   - channels: The channels condition, if `query` be set, then this parameter will be ignored
-    ///   - pushDate: The date of sending
-    ///   - expirationDate: The date of expiration
-    ///   - expirationInterval: If time interval since sending date is greater then this parameter, then the push expired
-    ///   - completion: The callback of the result
-    /// - Returns: Request
+    ///   - application: The application, default is `LCApplication.default`.
+    ///   - data: The body data of the push message.
+    ///   - query: The query condition, if this parameter be set, then `channels` will be ignored.
+    ///   - channels: The channels condition, if `query` be set, then this parameter will be ignored.
+    ///   - pushDate: The date when to send.
+    ///   - expirationDate: The expiration date of this push notification.
+    ///   - expirationInterval: The expiration interval from `pushDate` of this push notification.
+    ///   - extraParameters: The extra parameters, for some specific configuration.
+    ///   - completionQueue: The queue where `completion` be called.
+    ///   - completion: The result callback.
+    /// - Returns: The request, see `LCRequest`.
     @discardableResult
     public static func send(
         application: LCApplication = .default,
@@ -59,14 +71,24 @@ public class LCPush {
         pushDate: Date? = nil,
         expirationDate: Date? = nil,
         expirationInterval: TimeInterval? = nil,
+        extraParameters: [String: Any]? = nil,
         completionQueue: DispatchQueue = .main,
         completion: @escaping (LCBooleanResult) -> Void)
         -> LCRequest
     {
-        return self.send(application: application, data: data, query: query, channels: channels, pushDate: pushDate, expirationDate: expirationDate, expirationInterval: expirationInterval, completionInBackground: { (result) in
-            completionQueue.async {
-                completion(result)
-            }
+        return self.send(
+            application: application,
+            data: data,
+            query: query,
+            channels: channels,
+            pushDate: pushDate,
+            expirationDate: expirationDate,
+            expirationInterval: expirationInterval,
+            extraParameters: extraParameters,
+            completionInBackground: { (result) in
+                completionQueue.async {
+                    completion(result)
+                }
         })
     }
     
@@ -79,38 +101,40 @@ public class LCPush {
         pushDate: Date?,
         expirationDate: Date?,
         expirationInterval: TimeInterval?,
+        extraParameters: [String: Any]?,
         completionInBackground completion: @escaping (LCBooleanResult) -> Void)
         -> LCRequest
     {
-        let httpClient: HTTPClient = application.httpClient
-        
         var parameters: [String: Any] = [
             "prod": application.pushMode,
-            "data": data
+            "data": data,
         ]
-        if let query: LCQuery = query {
-            parameters.merge(query.lconValue) { (current, _) in current }
-        } else if let channels: [String] = channels {
+        if let query = query {
+            if let whereCondition = query.lconValue["where"] {
+                parameters["where"] = whereCondition
+            }
+        } else if let channels = channels {
             parameters["channels"] = channels
         }
-        if let pushDate: Date = pushDate {
+        if let pushDate = pushDate {
             parameters["push_time"] = LCDate.stringFromDate(pushDate)
         }
-        if let expirationDate: Date = expirationDate {
+        if let expirationDate = expirationDate {
             parameters["expiration_time"] = LCDate.stringFromDate(expirationDate)
         }
-        if let expirationInterval: TimeInterval = expirationInterval {
+        if let expirationInterval = expirationInterval {
             if pushDate == nil {
-                parameters["push_time"] = LCDate.stringFromDate(Date())
+                parameters["push_time"] = LCDate().isoString
             }
             parameters["expiration_interval"] = expirationInterval
         }
-        
-        let request = httpClient.request(.post, "push", parameters: parameters) { (response) in
-            completion(LCBooleanResult(response: response))
+        if let extraParameters = extraParameters {
+            parameters.merge(extraParameters) { (current, _) in current }
         }
-        
-        return request
+        return application.httpClient.request(
+            .post, "push",
+            parameters: parameters) { (response) in
+                completion(LCBooleanResult(response: response))
+        }
     }
-    
 }

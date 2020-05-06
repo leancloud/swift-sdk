@@ -56,4 +56,11 @@ class LCPushTestCase: BaseTestCase {
         XCTAssertTrue(LCPush.send(data: data, expirationInterval: 5).isSuccess)
     }
 
+    func testExtraParameters() {
+        let data = ["alert": "test"]
+        
+        let extraParameters = ["apns_team_id": "LeanCloud"]
+        
+        XCTAssertTrue(LCPush.send(data: data, extraParameters: extraParameters).isSuccess)
+    }
 }
