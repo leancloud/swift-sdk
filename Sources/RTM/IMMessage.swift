@@ -451,7 +451,15 @@ open class IMCategorizedMessage: IMMessage, IMMessageCategorizing {
     }
     
     func encodingMessageContent(application: LCApplication) throws {
-        self.rawData[ReservedKey.type.rawValue] = type(of: self).messageType
+        if type(of: self).messageType == ReservedType.none.rawValue,
+            let _ = self.rawData[ReservedKey.type.rawValue] {
+            /*
+             For being compatible with Flutter Plugin SDK,
+             DO NOT overwrite value of `_lctype` if it exists.
+             */
+        } else {
+            self.rawData[ReservedKey.type.rawValue] = type(of: self).messageType
+        }
         self.rawData[ReservedKey.text.rawValue] = self.text
         self.rawData[ReservedKey.attributes.rawValue] = self.attributes
         if let file = self.file,
