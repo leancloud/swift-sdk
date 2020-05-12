@@ -769,16 +769,14 @@ extension RTMConnection {
     
     private func handleGoaway(inCommand: IMGenericCommand) {
         assert(self.specificAssertion)
-        guard
-            inCommand.cmd == .goaway,
-            let rtmRouter = self.rtmRouter
-            else
-        {
+        guard inCommand.cmd == .goaway else {
             return
         }
-        rtmRouter.clearTableCache()
-        self.tryClearConnection(with: LCError.RTMConnectionClosedByRemote)
-        self.tryConnecting()
+        if let rtmRouter = self.rtmRouter {
+            rtmRouter.clearTableCache()
+            self.tryClearConnection(with: LCError.RTMConnectionClosedByRemote)
+            self.tryConnecting()
+        }
         #if DEBUG
         NotificationCenter.default.post(
             name: RTMConnection.TestGoawayCommandReceivedNotification,
@@ -786,7 +784,6 @@ extension RTMConnection {
         )
         #endif
     }
-    
 }
 
 extension RTMConnection: WebSocketAdvancedDelegate, WebSocketPongDelegate {
@@ -845,13 +842,12 @@ extension RTMConnection: WebSocketAdvancedDelegate, WebSocketPongDelegate {
                     delegator = self.instantMessagingDelegatorMap[peerID]
                 } else if let installationID = (inCommand.hasInstallationID ? inCommand.installationID : nil) {
                     delegator = self.liveQueryDelegatorMap[installationID]
-                } else {
-                    self.handleGoaway(inCommand: inCommand)
                 }
                 delegator?.queue.async {
                     delegator?.delegate?.connection(self, didReceiveCommand: inCommand)
                 }
             }
+            self.handleGoaway(inCommand: inCommand)
         } catch {
             Logger.shared.error(error)
         }
