@@ -54,7 +54,10 @@ public class LiveQuery {
     var queryID: RemoteQueryID?
     
     deinit {
-        LiveQueryClientManager.default.releaseLocalInstanceID(self.localInstanceID)
+        LiveQueryClientManager.default
+            .unregister(application: self.application)
+        LiveQueryClientManager.default
+            .releaseLocalInstanceID(self.localInstanceID)
     }
     
     public init(

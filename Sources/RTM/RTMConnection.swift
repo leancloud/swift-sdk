@@ -19,50 +19,61 @@ enum RTMService: Int32 {
 }
 
 class RTMConnectionManager {
-    
     static let `default` = RTMConnectionManager()
-    
     private init() {}
     
-    let mutex = NSLock()
+    private let mutex = NSLock()
     
-    typealias InstantMessagingReferenceMap = [LCApplication.Identifier: [IMClient.Identifier: RTMConnection]]
-    typealias LiveQueryReferenceMap = [LCApplication.Identifier: RTMConnection]
+    typealias InstantMessagingRegistry = [LCApplication.Identifier: [IMClient.Identifier: RTMConnection]]
+    typealias LiveQueryRegistry = [LCApplication.Identifier: RTMConnection]
     
-    var protobuf1Map: InstantMessagingReferenceMap = [:]
-    var protobuf3Map: InstantMessagingReferenceMap = [:]
-    var liveQueryMap: LiveQueryReferenceMap = [:]
+    var imProtobuf1Registry: InstantMessagingRegistry = [:]
+    var imProtobuf3Registry: InstantMessagingRegistry = [:]
+    var liveQueryRegistry: LiveQueryRegistry = [:]
     
-    func getMap(protocol lcimProtocol: RTMConnection.LCIMProtocol) -> InstantMessagingReferenceMap {
-        let map: InstantMessagingReferenceMap
+    private func getRegistry(
+        lcimProtocol: RTMConnection.LCIMProtocol)
+        -> InstantMessagingRegistry
+    {
+        let registry: InstantMessagingRegistry
         switch lcimProtocol {
         case .protobuf3:
-            map = self.protobuf3Map
+            registry = self.imProtobuf3Registry
         case .protobuf1:
-            map = self.protobuf1Map
+            registry = self.imProtobuf1Registry
         }
-        return map
+        return registry
     }
     
-    func setMap(_ map: InstantMessagingReferenceMap, lcimProtocol: RTMConnection.LCIMProtocol) {
+    private func setRegistry(
+        _ registry: InstantMessagingRegistry,
+        lcimProtocol: RTMConnection.LCIMProtocol)
+    {
         switch lcimProtocol {
         case .protobuf3:
-            self.protobuf3Map = map
+            self.imProtobuf3Registry = registry
         case .protobuf1:
-            self.protobuf1Map = map
+            self.imProtobuf1Registry = registry
         }
     }
     
-    func getConnectionFromMapForLiveQuery(applicationID: LCApplication.Identifier) -> RTMConnection? {
-        if let connection = self.liveQueryMap[applicationID] {
+    private func connectionForLiveQueryFromRegistry(
+        applicationID: LCApplication.Identifier)
+        -> RTMConnection?
+    {
+        if let connection = self.liveQueryRegistry[applicationID] {
             return connection
         } else {
-            return (self.getMap(protocol: .protobuf3)[applicationID]?.values.first)
-                ?? (self.getMap(protocol: .protobuf1)[applicationID]?.values.first)
+            return (self.getRegistry(lcimProtocol: .protobuf3)[applicationID]?.values.first)
+                ?? (self.getRegistry(lcimProtocol: .protobuf1)[applicationID]?.values.first)
         }
     }
     
-    func register(application: LCApplication, service: RTMConnection.Service) throws -> RTMConnection {
+    func register(
+        application: LCApplication,
+        service: RTMConnection.Service)
+        throws -> RTMConnection
+    {
         self.mutex.lock()
         defer {
             self.mutex.unlock()
@@ -71,8 +82,8 @@ class RTMConnectionManager {
         let connection: RTMConnection
         switch service {
         case let .instantMessaging(ID: clientID, protocol: lcimProtocol):
-            var map: InstantMessagingReferenceMap = self.getMap(protocol: lcimProtocol)
-            if var connectionMap = map[appID],
+            var registry = self.getRegistry(lcimProtocol: lcimProtocol)
+            if var connectionMap = registry[appID],
                 let existConnection = connectionMap.values.first {
                 if let _ = connectionMap[clientID] {
                     throw LCError(
@@ -80,34 +91,37 @@ class RTMConnectionManager {
                         reason:"duplicate registering connection.")
                 } else {
                     connectionMap[clientID] = existConnection
-                    map[appID] = connectionMap
+                    registry[appID] = connectionMap
                     connection = existConnection
                 }
-            } else if let existConnection = self.liveQueryMap[appID],
+            } else if let existConnection = self.liveQueryRegistry[appID],
                 existConnection.lcimProtocol == lcimProtocol {
-                map[appID] = [clientID: existConnection]
+                registry[appID] = [clientID: existConnection]
                 connection = existConnection
             } else {
                 connection = try RTMConnection(
                     application: application,
                     lcimProtocol: lcimProtocol)
-                map[appID] = [clientID: connection]
+                registry[appID] = [clientID: connection]
             }
-            self.setMap(map, lcimProtocol: lcimProtocol)
+            self.setRegistry(registry, lcimProtocol: lcimProtocol)
         case .liveQuery:
-            if let existConnection = self.getConnectionFromMapForLiveQuery(applicationID: appID) {
+            if let existConnection = self.connectionForLiveQueryFromRegistry(applicationID: appID) {
                 connection = existConnection
             } else {
                 connection = try RTMConnection(
                     application: application,
                     lcimProtocol: .protobuf3)
             }
-            self.liveQueryMap[appID] = connection
+            self.liveQueryRegistry[appID] = connection
         }
         return connection
     }
     
-    func unregister(application: LCApplication, service: RTMConnection.Service) {
+    func unregister(
+        application: LCApplication,
+        service: RTMConnection.Service)
+    {
         self.mutex.lock()
         defer {
             self.mutex.unlock()
@@ -115,17 +129,16 @@ class RTMConnectionManager {
         let appID: LCApplication.Identifier = application.id
         switch service {
         case let .instantMessaging(ID: clientID, protocol: lcimProtocol):
-            var map: InstantMessagingReferenceMap = self.getMap(protocol: lcimProtocol)
-            if var connectionMap = map[appID] {
+            var registry = self.getRegistry(lcimProtocol: lcimProtocol)
+            if var connectionMap = registry[appID] {
                 connectionMap.removeValue(forKey: clientID)
-                map[appID] = connectionMap
+                registry[appID] = connectionMap
             }
-            self.setMap(map, lcimProtocol: lcimProtocol)
+            self.setRegistry(registry, lcimProtocol: lcimProtocol)
         case .liveQuery:
-            self.liveQueryMap.removeValue(forKey: appID)
+            self.liveQueryRegistry.removeValue(forKey: appID)
         }
     }
-    
 }
 
 protocol RTMConnectionDelegate: class {

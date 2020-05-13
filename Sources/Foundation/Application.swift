@@ -8,13 +8,10 @@
 
 import Foundation
 
-/**
- LeanCloud application.
-
- An `LCApplication` object is an abstract of remote LeanCloud application.
-
- It is a context of application-specific settings and objects.
- */
+/// LeanCloud Application.
+///
+/// an `LCApplication` object is an abstraction of LeanCloud application,
+/// it is the context of application-specific settings and objects.
 public class LCApplication {
     
     // MARK: Registry
@@ -23,7 +20,6 @@ public class LCApplication {
     
     // MARK: Log
     
-    /// Application log level.
     public enum LogLevel: Int, Comparable {
         case off
         case error
@@ -36,7 +32,7 @@ public class LCApplication {
         }
     }
     
-    /// Log level.
+    /// Console log level, default is `LogLevel.off`.
     public static var logLevel: LogLevel = .off
     
     // MARK: Basic
@@ -57,7 +53,7 @@ public class LCApplication {
     
     // MARK: Configuration
     
-    /// Module of Customizable Server.
+    /// Module of customizable server.
     public enum ServerCustomizableModule {
         case api(_ url: String)
         case push(_ url: String)
@@ -78,7 +74,7 @@ public class LCApplication {
         }
     }
     
-    /// Environment of the Application
+    /// Environment of the application.
     public struct Environment: OptionSet {
         public let rawValue: Int
         
@@ -86,53 +82,51 @@ public class LCApplication {
             self.rawValue = rawValue
         }
         
-        /// development environment of Cloud Engine
+        /// Development environment of Cloud Engine Service.
         public static let cloudEngineDevelopment = Environment(rawValue: 1 << 0)
         
-        /// development environment of Push
+        /// Development environment of Push Service.
         public static let pushDevelopment = Environment(rawValue: 1 << 1)
         
-        /// default is production environment
+        /// Default is production environment.
         public static let `default`: Environment = []
     }
     
     var cloudEngineMode: String {
-        return self.configuration
-            .environment
+        return self.configuration.environment
             .contains(.cloudEngineDevelopment)
             ? "0" : "1"
     }
     
     var pushMode: String {
-        return self.configuration
-            .environment
+        return self.configuration.environment
             .contains(.pushDevelopment)
             ? "dev" : "prod"
     }
     
-    /// Application Configuration.
+    /// Configuration of the application.
     public struct Configuration: CustomDebugStringConvertible {
         public static let `default` = Configuration()
         
-        /// Customized Servers
+        /// Customized Servers, default is `[]`.
         public var customizedServers: [ServerCustomizableModule]
         
-        /// Environment
+        /// Environment, default is `Environment.default`.
         public var environment: Environment
         
-        /// HTTP Request Timeout Interval, default is 60.0 second.
+        /// HTTP Request Timeout Interval, default is `60.0` second.
         public var HTTPRequestTimeoutInterval: TimeInterval
         
-        /// URL Cache for HTTP Response, default is nil.
+        /// URL Cache for HTTP Response, default is `nil`.
         public var HTTPURLCache: URLCache?
         
-        /// RTM Connecting Timeout Interval, default is 15.0 second.
+        /// RTM Connecting Timeout Interval, default is `60.0` second.
         public var RTMConnectingTimeoutInterval: TimeInterval
         
-        /// RTM Command Timeout Interval, default is 30.0 second.
+        /// RTM Command Timeout Interval, default is `30.0` second.
         public var RTMCommandTimeoutInterval: TimeInterval
         
-        /// RTM Custom Server URL.
+        /// RTM Custom Server URL, default is `nil`.
         public var RTMCustomServerURL: URL?
         
         public init(
@@ -140,7 +134,7 @@ public class LCApplication {
             environment: Environment = .default,
             HTTPRequestTimeoutInterval: TimeInterval = 60.0,
             HTTPURLCache: URLCache? = nil,
-            RTMConnectingTimeoutInterval: TimeInterval = 15.0,
+            RTMConnectingTimeoutInterval: TimeInterval = 60.0,
             RTMCommandTimeoutInterval: TimeInterval = 30.0,
             RTMCustomServerURL: URL? = nil)
         {
@@ -179,7 +173,7 @@ public class LCApplication {
         }
     }
     
-    /// Application Configuration.
+    /// Application configuration.
     public private(set) var configuration: Configuration = .default
     
     // MARK: Region
@@ -224,7 +218,7 @@ public class LCApplication {
     
     // MARK: Current Installation
     
-    /// Current Installation.
+    /// Current installation.
     public var currentInstallation: LCInstallation {
         if let installation = self._currentInstallation {
             return installation
@@ -251,7 +245,7 @@ public class LCApplication {
     
     // MARK: Current User
     
-    /// Current User.
+    /// Current user.
     public var currentUser: LCUser? {
         set {
             self._currentUser = newValue
@@ -289,10 +283,12 @@ public class LCApplication {
     init() {}
     
     /// Create an application.
-    /// - Parameter id: The ID.
-    /// - Parameter key: The Key.
-    /// - Parameter serverURL: The server URL string.
-    /// - Parameter configuration: The Configuration.
+    /// - Parameters:
+    ///   - id: see property `id`.
+    ///   - key: see property `key`.
+    ///   - serverURL: see property `serverURL`, default is `nil`, MUST provide if the application is in China.
+    ///   - configuration: see property `configuration`, default is `Configuration.default`
+    /// - Throws: If `serverURL` not provide in some region.
     public init(
         id: String,
         key: String,
@@ -305,15 +301,16 @@ public class LCApplication {
             key: key,
             serverURL: serverURL,
             configuration: configuration)
-        
         LCApplication.registry[id] = self
     }
     
-    /// Setup the application.
-    /// - Parameter id: The ID.
-    /// - Parameter key: The Key.
-    /// - Parameter serverURL: The server URL string.
-    /// - Parameter configuration: The Configuration.
+    /// Set up an application.
+    /// - Parameters:
+    ///   - id: see property `id`.
+    ///   - key: see property `key`.
+    ///   - serverURL: see property `serverURL`, default is `nil`, MUST provide if the application is in China.
+    ///   - configuration: see property `configuration`, default is `Configuration.default`
+    /// - Throws: If `serverURL` not provide in some region.
     public func set(
         id: String,
         key: String,
@@ -321,18 +318,15 @@ public class LCApplication {
         configuration: Configuration = .default)
         throws
     {
-        if let oldID = self.id {
-            self._currentInstallation = nil
-            self._currentUser = nil
-            LCApplication.registry.removeValue(forKey: oldID)
+        if let _ = self.id {
+            // clean previous context
+            self.unregister()
         }
-        
         try self.doInitializing(
             id: id,
             key: key,
             serverURL: serverURL,
             configuration: configuration)
-        
         LCApplication.registry[id] = self
     }
     
@@ -381,7 +375,7 @@ public class LCApplication {
     
     // MARK: Deinit
     
-    /// should unregister the application before releasing it's memory.
+    /// Before release the instance of the application, should unregister it to break circular reference.
     public func unregister() {
         LCApplication.registry.removeValue(forKey: self.id)
         self._currentInstallation = nil

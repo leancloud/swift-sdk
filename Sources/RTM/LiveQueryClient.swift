@@ -9,29 +9,45 @@
 import Foundation
 
 class LiveQueryClientManager {
-    
     static let `default` = LiveQueryClientManager()
-    
     private init() {}
     
     private let mutex = NSLock()
     
-    private var registry: [LCApplication.Identifier: LiveQueryClient] = [:]
+    var registry: [LCApplication.Identifier: (LiveQueryClient, Int)] = [:]
+    var localInstanceIDSet: Set<LiveQuery.LocalInstanceID> = []
     
-    private var localInstanceIDSet: Set<LiveQuery.LocalInstanceID> = []
-    
-    func register(application: LCApplication) throws -> LiveQueryClient {
+    func register(
+        application: LCApplication)
+        throws -> LiveQueryClient
+    {
         self.mutex.lock()
         defer {
             self.mutex.unlock()
         }
         let appID: LCApplication.Identifier = application.id
-        if let client = self.registry[appID] {
+        if let (client, referenceCount) = self.registry[appID] {
+            self.registry[appID] = (client, referenceCount + 1)
             return client
         } else {
             let client = try LiveQueryClient(application: application)
-            self.registry[appID] = client
+            self.registry[appID] = (client, 1)
             return client
+        }
+    }
+    
+    func unregister(application: LCApplication) {
+        self.mutex.lock()
+        defer {
+            self.mutex.unlock()
+        }
+        let appID: LCApplication.Identifier = application.id
+        if let (client, referenceCount) = self.registry[appID] {
+            if referenceCount == 1 {
+                self.registry.removeValue(forKey: appID)
+            } else {
+                self.registry[appID] = (client, referenceCount - 1)
+            }
         }
     }
     
@@ -54,22 +70,23 @@ class LiveQueryClientManager {
         }
         self.localInstanceIDSet.remove(uuid)
     }
-    
 }
 
 class LiveQueryClient {
     
     #if DEBUG
     let specificKey = DispatchSpecificKey<Int>()
-    let specificValue: Int = Int.random(in: 1...999)
-    var specificAssertion: Bool {
-        return self.specificValue == DispatchQueue.getSpecific(key: self.specificKey)
-    }
-    #else
-    var specificAssertion: Bool {
-        return true
-    }
+    let specificValue = Int.random(in: 1...999)
     #endif
+    var specificAssertion: Bool {
+        #if DEBUG
+        return self.specificValue
+            == DispatchQueue.getSpecific(
+                key: self.specificKey)
+        #else
+        return true
+        #endif
+    }
     
     enum SessionState {
         case loggingIn
