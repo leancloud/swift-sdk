@@ -217,8 +217,10 @@ class IMClientTestCase: RTMBaseTestCase {
             }
         }
         
-        RTMConnectionManager.default.protobuf1Map.removeAll()
-        RTMConnectionManager.default.protobuf3Map.removeAll()
+        RTMConnectionManager.default
+            .imProtobuf1Registry.removeAll()
+        RTMConnectionManager.default
+            .imProtobuf3Registry.removeAll()
         LCApplication.default._currentInstallation = nil
         
         let installation2 = LCApplication.default.currentInstallation
