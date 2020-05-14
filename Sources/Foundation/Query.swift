@@ -308,10 +308,14 @@ public class LCQuery: NSObject, NSCopying, NSCoding {
      */
     func validateApplicationAndClassName(_ query: LCQuery) throws {
         guard query.application === self.application else {
-            throw LCError(code: .inconsistency, reason: "Different application.")
+            throw LCError(
+                code: .inconsistency,
+                reason: "`application` !== `query.application`, they should be the same instance.")
         }
         guard query.objectClassName == objectClassName else {
-            throw LCError(code: .inconsistency, reason: "Different class names.")
+            throw LCError(
+                code: .inconsistency,
+                reason: "`objectClassName` != `query.objectClassName`, they should be equal.")
         }
     }
 

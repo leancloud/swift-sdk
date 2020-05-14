@@ -74,7 +74,9 @@ public class IMConversationQuery: LCQuery {
             return nil
         }
         guard client === query.client else {
-            throw LCError(code: .inconsistency, reason: "Different IM client.")
+            throw LCError(
+                code: .inconsistency,
+                reason: "`client` !== `query.client`, they should be the same instance.")
         }
         let result = IMConversationQuery(client: client, eventQueue: self.eventQueue)
         result.constraintDictionary[op] = [self.constraintDictionary, query.constraintDictionary]
