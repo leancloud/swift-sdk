@@ -65,6 +65,7 @@
 		83BC11D61CDD76E900D7E7A6 /* LCACLTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83BC11D51CDD76E900D7E7A6 /* LCACLTestCase.swift */; };
 		83D0DE6F1CC7B3FF00FC204E /* LCQueryTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83D0DE6E1CC7B3FF00FC204E /* LCQueryTestCase.swift */; };
 		83FAF0931CC4D1E400A84063 /* LCObjectTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83FAF0921CC4D1E400A84063 /* LCObjectTestCase.swift */; };
+		D302D340246BD259003D9274 /* LiveQueryTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = D302D33F246BD259003D9274 /* LiveQueryTestCase.swift */; };
 		D303BD752328CB1C004AE13D /* SwiftProtobuf in Frameworks */ = {isa = PBXBuildFile; productRef = D303BD742328CB1C004AE13D /* SwiftProtobuf */; };
 		D303BD782328CDFC004AE13D /* Starscream in Frameworks */ = {isa = PBXBuildFile; productRef = D303BD772328CDFC004AE13D /* Starscream */; };
 		D303BD7B2328D062004AE13D /* GRDB in Frameworks */ = {isa = PBXBuildFile; productRef = D303BD7A2328D062004AE13D /* GRDB */; };
@@ -208,6 +209,7 @@
 		83D0DE6E1CC7B3FF00FC204E /* LCQueryTestCase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LCQueryTestCase.swift; sourceTree = "<group>"; };
 		83D5923D1CD88846007177C5 /* BridgingHeader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BridgingHeader.h; sourceTree = "<group>"; };
 		83FAF0921CC4D1E400A84063 /* LCObjectTestCase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LCObjectTestCase.swift; sourceTree = "<group>"; };
+		D302D33F246BD259003D9274 /* LiveQueryTestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveQueryTestCase.swift; sourceTree = "<group>"; };
 		D303BD7C2328D928004AE13D /* Package.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Package.swift; sourceTree = "<group>"; };
 		D303BD7D2328D9D8004AE13D /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		D30A2F85224A092300C000D5 /* LeanCloud.podspec */ = {isa = PBXFileReference; lastKnownFileType = text; path = LeanCloud.podspec; sourceTree = "<group>"; };
@@ -374,6 +376,7 @@
 				D3783A1121F453C3006F6635 /* IMConversationTestCase.swift */,
 				D3665C3621FEAAC1005B44B0 /* IMMessageTestCase.swift */,
 				D3FE04512277EA6C0008C88A /* IMLocalStorageTestCase.swift */,
+				D302D33F246BD259003D9274 /* LiveQueryTestCase.swift */,
 			);
 			path = LeanCloudTests;
 			sourceTree = "<group>";
@@ -756,6 +759,7 @@
 				D3FE04522277EA6C0008C88A /* IMLocalStorageTestCase.swift in Sources */,
 				116A682621427442004141A5 /* LCRouterTestCase.swift in Sources */,
 				1123922C2191669100ECCBCC /* RTMRouterTestCase.swift in Sources */,
+				D302D340246BD259003D9274 /* LiveQueryTestCase.swift in Sources */,
 				118763AF2176EA3A0078645B /* LCInstallationTestCase.swift in Sources */,
 				8365CFA81D79849D006B856E /* LCTypeTestCase.swift in Sources */,
 				D3DAD03C218DA402008BCD37 /* RTMConnectionTestCase.swift in Sources */,
