@@ -686,7 +686,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
     
     // MARK: Save
     
-    /// Options for saving.
+    /// Options for saving action.
     public enum SaveOption {
         /// Saved success result will return all data of this object.
         case fetchWhenSave
@@ -697,26 +697,29 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
     /// Save a batch of objects in one request synchronously.
     /// - Parameters:
     ///   - objects: An array of objects to be saved.
-    ///   - options: @see `LCObject.SaveOption`, default is none option, it will be applyed to all objects.
+    ///   - options: See `LCObject.SaveOption`, default is `[]`, it will be applyed to all objects.
+    /// - Returns: `LCBooleanResult`.
     public class func save(
         _ objects: [LCObject],
         options: [LCObject.SaveOption] = [])
         -> LCBooleanResult
     {
-        assert(self.assertObjectsApplication(objects), "objects with multiple applications.")
-        return expect { fulfill in
-            self.save(objects, options: options, completionInBackground: { result in
-                fulfill(result)
-            })
+        return self.validateApplication(objects: objects)
+            ?? expect { fulfill in
+                self.save(
+                    objects,
+                    options: options,
+                    completionInBackground: fulfill)
         }
     }
     
     /// Save a batch of objects in one request asynchronously.
     /// - Parameters:
     ///   - objects: An array of objects to be saved.
-    ///   - options: @see `LCObject.SaveOption`, default is none option, it will be applyed to all objects.
-    ///   - completionQueue: The queue where the completion be called, default is main.
+    ///   - options: See `LCObject.SaveOption`, default is `[]`, it will be applyed to all objects.
+    ///   - completionQueue: The queue where the `completion` be called, default is `DispatchQueue.main`.
     ///   - completion: The callback of result.
+    /// - Returns: `LCRequest`.
     @discardableResult
     public class func save(
         _ objects: [LCObject],
@@ -725,14 +728,20 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
         completion: @escaping (LCBooleanResult) -> Void)
         -> LCRequest
     {
-        assert(self.assertObjectsApplication(objects), "objects with multiple applications.")
-        return self.save(objects, options: options, completionInBackground: { result in
-            completionQueue.async {
-                completion(result)
-            }
-        })
+        return self.validateApplication(
+            objects: objects,
+            completionQueue: completionQueue,
+            completion: completion)
+            ?? self.save(
+                objects,
+                options: options,
+                completionInBackground: { result in
+                    completionQueue.async {
+                        completion(result)
+                    }
+            })
     }
-
+    
     @discardableResult
     static func save(
         _ objects: [LCObject],
@@ -740,32 +749,50 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
         completionInBackground completion: @escaping (LCBooleanResult) -> Void)
         -> LCRequest
     {
-        assert(self.assertObjectsApplication(objects), "objects with multiple applications.")
         var parameters: [String: Any] = [:]
         for option in options {
             switch option {
             case .fetchWhenSave:
                 parameters["fetchWhenSave"] = true
             case .query(let query):
-                if let whereDictionary: Any = query.lconValue["where"] {
+                if let application = objects.first?.application {
+                    guard application === query.application else {
+                        return application.httpClient.request(
+                            error: LCError(
+                                code: .inconsistency,
+                                reason: "`application` !== `query.application`, they should be the same instance."),
+                            completionHandler: completion)
+                    }
+                }
+                if let whereDictionary = query.lconValue["where"] {
                     parameters["where"] = whereDictionary
                 }
             }
         }
-        return ObjectUpdater.save(objects, parameters: (parameters.isEmpty ? nil : parameters), completionInBackground: completion)
+        return ObjectUpdater.save(
+            objects,
+            parameters: (parameters.isEmpty ? nil : parameters),
+            completionInBackground: completion)
     }
     
     /// Save object and its all descendant objects synchronously.
-    /// - Parameter options: @see `LCObject.SaveOption`, default is none option.
-    public func save(options: [LCObject.SaveOption] = []) -> LCBooleanResult {
-        return type(of: self).save([self], options: options)
+    /// - Parameter options: See `LCObject.SaveOption`, default is `[]`.
+    /// - Returns: `LCBooleanResult`.
+    public func save(
+        options: [LCObject.SaveOption] = [])
+        -> LCBooleanResult
+    {
+        return type(of: self).save(
+            [self],
+            options: options)
     }
     
     /// Save object and its all descendant objects asynchronously.
     /// - Parameters:
-    ///   - options: @see `LCObject.SaveOption`, default is none option.
-    ///   - completionQueue: The queue where the completion be called, default is main.
+    ///   - options: See `LCObject.SaveOption`, default is `[]`.
+    ///   - completionQueue: The queue where the `completion` be called, default is `DispatchQueue.main`.
     ///   - completion: The callback of result.
+    /// - Returns: `LCRequest`.
     @discardableResult
     public func save(
         options: [LCObject.SaveOption] = [],
@@ -779,23 +806,30 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
             completionQueue: completionQueue,
             completion: completion)
     }
-
+    
     // MARK: Delete
     
     /// Delete a batch of objects in one request synchronously.
     /// - Parameter objects: An array of objects to be deleted.
-    public static func delete(_ objects: [LCObject]) -> LCBooleanResult {
-        assert(self.assertObjectsApplication(objects), "objects with multiple applications.")
-        return expect { fulfill in
-            delete(objects, completionInBackground: fulfill)
+    /// - Returns: `LCBooleanResult`.
+    public static func delete(
+        _ objects: [LCObject])
+        -> LCBooleanResult
+    {
+        return self.validateApplication(objects: objects)
+            ?? expect { fulfill in
+                self.delete(
+                    objects,
+                    completionInBackground: fulfill)
         }
     }
     
     /// Delete a batch of objects in one request asynchronously.
     /// - Parameters:
     ///   - objects: An array of objects to be deleted.
-    ///   - completionQueue: The queue where the completion be called, default is main.
+    ///   - completionQueue: The queue where the `completion` be called, default is `DispatchQueue.main`.
     ///   - completion: The callback of result.
+    /// - Returns: `LCRequest`.
     @discardableResult
     public static func delete(
         _ objects: [LCObject],
@@ -803,22 +837,28 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
         completion: @escaping (LCBooleanResult) -> Void)
         -> LCRequest
     {
-        assert(self.assertObjectsApplication(objects), "objects with multiple applications.")
-        return delete(objects, completionInBackground: { result in
-            completionQueue.async {
-                completion(result)
-            }
-        })
+        return self.validateApplication(
+            objects: objects,
+            completionQueue: completionQueue,
+            completion: completion)
+            ?? self.delete(
+                objects,
+                completionInBackground: { result in
+                    completionQueue.async {
+                        completion(result)
+                    }
+            })
     }
-
+    
     @discardableResult
     private static func delete(
         _ objects: [LCObject],
         completionInBackground completion: @escaping (LCBooleanResult) -> Void)
         -> LCRequest
     {
-        assert(self.assertObjectsApplication(objects), "objects with multiple applications.")
-        return ObjectUpdater.delete(objects, completionInBackground: completion)
+        return ObjectUpdater.delete(
+            objects,
+            completionInBackground: completion)
     }
     
     /// Delete current object synchronously.
@@ -828,8 +868,9 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
     
     /// Delete current object asynchronously.
     /// - Parameters:
-    ///   - completionQueue: The queue where the completion be called, default is main.
+    ///   - completionQueue: The queue where the `completion` be called, default is `DispatchQueue.main`.
     ///   - completion: The callback of result.
+    /// - Returns: `LCRequest`.
     @discardableResult
     public func delete(
         completionQueue: DispatchQueue = .main,
@@ -841,28 +882,35 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
             completionQueue: completionQueue,
             completion: completion)
     }
-
+    
     // MARK: Fetch
     
     /// Fetch a batch of objects in one request synchronously.
     /// - Parameters:
     ///   - objects: An array of objects to be fetched.
-    ///   - keys: Specify only the key-value of the keys will be fetched, default fetch all key-value, it will be applyed to all objects.
-    public static func fetch(_ objects: [LCObject], keys: [String]? = nil) -> LCBooleanResult {
-        assert(self.assertObjectsApplication(objects), "objects with multiple applications.")
-        return expect { fulfill in
-            fetch(objects, keys: keys, completionInBackground: { result in
-                fulfill(result)
-            })
+    ///   - keys: Specify only return the values of the `keys`, or not return the values of the `keys` when add a "-" prefix to the key.
+    /// - Returns: `LCBooleanResult`.
+    public static func fetch(
+        _ objects: [LCObject],
+        keys: [String]? = nil)
+        -> LCBooleanResult
+    {
+        return self.validateApplication(objects: objects)
+            ?? expect { fulfill in
+                self.fetch(
+                    objects,
+                    keys: keys,
+                    completionInBackground: fulfill)
         }
     }
     
     /// Fetch a batch of objects in one request asynchronously.
     /// - Parameters:
     ///   - objects: An array of objects to be fetched.
-    ///   - keys: Specify only the key-value of the keys will be fetched, default fetch all key-value., it will be applyed to all objects
-    ///   - completionQueue: The queue where the completion be called, default is main.
+    ///   - keys: Specify only return the values of the `keys`, or not return the values of the `keys` when add a "-" prefix to the key.
+    ///   - completionQueue: The queue where the `completion` be called, default is `DispatchQueue.main`.
     ///   - completion: The callback of result.
+    /// - Returns: `LCRequest`.
     @discardableResult
     public static func fetch(
         _ objects: [LCObject],
@@ -871,14 +919,20 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
         completion: @escaping (LCBooleanResult) -> Void)
         -> LCRequest
     {
-        assert(self.assertObjectsApplication(objects), "objects with multiple applications.")
-        return fetch(objects, keys: keys, completionInBackground: { result in
-            completionQueue.async {
-                completion(result)
-            }
-        })
+        return self.validateApplication(
+            objects: objects,
+            completionQueue: completionQueue,
+            completion: completion)
+            ?? self.fetch(
+                objects,
+                keys: keys,
+                completionInBackground: { result in
+                    completionQueue.async {
+                        completion(result)
+                    }
+            })
     }
-
+    
     @discardableResult
     private static func fetch(
         _ objects: [LCObject],
@@ -886,21 +940,30 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
         completionInBackground completion: @escaping (LCBooleanResult) -> Void)
         -> LCRequest
     {
-        assert(self.assertObjectsApplication(objects), "objects with multiple applications.")
-        return ObjectUpdater.fetch(objects, keys: keys, completionInBackground: completion)
+        return ObjectUpdater.fetch(
+            objects,
+            keys: keys,
+            completionInBackground: completion)
     }
     
     /// Fetch object from server synchronously.
-    /// - Parameter keys: Specify only the key-value of the keys will be fetched, default fetch all key-value.
-    public func fetch(keys: [String]? = nil) -> LCBooleanResult {
-        return type(of: self).fetch([self], keys: keys)
+    /// - Parameter keys: Specify only return the values of the `keys`, or not return the values of the `keys` when add a "-" prefix to the key.
+    /// - Returns: `LCBooleanResult`.
+    public func fetch(
+        keys: [String]? = nil)
+        -> LCBooleanResult
+    {
+        return type(of: self).fetch(
+            [self],
+            keys: keys)
     }
     
     /// Fetch object from server asynchronously.
     /// - Parameters:
-    ///   - keys: Specify only the key-value of the keys will be fetched, default fetch all key-value.
-    ///   - completionQueue: The queue where the completion be called, default is main.
+    ///   - keys: Specify only return the values of the `keys`, or not return the values of the `keys` when add a "-" prefix to the key.
+    ///   - completionQueue: The queue where the `completion` be called, default is `DispatchQueue.main`.
     ///   - completion: The callback of result.
+    /// - Returns: `LCRequest`.
     @discardableResult
     public func fetch(
         keys: [String]? = nil,
@@ -917,7 +980,12 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
     
     // MARK: Misc
     
-    func preferredBatchRequest(method: HTTPClient.Method, path: String, internalId: String) throws -> [String: Any]? {
+    func preferredBatchRequest(
+        method: HTTPClient.Method,
+        path: String,
+        internalId: String)
+        throws -> [String: Any]?
+    {
         return nil
     }
     
@@ -929,13 +997,40 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
         /* Nop */
     }
     
-    private static func assertObjectsApplication(_ objects: [LCObject]) -> Bool {
-        let sharedApplication = (objects.first?.application ?? .default)
+    private static func validateApplication(
+        objects: [LCObject])
+        -> LCBooleanResult?
+    {
+        let sharedApplication = objects.first?.application ?? .default
         for object in objects {
             if object.application !== sharedApplication {
-                return false
+                return .failure(
+                    error: LCError(
+                        code: .inconsistency,
+                        reason: "the applications of the `objects` should be the same instance."))
             }
         }
-        return true
+        return nil
+    }
+    
+    private static func validateApplication(
+        objects: [LCObject],
+        completionQueue: DispatchQueue,
+        completion: @escaping (LCBooleanResult) -> Void)
+        -> LCRequest?
+    {
+        let sharedApplication = objects.first?.application ?? .default
+        for object in objects {
+            if object.application !== sharedApplication {
+                return sharedApplication.httpClient
+                    .request(
+                        error: LCError(
+                            code: .inconsistency,
+                            reason: "the applications of the `objects` should be the same instance."),
+                        completionDispatchQueue: completionQueue,
+                        completionHandler: completion)
+            }
+        }
+        return nil
     }
 }

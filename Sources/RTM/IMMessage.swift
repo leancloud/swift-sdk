@@ -468,7 +468,7 @@ open class IMCategorizedMessage: IMMessage, IMMessageCategorizing {
             guard file.application === application else {
                 throw LCError(
                     code: .inconsistency,
-                    reason: "application of file is not equal to application of client.")
+                    reason: "`file.application` !== `client.application`, they should be the same instance.")
             }
             var fileData: [String: Any] = [
                 FileKey.objId.rawValue: objectID,

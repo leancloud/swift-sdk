@@ -67,6 +67,11 @@ public class LiveQuery {
         eventHandler: @escaping (LiveQuery, Event) -> Void)
         throws
     {
+        guard application === query.application else {
+            throw LCError(
+                code: .inconsistency,
+                reason: "`application` !== `query.application`, they should be the same instance.")
+        }
         self.application = application
         self.query = query
         self.eventQueue = eventQueue
