@@ -14,13 +14,17 @@ class RTMConnectionTestCase: RTMBaseTestCase {
     
     override func setUp() {
         super.setUp()
-        RTMConnectionManager.default.protobuf1Map.removeAll()
-        RTMConnectionManager.default.protobuf3Map.removeAll()
+        RTMConnectionManager.default
+            .imProtobuf1Registry.removeAll()
+        RTMConnectionManager.default
+            .imProtobuf3Registry.removeAll()
     }
     
     override func tearDown() {
-        RTMConnectionManager.default.protobuf1Map.removeAll()
-        RTMConnectionManager.default.protobuf3Map.removeAll()
+        RTMConnectionManager.default
+            .imProtobuf1Registry.removeAll()
+        RTMConnectionManager.default
+            .imProtobuf3Registry.removeAll()
         super.tearDown()
     }
     
@@ -34,8 +38,15 @@ class RTMConnectionTestCase: RTMBaseTestCase {
             [RTMConnection.LCIMProtocol.protobuf1,
              RTMConnection.LCIMProtocol.protobuf3]
         {
-            let connectionMap: () -> [String : [String : RTMConnection]] = {
-                RTMConnectionManager.default.getMap(protocol: imProtocol)
+            let connectionRegistry: () -> RTMConnectionManager.InstantMessagingRegistry = {
+                let registry: RTMConnectionManager.InstantMessagingRegistry
+                switch imProtocol {
+                case .protobuf3:
+                    registry = RTMConnectionManager.default.imProtobuf3Registry
+                case .protobuf1:
+                    registry = RTMConnectionManager.default.imProtobuf1Registry
+                }
+                return registry
             }
             let peerID1 = "peerID1"
             let peerID2 = "peerID2"
@@ -44,8 +55,8 @@ class RTMConnectionTestCase: RTMBaseTestCase {
                     application: application,
                     service: .instantMessaging(ID: peerID1, protocol: imProtocol)
                 )
-                XCTAssertNotNil(connectionMap()[application.id]?[peerID1])
-                XCTAssertEqual(connectionMap()[application.id]?.count, 1)
+                XCTAssertNotNil(connectionRegistry()[application.id]?[peerID1])
+                XCTAssertEqual(connectionRegistry()[application.id]?.count, 1)
             } catch {
                 XCTFail("\(error)")
             }
@@ -63,8 +74,8 @@ class RTMConnectionTestCase: RTMBaseTestCase {
                 application: application,
                 service: .instantMessaging(ID: peerID2, protocol: imProtocol)
             )
-            XCTAssertTrue(connectionMap()[application.id]?[peerID1] === connectionMap()[application.id]?[peerID2])
-            XCTAssertEqual(connectionMap()[application.id]?.count, 2)
+            XCTAssertTrue(connectionRegistry()[application.id]?[peerID1] === connectionRegistry()[application.id]?[peerID2])
+            XCTAssertEqual(connectionRegistry()[application.id]?.count, 2)
             
             RTMConnectionManager.default.unregister(
                 application: application,
@@ -75,17 +86,17 @@ class RTMConnectionTestCase: RTMBaseTestCase {
                 service: .instantMessaging(ID: peerID2, protocol: imProtocol)
             )
             
-            XCTAssertEqual(connectionMap()[application.id]?.count, 0)
+            XCTAssertEqual(connectionRegistry()[application.id]?.count, 0)
             
             _ = try! RTMConnectionManager.default.register(
                 application: application,
                 service: .instantMessaging(ID: peerID1, protocol: imProtocol)
             )
-            XCTAssertNotNil(connectionMap()[application.id]?[peerID1])
-            XCTAssertEqual(connectionMap()[application.id]?.count, 1)
+            XCTAssertNotNil(connectionRegistry()[application.id]?[peerID1])
+            XCTAssertEqual(connectionRegistry()[application.id]?.count, 1)
         }
-        XCTAssertEqual(RTMConnectionManager.default.protobuf1Map[application.id]?.count, 1)
-        XCTAssertEqual(RTMConnectionManager.default.protobuf3Map[application.id]?.count, 1)
+        XCTAssertEqual(RTMConnectionManager.default.imProtobuf1Registry[application.id]?.count, 1)
+        XCTAssertEqual(RTMConnectionManager.default.imProtobuf3Registry[application.id]?.count, 1)
         
         application.unregister()
     }

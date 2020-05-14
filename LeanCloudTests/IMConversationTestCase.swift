@@ -489,8 +489,10 @@ class IMConversationTestCase: RTMBaseTestCase {
                 return
         }
         
-        RTMConnectionManager.default.protobuf1Map.removeAll()
-        RTMConnectionManager.default.protobuf3Map.removeAll()
+        RTMConnectionManager.default
+            .imProtobuf1Registry.removeAll()
+        RTMConnectionManager.default
+            .imProtobuf3Registry.removeAll()
         
         let clientB = try! IMClient(
             ID: clientBID,
@@ -1454,8 +1456,10 @@ class IMConversationTestCase: RTMBaseTestCase {
             return
         }
         
-        RTMConnectionManager.default.protobuf1Map.removeAll()
-        RTMConnectionManager.default.protobuf3Map.removeAll()
+        RTMConnectionManager.default
+            .imProtobuf1Registry.removeAll()
+        RTMConnectionManager.default
+            .imProtobuf3Registry.removeAll()
         
         guard let clientB = newOpenedClient() else {
             XCTFail()
@@ -1558,8 +1562,10 @@ class IMConversationTestCase: RTMBaseTestCase {
         let delegatorA = IMClientTestCase.Delegator()
         clientA.delegate = delegatorA
         
-        RTMConnectionManager.default.protobuf1Map.removeAll()
-        RTMConnectionManager.default.protobuf3Map.removeAll()
+        RTMConnectionManager.default
+            .imProtobuf1Registry.removeAll()
+        RTMConnectionManager.default
+            .imProtobuf3Registry.removeAll()
         
         guard let clientB = newOpenedClient() else {
             return
