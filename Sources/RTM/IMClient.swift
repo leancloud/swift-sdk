@@ -1152,30 +1152,31 @@ extension IMClient {
             case .success(value: let token):
                 let parameters: [String: Any] = [
                     "client_id": client.ID,
-                    "start_ts": serverTimestamp
+                    "start_ts": serverTimestamp,
                 ]
-                let headers: [String: String] = ["X-LC-IM-Session-Token": token]
+                let headers: [String: String] = [
+                    "X-LC-IM-Session-Token": token,
+                ]
                 let _ = client.application.httpClient.request(
-                    .get,
-                    "/rtm/notifications",
+                    .get, "/rtm/notifications",
                     parameters: parameters,
                     headers: headers,
-                    completionDispatchQueue: client.serialQueue)
+                    completionQueue: client.serialQueue)
                 { [weak client] (response) in
-                    guard let sClient: IMClient = client else {
+                    guard let client = client else {
                         return
                     }
-                    assert(sClient.specificAssertion)
-                    sClient.validInFetchingNotificationsCachedConvMapSnapshot = nil
+                    assert(client.specificAssertion)
+                    client.validInFetchingNotificationsCachedConvMapSnapshot = nil
                     if let error = LCError(response: response) {
                         Logger.shared.error(error)
-                    } else if let responseValue: [String: Any] = response.value as? [String: Any] {
-                        sClient.handleOfflineEvents(
+                    } else if let responseValue = response.value as? [String: Any] {
+                        client.handleOfflineEvents(
                             response: responseValue,
-                            convsSnapshot: Array(currentConvCollection.values)
-                        )
+                            convsSnapshot: Array(currentConvCollection.values))
                     } else {
-                        Logger.shared.error("unknown response value: \(String(describing: response.value))")
+                        Logger.shared.error(
+                            "unknown response value: \(String(describing: response.value))")
                     }
                 }
             }
@@ -1366,15 +1367,15 @@ extension IMClient {
     {
         _ = self.application.httpClient.request(
             .post, "/rtm/sign",
-            parameters: ["session_token": token])
+            parameters: ["session_token": token],
+            completionQueue: self.serialQueue)
         { [weak self] (response) in
             guard let self = self else {
                 return
             }
+            assert(self.specificAssertion)
             if let error = LCError(response: response) {
-                self.serialQueue.async {
-                    completion(self, .failure(error: error))
-                }
+                completion(self, .failure(error: error))
             } else {
                 guard let value = response.value as? [String: Any],
                     let signature = value["signature"] as? String,
@@ -1384,18 +1385,14 @@ extension IMClient {
                             code: .malformedData,
                             reason: "response data malformed",
                             userInfo: ["data": response.value ?? "nil"])
-                        self.serialQueue.async {
-                            completion(self, .failure(error: error))
-                        }
+                        completion(self, .failure(error: error))
                         return
                 }
                 let sign = IMSignature(
                     signature: signature,
                     timestamp: timestamp,
                     nonce: nonce)
-                self.serialQueue.async {
-                    completion(self, .success(value: sign))
-                }
+                completion(self, .success(value: sign))
             }
         }
     }

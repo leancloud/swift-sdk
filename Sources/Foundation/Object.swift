@@ -1003,7 +1003,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
     {
         let sharedApplication = objects.first?.application ?? .default
         for object in objects {
-            if object.application !== sharedApplication {
+            guard object.application === sharedApplication else {
                 return .failure(
                     error: LCError(
                         code: .inconsistency,
@@ -1021,13 +1021,13 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
     {
         let sharedApplication = objects.first?.application ?? .default
         for object in objects {
-            if object.application !== sharedApplication {
+            guard object.application === sharedApplication else {
                 return sharedApplication.httpClient
                     .request(
                         error: LCError(
                             code: .inconsistency,
                             reason: "the applications of the `objects` should be the same instance."),
-                        completionDispatchQueue: completionQueue,
+                        completionQueue: completionQueue,
                         completionHandler: completion)
             }
         }

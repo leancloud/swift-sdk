@@ -220,13 +220,16 @@ class HTTPClient {
         headers: HTTPHeaders,
         encoding: ParameterEncoding,
         parameters: [String: Any]?,
-        completionDispatchQueue: DispatchQueue,
+        completionQueue: DispatchQueue,
         completionHandler: @escaping (LCResponse) -> Void)
     {
         do {
-            var request = try URLRequest(url: url, method: method, headers: headers)
+            var request = try URLRequest(
+                url: url,
+                method: method,
+                headers: headers)
             request = try encoding.encode(request, with: parameters)
-            completionDispatchQueue.sync {
+            completionQueue.sync {
                 guard let cachedResponse = self.urlCache?.cachedResponse(for: request),
                     let httpResponse = cachedResponse.response as? HTTPURLResponse else {
                         completionHandler(self.response(
@@ -236,7 +239,7 @@ class HTTPClient {
                         return
                 }
                 let result = Result {
-                    try JSONResponseSerializer(options: .allowFragments)
+                    try JSONResponseSerializer()
                         .serialize(
                             request: request,
                             response: httpResponse,
@@ -255,9 +258,10 @@ class HTTPClient {
                 completionHandler(response)
             }
         } catch {
-            completionDispatchQueue.async {
+            completionQueue.async {
                 completionHandler(self.response(
-                    with: LCError(error: error)))
+                    with: LCError(
+                        error: error)))
             }
         }
     }
@@ -268,15 +272,14 @@ class HTTPClient {
         parameters: [String: Any]? = nil,
         headers: [String: String]? = nil,
         cachePolicy: LCQuery.CachePolicy = .onlyNetwork,
-        completionDispatchQueue: DispatchQueue? = nil,
+        completionQueue: DispatchQueue? = nil,
         completionHandler: @escaping (LCResponse) -> Void)
         -> LCRequest
     {
-        let completionDispatchQueue = completionDispatchQueue
+        let completionQueue = completionQueue
             ?? self.defaultCompletionConcurrentQueue
-        
         guard let url = self.application.appRouter.route(path: path) else {
-            completionDispatchQueue.sync {
+            completionQueue.sync {
                 completionHandler(self.response(
                     with: LCError(
                         code: .notFound,
@@ -284,7 +287,6 @@ class HTTPClient {
             }
             return LCSingleRequest(request: nil)
         }
-
         let method = method.alamofireMethod
         let headers = HTTPHeaders(mergeCommonHeaders(headers))
         let encoding: ParameterEncoding
@@ -294,7 +296,6 @@ class HTTPClient {
         default:
             encoding = JSONEncoding.default
         }
-        
         let requestCachedResponse: () -> Void = {
             self.requestCache(
                 url: url,
@@ -302,15 +303,18 @@ class HTTPClient {
                 headers: headers,
                 encoding: encoding,
                 parameters: parameters,
-                completionDispatchQueue: completionDispatchQueue,
+                completionQueue: completionQueue,
                 completionHandler: completionHandler)
         }
-
         switch cachePolicy {
         case .onlyNetwork, .networkElseCache:
-            let request = session.request(url, method: method, parameters: parameters, encoding: encoding, headers: headers).validate()
+            let request = self.session.request(
+                url, method: method,
+                parameters: parameters,
+                encoding: encoding,
+                headers: headers).validate()
             request.lcDebugDescription()
-            request.responseJSON(queue: completionDispatchQueue) { afResponse in
+            request.responseJSON(queue: completionQueue) { afResponse in
                 afResponse.lcDebugDescription(request: request)
                 let response = LCResponse(
                     application: self.application,
@@ -331,82 +335,67 @@ class HTTPClient {
             return LCSingleRequest(request: nil)
         }
     }
-
-    /**
-     Creates a request to REST API and sends it asynchronously.
-
-     - parameter url:                       The absolute URL.
-     - parameter method:                    The HTTP Method.
-     - parameter parameters:                The request parameters.
-     - parameter headers:                   The request headers.
-     - parameter completionDispatchQueue:   The dispatch queue in which the completion handler will be called. By default, it's a concurrent queue.
-     - parameter completionHandler:         The completion callback closure.
-
-     - returns: A request object.
-     */
+    
     func request(
         url: URL,
         method: Method,
         parameters: [String: Any]? = nil,
         headers: [String: String]? = nil,
-        completionDispatchQueue: DispatchQueue? = nil,
+        completionQueue: DispatchQueue? = nil,
         completionHandler: @escaping (LCResponse) -> Void)
         -> LCRequest
     {
-        let method    = method.alamofireMethod
-        let headers   = HTTPHeaders(mergeCommonHeaders(headers))
-        var encoding: ParameterEncoding!
-
+        let method = method.alamofireMethod
+        let headers = HTTPHeaders(mergeCommonHeaders(headers))
+        let encoding: ParameterEncoding
         switch method {
-        case .get: encoding = URLEncoding.default
-        default:   encoding = JSONEncoding.default
+        case .get:
+            encoding = URLEncoding.default
+        default:
+            encoding = JSONEncoding.default
         }
-
-        let request = session.request(url, method: method, parameters: parameters, encoding: encoding, headers: headers).validate()
-
-        let completionDispatchQueue = completionDispatchQueue
-            ?? self.defaultCompletionConcurrentQueue
-
+        let request = self.session.request(
+            url, method: method,
+            parameters: parameters,
+            encoding: encoding,
+            headers: headers).validate()
         request.lcDebugDescription()
-        request.responseJSON(queue: completionDispatchQueue) { afResponse in
+        request.responseJSON(
+            queue: completionQueue ?? self.defaultCompletionConcurrentQueue)
+        { afResponse in
             afResponse.lcDebugDescription(request: request)
-            completionHandler(LCResponse(application: self.application, afDataResponse: afResponse))
+            completionHandler(LCResponse(
+                application: self.application,
+                afDataResponse: afResponse))
         }
-
         return LCSingleRequest(request: request)
     }
-
-    /**
-     Create request for error.
-
-     - parameter error:                     The error object.
-     - parameter completionDispatchQueue:   The dispatch queue in which the completion handler will be called. By default, it's a concurrent queue.
-     - parameter completionHandler:         The completion callback closure.
-
-     - returns: A request object.
-     */
+    
     func request<T: LCResultType>(
         error: Error,
-        completionDispatchQueue: DispatchQueue? = nil,
-        completionHandler: @escaping (T) -> Void) -> LCRequest
+        completionQueue: DispatchQueue? = nil,
+        completionHandler: @escaping (T) -> Void)
+        -> LCRequest
     {
-        return request(object: error, completionDispatchQueue: completionDispatchQueue) { error in
-            completionHandler(T(error: LCError(error: error)))
+        return self.request(
+            object: error,
+            completionQueue: completionQueue)
+        { error in
+            completionHandler(T(
+                error: LCError(
+                    error: error)))
         }
     }
-
+    
     func request<T>(
         object: T,
-        completionDispatchQueue: DispatchQueue? = nil,
-        completionHandler: @escaping (T) -> Void) -> LCRequest
+        completionQueue: DispatchQueue? = nil,
+        completionHandler: @escaping (T) -> Void)
+        -> LCRequest
     {
-        let completionDispatchQueue = completionDispatchQueue
-            ?? self.defaultCompletionConcurrentQueue
-
-        completionDispatchQueue.async {
+        (completionQueue ?? self.defaultCompletionConcurrentQueue).async {
             completionHandler(object)
         }
-
         return LCSingleRequest(request: nil)
     }
 }
