@@ -1908,17 +1908,15 @@ extension IMConversation {
                 assert(client.specificAssertion)
                 switch result {
                 case .success(value: let token):
-                    let httpClient: HTTPClient = client.application.httpClient
                     let header: [String: String] = [
-                        "X-LC-IM-Session-Token": token
+                        "X-LC-IM-Session-Token": token,
                     ]
                     let parameters: [String: Any] = [
                         "client_id": client.ID,
-                        "cid": self.ID
+                        "cid": self.ID,
                     ]
-                    _ = httpClient.request(
-                        .get,
-                        "classes/_ConversationMemberInfo",
+                    _ = client.application.httpClient.request(
+                        .get, "classes/_ConversationMemberInfo",
                         parameters: parameters,
                         headers: header)
                     { (response) in
