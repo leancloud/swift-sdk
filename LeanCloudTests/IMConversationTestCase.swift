@@ -2313,11 +2313,12 @@ extension IMConversationTestCase {
         var objectID: String?
         var loop = true
         _ = LCApplication.default.httpClient.request(
-            url: LCApplication.default.v2router.route(path: "/rtm/service-conversations", module: .api)!,
+            url: LCApplication.default.v2router.route(
+                path: "/rtm/service-conversations", module: .api)!,
             method: .post,
             parameters: ["name": uuid],
             headers: nil,
-            completionDispatchQueue: .main)
+            completionQueue: .main)
         { (response) in
             objectID = response["objectId"]
             loop.toggle()
@@ -2337,7 +2338,7 @@ extension IMConversationTestCase {
             method: .post,
             parameters: ["client_id": clientID],
             headers: ["X-LC-Key": LCApplication.default.masterKey],
-            completionDispatchQueue: .main)
+            completionQueue: .main)
         { (response) in
             success = response.isSuccess
             loop.toggle()
@@ -2357,7 +2358,7 @@ extension IMConversationTestCase {
             method: .post,
             parameters: ["from_client": "master", "message": content],
             headers: ["X-LC-Key": LCApplication.default.masterKey],
-            completionDispatchQueue: .main)
+            completionQueue: .main)
         { (response) in
             if let result: [String: Any] = response["result"],
                 let messageID: String = result["msg-id"] as? String,
