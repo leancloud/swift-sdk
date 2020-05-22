@@ -32,28 +32,26 @@ class BaseTestCase: XCTestCase {
     static let cnApp = AppInfo(
         id: "S5vDI3IeCk1NLLiM1aFg3262-gzGzoHsz",
         key: "7g5pPsI55piz2PRLPWK5MPz0",
-        serverURL: "https://s5vdi3ie.lc-cn-n1-shared.com"
-    )
+        serverURL: "https://s5vdi3ie.lc-cn-n1-shared.com")
+    
+    static let ceApp = AppInfo(
+        id: "skhiVsqIk7NLVdtHaUiWn0No-9Nh9j0Va",
+        key: "T3TEAIcL8Ls5XGPsGz41B1bz",
+        serverURL: "https://skhivsqi.lc-cn-e1-shared.com")
     
     override class func setUp() {
         super.setUp()
-        
+        let app = BaseTestCase.cnApp
         TestObject.register()
-        
         LCApplication.logLevel = .all
-        
-        try! LCApplication.default.set(
-            id: BaseTestCase.cnApp.id,
-            key: BaseTestCase.cnApp.key,
-            serverURL: BaseTestCase.cnApp.serverURL)
-        
 //        var config = LCApplication.Configuration()
 //        config.RTMCustomServerURL = RTMBaseTestCase.testableRTMURL
-//        try! LCApplication.default.set(
-//            id: BaseTestCase.cnApp.id,
-//            key: BaseTestCase.cnApp.key,
-//            serverURL: BaseTestCase.cnApp.serverURL,
-//            configuration: config)
+        try! LCApplication.default.set(
+            id: app.id,
+            key: app.key,
+            serverURL: app.serverURL
+//            ,configuration: config
+        )
     }
     
     override class func tearDown() {
