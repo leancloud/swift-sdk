@@ -221,20 +221,21 @@ class RTMConnection {
         private(set) var lastPongReceivedTimestamp: TimeInterval = 0
         
         #if DEBUG
-        private(set) var specificKey: DispatchSpecificKey<Int>? = nil
-        private(set) var specificValue: Int? = nil
+        private(set) var specificKey: DispatchSpecificKey<Int>?
+        private(set) var specificValue: Int?
+        #endif
         private var specificAssertion: Bool {
-            if let key = self.specificKey, let value = self.specificValue {
+            #if DEBUG
+            if let key = self.specificKey,
+                let value = self.specificValue {
                 return DispatchQueue.getSpecific(key: key) == value
             } else {
                 return false
             }
-        }
-        #else
-        private var specificAssertion: Bool {
+            #else
             return true
+            #endif
         }
-        #endif
         
         init(connection: RTMConnection, socket: WebSocketClient) {
             #if DEBUG
@@ -422,14 +423,14 @@ class RTMConnection {
     #if DEBUG
     let specificKey = DispatchSpecificKey<Int>()
     let specificValue: Int = Int.random(in: 100...999) // whatever random int is OK.
-    private var specificAssertion: Bool {
-        return self.specificValue == DispatchQueue.getSpecific(key: self.specificKey)
-    }
-    #else
-    private var specificAssertion: Bool {
-        return true
-    }
     #endif
+    private var specificAssertion: Bool {
+        #if DEBUG
+        return self.specificValue == DispatchQueue.getSpecific(key: self.specificKey)
+        #else
+        return true
+        #endif
+    }
     
     init(application: LCApplication, lcimProtocol: LCIMProtocol) throws {
         #if DEBUG
