@@ -11,15 +11,13 @@ import XCTest
 
 class BaseTestCase: XCTestCase {
     
+    static let timeout: TimeInterval = 60.0
     let timeout: TimeInterval = 60.0
     
-    static let timeout: TimeInterval = 60.0
-    
-    var uuid: String {
+    static var uuid: String {
         return UUID().uuidString.replacingOccurrences(of: "-", with: "")
     }
-    
-    static var uuid: String {
+    var uuid: String {
         return UUID().uuidString.replacingOccurrences(of: "-", with: "")
     }
     
@@ -39,19 +37,27 @@ class BaseTestCase: XCTestCase {
         key: "T3TEAIcL8Ls5XGPsGz41B1bz",
         serverURL: "https://skhivsqi.lc-cn-e1-shared.com")
     
+    static let usApp = AppInfo(
+        id: "jenSt9nvWtuJtmurdE28eg5M-MdYXbMMI",
+        key: "8VLPsDlskJi8KsKppED4xKS0",
+        serverURL: "")
+    
+    static var config: LCApplication.Configuration {
+        var config = LCApplication.Configuration()
+        config.RTMCustomServerURL = RTMBaseTestCase.testableRTMURL
+        return config
+    }
+    
     override class func setUp() {
         super.setUp()
         let app = BaseTestCase.cnApp
         TestObject.register()
         LCApplication.logLevel = .all
-//        var config = LCApplication.Configuration()
-//        config.RTMCustomServerURL = RTMBaseTestCase.testableRTMURL
         try! LCApplication.default.set(
             id: app.id,
             key: app.key,
-            serverURL: app.serverURL
-//            ,configuration: config
-        )
+            serverURL: app.serverURL.isEmpty ? nil : app.serverURL,
+            configuration: BaseTestCase.config)
     }
     
     override class func tearDown() {
@@ -159,24 +165,29 @@ extension BaseTestCase {
 extension LCApplication {
     
     var masterKey: String {
+        let key: String
         switch self.id {
-        case "S5vDI3IeCk1NLLiM1aFg3262-gzGzoHsz":
-            return "Q26gTodbyi1Ki7lM9vtncF6U,master"
+        case BaseTestCase.cnApp.id:
+            key = "Q26gTodbyi1Ki7lM9vtncF6U"
+        case BaseTestCase.ceApp.id:
+            key = "FTPdEcG7vLKxNqKxYhTFdK4g"
+        case BaseTestCase.usApp.id:
+            key = "fasiJXz8jvSwn3G2B2QeraRe"
         default:
             fatalError()
         }
+        return key + ",master"
     }
     
     var v2router: AppRouter {
         return AppRouter(
             application: self,
-            configuration: AppRouter.Configuration(apiVersion: "1.2")
-        )
+            configuration: AppRouter.Configuration(apiVersion: "1.2"))
     }
     
     var applicationSupportDirectoryURL: URL {
-        return (
-            try! FileManager.default.url(
+        return (try!
+            FileManager.default.url(
                 for: .applicationSupportDirectory,
                 in: .userDomainMask,
                 appropriateFor: nil,
@@ -190,8 +201,8 @@ extension LCApplication {
     }
     
     var cachesDirectoryURL: URL {
-        return (
-            try! FileManager.default.url(
+        return (try!
+            FileManager.default.url(
                 for: .cachesDirectory,
                 in: .userDomainMask,
                 appropriateFor: nil,

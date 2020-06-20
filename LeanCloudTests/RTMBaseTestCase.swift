@@ -11,5 +11,8 @@ import XCTest
 
 class RTMBaseTestCase: BaseTestCase {
     
-    static let testableRTMURL: URL = URL(string: "wss://cn-n1-core-k8s-cell-12.leancloud.cn")!
+    static let useTestableRTMURL = false
+    static let testableRTMURL = RTMBaseTestCase.useTestableRTMURL
+        ? URL(string: "wss://cn-n1-core-k8s-cell-12.leancloud.cn")!
+        : nil
 }
