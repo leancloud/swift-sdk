@@ -926,7 +926,7 @@ extension IMErrorCommand {
         return LCError(
             code: Int(self.code),
             reason: self.hasReason ? self.reason : nil,
-            userInfo: userInfo)
+            userInfo: userInfo.isEmpty ? nil : userInfo)
     }
 }
 
@@ -948,7 +948,7 @@ extension IMSessionCommand {
             return LCError(
                 code: Int(self.code),
                 reason: self.hasReason ? self.reason : nil,
-                userInfo: userInfo)
+                userInfo: userInfo.isEmpty ? nil : userInfo)
         } else {
             return nil
         }
@@ -976,7 +976,7 @@ extension IMAckCommand {
             return LCError(
                 code: Int(self.code),
                 reason: self.hasReason ? self.reason : nil,
-                userInfo: userInfo)
+                userInfo: userInfo.isEmpty ? nil : userInfo)
         } else {
             return nil
         }
