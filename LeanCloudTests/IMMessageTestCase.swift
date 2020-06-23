@@ -146,6 +146,27 @@ class IMMessageTestCase: RTMBaseTestCase {
             conversationA.lastMessage?.sentTimestamp,
             conversationB.lastMessage?.sentTimestamp
         )
+        
+        expecting { (exp) in
+            try! conversationA.leave(completion: { (result) in
+                XCTAssertTrue(result.isSuccess)
+                XCTAssertNil(result.error)
+                exp.fulfill()
+            })
+        }
+        
+        expecting { (exp) in
+            let message = IMTextMessage()
+            message.text = uuid
+            try! conversationA.send(message: message, completion: { (result) in
+                XCTAssertTrue(result.isFailure)
+                XCTAssertNotNil(result.error)
+                XCTAssertNotNil(message.ID)
+                XCTAssertNotNil(message.sentTimestamp)
+                XCTAssertEqual(message.status, .failed)
+                exp.fulfill()
+            })
+        }
     }
     
     func testMessageContinuousSendingAndReceiving() {
