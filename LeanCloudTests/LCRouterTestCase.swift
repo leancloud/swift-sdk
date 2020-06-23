@@ -12,9 +12,8 @@ import XCTest
 class LCRouterTestCase: BaseTestCase {
     
     static let usApplication = try! LCApplication(
-        id: "jenSt9nvWtuJtmurdE28eg5M-MdYXbMMI",
-        key: "8VLPsDlskJi8KsKppED4xKS0"
-    )
+        id: BaseTestCase.usApp.id,
+        key: BaseTestCase.usApp.key)
     
     var appRouter: AppRouter {
         return LCRouterTestCase.usApplication.appRouter
