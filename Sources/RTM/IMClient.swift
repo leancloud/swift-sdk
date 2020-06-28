@@ -248,6 +248,7 @@ public class IMClient {
         self.connectionDelegator = RTMConnection.Delegator(
             queue: self.serialQueue)
         
+        self.currentDeviceToken = self.installation.deviceToken?.value
         self.deviceTokenObservation = self.installation.observe(
             \.deviceToken,
             options: [.old, .new, .initial]
