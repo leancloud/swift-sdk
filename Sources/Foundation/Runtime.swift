@@ -52,7 +52,7 @@ class Runtime {
             if let varChars: UnsafeMutablePointer<Int8> = property_copyAttributeValue(property, "V") {
                 
                 defer {
-                    let utf8Str = String(validatingUTF8: varChars)!
+                    let _ = String(validatingUTF8: varChars)
                     varChars.deallocate()
                 }
                 
@@ -115,7 +115,7 @@ class Runtime {
         }
         
         defer {
-            let utf8Str = String(validatingUTF8: varChars)!
+            let _ = String(validatingUTF8: varChars)
             varChars.deallocate()
         }
         
