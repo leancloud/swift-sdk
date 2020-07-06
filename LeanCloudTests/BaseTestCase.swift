@@ -25,22 +25,26 @@ class BaseTestCase: XCTestCase {
         let id: String
         let key: String
         let serverURL: String
+        let testableServerURL: String
     }
     
     static let cnApp = AppInfo(
         id: "S5vDI3IeCk1NLLiM1aFg3262-gzGzoHsz",
         key: "7g5pPsI55piz2PRLPWK5MPz0",
-        serverURL: "https://s5vdi3ie.lc-cn-n1-shared.com")
+        serverURL: "https://s5vdi3ie.lc-cn-n1-shared.com",
+        testableServerURL: "https://beta.leancloud.cn")
     
     static let ceApp = AppInfo(
         id: "skhiVsqIk7NLVdtHaUiWn0No-9Nh9j0Va",
         key: "T3TEAIcL8Ls5XGPsGz41B1bz",
-        serverURL: "https://skhivsqi.lc-cn-e1-shared.com")
+        serverURL: "https://skhivsqi.lc-cn-e1-shared.com",
+        testableServerURL: "https://beta-tab.leancloud.cn")
     
     static let usApp = AppInfo(
         id: "jenSt9nvWtuJtmurdE28eg5M-MdYXbMMI",
         key: "8VLPsDlskJi8KsKppED4xKS0",
-        serverURL: "")
+        serverURL: "",
+        testableServerURL: "https://beta-us.leancloud.cn")
     
     static var config: LCApplication.Configuration {
         var config = LCApplication.Configuration()
