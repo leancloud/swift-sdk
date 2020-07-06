@@ -510,9 +510,13 @@ extension IMClient {
             var outCommand = IMGenericCommand()
             outCommand.cmd = .session
             outCommand.op = .close
-            outCommand.peerID = self.ID
             outCommand.sessionMessage = IMSessionCommand()
-            self.connection.send(command: outCommand, callingQueue: self.serialQueue) { [weak self] (result) in
+            self.connection.send(
+                command: outCommand,
+                service: .instantMessaging,
+                peerID: self.ID,
+                callingQueue: self.serialQueue)
+            { [weak self] (result) in
                 guard let client: IMClient = self else { return }
                 assert(client.specificAssertion)
                 switch result {
@@ -1117,22 +1121,29 @@ extension IMClient {
         constructor: () -> IMGenericCommand,
         completion: ((IMClient, RTMConnection.CommandCallback.Result) -> Void)? = nil)
     {
-        var outCommand: IMGenericCommand = constructor()
-        outCommand.peerID = self.ID
+        let outCommand: IMGenericCommand = constructor()
         guard self.isSessionOpened else {
             let error = LCError(code: .clientNotOpen)
             completion?(self, .error(error))
             return
         }
         if let completion = completion {
-            self.connection.send(command: outCommand, callingQueue: self.serialQueue) { [weak self] (result) in
+            self.connection.send(
+                command: outCommand,
+                service: .instantMessaging,
+                peerID: self.ID,
+                callingQueue: self.serialQueue)
+            { [weak self] (result) in
                 guard let client: IMClient = self else {
                     return
                 }
                 completion(client, result)
             }
         } else {
-            self.connection.send(command: outCommand)
+            self.connection.send(
+                command: outCommand,
+                service: .instantMessaging,
+                peerID: self.ID)
         }
     }
     
@@ -1322,11 +1333,11 @@ extension IMClient {
         var outCommand = IMGenericCommand()
         outCommand.cmd = .session
         outCommand.op = op
-        outCommand.appID = self.application.id
-        outCommand.peerID = self.ID
         var sessionCommand = IMSessionCommand()
         switch op {
         case .open:
+            outCommand.appID = self.application.id
+            outCommand.peerID = self.ID
             sessionCommand.configBitmap = SessionConfigs.support.rawValue
             sessionCommand.deviceToken = self.currentDeviceToken
                 ?? Utility.UDID
@@ -1450,6 +1461,8 @@ extension IMClient {
         assert(self.specificAssertion)
         self.connection.send(
             command: command,
+            service: .instantMessaging,
+            peerID: self.ID,
             callingQueue: self.serialQueue)
         { [weak self] (result) in
             guard let client = self else {
@@ -1461,14 +1474,11 @@ extension IMClient {
                 client.handleSessionOpenCallback(command: command)
             case .error(let error):
                 switch error.code {
-                case LCError.InternalErrorCode
-                    .commandTimeout.rawValue:
+                case LCError.InternalErrorCode.commandTimeout.rawValue:
                     client.sendSessionReopenCommand(command: command)
-                case LCError.InternalErrorCode
-                    .connectionLost.rawValue:
+                case LCError.InternalErrorCode.connectionLost.rawValue:
                     Logger.shared.debug(error)
-                case LCError.ServerErrorCode
-                    .sessionTokenExpired.rawValue:
+                case LCError.ServerErrorCode.sessionTokenExpired.rawValue:
                     client.getSessionOpenCommand(
                         isReopen: true)
                     { (client, openCommand) in
@@ -2427,6 +2437,8 @@ extension IMClient: RTMConnectionDelegate {
                 weak var wClient = client
                 client.connection.send(
                     command: openCommand,
+                    service: .instantMessaging,
+                    peerID: client.ID,
                     callingQueue: client.serialQueue)
                 { (result) in
                     guard let sClient = wClient else {

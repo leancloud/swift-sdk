@@ -194,18 +194,24 @@ class RTMConnection {
             }
         }
         
-        let closure: (Result) -> Void
-        let expiration: TimeInterval
+        let peerID: String
+        let command: IMGenericCommand
         let callingQueue: DispatchQueue
+        var closures: [(Result) -> Void]
+        let expiration: TimeInterval
         
         init(
             timeoutInterval: TimeInterval,
+            peerID: String,
+            command: IMGenericCommand,
             callingQueue: DispatchQueue,
             closure: @escaping (Result) -> Void)
         {
-            self.closure = closure
-            self.expiration = Date().timeIntervalSince1970 + timeoutInterval
+            self.peerID = peerID
+            self.command = command
             self.callingQueue = callingQueue
+            self.closures = [closure]
+            self.expiration = Date().timeIntervalSince1970 + timeoutInterval
         }
     }
     
@@ -213,8 +219,9 @@ class RTMConnection {
         
         let pingpongInterval: TimeInterval = 180.0
         let pingTimeout: TimeInterval = 20.0
-        let source: DispatchSourceTimer
-        let socket: WebSocketClient
+        var source: DispatchSourceTimer?
+        var socket: WebSocketClient?
+        let queue: DispatchQueue
         private(set) var commandIndexSequence: [UInt16] = []
         private(set) var commandCallbackCollection: [UInt16 : CommandCallback] = [:]
         private(set) var lastPingSentTimestamp: TimeInterval = 0
@@ -242,28 +249,19 @@ class RTMConnection {
             self.specificKey = connection.specificKey
             self.specificValue = connection.specificValue
             #endif
-            self.source = DispatchSource.makeTimerSource(queue: connection.serialQueue)
             self.socket = socket
-            self.source.schedule(deadline: .now(), repeating: .seconds(1))
-            self.source.setEventHandler { [weak self] in
-                let currentTimestamp: TimeInterval = Date().timeIntervalSince1970
-                self?.check(commandTimeout: currentTimestamp)
-                self?.check(pingPong: currentTimestamp)
+            self.queue = connection.serialQueue
+            self.source = DispatchSource.makeTimerSource(queue: connection.serialQueue)
+            self.source?.schedule(
+                deadline: .now(),
+                repeating: .seconds(1),
+                leeway: .seconds(1))
+            self.source?.setEventHandler {
+                let currentTimestamp = Date().timeIntervalSince1970
+                self.check(commandTimeout: currentTimestamp)
+                self.check(pingPong: currentTimestamp)
             }
-            self.source.resume()
-        }
-        
-        deinit {
-            self.source.cancel()
-            let values = self.commandCallbackCollection.values
-            if values.count > 0 {
-                let error = LCError(code: .connectionLost)
-                for item in values {
-                    item.callingQueue.async {
-                        item.closure(.error(error))
-                    }
-                }
-            }
+            self.source?.resume()
         }
         
         func insert(commandCallback: CommandCallback, index: UInt16) {
@@ -287,13 +285,18 @@ class RTMConnection {
             if let index: Int = self.commandIndexSequence.firstIndex(of: indexKey) {
                 self.commandIndexSequence.remove(at: index)
             }
-            commandCallback.callingQueue.async {
-                if let error: LCError = command.lcEncounteredError {
-                    commandCallback.closure(.error(error))
-                } else {
-                    commandCallback.closure(.inCommand(command))
+            let result: CommandCallback.Result
+            if let error = command.lcEncounteredError {
+                result = .error(error)
+            } else {
+                result = .inCommand(command)
+            }
+            for closure in commandCallback.closures {
+                commandCallback.callingQueue.async {
+                    closure(result)
                 }
             }
+            commandCallback.closures.removeAll()
         }
         
         private func check(commandTimeout currentTimestamp: TimeInterval) {
@@ -309,10 +312,13 @@ class RTMConnection {
                     break
                 } else {
                     self.commandCallbackCollection.removeValue(forKey: indexKey)
-                    commandCallback.callingQueue.async {
-                        let error = LCError(code: .commandTimeout)
-                        commandCallback.closure(.error(error))
+                    let result = CommandCallback.Result.error(LCError(code: .commandTimeout))
+                    for closure in commandCallback.closures {
+                        commandCallback.callingQueue.async {
+                            closure(result)
+                        }
                     }
+                    commandCallback.closures.removeAll()
                 }
             }
             if length > 0 {
@@ -326,11 +332,13 @@ class RTMConnection {
             let lastPingTimeout: Bool = (isPingSentAndPongNotReceived && currentTimestamp > self.lastPingSentTimestamp + self.pingTimeout)
             let shouldNextPingPong: Bool = (!isPingSentAndPongNotReceived && currentTimestamp > self.lastPongReceivedTimestamp + self.pingpongInterval)
             if lastPingTimeout || shouldNextPingPong {
-                self.socket.write(ping: Data()) {
-                    Logger.shared.verbose("""
-                        \n\(self.socket)
+                if let socket = self.socket {
+                    socket.write(ping: Data()) {
+                        Logger.shared.verbose("""
+                        \n\(socket)
                         Ping Sent.
                         """)
+                    }
                 }
                 self.lastPingSentTimestamp = currentTimestamp
             }
@@ -338,13 +346,74 @@ class RTMConnection {
         
         func receivePong() {
             assert(self.specificAssertion)
-            Logger.shared.verbose("""
-                \n\(self.socket)
+            if let socket = self.socket {
+                Logger.shared.verbose("""
+                \n\(socket)
                 Pong Received.
                 """)
+            }
             self.lastPongReceivedTimestamp = Date().timeIntervalSince1970
         }
         
+        func tryThrottling(
+            command: IMGenericCommand,
+            peerID: String,
+            queue: DispatchQueue,
+            callback: @escaping (CommandCallback.Result) -> Void) -> Bool
+        {
+            assert(self.specificAssertion)
+            if command.cmd == .direct ||
+                (command.cmd == .conv &&
+                    (command.op == .start ||
+                        command.op == .update ||
+                        command.op == .members)) {
+                return false
+            }
+            for i in self.commandIndexSequence.reversed() {
+                if let commandCallback = self.commandCallbackCollection[i] {
+                    guard commandCallback.command.cmd == command.cmd,
+                          commandCallback.command.op == command.op,
+                          commandCallback.peerID == peerID,
+                          commandCallback.callingQueue === queue,
+                          commandCallback.command == command else {
+                        continue
+                    }
+                    commandCallback.closures.append(callback)
+                    return true
+                }
+            }
+            return false
+        }
+        
+        func clean(inCurrentQueue: Bool = true) {
+            let cleaning = {
+                assert(self.specificAssertion)
+                if let source = self.source {
+                    source.cancel()
+                    self.source = nil
+                }
+                self.socket = nil
+                if !self.commandIndexSequence.isEmpty {
+                    let result = CommandCallback.Result.error(LCError(code: .connectionLost))
+                    for index in self.commandIndexSequence {
+                        if let commandCallback = self.commandCallbackCollection[index] {
+                            for closure in commandCallback.closures {
+                                closure(result)
+                            }
+                        }
+                    }
+                }
+                self.commandIndexSequence.removeAll()
+                self.commandCallbackCollection.removeAll()
+            }
+            if inCurrentQueue {
+                cleaning()
+            } else {
+                self.queue.async {
+                    cleaning()
+                }
+            }
+        }
     }
     
     class Delegator {
@@ -389,6 +458,8 @@ class RTMConnection {
     }
     private(set) var socket: WebSocket? = nil
     private(set) var timer: Timer? = nil
+    private(set) var defaultInstantMessagingPeerID: String?
+    private(set) var needPeerIDForEveryCommandOfInstantMessaging: Bool = false
     private(set) var previousConnectingWorkItem: DispatchWorkItem?
     private(set) var useSecondaryServer: Bool = false
     private(set) var reconnectingDelay: DelayInterval = .second1
@@ -501,11 +572,10 @@ class RTMConnection {
             NotificationCenter.default.removeObserver(observer)
         }
         #endif
-        
         #if !os(watchOS)
         self.reachabilityManager?.stopListening()
         #endif
-        
+        self.timer?.clean(inCurrentQueue: false)
         self.socket?.disconnect()
     }
     
@@ -556,11 +626,14 @@ class RTMConnection {
     
     func send(
         command: IMGenericCommand,
+        service: RTMService,
+        peerID: String,
         callingQueue: DispatchQueue? = nil,
         callback: ((CommandCallback.Result) -> Void)? = nil)
     {
         self.serialQueue.async {
-            guard let socket: WebSocket = self.socket, let timer: Timer = self.timer else {
+            guard let socket = self.socket,
+                  let timer = self.timer else {
                 callingQueue?.async {
                     let error = LCError(code: .connectionLost)
                     callback?(.error(error))
@@ -568,7 +641,23 @@ class RTMConnection {
                 return
             }
             var outCommand = command
-            if callback != nil {
+            if service == .instantMessaging {
+                if let commandWithPeerID = self.tryPadding(
+                    peerID: peerID,
+                    for: outCommand) {
+                    outCommand = commandWithPeerID
+                }
+            }
+            let outCommandWithoutIndex = outCommand
+            if let callback = callback,
+               let callingQueue = callingQueue {
+                if timer.tryThrottling(
+                    command: outCommandWithoutIndex,
+                    peerID: peerID,
+                    queue: callingQueue,
+                    callback: callback) {
+                    return
+                }
                 outCommand.i = Int32(self.nextSerialIndex)
             }
             let serializedData: Data
@@ -582,28 +671,37 @@ class RTMConnection {
                 }
                 return
             }
-            guard serializedData.count <= 5000 else {
+            guard serializedData.count <= (1024 * 5) else {
                 callingQueue?.async {
                     let error = LCError(code: .commandDataLengthTooLong)
                     callback?(.error(error))
                 }
                 return
             }
-            if let callback = callback, let callingQueue = callingQueue {
+            if let callback = callback,
+               let callingQueue = callingQueue {
                 let commandCallback = CommandCallback(
-                    timeoutInterval: self.application.configuration.RTMCommandTimeoutInterval,
+                    timeoutInterval: self.application.configuration
+                        .RTMCommandTimeoutInterval,
+                    peerID: peerID,
+                    command: outCommandWithoutIndex,
                     callingQueue: callingQueue,
-                    closure: callback
-                )
+                    closure: callback)
                 let index: UInt16 = UInt16(outCommand.i)
                 timer.insert(commandCallback: commandCallback, index: index)
             }
             socket.write(data: serializedData) {
-                Logger.shared.debug("\n------ BEGIN LeanCloud Out Command\n\(socket)\n\(outCommand)------ END")
+                Logger.shared.debug("""
+                    \n------ BEGIN LeanCloud Out Command
+                    \(socket)
+                    Service: \(service.rawValue)
+                    PID: \(peerID)
+                    \(outCommand)
+                    ------ END
+                    """)
             }
         }
     }
-    
 }
 
 extension RTMConnection {
@@ -746,6 +844,7 @@ extension RTMConnection {
                 item.delegate?.connection(self, didDisconnect: error)
             }
         }
+        self.timer?.clean()
         self.timer = nil
     }
     
@@ -798,6 +897,27 @@ extension RTMConnection {
         )
         #endif
     }
+    
+    private func tryPadding(
+        peerID: String,
+        for command: IMGenericCommand) -> IMGenericCommand?
+    {
+        if command.cmd == .session,
+           command.op == .open {
+            if let defaultInstantMessagingPeerID = self.defaultInstantMessagingPeerID {
+                if defaultInstantMessagingPeerID != peerID {
+                    self.needPeerIDForEveryCommandOfInstantMessaging = true
+                }
+            } else {
+                self.defaultInstantMessagingPeerID = peerID
+            }
+        } else if self.needPeerIDForEveryCommandOfInstantMessaging {
+            var commandWithPeerID = command
+            commandWithPeerID.peerID = peerID
+            return commandWithPeerID
+        }
+        return nil
+    }
 }
 
 extension RTMConnection: WebSocketAdvancedDelegate, WebSocketPongDelegate {
@@ -811,6 +931,8 @@ extension RTMConnection: WebSocketAdvancedDelegate, WebSocketPongDelegate {
             \n\(socket)
             Connect Success.
             """)
+        self.defaultInstantMessagingPeerID = nil
+        self.needPeerIDForEveryCommandOfInstantMessaging = false
         self.reconnectingDelay = .second1
         self.rtmRouter?.updateFailureCount(reset: true)
         self.timer = Timer(connection: self, socket: socket)
@@ -852,10 +974,16 @@ extension RTMConnection: WebSocketAdvancedDelegate, WebSocketPongDelegate {
                 self.timer?.handle(callbackCommand: inCommand)
             } else {
                 var delegator: Delegator?
-                if let peerID = (inCommand.hasPeerID ? inCommand.peerID : nil) {
-                    delegator = self.instantMessagingDelegatorMap[peerID]
-                } else if let installationID = (inCommand.hasInstallationID ? inCommand.installationID : nil) {
-                    delegator = self.liveQueryDelegatorMap[installationID]
+                if inCommand.hasService {
+                    if inCommand.service == RTMService.instantMessaging.rawValue {
+                        if let peerID = (inCommand.hasPeerID ? inCommand.peerID : self.defaultInstantMessagingPeerID) {
+                            delegator = self.instantMessagingDelegatorMap[peerID]
+                        }
+                    } else if inCommand.service == RTMService.liveQuery.rawValue {
+                        if let installationID = (inCommand.hasInstallationID ? inCommand.installationID : nil) {
+                            delegator = self.liveQueryDelegatorMap[installationID]
+                        }
+                    }
                 }
                 delegator?.queue.async {
                     delegator?.delegate?.connection(self, didReceiveCommand: inCommand)
