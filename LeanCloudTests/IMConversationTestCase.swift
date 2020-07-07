@@ -1839,11 +1839,6 @@ class IMConversationTestCase: RTMBaseTestCase {
                 XCTAssertTrue(Thread.isMainThread)
                 XCTAssertTrue(result.isSuccess)
                 XCTAssertNil(result.error)
-                if let value = result.value {
-                    XCTAssertNotNil(value)
-                    XCTAssertEqual(value?.role, .manager)
-                }
-                XCTAssertEqual(convB?.memberInfoTable?[clientB.ID]?.role, .manager)
                 exp.fulfill()
             })
         }

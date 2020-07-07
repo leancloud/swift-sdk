@@ -107,11 +107,16 @@ class RTMConnectionTestCase: RTMBaseTestCase {
         var connection: RTMConnection? = tuple?.0
         
         let deinitExp = expectation(description: "deinit")
-        let commandCallback = RTMConnection.CommandCallback(timeoutInterval: 30, callingQueue: .main, closure: { (result) in
+        let commandCallback = RTMConnection.CommandCallback(
+            timeoutInterval: 30,
+            peerID: peerID,
+            command: IMGenericCommand(),
+            callingQueue: .main)
+        { (result) in
             XCTAssertTrue(Thread.isMainThread)
             XCTAssertEqual(result.error?.code, LCError.InternalErrorCode.connectionLost.rawValue)
             deinitExp.fulfill()
-        })
+        }
         connection?.serialQueue.async {
             connection?.timer?.insert(commandCallback: commandCallback, index: 0)
             RTMConnectionManager.default.unregister(
@@ -133,7 +138,12 @@ class RTMConnectionTestCase: RTMBaseTestCase {
         
         let timeoutExp = expectation(description: "command callback timeout")
         let start = Date().timeIntervalSince1970
-        let commandCallback = RTMConnection.CommandCallback(timeoutInterval: commandTimeoutInterval, callingQueue: .main) { (result) in
+        let commandCallback = RTMConnection.CommandCallback(
+            timeoutInterval: commandTimeoutInterval,
+            peerID: peerID,
+            command: IMGenericCommand(),
+            callingQueue: .main)
+        { (result) in
             XCTAssertTrue(Thread.isMainThread)
             XCTAssertEqual(result.error?.code, LCError.InternalErrorCode.commandTimeout.rawValue)
             let interval = Date().timeIntervalSince1970 - start
@@ -141,7 +151,9 @@ class RTMConnectionTestCase: RTMBaseTestCase {
             timeoutExp.fulfill()
         }
         connection.serialQueue.async {
-            connection.timer?.insert(commandCallback: commandCallback, index: connection.underlyingSerialIndex)
+            connection.timer?.insert(
+                commandCallback: commandCallback,
+                index: connection.timer?.nextIndex() ?? 999)
         }
         wait(for: [timeoutExp], timeout: commandTimeoutInterval * 2)
         
@@ -226,10 +238,15 @@ class RTMConnectionTestCase: RTMBaseTestCase {
         let connection = tuple.0
         let delegator = tuple.1
         
-        XCTAssertEqual(connection.underlyingSerialIndex, 1)
+        XCTAssertEqual(connection.timer?.index, 0)
         
         let sendExp1 = expectation(description: "send command")
-        connection.send(command: testableCommand(peerID: peerID), callingQueue: .main) { (result) in
+        connection.send(
+            command: testableCommand(peerID: peerID),
+            service: .instantMessaging,
+            peerID: peerID,
+            callingQueue: .main)
+        { (result) in
             XCTAssertTrue(Thread.isMainThread)
             XCTAssertNotNil(result.command)
             XCTAssertNil(result.error)
@@ -237,19 +254,24 @@ class RTMConnectionTestCase: RTMBaseTestCase {
         }
         wait(for: [sendExp1], timeout: timeout)
         
-        XCTAssertEqual(connection.underlyingSerialIndex, 2)
+        XCTAssertEqual(connection.timer?.index, 1)
         
         let sendExp2 = expectation(description: "send command with big size")
         var largeCommand = testableCommand(peerID: peerID)
-        largeCommand.peerID = String(repeating: "a", count: 5000)
-        connection.send(command: largeCommand, callingQueue: .main) { (result) in
+        largeCommand.peerID = String(repeating: "a", count: 6000)
+        connection.send(
+            command: largeCommand,
+            service: .instantMessaging,
+            peerID: peerID,
+            callingQueue: .main)
+        { (result) in
             XCTAssertTrue(Thread.isMainThread)
             XCTAssertEqual(result.error?.code, LCError.InternalErrorCode.commandDataLengthTooLong.rawValue)
             sendExp2.fulfill()
         }
         wait(for: [sendExp2], timeout: timeout)
         
-        XCTAssertEqual(connection.underlyingSerialIndex, 3)
+        XCTAssertEqual(connection.timer?.index, 2)
         
         let disconnectExp = expectation(description: "disconnect")
         delegator.didDisconnect = { _, _ in
@@ -259,7 +281,12 @@ class RTMConnectionTestCase: RTMBaseTestCase {
         wait(for: [disconnectExp], timeout: timeout)
         
         let sendExp3 = expectation(description: "send command when connection lost")
-        connection.send(command: testableCommand(peerID: peerID), callingQueue: .main) { (result) in
+        connection.send(
+            command: testableCommand(peerID: peerID),
+            service: .instantMessaging,
+            peerID: peerID,
+            callingQueue: .main)
+        { (result) in
             XCTAssertTrue(Thread.isMainThread)
             XCTAssertNil(result.command)
             XCTAssertEqual(result.error?.code, LCError.InternalErrorCode.connectionLost.rawValue)
@@ -267,7 +294,7 @@ class RTMConnectionTestCase: RTMBaseTestCase {
         }
         wait(for: [sendExp3], timeout: timeout)
         
-        XCTAssertEqual(connection.underlyingSerialIndex, 3)
+        XCTAssertNil(connection.timer)
     }
     
     func testGoaway() {
@@ -309,6 +336,96 @@ class RTMConnectionTestCase: RTMBaseTestCase {
         XCTAssertGreaterThan(connection.rtmRouter!.table!.createdTimestamp, oldDate)
     }
 
+    func testThrottlingOutCommand() {
+        let peerID = uuid
+        let tuple = connectedConnection()
+        let connection = tuple.0
+        expecting(
+            description: "Throttling Out Command",
+            count: 3)
+        { (exp) in
+            var index: Int32?
+            for _ in 0...2 {
+                var outCommand = IMGenericCommand()
+                outCommand.cmd = .session
+                outCommand.op = .open
+                outCommand.appID = LCApplication.default.id
+                outCommand.peerID = peerID
+                var sessionCommand = IMSessionCommand()
+                sessionCommand.ua = LCApplication.default.httpClient.configuration.userAgent
+                outCommand.sessionMessage = sessionCommand
+                connection.send(
+                    command: outCommand,
+                    service: .instantMessaging,
+                    peerID: peerID,
+                    callingQueue: .main)
+                { (result) in
+                    XCTAssertTrue(Thread.isMainThread)
+                    if index == nil {
+                        index = result.command?.i
+                    }
+                    XCTAssertNotNil(result.command)
+                    XCTAssertNil(result.error)
+                    XCTAssertEqual(result.command?.i, index)
+                    exp.fulfill()
+                }
+            }
+        }
+        var conversationID: String!
+        expecting { (exp) in
+            var outCommand = IMGenericCommand()
+            outCommand.cmd = .conv
+            outCommand.op = .start
+            var convCommand = IMConvCommand()
+            convCommand.m = [peerID]
+            outCommand.convMessage = convCommand
+            connection.send(
+                command: outCommand,
+                service: .instantMessaging,
+                peerID: peerID,
+                callingQueue: .main)
+            { (result) in
+                XCTAssertNotNil(result.command)
+                XCTAssertNil(result.error)
+                conversationID = result.command?.convMessage.cid
+                exp.fulfill()
+            }
+        }
+        if let conversationID = conversationID,
+           !conversationID.isEmpty {
+            var inCommandIndexSet = Set<Int32>()
+            let count = 3
+            expecting(
+                description: "NOT Throttling Direct Command",
+                count: count)
+            { (exp) in
+                for _ in 0..<count {
+                    var outCommand = IMGenericCommand()
+                    outCommand.cmd = .direct
+                    var directCommand = IMDirectCommand()
+                    directCommand.cid = conversationID
+                    directCommand.msg = peerID
+                    outCommand.directMessage = directCommand
+                    connection.send(
+                        command: outCommand,
+                        service: .instantMessaging,
+                        peerID: peerID,
+                        callingQueue: .main)
+                    { (result) in
+                        if let i = result.command?.i {
+                            inCommandIndexSet.insert(i)
+                        }
+                        XCTAssertNotNil(result.command)
+                        XCTAssertNil(result.error)
+                        exp.fulfill()
+                    }
+                }
+            }
+            XCTAssertEqual(inCommandIndexSet.count, count)
+        } else {
+            XCTFail()
+        }
+    }
 }
 
 extension RTMConnectionTestCase {
@@ -353,6 +470,13 @@ extension RTMConnectionTestCase {
     
     class Delegator: RTMConnectionDelegate {
         
+        func reset() {
+            inConnecting = nil
+            didConnect = nil
+            didDisconnect = nil
+            didReceiveCommand = nil
+        }
+        
         var inConnecting: ((RTMConnection) -> Void)?
         func connection(inConnecting connection: RTMConnection) {
             inConnecting?(connection)
@@ -372,7 +496,5 @@ extension RTMConnectionTestCase {
         func connection(_ connection: RTMConnection, didReceiveCommand inCommand: IMGenericCommand) {
             didReceiveCommand?(connection, inCommand)
         }
-        
     }
-    
 }
