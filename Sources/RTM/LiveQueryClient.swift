@@ -174,7 +174,12 @@ class LiveQueryClient {
         }
         self.sessionState = .loggingIn
         let outCommand = self.newLiveQueryCommand(type: .login)
-        self.connection.send(command: outCommand, callingQueue: self.serialQueue) { [weak self] (result) in
+        self.connection.send(
+            command: outCommand,
+            service: .liveQuery,
+            peerID: self.ID,
+            callingQueue: self.serialQueue)
+        { [weak self] (result) in
             assert(self?.specificAssertion ?? true)
             switch result {
             case .inCommand(let inCommand):
