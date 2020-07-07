@@ -152,6 +152,7 @@ class RTMConnectionManager {
         } else {
             interval *= 2
         }
+        self.connectingDelayIntervalMap[appID] = interval
         return interval
     }
     
