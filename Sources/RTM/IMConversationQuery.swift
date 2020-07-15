@@ -85,9 +85,6 @@ public class IMConversationQuery: LCQuery {
     
     // MARK: Where Condition
     
-    /// If this property is a non-nil value, query will always use it as where condition, default is nil.
-    public var whereString: String?
-    
     /// Add constraint in query.
     ///
     /// - Parameters:
@@ -402,8 +399,8 @@ private extension IMConversationQuery {
             let data = try JSONSerialization.data(withJSONObject: whereCondition)
             whereString = String(data: data, encoding: .utf8)
         }
-        if let sortCondition: String = dictionary["order"] as? String {
-            sortString = sortCondition
+        if let orderedKeys = self.orderedKeys {
+            sortString = orderedKeys
         }
         return (whereString, sortString)
     }

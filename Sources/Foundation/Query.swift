@@ -26,16 +26,19 @@ public class LCQuery: NSObject, NSCopying, NSCoding {
     /// The query result whether include ACL.
     public var includeACL: Bool?
     
-    private var includedKeys: Set<String> = []
-    private var selectedKeys: Set<String> = []
+    /// If this property is a non-nil value, query will always use it as where condition, default is `nil`.
+    public var whereString: String?
     
-    private var equalityTable: [String: LCValue] = [:]
-    private var equalityPairs: [[String: LCValue]] {
-        return self.equalityTable.map { [$0: $1] }
-    }
+    /// The ordered keys.
+    public var orderedKeys: String?
     
-    private var orderedKeys: String?
+    /// The included keys.
+    public var includedKeys: Set<String> = []
     
+    /// The selected keys.
+    public var selectedKeys: Set<String> = []
+    
+    var equalityTable: [String: LCValue] = [:]
     var constraintDictionary: [String: Any] = [:]
     
     var extraParameters: [String: Any]?
@@ -66,11 +69,97 @@ public class LCQuery: NSObject, NSCopying, NSCoding {
             dictionary["returnACL"] = "true"
         }
         if let extraParameters = self.extraParameters {
-            extraParameters.forEach { (key, value) in
+            for (key, value) in extraParameters {
                 dictionary[key] = value
             }
         }
         return dictionary
+    }
+    
+    var endpoint: String {
+        return self.application.httpClient
+            .getClassEndpoint(
+                className: self.objectClassName)
+    }
+    
+    /// Initialization.
+    /// - Parameters:
+    ///   - application: The application this query belong to, default is `LCApplication.default`.
+    ///   - className: The name of the class which will be queried.
+    public init(
+        application: LCApplication = .default,
+        className: String)
+    {
+        self.application = application
+        self.objectClassName = className
+    }
+    
+    public func copy(with zone: NSZone?) -> Any {
+        let query = LCQuery(
+            application: self.application,
+            className: self.objectClassName)
+        query.limit = self.limit
+        query.skip = self.skip
+        query.includeACL = self.includeACL
+        query.whereString = self.whereString
+        query.includedKeys = self.includedKeys
+        query.selectedKeys = self.selectedKeys
+        query.equalityTable = self.equalityTable
+        query.orderedKeys = self.orderedKeys
+        query.constraintDictionary = self.constraintDictionary
+        query.extraParameters = self.extraParameters
+        return query
+    }
+    
+    public required init?(coder aDecoder: NSCoder) {
+        guard let objectClassName = aDecoder.decodeObject(forKey: "objectClassName") as? String else {
+            return nil
+        }
+        self.objectClassName = objectClassName
+        if let applicationID = aDecoder.decodeObject(forKey: "applicationID") as? String,
+           let registeredApplication = LCApplication.registry[applicationID] {
+            self.application = registeredApplication
+        } else {
+            self.application = .default
+        }
+        self.limit = aDecoder.decodeObject(forKey: "limit") as? Int
+        self.skip = aDecoder.decodeObject(forKey: "skip") as? Int
+        self.includeACL = aDecoder.decodeObject(forKey: "skip") as? Bool
+        self.whereString = aDecoder.decodeObject(forKey: "whereString") as? String
+        self.includedKeys = aDecoder.decodeObject(forKey: "includedKeys") as? Set<String> ?? []
+        self.selectedKeys = aDecoder.decodeObject(forKey: "selectedKeys") as? Set<String> ?? []
+        self.equalityTable = aDecoder.decodeObject(forKey: "equalityTable") as? [String: LCValue] ?? [:]
+        self.orderedKeys = aDecoder.decodeObject(forKey: "orderedKeys") as? String
+        self.constraintDictionary = aDecoder.decodeObject(forKey: "constraintDictionary") as? [String: Any] ?? [:]
+        self.extraParameters = aDecoder.decodeObject(forKey: "extraParameters") as? [String: Any]
+    }
+    
+    public func encode(with aCoder: NSCoder) {
+        let applicationID: String = self.application.id
+        aCoder.encode(applicationID, forKey: "applicationID")
+        aCoder.encode(self.objectClassName, forKey: "objectClassName")
+        if let limit = self.limit {
+            aCoder.encode(limit, forKey: "limit")
+        }
+        if let skip = self.skip {
+            aCoder.encode(skip, forKey: "skip")
+        }
+        if let includeACL = self.includeACL {
+            aCoder.encode(includeACL, forKey: "includeACL")
+        }
+        if let whereString = self.whereString {
+            aCoder.encode(whereString, forKey: "whereString")
+        }
+        aCoder.encode(self.includedKeys, forKey: "includedKeys")
+        aCoder.encode(self.selectedKeys, forKey: "selectedKeys")
+        aCoder.encode(self.equalityTable, forKey: "equalityTable")
+        if let orderedKeys = self.orderedKeys {
+            aCoder.encode(orderedKeys, forKey: "orderedKeys")
+        }
+        aCoder.encode(self.constraintDictionary, forKey: "constraintDictionary")
+        if let extraParameters = self.extraParameters {
+            aCoder.encode(extraParameters, forKey: "extraParameters")
+        }
     }
     
     /// Constraint for key.
@@ -156,102 +245,34 @@ public class LCQuery: NSObject, NSCopying, NSCoding {
         case descending
     }
     
-    var endpoint: String {
-        return self.application.httpClient.getClassEndpoint(className: objectClassName)
-    }
-    
-    /**
-     Construct query with class name.
-     
-     - parameter objectClassName: The class name to query.
-     */
-    public init(
-        application: LCApplication = LCApplication.default,
-        className: String)
-    {
-        self.application = application
-        self.objectClassName = className
-    }
-    
-    public func copy(with zone: NSZone?) -> Any {
-        let query = LCQuery(application: self.application, className: objectClassName)
-        
-        query.includedKeys  = includedKeys
-        query.selectedKeys  = selectedKeys
-        query.equalityTable = equalityTable
-        query.constraintDictionary = constraintDictionary
-        query.extraParameters = extraParameters
-        query.limit = limit
-        query.skip  = skip
-        
-        return query
-    }
-    
-    public required init?(coder aDecoder: NSCoder) {
-        if let applicationID = aDecoder.decodeObject(forKey: "applicationID") as? String,
-           let registeredApplication = LCApplication.registry[applicationID] {
-            self.application = registeredApplication
-        } else {
-            self.application = LCApplication.default
-        }
-        objectClassName = aDecoder.decodeObject(forKey: "objectClassName") as! String
-        includedKeys    = aDecoder.decodeObject(forKey: "includedKeys") as! Set<String>
-        selectedKeys    = aDecoder.decodeObject(forKey: "selectedKeys") as! Set<String>
-        equalityTable   = aDecoder.decodeObject(forKey: "equalityTable") as! [String: LCValue]
-        constraintDictionary = aDecoder.decodeObject(forKey: "constraintDictionary") as! [String: Any]
-        extraParameters = aDecoder.decodeObject(forKey: "extraParameters") as? [String: Any]
-        limit = aDecoder.decodeObject(forKey: "limit") as? Int
-        skip  = aDecoder.decodeObject(forKey: "skip") as? Int
-    }
-    
-    public func encode(with aCoder: NSCoder) {
-        let applicationID: String = self.application.id
-        aCoder.encode(applicationID, forKey: "applicationID")
-        aCoder.encode(objectClassName, forKey: "objectClassName")
-        aCoder.encode(includedKeys, forKey: "includedKeys")
-        aCoder.encode(selectedKeys, forKey: "selectedKeys")
-        aCoder.encode(equalityTable, forKey: "equalityTable")
-        aCoder.encode(constraintDictionary, forKey: "constraintDictionary")
-        
-        if let extraParameters = extraParameters {
-            aCoder.encode(extraParameters, forKey: "extraParameters")
-        }
-        if let limit = limit {
-            aCoder.encode(limit, forKey: "limit")
-        }
-        if let skip = skip {
-            aCoder.encode(skip, forKey: "skip")
-        }
-    }
-    
-    /**
-     Add constraint in query.
-     
-     - parameter constraint: The constraint.
-     */
+    /// Add a constraint for key.
+    /// - Parameters:
+    ///   - key: The key will be constrained.
+    ///   - constraint: See `Constraint`.
     public func whereKey(_ key: String, _ constraint: Constraint) {
-        // because self.where will never throw error, so use try!
-        try! self.where(key, constraint)
+        do {
+            try self.where(key, constraint)
+        } catch {
+            Logger.shared.error(error)
+        }
     }
     
     func `where`(_ key: String, _ constraint: Constraint) throws {
         var dictionary: [String: Any]?
-        
         switch constraint {
-        /* Key matching. */
+        /* Key */
         case .included:
-            includedKeys.insert(key)
+            self.includedKeys.insert(key)
         case .selected:
-            selectedKeys.insert(key)
+            self.selectedKeys.insert(key)
         case .existed:
             dictionary = ["$exists": true]
         case .notExisted:
             dictionary = ["$exists": false]
-            
-        /* Equality matching. */
+        /* Equality */
         case let .equalTo(value):
-            equalityTable[key] = value.lcValue
-            constraintDictionary["$and"] = equalityPairs
+            self.equalityTable[key] = value.lcValue
+            self.constraintDictionary["$and"] = self.equalityTable.map { [$0: $1] }
         case let .notEqualTo(value):
             dictionary = ["$ne": value.lcValue]
         case let .lessThan(value):
@@ -262,8 +283,7 @@ public class LCQuery: NSObject, NSCopying, NSCoding {
             dictionary = ["$gt": value.lcValue]
         case let .greaterThanOrEqualTo(value):
             dictionary = ["$gte": value.lcValue]
-            
-        /* Array matching. */
+        /* Array */
         case let .containedIn(array):
             dictionary = ["$in": array.lcArray]
         case let .notContainedIn(array):
@@ -272,47 +292,74 @@ public class LCQuery: NSObject, NSCopying, NSCoding {
             dictionary = ["$all": array.lcArray]
         case let .equalToSize(size):
             dictionary = ["$size": size]
-            
-        /* Geography point matching. */
+        /* GeoPoint */
         case let .locatedNear(center, minimal, maximal):
-            var value: [String: Any] = ["$nearSphere": center]
-            if let min = minimal { value["$minDistanceIn\(min.unit.rawValue)"] = min.value }
-            if let max = maximal { value["$maxDistanceIn\(max.unit.rawValue)"] = max.value }
-            dictionary = value
+            dictionary = ["$nearSphere": center]
+            if let min = minimal {
+                dictionary?["$minDistanceIn\(min.unit.rawValue)"] = min.value
+            }
+            if let max = maximal {
+                dictionary?["$maxDistanceIn\(max.unit.rawValue)"] = max.value
+            }
         case let .locatedWithin(southwest, northeast):
-            dictionary = ["$within": ["$box": [southwest, northeast]]]
-            
-        /* Query matching. */
+            dictionary = [
+                "$within": [
+                    "$box": [southwest, northeast]
+                ]
+            ]
+        /* Query */
         case let .matchedQuery(query):
             dictionary = ["$inQuery": query]
         case let .notMatchedQuery(query):
             dictionary = ["$notInQuery": query]
         case let .matchedQueryAndKey(query, key):
-            dictionary = ["$select": ["query": query, "key": key]]
+            dictionary = [
+                "$select": [
+                    "query": query,
+                    "key": key
+                ]
+            ]
         case let .notMatchedQueryAndKey(query, key):
-            dictionary = ["$dontSelect": ["query": query, "key": key]]
-            
-        /* String matching. */
+            dictionary = [
+                "$dontSelect": [
+                    "query": query,
+                    "key": key
+                ]
+            ]
+        /* String */
         case let .matchedRegularExpression(regex, option):
-            dictionary = ["$regex": regex, "$options": option ?? ""]
+            dictionary = [
+                "$regex": regex,
+                "$options": (option ?? "")
+            ]
         case let .matchedSubstring(string):
             dictionary = ["$regex": "\(string.regularEscapedString)"]
         case let .prefixedBy(string):
             dictionary = ["$regex": "^\(string.regularEscapedString)"]
         case let .suffixedBy(string):
             dictionary = ["$regex": "\(string.regularEscapedString)$"]
-            
+        /* Relation */
         case let .relatedTo(object):
-            constraintDictionary["$relatedTo"] = ["object": object, "key": key]
-            
+            self.constraintDictionary["$relatedTo"] = [
+                "object": object,
+                "key": key
+            ]
+        /* Order */
         case .ascending:
-            appendOrderedKey(key)
+            self.appendOrderedKey(key)
         case .descending:
-            appendOrderedKey("-\(key)")
+            self.appendOrderedKey("-\(key)")
         }
-        
         if let dictionary = dictionary {
-            addConstraint(key, dictionary)
+            self.constraintDictionary[key] = dictionary
+        }
+    }
+    
+    func appendOrderedKey(_ key: String) {
+        if let keys = self.orderedKeys {
+            self.orderedKeys = "\(keys),\(key)"
+        } else {
+            self.orderedKeys = key
         }
     }
     
@@ -370,29 +417,6 @@ public class LCQuery: NSObject, NSCopying, NSCoding {
         result.constraintDictionary["$or"] = [self.constraintDictionary, query.constraintDictionary]
         
         return result
-    }
-    
-    /**
-     Append ordered key to ordered keys string.
-     
-     - parameter orderedKey: The ordered key with optional '-' prefixed.
-     */
-    func appendOrderedKey(_ orderedKey: String) {
-        if let orderedKeys: String = self.orderedKeys {
-            self.orderedKeys = "\(orderedKeys),\(orderedKey)"
-        } else {
-            self.orderedKeys = orderedKey
-        }
-    }
-    
-    /**
-     Add a constraint for key.
-     
-     - parameter key:        The key on which the constraint to be added.
-     - parameter dictionary: The constraint dictionary for key.
-     */
-    func addConstraint(_ key: String, _ dictionary: [String: Any]) {
-        constraintDictionary[key] = dictionary
     }
     
     func parameters() throws -> [String: Any] {
@@ -653,7 +677,7 @@ public class LCQuery: NSObject, NSCopying, NSCoding {
                 completionHandler: completion)
         }
         return self._find(
-            parameters: nil,
+            parameters: parameters,
             cachePolicy: cachePolicy)
         { (result: LCQueryResult<T>) in
             switch result {
