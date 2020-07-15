@@ -48,11 +48,15 @@ class Utility {
         }
     }
     
-    static func jsonString(_ object: Any) throws -> String? {
-        return String(
-            data: try JSONSerialization.data(
-                withJSONObject: object),
-            encoding: .utf8)
+    static func jsonString(
+        _ object: Any?,
+        encoding: String.Encoding = .utf8) throws -> String?
+    {
+        guard let object = object else {
+            return nil
+        }
+        let data = try JSONSerialization.data(withJSONObject: object)
+        return String(data: data, encoding: encoding)
     }
 }
 

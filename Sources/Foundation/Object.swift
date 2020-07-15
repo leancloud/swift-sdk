@@ -764,8 +764,8 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
                             completionHandler: completion)
                     }
                 }
-                if let whereDictionary = query.lconValue["where"] {
-                    parameters["where"] = whereDictionary
+                if let lconWhere = query.lconWhere {
+                    parameters["where"] = lconWhere
                 }
             }
         }
