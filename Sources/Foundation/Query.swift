@@ -8,146 +8,161 @@
 
 import Foundation
 
-/**
- Query defines a query for objects.
- */
+/// Query
 public class LCQuery: NSObject, NSCopying, NSCoding {
+    
+    /// The application this query belong to.
     public let application: LCApplication
     
-    /// Object class name.
+    /// The class name of the object.
     public let objectClassName: String
-
+    
     /// The limit on the number of objects to return.
     public var limit: Int?
-
+    
     /// The number of objects to skip before returning.
     public var skip: Int?
     
     /// The query result whether include ACL.
     public var includeACL: Bool?
-
-    /// Included keys.
+    
     private var includedKeys: Set<String> = []
-
-    /// Selected keys.
     private var selectedKeys: Set<String> = []
-
-    /// Equality table.
+    
     private var equalityTable: [String: LCValue] = [:]
-
-    /// Equality key-value pairs.
     private var equalityPairs: [[String: LCValue]] {
-        return equalityTable.map { [$0: $1] }
+        return self.equalityTable.map { [$0: $1] }
     }
-
-    /// Ordered keys.
+    
     private var orderedKeys: String?
-
-    /// Dictionary of constraints indexed by key.
-    /// Note that it may contains LCValue or Query value.
+    
     var constraintDictionary: [String: Any] = [:]
-
-    /// Extra parameters for query request.
+    
     var extraParameters: [String: Any]?
-
-    /// LCON representation of query.
+    
     var lconValue: [String: Any] {
         var dictionary: [String: Any] = [:]
-
-        dictionary["className"] = objectClassName
-
-        if !constraintDictionary.isEmpty {
-            dictionary["where"] = ObjectProfiler.shared.lconValue(constraintDictionary)
+        dictionary["className"] = self.objectClassName
+        if !self.constraintDictionary.isEmpty {
+            dictionary["where"] = ObjectProfiler.shared.lconValue(self.constraintDictionary)
         }
-        if !includedKeys.isEmpty {
-            dictionary["include"] = includedKeys.joined(separator: ",")
+        if !self.includedKeys.isEmpty {
+            dictionary["include"] = self.includedKeys.joined(separator: ",")
         }
-        if !selectedKeys.isEmpty {
-            dictionary["keys"] = selectedKeys.joined(separator: ",")
+        if !self.selectedKeys.isEmpty {
+            dictionary["keys"] = self.selectedKeys.joined(separator: ",")
         }
-        if let orderedKeys = orderedKeys {
+        if let orderedKeys = self.orderedKeys {
             dictionary["order"] = orderedKeys
         }
-        if let limit = limit {
+        if let limit = self.limit {
             dictionary["limit"] = limit
         }
-        if let skip = skip {
+        if let skip = self.skip {
             dictionary["skip"] = skip
         }
-        if let includeACL = self.includeACL, includeACL {
+        if let includeACL = self.includeACL,
+           includeACL {
             dictionary["returnACL"] = "true"
         }
-
-        if let extraParameters = extraParameters {
+        if let extraParameters = self.extraParameters {
             extraParameters.forEach { (key, value) in
                 dictionary[key] = value
             }
         }
-
         return dictionary
     }
-
-    /// Parameters for query request.
-    private var parameters: [String: Any] {
-        var parameters = lconValue
-        do {
-            if let object = parameters["where"],
-                let jsonString = try Utility.jsonString(object) {
-                parameters["where"] = jsonString
-            }
-        } catch {
-            Logger.shared.error(error)
-        }
-        return parameters
-    }
-
-    /**
-     Constraint for key.
-     */
+    
+    /// Constraint for key.
     public enum Constraint {
+        /* Key */
+        
+        /// The value of the key contains all metadata;
+        /// Supporting key path by concatenating multiple keys with `.`.
         case included
+        /// Only the value of the key will return, prefixing the key with `-` means only the value of the key will not return;
+        /// Supporting key path by concatenating multiple keys with `.`.
         case selected
+        /// Whether the field exist.
         case existed
+        /// Whether the field not exist.
         case notExisted
-
+        
+        /* Value */
+        
+        /// See `$eq` in MongoDB.
         case equalTo(LCValueConvertible)
+        /// See `$ne` in MongoDB.
         case notEqualTo(LCValueConvertible)
+        /// See `$lt` in MongoDB.
         case lessThan(LCValueConvertible)
+        /// See `$lte` in MongoDB.
         case lessThanOrEqualTo(LCValueConvertible)
+        /// See `$gt` in MongoDB.
         case greaterThan(LCValueConvertible)
+        /// See `$gte` in MongoDB.
         case greaterThanOrEqualTo(LCValueConvertible)
-
+        
+        /* Array */
+        
+        /// See `$in` in MongoDB.
         case containedIn(LCArrayConvertible)
+        /// See `$nin` in MongoDB.
         case notContainedIn(LCArrayConvertible)
+        /// See `$all` in MongoDB.
         case containedAllIn(LCArrayConvertible)
+        /// See `$size` in MongoDB.
         case equalToSize(Int)
-
+        
+        /* GeoPoint */
+        
+        /// See `$nearSphere`, `$minDistance` and `$maxDistance` in MongoDB.
         case locatedNear(LCGeoPoint, minimal: LCGeoPoint.Distance?, maximal: LCGeoPoint.Distance?)
+        /// See `$geoWithin` and `$box` in MongoDB.
         case locatedWithin(southwest: LCGeoPoint, northeast: LCGeoPoint)
-
+        
+        /* Query */
+        
+        /// The value of the key match the query.
         case matchedQuery(LCQuery)
+        /// The value of the key not match the query.
         case notMatchedQuery(LCQuery)
+        /// The value of the key match the query and the key of the value will be `selected`.
         case matchedQueryAndKey(query: LCQuery, key: String)
+        /// The value of the key match the query and the key of the value will not be `selected`.
         case notMatchedQueryAndKey(query: LCQuery, key: String)
-
+        
+        /* String */
+        
+        /// See `$regex` and `$options` in MongoDB.
         case matchedRegularExpression(String, option: String?)
+        /// The string of the key contains the string.
         case matchedSubstring(String)
+        /// The string of the key has the prefix.
         case prefixedBy(String)
+        /// The string of the key has the suffix.
         case suffixedBy(String)
-
+        
+        /* Relation */
+        
+        /// Relation
         case relatedTo(LCObject)
-
+        
+        /* Order */
+        
+        /// Ascending
         case ascending
+        /// Descending
         case descending
     }
-
+    
     var endpoint: String {
         return self.application.httpClient.getClassEndpoint(className: objectClassName)
     }
-
+    
     /**
      Construct query with class name.
-
+     
      - parameter objectClassName: The class name to query.
      */
     public init(
@@ -157,10 +172,10 @@ public class LCQuery: NSObject, NSCopying, NSCoding {
         self.application = application
         self.objectClassName = className
     }
-
+    
     public func copy(with zone: NSZone?) -> Any {
         let query = LCQuery(application: self.application, className: objectClassName)
-
+        
         query.includedKeys  = includedKeys
         query.selectedKeys  = selectedKeys
         query.equalityTable = equalityTable
@@ -168,13 +183,13 @@ public class LCQuery: NSObject, NSCopying, NSCoding {
         query.extraParameters = extraParameters
         query.limit = limit
         query.skip  = skip
-
+        
         return query
     }
-
+    
     public required init?(coder aDecoder: NSCoder) {
         if let applicationID = aDecoder.decodeObject(forKey: "applicationID") as? String,
-            let registeredApplication = LCApplication.registry[applicationID] {
+           let registeredApplication = LCApplication.registry[applicationID] {
             self.application = registeredApplication
         } else {
             self.application = LCApplication.default
@@ -188,7 +203,7 @@ public class LCQuery: NSObject, NSCopying, NSCoding {
         limit = aDecoder.decodeObject(forKey: "limit") as? Int
         skip  = aDecoder.decodeObject(forKey: "skip") as? Int
     }
-
+    
     public func encode(with aCoder: NSCoder) {
         let applicationID: String = self.application.id
         aCoder.encode(applicationID, forKey: "applicationID")
@@ -197,7 +212,7 @@ public class LCQuery: NSObject, NSCopying, NSCoding {
         aCoder.encode(selectedKeys, forKey: "selectedKeys")
         aCoder.encode(equalityTable, forKey: "equalityTable")
         aCoder.encode(constraintDictionary, forKey: "constraintDictionary")
-
+        
         if let extraParameters = extraParameters {
             aCoder.encode(extraParameters, forKey: "extraParameters")
         }
@@ -208,10 +223,10 @@ public class LCQuery: NSObject, NSCopying, NSCoding {
             aCoder.encode(skip, forKey: "skip")
         }
     }
-
+    
     /**
      Add constraint in query.
-
+     
      - parameter constraint: The constraint.
      */
     public func whereKey(_ key: String, _ constraint: Constraint) {
@@ -221,7 +236,7 @@ public class LCQuery: NSObject, NSCopying, NSCoding {
     
     func `where`(_ key: String, _ constraint: Constraint) throws {
         var dictionary: [String: Any]?
-
+        
         switch constraint {
         /* Key matching. */
         case .included:
@@ -232,7 +247,7 @@ public class LCQuery: NSObject, NSCopying, NSCoding {
             dictionary = ["$exists": true]
         case .notExisted:
             dictionary = ["$exists": false]
-
+            
         /* Equality matching. */
         case let .equalTo(value):
             equalityTable[key] = value.lcValue
@@ -247,7 +262,7 @@ public class LCQuery: NSObject, NSCopying, NSCoding {
             dictionary = ["$gt": value.lcValue]
         case let .greaterThanOrEqualTo(value):
             dictionary = ["$gte": value.lcValue]
-
+            
         /* Array matching. */
         case let .containedIn(array):
             dictionary = ["$in": array.lcArray]
@@ -257,7 +272,7 @@ public class LCQuery: NSObject, NSCopying, NSCoding {
             dictionary = ["$all": array.lcArray]
         case let .equalToSize(size):
             dictionary = ["$size": size]
-
+            
         /* Geography point matching. */
         case let .locatedNear(center, minimal, maximal):
             var value: [String: Any] = ["$nearSphere": center]
@@ -266,7 +281,7 @@ public class LCQuery: NSObject, NSCopying, NSCoding {
             dictionary = value
         case let .locatedWithin(southwest, northeast):
             dictionary = ["$within": ["$box": [southwest, northeast]]]
-
+            
         /* Query matching. */
         case let .matchedQuery(query):
             dictionary = ["$inQuery": query]
@@ -276,7 +291,7 @@ public class LCQuery: NSObject, NSCopying, NSCoding {
             dictionary = ["$select": ["query": query, "key": key]]
         case let .notMatchedQueryAndKey(query, key):
             dictionary = ["$dontSelect": ["query": query, "key": key]]
-
+            
         /* String matching. */
         case let .matchedRegularExpression(regex, option):
             dictionary = ["$regex": regex, "$options": option ?? ""]
@@ -286,24 +301,24 @@ public class LCQuery: NSObject, NSCopying, NSCoding {
             dictionary = ["$regex": "^\(string.regularEscapedString)"]
         case let .suffixedBy(string):
             dictionary = ["$regex": "\(string.regularEscapedString)$"]
-
+            
         case let .relatedTo(object):
             constraintDictionary["$relatedTo"] = ["object": object, "key": key]
-
+            
         case .ascending:
             appendOrderedKey(key)
         case .descending:
             appendOrderedKey("-\(key)")
         }
-
+        
         if let dictionary = dictionary {
             addConstraint(key, dictionary)
         }
     }
-
+    
     /**
      Validate query class name.
-
+     
      - parameter query: The query to be validated.
      */
     func validateApplicationAndClassName(_ query: LCQuery) throws {
@@ -318,48 +333,48 @@ public class LCQuery: NSObject, NSCopying, NSCoding {
                 reason: "`objectClassName` != `query.objectClassName`, they should be equal.")
         }
     }
-
+    
     /**
      Get logic AND of another query.
-
+     
      Note that it only combine constraints of two queries, the limit and skip option will be discarded.
-
+     
      - parameter query: The another query.
-
+     
      - returns: The logic AND of two queries.
      */
     public func and(_ query: LCQuery) throws -> LCQuery {
         try validateApplicationAndClassName(query)
-
+        
         let result = LCQuery(application: self.application, className: objectClassName)
-
+        
         result.constraintDictionary["$and"] = [self.constraintDictionary, query.constraintDictionary]
-
+        
         return result
     }
-
+    
     /**
      Get logic OR of another query.
-
+     
      Note that it only combine constraints of two queries, the limit and skip option will be discarded.
-
+     
      - parameter query: The another query.
-
+     
      - returns: The logic OR of two queries.
      */
     public func or(_ query: LCQuery) throws -> LCQuery {
         try validateApplicationAndClassName(query)
-
+        
         let result = LCQuery(application: self.application, className: objectClassName)
-
+        
         result.constraintDictionary["$or"] = [self.constraintDictionary, query.constraintDictionary]
-
+        
         return result
     }
-
+    
     /**
      Append ordered key to ordered keys string.
-
+     
      - parameter orderedKey: The ordered key with optional '-' prefixed.
      */
     func appendOrderedKey(_ orderedKey: String) {
@@ -369,49 +384,60 @@ public class LCQuery: NSObject, NSCopying, NSCoding {
             self.orderedKeys = orderedKey
         }
     }
-
+    
     /**
      Add a constraint for key.
-
+     
      - parameter key:        The key on which the constraint to be added.
      - parameter dictionary: The constraint dictionary for key.
      */
     func addConstraint(_ key: String, _ dictionary: [String: Any]) {
         constraintDictionary[key] = dictionary
     }
-
-    /**
-     Transform JSON results to objects.
-
-     - parameter results: The results return by query.
-
-     - returns: An array of LCObject objects.
-     */
-    func processResults<T: LCObject>(_ results: [Any], className: String?) -> [T] {
-        return results.map { dictionary in
-            let object = ObjectProfiler.shared.object(
-                application: self.application,
-                className: className ?? self.objectClassName) as! T
-
+    
+    func parameters() throws -> [String: Any] {
+        var parameters = self.lconValue
+        if let whereObject = parameters["where"],
+           let whereString = try Utility.jsonString(whereObject) {
+            parameters["where"] = whereString
+        }
+        return parameters
+    }
+    
+    func processResults<T: LCObject>(
+        _ results: [Any],
+        className: String?) throws -> [T]
+    {
+        let className = className ?? self.objectClassName
+        return try results.map { dictionary in
+            guard let object = ObjectProfiler.shared.object(
+                    application: self.application,
+                    className: className) as? T else {
+                throw LCError(
+                    code: .malformedData,
+                    userInfo: [
+                        "className": className,
+                        "data": dictionary,
+                    ])
+            }
             if let dictionary = dictionary as? [String: Any] {
                 ObjectProfiler.shared.updateObject(object, dictionary)
             }
-
             return object
         }
     }
     
     func storeResponse(response: LCResponse) {
-        guard response.error == nil,
-            let urlCache = self.application.httpClient.urlCache,
-            let urlRequest = response.response.request,
-            let httpResponse = response.response.response,
-            let data = response.response.data else {
-                return
+        guard response.isSuccess,
+              let urlCache = self.application.httpClient.urlCache,
+              let urlRequest = response.response.request,
+              let urlResponse = response.response.response,
+              let data = response.response.data else {
+            return
         }
         urlCache.storeCachedResponse(
             CachedURLResponse(
-                response: httpResponse,
+                response: urlResponse,
                 data: data),
             for: urlRequest)
     }
@@ -423,194 +449,282 @@ public class LCQuery: NSObject, NSCopying, NSCoding {
         case networkElseCache
     }
     
+    // MARK: Find
+    
     /// Query objects synchronously.
-    /// - Parameter cachePolicy: The request’s cache policy, default is `onlyNetwork`.
-    public func find<T>(cachePolicy: CachePolicy = .onlyNetwork) -> LCQueryResult<T> {
+    /// - Parameter cachePolicy: See `CachePolicy`, default is `CachePolicy.onlyNetwork`.
+    /// - Returns: The result of query.
+    public func find<T: LCObject>(cachePolicy: CachePolicy = .onlyNetwork) -> LCQueryResult<T> {
         return expect { fulfill in
-            self.find(cachePolicy: cachePolicy, completionInBackground: { result in
+            self._find(cachePolicy: cachePolicy) { (result) in
                 fulfill(result)
-            })
+            }
         }
     }
     
     /// Query objects asynchronously.
-    /// - Parameter cachePolicy: The request’s cache policy, default is `onlyNetwork`.
-    /// - Parameter completion: The completion callback closure.
+    /// - Parameters:
+    ///   - cachePolicy: See `CachePolicy`, default is `CachePolicy.onlyNetwork`.
+    ///   - completionQueue: The queue where the `completion` be called, default is `DispatchQueue.main`.
+    ///   - completion: The result callback of query.
+    /// - Returns: `LCRequest`
     @discardableResult
-    public func find<T>(
+    public func find<T: LCObject>(
         cachePolicy: CachePolicy = .onlyNetwork,
         completionQueue: DispatchQueue = .main,
-        completion: @escaping (LCQueryResult<T>) -> Void)
-        -> LCRequest
+        completion: @escaping (LCQueryResult<T>) -> Void) -> LCRequest
     {
-        return find(cachePolicy: cachePolicy, completionInBackground: { result in
+        return self._find(cachePolicy: cachePolicy) { result in
             completionQueue.async {
                 completion(result)
             }
-        })
+        }
     }
-
+    
     @discardableResult
-    private func find<T>(
+    private func _find<T: LCObject>(
+        parameters: [String: Any]? = nil,
         cachePolicy: CachePolicy,
-        completionInBackground completion: @escaping (LCQueryResult<T>) -> Void)
-        -> LCRequest
+        completion: @escaping (LCQueryResult<T>) -> Void) -> LCRequest
     {
-        return self.application.httpClient.request(.get, endpoint, parameters: parameters, cachePolicy: cachePolicy) { response in
+        let httpClient: HTTPClient = self.application.httpClient
+        let requestParameters: [String: Any]
+        if let parameters = parameters {
+            requestParameters = parameters
+        } else {
+            do {
+                requestParameters = try self.parameters()
+            } catch {
+                return httpClient.request(
+                    error: LCError(error: error),
+                    completionHandler: completion)
+            }
+        }
+        return httpClient.request(
+            .get, self.endpoint,
+            parameters: requestParameters,
+            cachePolicy: cachePolicy)
+        { response in
             self.storeResponse(response: response)
             if let error = LCError(response: response) {
                 completion(.failure(error: error))
             } else {
-                let className: String? = response["className"]
-                let objects: [T] = self.processResults(response.results, className: className)
-                completion(.success(objects: objects))
+                do {
+                    let objects: [T] = try self.processResults(
+                        response.results,
+                        className: response["className"])
+                    completion(.success(objects: objects))
+                } catch {
+                    let err = LCError(error: error)
+                    completion(.failure(error: err))
+                }
             }
         }
     }
     
-    /// Get first object of query synchronously.
-    /// All query conditions other than `limit` will take effect for current request.
-    /// - Parameter cachePolicy: The request’s cache policy, default is `onlyNetwork`.
+    // MARK: Get First
+    
+    /// Get first object synchronously.
+    /// - Parameter cachePolicy: See `CachePolicy`, default is `CachePolicy.onlyNetwork`.
+    /// - Returns: The result of query.
     public func getFirst<T: LCObject>(cachePolicy: CachePolicy = .onlyNetwork) -> LCValueResult<T> {
         return expect { fulfill in
-            self.getFirst(cachePolicy: cachePolicy, completionInBackground: { result in
+            self._getFirst(cachePolicy: cachePolicy) { result in
                 fulfill(result)
-            })
+            }
         }
     }
     
-    /// Get first object of query asynchronously.
-    /// All query conditions other than `limit` will take effect for current request.
-    /// - Parameter cachePolicy: The request’s cache policy, default is `onlyNetwork`.
-    /// - Parameter completion: The completion callback closure.
+    /// Get first object asynchronously.
+    /// - Parameters:
+    ///   - cachePolicy: See `CachePolicy`, default is `CachePolicy.onlyNetwork`.
+    ///   - completionQueue: The queue where the `completion` be called, default is `DispatchQueue.main`.
+    ///   - completion: The result callback of query.
+    /// - Returns: `LCRequest`
     @discardableResult
     public func getFirst<T: LCObject>(
         cachePolicy: CachePolicy = .onlyNetwork,
         completionQueue: DispatchQueue = .main,
-        completion: @escaping (LCValueResult<T>) -> Void)
-        -> LCRequest
+        completion: @escaping (LCValueResult<T>) -> Void) -> LCRequest
     {
-        return getFirst(cachePolicy: cachePolicy, completionInBackground: { result in
+        return self._getFirst(cachePolicy: cachePolicy) { result in
             completionQueue.async {
                 completion(result)
             }
-        })
-    }
-
-    @discardableResult
-    private func getFirst<T: LCObject>(
-        cachePolicy: CachePolicy,
-        completionInBackground completion: @escaping (LCValueResult<T>) -> Void)
-        -> LCRequest
-    {
-        let query = copy() as! LCQuery
-
-        query.limit = 1
-
-        return query.find(cachePolicy: cachePolicy, completionInBackground: { (result: LCQueryResult<T>) in
-            switch result {
-            case let .success(objects):
-                if let object = objects.first {
-                    completion(.success(object: object))
-                } else {
-                    let error = LCError(code: .objectNotFound, reason: "Object not found.")
-                    completion(.failure(error: error))
-                }
-            case let .failure(error):
-                completion(.failure(error: error))
-            }
-        })
-    }
-    
-    /// Get object by object ID synchronously.
-    /// - Parameter objectId: The object ID.
-    /// - Parameter cachePolicy: The request’s cache policy, default is `onlyNetwork`.
-    public func get<T: LCObject>(
-        _ objectId: LCStringConvertible,
-        cachePolicy: CachePolicy = .onlyNetwork)
-        -> LCValueResult<T>
-    {
-        return expect { fulfill in
-            self.get(objectId: objectId, cachePolicy: cachePolicy, completionInBackground: { result in
-                fulfill(result)
-            })
         }
     }
     
-    /// Get object by object ID asynchronously.
-    /// - Parameter objectId: The object ID.
-    /// - Parameter cachePolicy: The request’s cache policy, default is `onlyNetwork`.
-    /// - Parameter completion: The completion callback closure.
+    @discardableResult
+    private func _getFirst<T: LCObject>(
+        cachePolicy: CachePolicy,
+        completion: @escaping (LCValueResult<T>) -> Void) -> LCRequest
+    {
+        let httpClient: HTTPClient = self.application.httpClient
+        var parameters: [String: Any]
+        do {
+            parameters = try self.parameters()
+        } catch {
+            return httpClient.request(
+                error: LCError(error: error),
+                completionHandler: completion)
+        }
+        parameters["limit"] = 1
+        return self._find(
+            parameters: parameters,
+            cachePolicy: cachePolicy)
+        { (result: LCQueryResult<T>) in
+            switch result {
+            case .success(let objects):
+                if let object = objects.first {
+                    completion(.success(object: object))
+                } else {
+                    let error = LCError(
+                        code: .objectNotFound,
+                        reason: "Object not found.")
+                    completion(.failure(error: error))
+                }
+            case .failure(let error):
+                completion(.failure(error: error))
+            }
+        }
+    }
+    
+    // MARK: Get
+    
+    /// Get object by ID synchronously.
+    /// - Parameters:
+    ///   - objectId: The ID of the object.
+    ///   - cachePolicy: See `CachePolicy`, default is `CachePolicy.onlyNetwork`.
+    /// - Returns: The result of query.
+    public func get<T: LCObject>(
+        _ objectId: LCStringConvertible,
+        cachePolicy: CachePolicy = .onlyNetwork) -> LCValueResult<T>
+    {
+        return expect { fulfill in
+            self._get(
+                objectId: objectId,
+                cachePolicy: cachePolicy)
+            { result in
+                fulfill(result)
+            }
+        }
+    }
+    
+    /// Get object by ID asynchronously.
+    /// - Parameters:
+    ///   - objectId: The ID of the object.
+    ///   - cachePolicy: See `CachePolicy`, default is `CachePolicy.onlyNetwork`.
+    ///   - completionQueue: The queue where the `completion` be called, default is `DispatchQueue.main`.
+    ///   - completion: The result callback of query.
+    /// - Returns: `LCRequest`
     @discardableResult
     public func get<T: LCObject>(
         _ objectId: LCStringConvertible,
         cachePolicy: CachePolicy = .onlyNetwork,
         completionQueue: DispatchQueue = .main,
-        completion: @escaping (LCValueResult<T>) -> Void)
-        -> LCRequest
+        completion: @escaping (LCValueResult<T>) -> Void) -> LCRequest
     {
-        return get(objectId: objectId, cachePolicy: cachePolicy, completionInBackground: { result in
+        return self._get(
+            objectId: objectId,
+            cachePolicy: cachePolicy)
+        { result in
             completionQueue.async {
                 completion(result)
             }
-        })
-    }
-
-    @discardableResult
-    private func get<T: LCObject>(
-        objectId: LCStringConvertible,
-        cachePolicy: CachePolicy,
-        completionInBackground completion: @escaping (LCValueResult<T>) -> Void)
-        -> LCRequest
-    {
-        let query = copy() as! LCQuery
-
-        query.whereKey("objectId", .equalTo(objectId))
-
-        let request = query.getFirst(cachePolicy: cachePolicy, completionInBackground: completion)
-
-        return request
+        }
     }
     
+    @discardableResult
+    private func _get<T: LCObject>(
+        objectId: LCStringConvertible,
+        cachePolicy: CachePolicy,
+        completion: @escaping (LCValueResult<T>) -> Void) -> LCRequest
+    {
+        let httpClient: HTTPClient = self.application.httpClient
+        var parameters: [String: Any]
+        do {
+            parameters = try self.parameters()
+            if let objectId = objectId.stringValue {            
+                parameters["where"] = try Utility.jsonString(["objectId": objectId])
+            }
+        } catch {
+            return httpClient.request(
+                error: LCError(error: error),
+                completionHandler: completion)
+        }
+        return self._find(
+            parameters: nil,
+            cachePolicy: cachePolicy)
+        { (result: LCQueryResult<T>) in
+            switch result {
+            case .success(let objects):
+                if let object = objects.first {
+                    completion(.success(object: object))
+                } else {
+                    let error = LCError(
+                        code: .objectNotFound,
+                        reason: "Object not found.")
+                    completion(.failure(error: error))
+                }
+            case .failure(let error):
+                completion(.failure(error: error))
+            }
+        }
+    }
+    
+    // MARK: Count
+    
     /// Count objects synchronously.
-    /// - Parameter cachePolicy: The request’s cache policy, default is `onlyNetwork`.
+    /// - Parameter cachePolicy: See `CachePolicy`, default is `CachePolicy.onlyNetwork`.
+    /// - Returns: The result of query.
     public func count(cachePolicy: CachePolicy = .onlyNetwork) -> LCCountResult {
         return expect { fulfill in
-            self.count(cachePolicy: cachePolicy, completionInBackground: { result in
+            self._count(cachePolicy: cachePolicy) { result in
                 fulfill(result)
-            })
+            }
         }
     }
     
     /// Count objects asynchronously.
-    /// - Parameter cachePolicy: The request’s cache policy, default is `onlyNetwork`.
-    /// - Parameter completion: The completion callback closure.
+    /// - Parameters:
+    ///   - cachePolicy: See `CachePolicy`, default is `CachePolicy.onlyNetwork`.
+    ///   - completionQueue: The queue where the `completion` be called, default is `DispatchQueue.main`.
+    ///   - completion: The result callback of query.
+    /// - Returns: `LCRequest`
     @discardableResult
     public func count(
         cachePolicy: CachePolicy = .onlyNetwork,
         completionQueue: DispatchQueue = .main,
-        completion: @escaping (LCCountResult) -> Void)
-        -> LCRequest
+        completion: @escaping (LCCountResult) -> Void) -> LCRequest
     {
-        return count(cachePolicy: cachePolicy, completionInBackground: { result in
+        return self._count(cachePolicy: cachePolicy) { result in
             completionQueue.async {
                 completion(result)
             }
-        })
+        }
     }
-
+    
     @discardableResult
-    private func count(
+    private func _count(
         cachePolicy: CachePolicy,
-        completionInBackground completion: @escaping (LCCountResult) -> Void)
-        -> LCRequest
+        completion: @escaping (LCCountResult) -> Void) -> LCRequest
     {
-        var parameters = self.parameters
-
+        let httpClient: HTTPClient = self.application.httpClient
+        var parameters: [String: Any]
+        do {
+            parameters = try self.parameters()
+        } catch {
+            return httpClient.request(
+                error: LCError(error: error),
+                completionHandler: completion)
+        }
         parameters["count"] = 1
         parameters["limit"] = 0
-
-        return self.application.httpClient.request(.get, endpoint, parameters: parameters, cachePolicy: cachePolicy) { response in
+        return httpClient.request(
+            .get, self.endpoint,
+            parameters: parameters,
+            cachePolicy: cachePolicy)
+        { response in
             self.storeResponse(response: response)
             completion(LCCountResult(response: response))
         }

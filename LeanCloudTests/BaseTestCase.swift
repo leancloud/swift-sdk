@@ -48,7 +48,9 @@ class BaseTestCase: XCTestCase {
     
     static var config: LCApplication.Configuration {
         var config = LCApplication.Configuration()
-        config.RTMCustomServerURL = RTMBaseTestCase.testableRTMURL
+        if let serverURL = RTMBaseTestCase.testableRTMURL {
+            config.RTMCustomServerURL = serverURL
+        }
         return config
     }
     
