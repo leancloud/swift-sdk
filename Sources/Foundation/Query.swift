@@ -40,15 +40,19 @@ public class LCQuery: NSObject, NSCopying, NSCoding {
     
     var equalityTable: [String: LCValue] = [:]
     var constraintDictionary: [String: Any] = [:]
-    
     var extraParameters: [String: Any]?
     
     var lconValue: [String: Any] {
+        var dictionary = self.lconValueWithoutWhere
+        if let lconWhere = self.lconWhere {
+            dictionary["where"] = lconWhere
+        }
+        return dictionary
+    }
+    
+    private var lconValueWithoutWhere: [String: Any] {
         var dictionary: [String: Any] = [:]
         dictionary["className"] = self.objectClassName
-        if !self.constraintDictionary.isEmpty {
-            dictionary["where"] = ObjectProfiler.shared.lconValue(self.constraintDictionary)
-        }
         if !self.includedKeys.isEmpty {
             dictionary["include"] = self.includedKeys.joined(separator: ",")
         }
@@ -74,6 +78,14 @@ public class LCQuery: NSObject, NSCopying, NSCoding {
             }
         }
         return dictionary
+    }
+    
+    var lconWhere: Any? {
+        if !self.constraintDictionary.isEmpty {
+            return ObjectProfiler.shared.lconValue(self.constraintDictionary)
+        } else {
+            return nil
+        }
     }
     
     var endpoint: String {
@@ -177,7 +189,7 @@ public class LCQuery: NSObject, NSCopying, NSCoding {
         /// Whether the field not exist.
         case notExisted
         
-        /* Value */
+        /* Equality */
         
         /// See `$eq` in MongoDB.
         case equalTo(LCValueConvertible)
@@ -355,7 +367,7 @@ public class LCQuery: NSObject, NSCopying, NSCoding {
         }
     }
     
-    func appendOrderedKey(_ key: String) {
+    private func appendOrderedKey(_ key: String) {
         if let keys = self.orderedKeys {
             self.orderedKeys = "\(keys),\(key)"
         } else {
@@ -363,12 +375,7 @@ public class LCQuery: NSObject, NSCopying, NSCoding {
         }
     }
     
-    /**
-     Validate query class name.
-     
-     - parameter query: The query to be validated.
-     */
-    func validateApplicationAndClassName(_ query: LCQuery) throws {
+    private func validateApplicationAndClassName(_ query: LCQuery) throws {
         guard query.application === self.application else {
             throw LCError(
                 code: .inconsistency,
@@ -381,15 +388,6 @@ public class LCQuery: NSObject, NSCopying, NSCoding {
         }
     }
     
-    /**
-     Get logic AND of another query.
-     
-     Note that it only combine constraints of two queries, the limit and skip option will be discarded.
-     
-     - parameter query: The another query.
-     
-     - returns: The logic AND of two queries.
-     */
     public func and(_ query: LCQuery) throws -> LCQuery {
         try validateApplicationAndClassName(query)
         
@@ -400,15 +398,6 @@ public class LCQuery: NSObject, NSCopying, NSCoding {
         return result
     }
     
-    /**
-     Get logic OR of another query.
-     
-     Note that it only combine constraints of two queries, the limit and skip option will be discarded.
-     
-     - parameter query: The another query.
-     
-     - returns: The logic OR of two queries.
-     */
     public func or(_ query: LCQuery) throws -> LCQuery {
         try validateApplicationAndClassName(query)
         
@@ -419,16 +408,26 @@ public class LCQuery: NSObject, NSCopying, NSCoding {
         return result
     }
     
-    func parameters() throws -> [String: Any] {
-        var parameters = self.lconValue
-        if let whereObject = parameters["where"],
-           let whereString = try Utility.jsonString(whereObject) {
+    func lconWhereString() throws -> String? {
+        var string: String?
+        if let whereString = self.whereString {
+            string = whereString
+        } else if let lconWhere = self.lconWhere,
+                  let whereString = try Utility.jsonString(lconWhere) {
+            string = whereString
+        }
+        return string
+    }
+    
+    private func parameters() throws -> [String: Any] {
+        var parameters = self.lconValueWithoutWhere
+        if let whereString = try self.lconWhereString() {
             parameters["where"] = whereString
         }
         return parameters
     }
     
-    func processResults<T: LCObject>(
+    private func processResults<T: LCObject>(
         _ results: [Any],
         className: String?) throws -> [T]
     {
@@ -451,7 +450,7 @@ public class LCQuery: NSObject, NSCopying, NSCoding {
         }
     }
     
-    func storeResponse(response: LCResponse) {
+    private func storeResponse(response: LCResponse) {
         guard response.isSuccess,
               let urlCache = self.application.httpClient.urlCache,
               let urlRequest = response.response.request,
@@ -468,8 +467,11 @@ public class LCQuery: NSObject, NSCopying, NSCoding {
     
     /// The constants used to specify interaction with the cached responses.
     public enum CachePolicy {
+        /// Always query from the network.
         case onlyNetwork
+        /// Always query from the local cache.
         case onlyCache
+        /// Firstly query from the network, if the result is failed, then query from the local cache.
         case networkElseCache
     }
     
@@ -664,22 +666,9 @@ public class LCQuery: NSObject, NSCopying, NSCoding {
         cachePolicy: CachePolicy,
         completion: @escaping (LCValueResult<T>) -> Void) -> LCRequest
     {
-        let httpClient: HTTPClient = self.application.httpClient
-        var parameters: [String: Any]
-        do {
-            parameters = try self.parameters()
-            if let objectId = objectId.stringValue {            
-                parameters["where"] = try Utility.jsonString(["objectId": objectId])
-            }
-        } catch {
-            return httpClient.request(
-                error: LCError(error: error),
-                completionHandler: completion)
-        }
-        return self._find(
-            parameters: parameters,
-            cachePolicy: cachePolicy)
-        { (result: LCQueryResult<T>) in
+        let query = self.copy() as! LCQuery
+        query.whereKey("objectId", .equalTo(objectId))
+        return query._find(cachePolicy: cachePolicy) { (result: LCQueryResult<T>) in
             switch result {
             case .success(let objects):
                 if let object = objects.first {

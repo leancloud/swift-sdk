@@ -390,18 +390,8 @@ private extension IMConversationQuery {
     }
     
     func whereAndSort() throws -> (whereString: String?, sortString: String?) {
-        let dictionary = self.lconValue
-        var whereString: String?
-        var sortString: String?
-        if let whereCondition = self.whereString {
-            whereString = whereCondition
-        } else if let whereCondition: Any = dictionary["where"] {
-            let data = try JSONSerialization.data(withJSONObject: whereCondition)
-            whereString = String(data: data, encoding: .utf8)
-        }
-        if let orderedKeys = self.orderedKeys {
-            sortString = orderedKeys
-        }
+        let whereString = try self.lconWhereString()
+        let sortString = self.orderedKeys
         return (whereString, sortString)
     }
     
