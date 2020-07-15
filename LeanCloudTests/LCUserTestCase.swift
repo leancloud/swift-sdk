@@ -70,9 +70,13 @@ class LCUserTestCase: BaseTestCase {
     }
     
     func testSignUpOrLogInByMobilePhoneNumberAndVerificationCode() {
-        let mobilePhoneNumber = "18677777777"
-        let verificationCode = "375586"
-        XCTAssertTrue(LCUser.signUpOrLogIn(mobilePhoneNumber: mobilePhoneNumber, verificationCode: verificationCode).isSuccess)
+        if LCApplication.default.id == BaseTestCase.cnApp.id {
+            let mobilePhoneNumber = "+8618622223333"
+            let verificationCode = "170402"
+            let result = LCUser.signUpOrLogIn(mobilePhoneNumber: mobilePhoneNumber, verificationCode: verificationCode)
+            XCTAssertTrue(result.isSuccess)
+            XCTAssertNil(result.error)
+        }
     }
     
     func testAuthDataLogin() {
