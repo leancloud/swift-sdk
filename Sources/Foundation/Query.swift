@@ -73,43 +73,86 @@ public class LCQuery: NSObject, NSCopying, NSCoding {
         return dictionary
     }
     
-    /**
-     Constraint for key.
-     */
+    /// Constraint for key.
     public enum Constraint {
+        /* Key */
+        
+        /// The value of the key contains all metadata;
+        /// Supporting key path by concatenating multiple keys with `.`.
         case included
+        /// Only the value of the key will return, prefixing the key with `-` means only the value of the key will not return;
+        /// Supporting key path by concatenating multiple keys with `.`.
         case selected
+        /// Whether the field exist.
         case existed
+        /// Whether the field not exist.
         case notExisted
         
+        /* Value */
+        
+        /// See `$eq` in MongoDB.
         case equalTo(LCValueConvertible)
+        /// See `$ne` in MongoDB.
         case notEqualTo(LCValueConvertible)
+        /// See `$lt` in MongoDB.
         case lessThan(LCValueConvertible)
+        /// See `$lte` in MongoDB.
         case lessThanOrEqualTo(LCValueConvertible)
+        /// See `$gt` in MongoDB.
         case greaterThan(LCValueConvertible)
+        /// See `$gte` in MongoDB.
         case greaterThanOrEqualTo(LCValueConvertible)
         
+        /* Array */
+        
+        /// See `$in` in MongoDB.
         case containedIn(LCArrayConvertible)
+        /// See `$nin` in MongoDB.
         case notContainedIn(LCArrayConvertible)
+        /// See `$all` in MongoDB.
         case containedAllIn(LCArrayConvertible)
+        /// See `$size` in MongoDB.
         case equalToSize(Int)
         
+        /* GeoPoint */
+        
+        /// See `$nearSphere`, `$minDistance` and `$maxDistance` in MongoDB.
         case locatedNear(LCGeoPoint, minimal: LCGeoPoint.Distance?, maximal: LCGeoPoint.Distance?)
+        /// See `$geoWithin` and `$box` in MongoDB.
         case locatedWithin(southwest: LCGeoPoint, northeast: LCGeoPoint)
         
+        /* Query */
+        
+        /// The value of the key match the query.
         case matchedQuery(LCQuery)
+        /// The value of the key not match the query.
         case notMatchedQuery(LCQuery)
+        /// The value of the key match the query and the key of the value will be `selected`.
         case matchedQueryAndKey(query: LCQuery, key: String)
+        /// The value of the key match the query and the key of the value will not be `selected`.
         case notMatchedQueryAndKey(query: LCQuery, key: String)
         
+        /* String */
+        
+        /// See `$regex` and `$options` in MongoDB.
         case matchedRegularExpression(String, option: String?)
+        /// The string of the key contains the string.
         case matchedSubstring(String)
+        /// The string of the key has the prefix.
         case prefixedBy(String)
+        /// The string of the key has the suffix.
         case suffixedBy(String)
         
+        /* Relation */
+        
+        /// Relation
         case relatedTo(LCObject)
         
+        /* Order */
+        
+        /// Ascending
         case ascending
+        /// Descending
         case descending
     }
     
