@@ -110,8 +110,8 @@ public class LCPush {
             "data": data,
         ]
         if let query = query {
-            if let whereCondition = query.lconValue["where"] {
-                parameters["where"] = whereCondition
+            if let lconWhere = query.lconWhere {
+                parameters["where"] = lconWhere
             }
         } else if let channels = channels {
             parameters["channels"] = channels
