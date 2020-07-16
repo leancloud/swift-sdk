@@ -269,7 +269,12 @@ public class LCQuery: NSObject, NSCopying, NSCoding {
         }
     }
     
-    func `where`(_ key: String, _ constraint: Constraint) throws {
+    /// Add a constraint for key.
+    /// - Parameters:
+    ///   - key: The key will be constrained.
+    ///   - constraint: See `Constraint`.
+    /// - Throws: `LCError`
+    public func `where`(_ key: String, _ constraint: Constraint) throws {
         var dictionary: [String: Any]?
         switch constraint {
         /* Key */
@@ -321,10 +326,13 @@ public class LCQuery: NSObject, NSCopying, NSCoding {
             ]
         /* Query */
         case let .matchedQuery(query):
+            try self.validateApplication(query)
             dictionary = ["$inQuery": query]
         case let .notMatchedQuery(query):
+            try self.validateApplication(query)
             dictionary = ["$notInQuery": query]
         case let .matchedQueryAndKey(query, key):
+            try self.validateApplication(query)
             dictionary = [
                 "$select": [
                     "query": query,
@@ -332,6 +340,7 @@ public class LCQuery: NSObject, NSCopying, NSCoding {
                 ]
             ]
         case let .notMatchedQueryAndKey(query, key):
+            try self.validateApplication(query)
             dictionary = [
                 "$dontSelect": [
                     "query": query,
@@ -375,37 +384,79 @@ public class LCQuery: NSObject, NSCopying, NSCoding {
         }
     }
     
-    private func validateApplicationAndClassName(_ query: LCQuery) throws {
-        guard query.application === self.application else {
+    private func validateApplication(_ query: LCQuery) throws {
+        guard self.application === query.application else {
             throw LCError(
                 code: .inconsistency,
-                reason: "`application` !== `query.application`, they should be the same instance.")
-        }
-        guard query.objectClassName == objectClassName else {
-            throw LCError(
-                code: .inconsistency,
-                reason: "`objectClassName` != `query.objectClassName`, they should be equal.")
+                reason: "`self.application` !== `query.application`, they should be the same instance.")
         }
     }
     
+    private func validateClassName(_ query: LCQuery) throws {
+        guard self.objectClassName == query.objectClassName else {
+            throw LCError(
+                code: .inconsistency,
+                reason: "`self.objectClassName` != `query.objectClassName`, they should be equal.")
+        }
+    }
+    
+    private static func validateApplicationAndClassName(_ queries: [LCQuery]) throws {
+        guard let first = queries.first else {
+            return
+        }
+        for item in queries {
+            try first.validateApplication(item)
+            try first.validateClassName(item)
+        }
+    }
+    
+    private static func combine(
+        queries: [LCQuery],
+        operation: String) throws -> LCQuery
+    {
+        try self.validateApplicationAndClassName(queries)
+        guard let first = queries.first else {
+            throw LCError(
+                code: .inconsistency,
+                reason: "`queries` is empty.")
+        }
+        let query = LCQuery(
+            application: first.application,
+            className: first.objectClassName)
+        query.constraintDictionary[operation] = queries.map { $0.constraintDictionary }
+        return query
+    }
+    
+    /// Performs a logical AND operation on an array of one or more expressions of query.
+    /// - Parameter queries: An array of one or more expressions of query.
+    /// - Throws: `LCError`
+    /// - Returns: A new `LCQuery`.
+    public class func and(_ queries: [LCQuery]) throws -> LCQuery {
+        return try self.combine(queries: queries, operation: "$and")
+    }
+    
+    /// Performs a logical AND operation on self and the query.
+    /// - Parameter query: The query.
+    /// - Throws: `LCError`
+    /// - Returns: A new `LCQuery`.
     public func and(_ query: LCQuery) throws -> LCQuery {
-        try validateApplicationAndClassName(query)
-        
-        let result = LCQuery(application: self.application, className: objectClassName)
-        
-        result.constraintDictionary["$and"] = [self.constraintDictionary, query.constraintDictionary]
-        
-        return result
+        return try LCQuery.and([self, query])
     }
     
+    /// Performs a logical OR operation on an array of one or more expressions of query.
+    /// - Parameter queries: An array of one or more expressions of query.
+    /// - Throws: `LCError`
+    /// - Returns: A new `LCQuery`.
+    public class func or(_ queries: [LCQuery]) throws -> LCQuery {
+        return try self.combine(queries: queries, operation: "$or")
+    }
+    
+    /// Performs a logical OR operation on self and the query.
+    /// - Parameter query: The query.
+    /// - Throws: `LCError`
+    /// - Returns: A new `LCQuery`.
     public func or(_ query: LCQuery) throws -> LCQuery {
-        try validateApplicationAndClassName(query)
-        
-        let result = LCQuery(application: self.application, className: objectClassName)
-        
-        result.constraintDictionary["$or"] = [self.constraintDictionary, query.constraintDictionary]
-        
-        return result
+        return try LCQuery.or([self, query])
     }
     
     func lconWhereString() throws -> String? {
