@@ -139,7 +139,7 @@ class FoundationStream : NSObject, WSStream, StreamDelegate  {
     private var inputStream: InputStream?
     private var outputStream: OutputStream?
     weak var delegate: WSStreamDelegate?
-    let BUFFER_MAX = 4096
+    let BUFFER_MAX = (1024 * 32)
 	
 	var enableSOCKSProxy = false
     
