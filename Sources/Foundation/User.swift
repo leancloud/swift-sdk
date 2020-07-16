@@ -620,14 +620,18 @@ open class LCUser: LCObject {
     /// - Parameters:
     ///   - application: The application the user belong to, default is `LCApplication.default`.
     ///   - mobilePhoneNumber: The mobile phone number where the verification code will be sent to.
-    public static func requestVerificationCode(application: LCApplication = .default, mobilePhoneNumber: String) -> LCBooleanResult {
+    /// - Returns: `LCBooleanResult`
+    public static func requestVerificationCode(
+        application: LCApplication = .default,
+        mobilePhoneNumber: String) -> LCBooleanResult
+    {
         return expect { fulfill in
-            self.requestVerificationCode(
+            self._requestVerificationCode(
                 application: application,
-                mobilePhoneNumber: mobilePhoneNumber,
-                completionInBackground: { result in
-                    fulfill(result)
-            })
+                mobilePhoneNumber: mobilePhoneNumber)
+            { result in
+                fulfill(result)
+            }
         }
     }
     
@@ -635,32 +639,31 @@ open class LCUser: LCObject {
     /// - Parameters:
     ///   - application: The application the user belong to, default is `LCApplication.default`.
     ///   - mobilePhoneNumber: The mobile phone number where the verification code will be sent to.
-    ///   - completionQueue: The queue where `completion` be executed, default is main.
-    ///   - completion: Result callback.
+    ///   - completionQueue: The queue where the completion be invoked, default is `DispatchQueue.main`.
+    ///   - completion: The result callback.
+    /// - Returns: `LCRequest`
     @discardableResult
     public static func requestVerificationCode(
         application: LCApplication = .default,
         mobilePhoneNumber: String,
         completionQueue: DispatchQueue = .main,
-        completion: @escaping (LCBooleanResult) -> Void)
-        -> LCRequest
+        completion: @escaping (LCBooleanResult) -> Void) -> LCRequest
     {
-        return self.requestVerificationCode(
+        return self._requestVerificationCode(
             application: application,
-            mobilePhoneNumber: mobilePhoneNumber,
-            completionInBackground: { result in
-                completionQueue.async {
-                    completion(result)
-                }
-        })
+            mobilePhoneNumber: mobilePhoneNumber)
+        { result in
+            completionQueue.async {
+                completion(result)
+            }
+        }
     }
-
+    
     @discardableResult
-    private static func requestVerificationCode(
+    private static func _requestVerificationCode(
         application: LCApplication,
         mobilePhoneNumber: String,
-        completionInBackground completion: @escaping (LCBooleanResult) -> Void)
-        -> LCRequest
+        completion: @escaping (LCBooleanResult) -> Void) -> LCRequest
     {
         return application.httpClient.request(
             .post, "requestMobilePhoneVerify",
@@ -669,23 +672,96 @@ open class LCUser: LCObject {
             completion(LCBooleanResult(response: response))
         }
     }
-
+    
+    /// Request to send a verification code to bind or update mobile phone number synchronously.
+    /// - Parameters:
+    ///   - application: The application the user belong to, default is `LCApplication.default`.
+    ///   - mobilePhoneNumber: The mobile phone number where the verification code will be sent to.
+    ///   - timeToLive: The time-to-live of the code.
+    /// - Returns: `LCBooleanResult`
+    public static func requestVerificationCode(
+        application: LCApplication = .default,
+        forUpdatingMobilePhoneNumber mobilePhoneNumber: String,
+        timeToLive: Int? = nil) -> LCBooleanResult
+    {
+        return expect { (fulfill) in
+            self._requestVerificationCode(
+                application: application,
+                forUpdatingMobilePhoneNumber: mobilePhoneNumber,
+                timeToLive: timeToLive)
+            { (result) in
+                fulfill(result)
+            }
+        }
+    }
+    
+    /// Request to send a verification code to bind or update mobile phone number asynchronously.
+    /// - Parameters:
+    ///   - application: The application the user belong to, default is `LCApplication.default`.
+    ///   - mobilePhoneNumber: The mobile phone number where the verification code will be sent to.
+    ///   - timeToLive: The time-to-live of the code.
+    ///   - completionQueue: The queue where the completion be invoked, default is `DispatchQueue.main`.
+    ///   - completion: The result callback.
+    /// - Returns: `LCRequest`
+    @discardableResult
+    public static func requestVerificationCode(
+        application: LCApplication = .default,
+        forUpdatingMobilePhoneNumber mobilePhoneNumber: String,
+        timeToLive: Int? = nil,
+        completionQueue: DispatchQueue = .main,
+        completion: @escaping (LCBooleanResult) -> Void) -> LCRequest
+    {
+        return self._requestVerificationCode(
+            application: application,
+            forUpdatingMobilePhoneNumber: mobilePhoneNumber,
+            timeToLive: timeToLive)
+        { (result) in
+            completionQueue.async {
+                completion(result)
+            }
+        }
+    }
+    
+    @discardableResult
+    private static func _requestVerificationCode(
+        application: LCApplication,
+        forUpdatingMobilePhoneNumber mobilePhoneNumber: String,
+        timeToLive: Int?,
+        completion: @escaping (LCBooleanResult) -> Void) -> LCRequest
+    {
+        var parameters: [String: Any] = ["mobilePhoneNumber": mobilePhoneNumber]
+        if let timeToLive = timeToLive {
+            parameters["ttl"] = timeToLive
+        }
+        return application.httpClient.request(
+            .post, "requestChangePhoneNumber",
+            parameters: parameters)
+        { response in
+            completion(LCBooleanResult(response: response))
+        }
+    }
+    
     // MARK: Verify phone number
     
     /// Verify mobile phone number with code synchronously.
     /// - Parameters:
     ///   - application: The application the user belong to, default is `LCApplication.default`.
     ///   - mobilePhoneNumber: The mobile phone number of the user.
-    ///   - verificationCode: The verification code sent to `mobilePhoneNumber`.
-    public static func verifyMobilePhoneNumber(application: LCApplication = .default, _ mobilePhoneNumber: String, verificationCode: String) -> LCBooleanResult {
+    ///   - verificationCode: The verification code sent to mobile phone number.
+    /// - Returns: `LCBooleanResult`
+    public static func verifyMobilePhoneNumber(
+        application: LCApplication = .default,
+        _ mobilePhoneNumber: String,
+        verificationCode: String) -> LCBooleanResult
+    {
         return expect { fulfill in
-            self.verifyMobilePhoneNumber(
+            self._verifyMobilePhoneNumber(
                 application: application,
-                mobilePhoneNumber,
-                verificationCode: verificationCode,
-                completionInBackground: { result in
-                    fulfill(result)
-            })
+                mobilePhoneNumber: mobilePhoneNumber,
+                verificationCode: verificationCode)
+            { result in
+                fulfill(result)
+            }
         }
     }
     
@@ -693,40 +769,106 @@ open class LCUser: LCObject {
     /// - Parameters:
     ///   - application: The application the user belong to, default is `LCApplication.default`.
     ///   - mobilePhoneNumber: The mobile phone number of the user.
-    ///   - verificationCode: The verification code sent to `mobilePhoneNumber`.
-    ///   - completionQueue: The queue where `completion` be executed, default is main.
-    ///   - completion: Result callback.
+    ///   - verificationCode: The verification code sent to mobile phone number.
+    ///   - completionQueue: The queue where the completion be invoked, default is `DispatchQueue.main`.
+    ///   - completion: The result callback.
+    /// - Returns: `LCRequest`
     @discardableResult
     public static func verifyMobilePhoneNumber(
         application: LCApplication = .default,
         _ mobilePhoneNumber: String,
         verificationCode: String,
         completionQueue: DispatchQueue = .main,
-        completion: @escaping (LCBooleanResult) -> Void)
-        -> LCRequest
+        completion: @escaping (LCBooleanResult) -> Void) -> LCRequest
     {
-        return self.verifyMobilePhoneNumber(
+        return self._verifyMobilePhoneNumber(
             application: application,
-            mobilePhoneNumber,
-            verificationCode: verificationCode,
-            completionInBackground: { result in
-                completionQueue.async {
-                    completion(result)
-                }
-        })
+            mobilePhoneNumber: mobilePhoneNumber,
+            verificationCode: verificationCode)
+        { result in
+            completionQueue.async {
+                completion(result)
+            }
+        }
     }
-
+    
     @discardableResult
-    private static func verifyMobilePhoneNumber(
+    private static func _verifyMobilePhoneNumber(
         application: LCApplication,
-        _ mobilePhoneNumber: String,
+        mobilePhoneNumber: String,
         verificationCode: String,
-        completionInBackground completion: @escaping (LCBooleanResult) -> Void)
-        -> LCRequest
+        completion: @escaping (LCBooleanResult) -> Void) -> LCRequest
     {
         return application.httpClient.request(
-            .get, "verifyMobilePhone/\(verificationCode)",
+            .post, "verifyMobilePhone/\(verificationCode)",
             parameters: ["mobilePhoneNumber": mobilePhoneNumber])
+        { response in
+            completion(LCBooleanResult(response: response))
+        }
+    }
+    
+    /// Verify code to bind or update mobile phone number synchronously.
+    /// - Parameters:
+    ///   - application: The application the user belong to, default is `LCApplication.default`.
+    ///   - verificationCode: The verification code sent to mobile phone number.
+    ///   - mobilePhoneNumber: The mobile phone number to be bound or updated.
+    /// - Returns: `LCBooleanResult`
+    public static func verifyVerificationCode(
+        application: LCApplication = .default,
+        _ verificationCode: String,
+        toUpdateMobilePhoneNumber mobilePhoneNumber: String) -> LCBooleanResult
+    {
+        return expect { (fulfill) in
+            self._verifyVerificationCode(
+                application: application,
+                verificationCode: verificationCode,
+                toUpdateMobilePhoneNumber: mobilePhoneNumber)
+            { (result) in
+                fulfill(result)
+            }
+        }
+    }
+    
+    /// Verify code to bind or update mobile phone number asynchronously.
+    /// - Parameters:
+    ///   - application: The application the user belong to, default is `LCApplication.default`.
+    ///   - verificationCode: The verification code sent to mobile phone number.
+    ///   - mobilePhoneNumber: The mobile phone number to be bound or updated.
+    ///   - completionQueue: The queue where the completion be invoked, default is `DispatchQueue.main`.
+    ///   - completion: The result callback.
+    /// - Returns: `LCRequest`
+    @discardableResult
+    public static func verifyVerificationCode(
+        application: LCApplication = .default,
+        _ verificationCode: String,
+        toUpdateMobilePhoneNumber mobilePhoneNumber: String,
+        completionQueue: DispatchQueue = .main,
+        completion: @escaping (LCBooleanResult) -> Void) -> LCRequest
+    {
+        return self._verifyVerificationCode(
+            application: application,
+            verificationCode: verificationCode,
+            toUpdateMobilePhoneNumber: mobilePhoneNumber)
+        { (result) in
+            completionQueue.async {
+                completion(result)
+            }
+        }
+    }
+    
+    @discardableResult
+    private static func _verifyVerificationCode(
+        application: LCApplication,
+        verificationCode: String,
+        toUpdateMobilePhoneNumber mobilePhoneNumber: String,
+        completion: @escaping (LCBooleanResult) -> Void) -> LCRequest
+    {
+        return application.httpClient.request(
+            .post, "changePhoneNumber",
+            parameters: [
+                "mobilePhoneNumber": mobilePhoneNumber,
+                "code": verificationCode
+            ])
         { response in
             completion(LCBooleanResult(response: response))
         }
