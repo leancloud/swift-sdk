@@ -10,7 +10,6 @@ import Foundation
 #if os(iOS) || os(tvOS)
 import UIKit
 #endif
-import Starscream
 import Alamofire
 
 enum RTMService: Int32 {

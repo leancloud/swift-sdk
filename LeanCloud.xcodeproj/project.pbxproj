@@ -67,7 +67,6 @@
 		83FAF0931CC4D1E400A84063 /* LCObjectTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83FAF0921CC4D1E400A84063 /* LCObjectTestCase.swift */; };
 		D302D340246BD259003D9274 /* LiveQueryTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = D302D33F246BD259003D9274 /* LiveQueryTestCase.swift */; };
 		D303BD752328CB1C004AE13D /* SwiftProtobuf in Frameworks */ = {isa = PBXBuildFile; productRef = D303BD742328CB1C004AE13D /* SwiftProtobuf */; };
-		D303BD782328CDFC004AE13D /* Starscream in Frameworks */ = {isa = PBXBuildFile; productRef = D303BD772328CDFC004AE13D /* Starscream */; };
 		D303BD7B2328D062004AE13D /* GRDB in Frameworks */ = {isa = PBXBuildFile; productRef = D303BD7A2328D062004AE13D /* GRDB */; };
 		D314AFA4219540A700C9C146 /* LeanCloud.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8342FCBB1C7B13A700C3CF15 /* LeanCloud.framework */; };
 		D314AFA5219540A700C9C146 /* LeanCloud.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 8342FCBB1C7B13A700C3CF15 /* LeanCloud.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
@@ -83,6 +82,7 @@
 		D33D36D922017DAC008C9BDA /* test.png in Resources */ = {isa = PBXBuildFile; fileRef = D33D36D722017DAC008C9BDA /* test.png */; };
 		D33D36DC22019197008C9BDA /* test.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = D33D36DA22019197008C9BDA /* test.mp4 */; };
 		D3457E79237955580030BEDE /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3457E78237955580030BEDE /* main.swift */; };
+		D345990424C04FF4009E72DE /* WebSocket.swift in Sources */ = {isa = PBXBuildFile; fileRef = D345990024C04FF4009E72DE /* WebSocket.swift */; };
 		D34F1BB92268263000251BC8 /* IMLocalStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D34F1BB82268263000251BC8 /* IMLocalStorage.swift */; };
 		D35EB5BD2328A6E000763E4E /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = D35EB5BC2328A6E000763E4E /* Alamofire */; };
 		D363342022CD9EC300995DC1 /* EngineClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = D363341F22CD9EC300995DC1 /* EngineClient.swift */; };
@@ -228,6 +228,7 @@
 		D33D36DA22019197008C9BDA /* test.mp4 */ = {isa = PBXFileReference; lastKnownFileType = file; path = test.mp4; sourceTree = "<group>"; };
 		D3457E76237955580030BEDE /* CLI */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = CLI; sourceTree = BUILT_PRODUCTS_DIR; };
 		D3457E78237955580030BEDE /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
+		D345990024C04FF4009E72DE /* WebSocket.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebSocket.swift; sourceTree = "<group>"; };
 		D34F1BB82268263000251BC8 /* IMLocalStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IMLocalStorage.swift; sourceTree = "<group>"; };
 		D363341F22CD9EC300995DC1 /* EngineClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EngineClient.swift; sourceTree = "<group>"; };
 		D363343522CDB0D300995DC1 /* LCEngineTestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCEngineTestCase.swift; sourceTree = "<group>"; };
@@ -258,7 +259,6 @@
 			files = (
 				D35EB5BD2328A6E000763E4E /* Alamofire in Frameworks */,
 				D303BD752328CB1C004AE13D /* SwiftProtobuf in Frameworks */,
-				D303BD782328CDFC004AE13D /* Starscream in Frameworks */,
 				D303BD7B2328D062004AE13D /* GRDB in Frameworks */,
 				D3D2E5EB237BBA4A007A2045 /* CFNetwork.framework in Frameworks */,
 			);
@@ -464,6 +464,7 @@
 		D3CA1116216DD77400629343 /* RTM */ = {
 			isa = PBXGroup;
 			children = (
+				D345990024C04FF4009E72DE /* WebSocket.swift */,
 				D3301278217727870007286A /* Command.pb.swift */,
 				113D23D021901A71006B53EC /* RTMRouter.swift */,
 				D324CD9121774A9B003FA35F /* RTMConnection.swift */,
@@ -516,7 +517,6 @@
 			packageProductDependencies = (
 				D35EB5BC2328A6E000763E4E /* Alamofire */,
 				D303BD742328CB1C004AE13D /* SwiftProtobuf */,
-				D303BD772328CDFC004AE13D /* Starscream */,
 				D303BD7A2328D062004AE13D /* GRDB */,
 			);
 			productName = LeanCloud;
@@ -627,8 +627,8 @@
 			packageReferences = (
 				D35EB5BB2328A6E000763E4E /* XCRemoteSwiftPackageReference "Alamofire" */,
 				D303BD732328CB1C004AE13D /* XCRemoteSwiftPackageReference "swift-protobuf" */,
-				D303BD762328CDFC004AE13D /* XCRemoteSwiftPackageReference "Starscream" */,
 				D303BD792328D062004AE13D /* XCRemoteSwiftPackageReference "GRDB" */,
+				D345990524C0579C009E72DE /* XCRemoteSwiftPackageReference "swift-nio-zlib-support" */,
 			);
 			productRefGroup = 8342FCBC1C7B13A700C3CF15 /* Products */;
 			projectDirPath = "";
@@ -718,6 +718,7 @@
 				835F5D821D7E6808004D1A0E /* Response.swift in Sources */,
 				835F5D861D7E6808004D1A0E /* SMSClient.swift in Sources */,
 				835F5D7E1D7E6808004D1A0E /* ObjectUpdater.swift in Sources */,
+				D345990424C04FF4009E72DE /* WebSocket.swift in Sources */,
 				113D23D121901A71006B53EC /* RTMRouter.swift in Sources */,
 				835F5D831D7E6808004D1A0E /* HTTPClient.swift in Sources */,
 				119D16AF219A7FCE0023BFEF /* IMClient.swift in Sources */,
@@ -1206,15 +1207,7 @@
 			repositoryURL = "https://github.com/apple/swift-protobuf";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 1.8.0;
-			};
-		};
-		D303BD762328CDFC004AE13D /* XCRemoteSwiftPackageReference "Starscream" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/daltoniam/Starscream";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 3.1.1;
+				minimumVersion = 1.10.0;
 			};
 		};
 		D303BD792328D062004AE13D /* XCRemoteSwiftPackageReference "GRDB" */ = {
@@ -1222,7 +1215,15 @@
 			repositoryURL = "https://github.com/groue/GRDB.swift";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 4.9.0;
+				minimumVersion = 4.14.0;
+			};
+		};
+		D345990524C0579C009E72DE /* XCRemoteSwiftPackageReference "swift-nio-zlib-support" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/apple/swift-nio-zlib-support";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.0.0;
 			};
 		};
 		D35EB5BB2328A6E000763E4E /* XCRemoteSwiftPackageReference "Alamofire" */ = {
@@ -1230,7 +1231,7 @@
 			repositoryURL = "https://github.com/Alamofire/Alamofire";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 5.0.0;
+				minimumVersion = 5.2.0;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
@@ -1240,11 +1241,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = D303BD732328CB1C004AE13D /* XCRemoteSwiftPackageReference "swift-protobuf" */;
 			productName = SwiftProtobuf;
-		};
-		D303BD772328CDFC004AE13D /* Starscream */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = D303BD762328CDFC004AE13D /* XCRemoteSwiftPackageReference "Starscream" */;
-			productName = Starscream;
 		};
 		D303BD7A2328D062004AE13D /* GRDB */ = {
 			isa = XCSwiftPackageProductDependency;
