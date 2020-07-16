@@ -8,7 +8,6 @@
 
 import XCTest
 @testable import LeanCloud
-@testable import Starscream
 
 class RTMConnectionTestCase: RTMBaseTestCase {
     
