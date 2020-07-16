@@ -1207,7 +1207,7 @@
 			repositoryURL = "https://github.com/apple/swift-protobuf";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 1.8.0;
+				minimumVersion = 1.10.0;
 			};
 		};
 		D303BD792328D062004AE13D /* XCRemoteSwiftPackageReference "GRDB" */ = {
@@ -1215,7 +1215,7 @@
 			repositoryURL = "https://github.com/groue/GRDB.swift";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 4.9.0;
+				minimumVersion = 4.14.0;
 			};
 		};
 		D345990524C0579C009E72DE /* XCRemoteSwiftPackageReference "swift-nio-zlib-support" */ = {
@@ -1231,7 +1231,7 @@
 			repositoryURL = "https://github.com/Alamofire/Alamofire";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 5.0.0;
+				minimumVersion = 5.2.0;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
