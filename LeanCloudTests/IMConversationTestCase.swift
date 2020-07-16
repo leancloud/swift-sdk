@@ -1431,15 +1431,7 @@ class IMConversationTestCase: RTMBaseTestCase {
         })) as ()??)
         wait(for: [generalQueryExp2], timeout: timeout)
         
-        let invalidQuery = LCQuery(className: "invalid")
-        for constraint in
-            [ LCQuery.Constraint.selected,
-              LCQuery.Constraint.included,
-              LCQuery.Constraint.matchedQuery(invalidQuery),
-              LCQuery.Constraint.notMatchedQuery(invalidQuery),
-              LCQuery.Constraint.matchedQueryAndKey(query: invalidQuery, key: ""),
-              LCQuery.Constraint.notMatchedQueryAndKey(query: invalidQuery, key: "")]
-        {
+        for constraint in [LCQuery.Constraint.selected, LCQuery.Constraint.included] {
             do {
                 let conversationQuery = clientA.conversationQuery
                 try conversationQuery.where("key", constraint)

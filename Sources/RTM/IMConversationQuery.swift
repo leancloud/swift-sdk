@@ -47,67 +47,85 @@ public class IMConversationQuery: LCQuery {
     
     // MARK: Combine
     
-    /**
-     Get logic AND of another query.
-     Note that it only combine constraints of two queries, the limit and skip option will be discarded.
-     
-     - parameter query: The another query.
-     - returns: The logic AND of two queries.
-     */
-    public func and(_ query: IMConversationQuery) throws -> IMConversationQuery? {
-        return try self.combine(op: "$and", query: query)
-    }
-    
-    /**
-     Get logic OR of another query.
-     Note that it only combine constraints of two queries, the limit and skip option will be discarded.
-     
-     - parameter query: The another query.
-     - returns: The logic OR of two queries.
-     */
-    public func or(_ query: IMConversationQuery) throws -> IMConversationQuery? {
-        return try self.combine(op: "$or", query: query)
-    }
-    
-    private func combine(op: String, query: IMConversationQuery) throws -> IMConversationQuery? {
-        guard let client = self.client else {
-            return nil
-        }
-        guard client === query.client else {
+    private func validateClient(_ query: IMConversationQuery) throws {
+        guard let selfClient = self.client,
+              let queryClient = query.client,
+              selfClient === queryClient else {
             throw LCError(
                 code: .inconsistency,
-                reason: "`client` !== `query.client`, they should be the same instance.")
+                reason: "`self.client` !== query.client, they should be the same instance.")
         }
-        let result = IMConversationQuery(client: client, eventQueue: self.eventQueue)
-        result.constraintDictionary[op] = [self.constraintDictionary, query.constraintDictionary]
-        return result
     }
     
-    // MARK: Where Condition
-    
-    /// Add constraint in query.
-    ///
-    /// - Parameters:
-    ///   - key: The key.
-    ///   - constraint: The constraint.
-    public override func `where`(_ key: String, _ constraint: Constraint) throws {
-        let typeChecker: (LCQuery) throws -> Void = { query in
-            guard let _ = query as? IMConversationQuery else {
-                throw LCError(code: .inconsistency, reason: "\(type(of: query)) not support")
-            }
+    private static func validateClient(_ queries: [IMConversationQuery]) throws {
+        guard let first = queries.first else {
+            return
         }
+        for item in queries {
+            try first.validateClient(item)
+        }
+    }
+    
+    private static func combine(
+        queries: [IMConversationQuery],
+        operation: String) throws -> IMConversationQuery?
+    {
+        guard let first = queries.first else {
+            throw LCError(
+                code: .inconsistency,
+                reason: "`queries` is empty.")
+        }
+        guard let client = first.client else {
+            return nil
+        }
+        try self.validateClient(queries)
+        let query = IMConversationQuery(
+            client: client,
+            eventQueue: first.eventQueue)
+        query.constraintDictionary[operation] = queries.map { $0.constraintDictionary }
+        return query
+    }
+    
+    /// Performs a logical AND operation on an array of one or more expressions of query.
+    /// - Parameter queries: An array of one or more expressions of query.
+    /// - Throws: `LCError`
+    /// - Returns: An optional `IMConversationQuery`
+    public static func and(_ queries: [IMConversationQuery]) throws -> IMConversationQuery? {
+        return try self.combine(queries: queries, operation: "$and")
+    }
+    
+    /// Performs a logical AND operation on self and the query.
+    /// - Parameter query: The query.
+    /// - Throws: `LCError`
+    /// - Returns: An optional `IMConversationQuery`
+    public func and(_ query: IMConversationQuery) throws -> IMConversationQuery? {
+        return try IMConversationQuery.and([self, query])
+    }
+    
+    /// Performs a logical OR operation on an array of one or more expressions of query.
+    /// - Parameter queries: An array of one or more expressions of query.
+    /// - Throws: `LCError`
+    /// - Returns: An optional `IMConversationQuery`
+    public static func or(_ queries: [IMConversationQuery]) throws -> IMConversationQuery? {
+        return try self.combine(queries: queries, operation: "$or")
+    }
+    
+    /// Performs a logical OR operation on self and the query.
+    /// - Parameter query: The query.
+    /// - Throws: `LCError`
+    /// - Returns: An optional `IMConversationQuery`
+    public func or(_ query: IMConversationQuery) throws -> IMConversationQuery? {
+        return try IMConversationQuery.or([self, query])
+    }
+    
+    // MARK: Where
+    
+    public override func `where`(_ key: String, _ constraint: Constraint) throws {
         switch constraint {
         case .included, .selected:
-            throw LCError(code: .inconsistency, reason: "\(constraint) not support")
-            /* Query matching. */
-        case let .matchedQuery(query):
-            try typeChecker(query)
-        case let .notMatchedQuery(query):
-            try typeChecker(query)
-        case let .matchedQueryAndKey(query, _):
-            try typeChecker(query)
-        case let .notMatchedQueryAndKey(query, _):
-            try typeChecker(query)
+            throw LCError(
+                code: .inconsistency,
+                reason: "\(constraint) not support.")
         default:
             break
         }
@@ -307,6 +325,16 @@ public class IMConversationQuery: LCQuery {
     }
     
     public override func count(cachePolicy: LCQuery.CachePolicy = .onlyNetwork, completionQueue: DispatchQueue = .main, completion: @escaping (LCCountResult) -> Void) -> LCRequest {
+        fatalError("not support")
+    }
+    
+    @available(*, unavailable)
+    public override class func and(_ queries: [LCQuery]) throws -> LCQuery {
+        fatalError("not support")
+    }
+    
+    @available(*, unavailable)
+    public override class func or(_ queries: [LCQuery]) throws -> LCQuery {
         fatalError("not support")
     }
     
