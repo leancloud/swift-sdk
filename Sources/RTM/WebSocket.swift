@@ -1329,15 +1329,16 @@ private extension String {
     func sha1Base64() -> String {
         let data = self.data(using: .utf8)!
         if #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) {
+            #if canImport(CryptoKit)
             let digest = Insecure.SHA1.hash(data: data)
             return Data(digest).base64EncodedString()
-        } else {
-            var digest = [UInt8](repeating: 0, count: Int(CC_SHA1_DIGEST_LENGTH))
-            data.withUnsafeBytes { (pointer: UnsafeRawBufferPointer) in
-                _ = CC_SHA1(pointer.baseAddress, CC_LONG(data.count), &digest)
-            }
-            return Data(digest).base64EncodedString()
+            #endif
         }
+        var digest = [UInt8](repeating: 0, count: Int(CC_SHA1_DIGEST_LENGTH))
+        data.withUnsafeBytes { (pointer: UnsafeRawBufferPointer) in
+            _ = CC_SHA1(pointer.baseAddress, CC_LONG(data.count), &digest)
+        }
+        return Data(digest).base64EncodedString()
     }
 }
 
