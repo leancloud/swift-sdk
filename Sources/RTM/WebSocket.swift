@@ -282,8 +282,10 @@ class FoundationStream : NSObject, WSStream, StreamDelegate  {
             var peerNameLen: Int = 0
             SSLGetPeerDomainNameLength(sslContextOut, &peerNameLen)
             var peerName = Data(count: peerNameLen)
-            let _ = peerName.withUnsafeMutableBytes { (peerNamePtr: UnsafeMutablePointer<Int8>) in
-                SSLGetPeerDomainName(sslContextOut, peerNamePtr, &peerNameLen)
+            peerName.withUnsafeMutableBytes { (peerNamePtr: UnsafeMutableRawBufferPointer) in
+                if let unsafePeerNamePtr = peerNamePtr.baseAddress?.bindMemory(to: Int8.self, capacity: peerNameLen) {
+                    _ = SSLGetPeerDomainName(sslContextOut, unsafePeerNamePtr, &peerNameLen)
+                }
             }
             if let peerDomain = String(bytes: peerName, encoding: .utf8), peerDomain.count > 0 {
                 domain = peerDomain
@@ -1779,7 +1781,10 @@ class Decompressor {
     }
 
     func decompress(_ data: Data, finish: Bool) throws -> Data {
-        return try data.withUnsafeBytes { (bytes:UnsafePointer<UInt8>) -> Data in
+        return try data.withUnsafeBytes { (dataPtr: UnsafeRawBufferPointer) -> Data in
+            guard let bytes = dataPtr.baseAddress?.assumingMemoryBound(to: UInt8.self) else {
+                throw WSError(type: .compressionError, message: "Error on decompressing", code: 0)
+            }
             return try decompress(bytes: bytes, count: data.count, finish: finish)
         }
     }
@@ -1797,25 +1802,23 @@ class Decompressor {
 
     }
 
-    private func decompress(bytes: UnsafePointer<UInt8>, count: Int, out:inout Data) throws {
-        var res:CInt = 0
+    private func decompress(bytes: UnsafePointer<UInt8>, count: Int, out: inout Data) throws {
+        var res: CInt = 0
         strm.next_in = UnsafeMutablePointer<UInt8>(mutating: bytes)
-        strm.avail_in = CUnsignedInt(count)
-
+        strm.avail_in = uInt(count)
         repeat {
-            strm.next_out = UnsafeMutablePointer<UInt8>(&buffer)
-            strm.avail_out = CUnsignedInt(buffer.count)
-
-            res = inflate(&strm, 0)
-
+            buffer.withUnsafeMutableBytes { (bufferPtr: UnsafeMutableRawBufferPointer) in
+                let unsafeBufferPtr = bufferPtr.baseAddress?.assumingMemoryBound(to: UInt8.self)
+                strm.next_out = UnsafeMutablePointer<UInt8>(unsafeBufferPtr)
+                strm.avail_out = uInt(buffer.count)
+                res = inflate(&strm, 0)
+            }
             let byteCount = buffer.count - Int(strm.avail_out)
             out.append(buffer, count: byteCount)
         } while res == Z_OK && strm.avail_out == 0
-
         guard (res == Z_OK && strm.avail_out > 0)
-            || (res == Z_BUF_ERROR && Int(strm.avail_out) == buffer.count)
-            else {
-                throw WSError(type: .compressionError, message: "Error on decompressing", code: 0)
+                || (res == Z_BUF_ERROR && Int(strm.avail_out) == buffer.count) else {
+            throw WSError(type: .compressionError, message: "Error on decompressing", code: 0)
         }
     }
 
@@ -1859,30 +1862,26 @@ class Compressor {
 
     func compress(_ data: Data) throws -> Data {
         var compressed = Data()
-        var res:CInt = 0
-        data.withUnsafeBytes { (ptr:UnsafePointer<UInt8>) -> Void in
-            strm.next_in = UnsafeMutablePointer<UInt8>(mutating: ptr)
-            strm.avail_in = CUnsignedInt(data.count)
-
+        var res: CInt = 0
+        data.withUnsafeBytes { (dataPtr: UnsafeRawBufferPointer) in
+            let unsafeDataPtr = dataPtr.baseAddress?.assumingMemoryBound(to: UInt8.self)
+            strm.next_in = UnsafeMutablePointer<UInt8>(mutating: unsafeDataPtr)
+            strm.avail_in = uInt(data.count)
             repeat {
-                strm.next_out = UnsafeMutablePointer<UInt8>(&buffer)
-                strm.avail_out = CUnsignedInt(buffer.count)
-
-                res = deflate(&strm, Z_SYNC_FLUSH)
-
+                buffer.withUnsafeMutableBytes { (bufferPtr: UnsafeMutableRawBufferPointer) in
+                    let unsafeBufferPtr = bufferPtr.baseAddress?.assumingMemoryBound(to: UInt8.self)
+                    strm.next_out = UnsafeMutablePointer<UInt8>(unsafeBufferPtr)
+                    strm.avail_out = uInt(buffer.count)
+                    res = deflate(&strm, Z_SYNC_FLUSH)
+                }
                 let byteCount = buffer.count - Int(strm.avail_out)
                 compressed.append(buffer, count: byteCount)
-            }
-            while res == Z_OK && strm.avail_out == 0
-
+            } while res == Z_OK && strm.avail_out == 0
         }
-
-        guard res == Z_OK && strm.avail_out > 0
-            || (res == Z_BUF_ERROR && Int(strm.avail_out) == buffer.count)
-        else {
+        guard (res == Z_OK && strm.avail_out > 0)
+                || (res == Z_BUF_ERROR && Int(strm.avail_out) == buffer.count) else {
             throw WSError(type: .compressionError, message: "Error on compressing", code: 0)
         }
-
         compressed.removeLast(4)
         return compressed
     }
