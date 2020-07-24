@@ -384,15 +384,12 @@ class IMConversationTestCase: RTMBaseTestCase {
     
     func testServiceConversationSubscription() {
         guard let client = newOpenedClient(),
-            let serviceConversationID = IMConversationTestCase.newServiceConversation() else {
-                XCTFail()
-                return
+              let serviceConversationID = IMConversationTestCase.newServiceConversation() else {
+            XCTFail()
+            return
         }
-        
         delay()
-        
         var serviceConversation: IMServiceConversation?
-        
         expecting { (exp) in
             try! client.conversationQuery.getConversation(by: serviceConversationID) { (result) in
                 XCTAssertTrue(result.isSuccess)
@@ -404,7 +401,10 @@ class IMConversationTestCase: RTMBaseTestCase {
                 exp.fulfill()
             }
         }
-        
+        guard let _ = serviceConversation else {
+            XCTFail()
+            return
+        }
         expecting(
             description: "service conversation subscription",
             count: 3)
@@ -427,6 +427,21 @@ class IMConversationTestCase: RTMBaseTestCase {
                     })
                 })
             })
+        }
+        let query = client.conversationQuery
+        expecting { (exp) in
+            try! query.getConversation(by: serviceConversationID) { (result) in
+                XCTAssertNil(result.error)
+                if let conv = result.value as? IMServiceConversation {
+                    XCTAssertEqual(conv.isMuted, false)
+                    XCTAssertTrue(conv.rawData["muted"] != nil)
+                    XCTAssertNotNil(conv.subscribedTimestamp)
+                    XCTAssertNotNil(conv.subscribedAt)
+                } else {
+                    XCTFail()
+                }
+                exp.fulfill()
+            }
         }
     }
     
