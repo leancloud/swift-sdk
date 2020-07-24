@@ -27,6 +27,8 @@ public class IMConversation {
         case transient = "tr"
         case system = "sys"
         case joined = "joined"
+        case joinedAt = "joinedAt"
+        case muted = "muted"
         case temporary = "temp"
         case temporaryTTL = "ttl"
         case convType = "conv_type"
@@ -104,7 +106,7 @@ public class IMConversation {
         return self.safeDecodingRawData(with: .members)
     }
 
-    /// Indicates whether the conversation has been muted.
+    /// Whether the offline notification of this conversation has been muted by the client.
     public var isMuted: Bool {
         if let mutedMembers: [String] = self.safeDecodingRawData(with: .mutedMembers) {
             return mutedMembers.contains(self.clientID)
@@ -2938,6 +2940,22 @@ public class IMServiceConversation: IMConversation {
     /// Whether this service conversation has been subscribed by the client.
     public var isSubscribed: Bool? {
         return self.safeDecodingRawData(with: .joined)
+    }
+    
+    /// The date when the client subscribe this service conversation.
+    public var subscribedAt: Date? {
+        return IMClient.date(
+            fromMillisecond: self.subscribedTimestamp)
+    }
+    
+    /// The timestamp when the client subscribe this service conversation, unit of measurement is millisecond.
+    public var subscribedTimestamp: Int64? {
+        return self.safeDecodingRawData(with: .joinedAt)
+    }
+    
+    /// Whether the offline notification of this service conversation has been muted by the client.
+    public override var isMuted: Bool {
+        return self.safeDecodingRawData(with: .muted) ?? false
     }
     
     @available(*, unavailable)
