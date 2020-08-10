@@ -1151,6 +1151,7 @@ class IMConversationTestCase: RTMBaseTestCase {
                     XCTAssertTrue(result.isSuccess)
                     XCTAssertNil(result.error)
                     exp.fulfill()
+                    self.delay()
                     chatRoomA?.getOnlineMembersCount(completion: { (result) in
                         XCTAssertTrue(result.isSuccess)
                         XCTAssertNil(result.error)
@@ -1167,6 +1168,7 @@ class IMConversationTestCase: RTMBaseTestCase {
                                 XCTAssertTrue(result.isSuccess)
                                 XCTAssertNil(result.error)
                                 exp.fulfill()
+                                self.delay()
                                 chatRoomA?.getOnlineMembersCount(completion: { (result) in
                                     XCTAssertTrue(Thread.isMainThread)
                                     XCTAssertTrue(result.isSuccess)
