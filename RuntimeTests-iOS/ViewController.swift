@@ -93,58 +93,39 @@ class ViewController: UITableViewController {
     }
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        defer {
+            tableView.deselectRow(at: indexPath, animated: true)
+        }
         switch indexPath.row {
         case 0:
-            tableView.isUserInteractionEnabled = false
-            DispatchQueue.global().async {
-                let group = DispatchGroup()
-                for item in self.liveQueryArray {
-                    group.enter()
-                    item.subscribe(completion: { (result) in
-                        assert(Thread.isMainThread)
-                        group.leave()
-                        switch result {
-                        case .success:
-                            break
-                        case .failure(error: let error):
-                            print(error)
-                        }
-                    })
-                }
-                group.wait()
-                DispatchQueue.main.async {
-                    tableView.isUserInteractionEnabled = true
-                }
+            for item in self.liveQueryArray {
+                item.subscribe(completion: { (result) in
+                    assert(Thread.isMainThread)
+                    switch result {
+                    case .success:
+                        break
+                    case .failure(error: let error):
+                        print(error)
+                    }
+                })
             }
         case 1:
-            tableView.isUserInteractionEnabled = false
-            DispatchQueue.global().async {
-                let group = DispatchGroup()
-                for item in self.liveQueryArray {
-                    group.enter()
-                    item.unsubscribe(completion: { (result) in
-                        assert(Thread.isMainThread)
-                        group.leave()
-                        switch result {
-                        case .success:
-                            break
-                        case .failure(error: let error):
-                            print(error)
-                        }
-                    })
-                }
-                group.wait()
-                DispatchQueue.main.async {
-                    tableView.isUserInteractionEnabled = true
-                }
+            for item in self.liveQueryArray {
+                item.unsubscribe(completion: { (result) in
+                    assert(Thread.isMainThread)
+                    switch result {
+                    case .success:
+                        break
+                    case .failure(error: let error):
+                        print(error)
+                    }
+                })
             }
         case 2:
-            tableView.isUserInteractionEnabled = false
             let object = LiveQueryTest()
             object.numberField = Int.random(in: 0..<self.liveQueryArray.count).lcNumber
             object.stringField = UUID().uuidString.lcString
             object.save { (result) in
-                tableView.isUserInteractionEnabled = true
                 switch result {
                 case .success:
                     break
@@ -153,7 +134,6 @@ class ViewController: UITableViewController {
                 }
             }
         case 3:
-            tableView.isUserInteractionEnabled = false
             let query = LCQuery(className: "\(LiveQueryTest.self)")
             query.limit = 1
             _ = query.find { (result) in
@@ -161,7 +141,6 @@ class ViewController: UITableViewController {
                 case .success(objects: let objects):
                     if let object = objects.first {
                         object.delete { (result) in
-                            tableView.isUserInteractionEnabled = true
                             switch result {
                             case .success:
                                 break
@@ -169,16 +148,12 @@ class ViewController: UITableViewController {
                                 print(error)
                             }
                         }
-                    } else {
-                        tableView.isUserInteractionEnabled = true
                     }
                 case .failure(error: let error):
-                    tableView.isUserInteractionEnabled = true
                     print(error)
                 }
             }
         case 4:
-            tableView.isUserInteractionEnabled = false
             let query = LCQuery(className: "\(LiveQueryTest.self)")
             query.limit = 1
             _ = query.find { (result) in
@@ -192,7 +167,6 @@ class ViewController: UITableViewController {
                         }
                         object.numberField = number.lcNumber
                         object.save(completion: { (result) in
-                            tableView.isUserInteractionEnabled = true
                             switch result {
                             case .success:
                                 break
@@ -200,16 +174,12 @@ class ViewController: UITableViewController {
                                 print(error)
                             }
                         })
-                    } else {
-                        tableView.isUserInteractionEnabled = true
                     }
                 case .failure(error: let error):
-                    tableView.isUserInteractionEnabled = true
                     print(error)
                 }
             }
         case 5:
-            tableView.isUserInteractionEnabled = false
             let query = LCQuery(className: "\(LiveQueryTest.self)")
             query.limit = 1
             _ = query.find { (result) in
@@ -218,7 +188,6 @@ class ViewController: UITableViewController {
                     if let object = objects.first as? LiveQueryTest {
                         object.stringField = UUID().uuidString.lcString
                         object.save(completion: { (result) in
-                            tableView.isUserInteractionEnabled = true
                             switch result {
                             case .success:
                                 break
@@ -226,21 +195,16 @@ class ViewController: UITableViewController {
                                 print(error)
                             }
                         })
-                    } else {
-                        tableView.isUserInteractionEnabled = true
                     }
                 case .failure(error: let error):
-                    tableView.isUserInteractionEnabled = true
                     print(error)
                 }
             }
         case 6:
-            tableView.isUserInteractionEnabled = false
             LCUser.logOut()
             if let error = LCUser.logIn(username: self.username, password: self.password).error {
                 print(error)
             }
-            tableView.isUserInteractionEnabled = true
         case 7:
             if !self.liveQueryArray.isEmpty {            
                 self.liveQueryArray.removeLast()

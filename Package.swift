@@ -16,7 +16,7 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/Alamofire/Alamofire.git", .upToNextMajor(from: "5.2.0")),
-        .package(url: "https://github.com/apple/swift-protobuf.git", .upToNextMajor(from: "1.10.0")),
+        .package(url: "https://github.com/apple/swift-protobuf.git", .upToNextMajor(from: "1.12.0")),
         .package(url: "https://github.com/apple/swift-nio-zlib-support.git", from: "1.0.0"),
         .package(url: "https://github.com/groue/GRDB.swift.git", .upToNextMajor(from: "4.14.0"))
     ],

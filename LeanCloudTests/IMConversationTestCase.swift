@@ -1151,6 +1151,7 @@ class IMConversationTestCase: RTMBaseTestCase {
                     XCTAssertTrue(result.isSuccess)
                     XCTAssertNil(result.error)
                     exp.fulfill()
+                    self.delay()
                     chatRoomA?.getOnlineMembersCount(completion: { (result) in
                         XCTAssertTrue(result.isSuccess)
                         XCTAssertNil(result.error)
@@ -1167,6 +1168,7 @@ class IMConversationTestCase: RTMBaseTestCase {
                                 XCTAssertTrue(result.isSuccess)
                                 XCTAssertNil(result.error)
                                 exp.fulfill()
+                                self.delay()
                                 chatRoomA?.getOnlineMembersCount(completion: { (result) in
                                     XCTAssertTrue(Thread.isMainThread)
                                     XCTAssertTrue(result.isSuccess)
@@ -1631,22 +1633,14 @@ class IMConversationTestCase: RTMBaseTestCase {
         delay()
         
         expecting(expectation: { () -> XCTestExpectation in
-            let exp = self.expectation(description: "conv read and leave")
-            exp.expectedFulfillmentCount = 3
+            let exp = self.expectation(description: "conv read")
+            exp.expectedFulfillmentCount = 1
             return exp
         }) { (exp) in
             let conv = clientA.convCollection.first?.value
             delegatorA.conversationEvent = { client, conv, event in
                 switch event {
                 case .unreadMessageCountUpdated:
-                    try! conv.leave(completion: { (result) in
-                        XCTAssertTrue(result.isSuccess)
-                        XCTAssertNil(result.error)
-                        exp.fulfill()
-                    })
-                    exp.fulfill()
-                case .left:
-                    clientA.convCollection.removeAll()
                     exp.fulfill()
                 default:
                     break
@@ -1726,13 +1720,11 @@ class IMConversationTestCase: RTMBaseTestCase {
         
         expecting(expectation: { () -> XCTestExpectation in
             let exp = self.expectation(description: "get offline events")
-            exp.expectedFulfillmentCount = 7
+            exp.expectedFulfillmentCount = 6
             return exp
         }) { (exp) in
             delegatorB.conversationEvent = { client, conv, event in
                 switch event {
-                case .membersLeft:
-                    exp.fulfill()
                 case .joined:
                     if conv is IMTemporaryConversation {
                         exp.fulfill()

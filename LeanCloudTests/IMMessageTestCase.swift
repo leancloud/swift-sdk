@@ -83,6 +83,9 @@ class IMMessageTestCase: RTMBaseTestCase {
         }
         wait(for: [exp1], timeout: timeout)
         
+        delegatorA.reset()
+        delegatorB.reset()
+        
         let exp2 = expectation(description: "B send message to A")
         exp2.expectedFulfillmentCount = 6
         let dataMessage = IMMessage()
@@ -129,6 +132,9 @@ class IMMessageTestCase: RTMBaseTestCase {
         })
         wait(for: [exp2], timeout: timeout)
         
+        delegatorA.reset()
+        delegatorB.reset()
+        
         XCTAssertEqual(conversationA.unreadMessageCount, 0)
         XCTAssertEqual(conversationB.unreadMessageCount, 0)
         XCTAssertNotNil(conversationA.lastMessage?.ID)
@@ -148,7 +154,7 @@ class IMMessageTestCase: RTMBaseTestCase {
         )
         
         expecting { (exp) in
-            try! conversationA.leave(completion: { (result) in
+            try! conversationB.leave(completion: { (result) in
                 XCTAssertTrue(result.isSuccess)
                 XCTAssertNil(result.error)
                 exp.fulfill()
@@ -158,7 +164,7 @@ class IMMessageTestCase: RTMBaseTestCase {
         expecting { (exp) in
             let message = IMTextMessage()
             message.text = uuid
-            try! conversationA.send(message: message, completion: { (result) in
+            try! conversationB.send(message: message, completion: { (result) in
                 XCTAssertTrue(result.isFailure)
                 XCTAssertNotNil(result.error)
                 XCTAssertNotNil(message.ID)
