@@ -765,6 +765,7 @@ class IMMessageTestCase: RTMBaseTestCase {
         message.file = file
         let success = sendingAndReceiving(sentMessage: message) { (rMessage) in
             XCTAssertNotNil(rMessage?.file?.objectId?.value)
+            XCTAssertEqual(rMessage?.name, name)
             XCTAssertEqual(rMessage?.format, format)
             XCTAssertNotNil(rMessage?.size)
             XCTAssertNotNil(rMessage?.url)
@@ -773,6 +774,7 @@ class IMMessageTestCase: RTMBaseTestCase {
             XCTAssertEqual(rMessage?.size, message.size)
             XCTAssertEqual(rMessage?.url, message.url)
         }
+        XCTAssertEqual(message.name, name)
         XCTAssertEqual(message.url?.absoluteString.hasSuffix(name), true)
         XCTAssertTrue(success)
     }
