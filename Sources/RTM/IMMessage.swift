@@ -695,7 +695,7 @@ open class IMAudioMessage: IMCategorizedMessage {
         return ReservedType.audio.rawValue
     }
     
-    /// The name of image.
+    /// The name of audio.
     public var name: String? {
         return self.decodingFileMetaData(with: .name)
     }
@@ -732,7 +732,7 @@ open class IMVideoMessage: IMCategorizedMessage {
         return ReservedType.video.rawValue
     }
     
-    /// The name of image.
+    /// The name of video.
     public var name: String? {
         return self.decodingFileMetaData(with: .name)
     }
@@ -769,7 +769,7 @@ open class IMFileMessage: IMCategorizedMessage {
         return ReservedType.file.rawValue
     }
     
-    /// The name of image.
+    /// The name of file.
     public var name: String? {
         return self.decodingFileMetaData(with: .name)
     }
