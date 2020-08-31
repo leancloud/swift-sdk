@@ -324,6 +324,7 @@ open class IMCategorizedMessage: IMMessage, IMMessageCategorizing {
         case objId = "objId"
         case url = "url"
         case metaData = "metaData"
+        case name = "name"
         case width = "width"
         case height = "height"
         case duration = "duration"
@@ -513,6 +514,9 @@ open class IMCategorizedMessage: IMMessage, IMMessageCategorizing {
             return nil
         }
         var metaData: [String: Any] = [:]
+        if let name = file.name?.value {
+            metaData[FileKey.name.rawValue] = name
+        }
         if let size = file.metaData?[FileKey.size.rawValue]?.doubleValue {
             metaData[FileKey.size.rawValue] = size
         }
@@ -649,6 +653,11 @@ open class IMImageMessage: IMCategorizedMessage {
         return ReservedType.image.rawValue
     }
     
+    /// The name of image.
+    public var name: String? {
+        return self.decodingFileMetaData(with: .name)
+    }
+    
     /// The width of image.
     public var width: Double? {
         return self.decodingFileMetaData(with: .width)
@@ -686,6 +695,11 @@ open class IMAudioMessage: IMCategorizedMessage {
         return ReservedType.audio.rawValue
     }
     
+    /// The name of image.
+    public var name: String? {
+        return self.decodingFileMetaData(with: .name)
+    }
+    
     /// The duration of audio.
     public var duration: Double? {
         return self.decodingFileMetaData(with: .duration)
@@ -718,6 +732,11 @@ open class IMVideoMessage: IMCategorizedMessage {
         return ReservedType.video.rawValue
     }
     
+    /// The name of image.
+    public var name: String? {
+        return self.decodingFileMetaData(with: .name)
+    }
+    
     /// The duration of video.
     public var duration: Double? {
         return self.decodingFileMetaData(with: .duration)
@@ -748,6 +767,11 @@ open class IMFileMessage: IMCategorizedMessage {
     
     public class override var messageType: MessageType {
         return ReservedType.file.rawValue
+    }
+    
+    /// The name of image.
+    public var name: String? {
+        return self.decodingFileMetaData(with: .name)
     }
     
     /// The data size of file.
