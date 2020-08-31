@@ -1202,6 +1202,7 @@ open class LCUser: LCObject {
         case qq
         case weibo
         case weixin
+        case apple
         case custom(_ key: String)
         
         public var key: String {
@@ -1212,6 +1213,8 @@ open class LCUser: LCObject {
                 return "weibo"
             case .weixin:
                 return "weixin"
+            case .apple:
+                return "lc_apple"
             case .custom(let key):
                 return key
             }
