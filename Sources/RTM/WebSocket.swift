@@ -142,7 +142,7 @@ class FoundationStream : NSObject, WSStream, StreamDelegate  {
     private var inputStream: InputStream?
     private var outputStream: OutputStream?
     weak var delegate: WSStreamDelegate?
-    let BUFFER_MAX = (1024 * 32)
+    let BUFFER_MAX = (1024 * 32) + 1
 	
 	var enableSOCKSProxy = false
     
@@ -370,7 +370,6 @@ class WebSocket : NSObject, StreamDelegate, WebSocketClient, WSStreamDelegate {
     let headerWSKeyName         = "Sec-WebSocket-Key"
     let headerOriginName        = "Origin"
     let headerWSAcceptName      = "Sec-WebSocket-Accept"
-    let BUFFER_MAX              = 4096
     let FinMask: UInt8          = 0x80
     let OpCodeMask: UInt8       = 0x0F
     let RSVMask: UInt8          = 0x70
