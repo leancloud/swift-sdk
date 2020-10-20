@@ -147,24 +147,26 @@ public class IMClient {
         }
     }
     
-    /// ref: `https://github.com/leancloud/avoscloud-push/blob/develop/push-server/doc/protocol.md`
+    /// ref: https://github.com/leancloud/avoscloud-push/tree/master/doc/protocols
     struct SessionConfigs: OptionSet {
         let rawValue: Int64
         
-        static let patchMessage = SessionConfigs(rawValue: 1 << 0)
-        static let temporaryConversationMessage = SessionConfigs(rawValue: 1 << 1)
-        static let autoBindDeviceidAndInstallation = SessionConfigs(rawValue: 1 << 2)
-        static let transientMessageACK = SessionConfigs(rawValue: 1 << 3)
-        static let notification = SessionConfigs(rawValue: 1 << 4)
-        static let partialFailedMessage = SessionConfigs(rawValue: 1 << 5)
-        static let groupChatRCP = SessionConfigs(rawValue: 1 << 6)
+        static let patchMessage = SessionConfigs(rawValue:                      1 << 0)
+        static let temporaryConversationMessage = SessionConfigs(rawValue:      1 << 1)
+        static let autoBindDeviceIDAndInstallation = SessionConfigs(rawValue:   1 << 2)
+        static let transientMessageACK = SessionConfigs(rawValue:               1 << 3)
+        static let keepNotification = SessionConfigs(rawValue:                  1 << 4)
+        static let partialFailedMessage = SessionConfigs(rawValue:              1 << 5)
+        static let groupChatReceipt = SessionConfigs(rawValue:                  1 << 6)
+        static let omitPeerID = SessionConfigs(rawValue:                        1 << 7)
         
         static let support: SessionConfigs = [
             .patchMessage,
             .temporaryConversationMessage,
             .transientMessageACK,
-            .notification,
-            .partialFailedMessage
+            .keepNotification,
+            .partialFailedMessage,
+            .omitPeerID,
         ]
     }
     
