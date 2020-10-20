@@ -685,10 +685,10 @@ class IMMessageTestCase: RTMBaseTestCase {
     func testTextMessageSendingAndReceiving() {
         let message = IMTextMessage()
         message.text = "test"
-        let success = sendingAndReceiving(sentMessage: message) { (rMessage) in
+        let success = sendingAndReceiving(sentMessage: message, receivedMessageChecker: { (rMessage) in
             XCTAssertNotNil(rMessage?.text)
             XCTAssertEqual(rMessage?.text, message.text)
-        }
+        })
         XCTAssertTrue(success)
     }
     
@@ -699,7 +699,7 @@ class IMMessageTestCase: RTMBaseTestCase {
                 filePath: bundleResourceURL(name: "test", ext: format).path,
                 format: format
             )
-            XCTAssertTrue(sendingAndReceiving(sentMessage: outMessage) { (inMessage) in
+            XCTAssertTrue(sendingAndReceiving(sentMessage: outMessage, receivedMessageChecker: { (inMessage) in
                 XCTAssertNotNil(inMessage?.file?.objectId?.value)
                 XCTAssertEqual(inMessage?.format, format)
                 XCTAssertNotNil(inMessage?.size)
@@ -712,7 +712,7 @@ class IMMessageTestCase: RTMBaseTestCase {
                 XCTAssertEqual(inMessage?.height, outMessage.height)
                 XCTAssertEqual(inMessage?.width, outMessage.width)
                 XCTAssertEqual(inMessage?.url, outMessage.url)
-            })
+            }))
         }
     }
     
@@ -770,7 +770,7 @@ class IMMessageTestCase: RTMBaseTestCase {
         file.keepFileName = true
         file.name = name.lcString
         message.file = file
-        let success = sendingAndReceiving(sentMessage: message) { (rMessage) in
+        let success = sendingAndReceiving(sentMessage: message, receivedMessageChecker: { (rMessage) in
             XCTAssertNotNil(rMessage?.file?.objectId?.value)
             XCTAssertEqual(rMessage?.name, name)
             XCTAssertEqual(rMessage?.format, format)
@@ -780,7 +780,7 @@ class IMMessageTestCase: RTMBaseTestCase {
             XCTAssertEqual(rMessage?.format, message.format)
             XCTAssertEqual(rMessage?.size, message.size)
             XCTAssertEqual(rMessage?.url, message.url)
-        }
+        })
         XCTAssertEqual(message.name, name)
         XCTAssertEqual(message.url?.absoluteString.hasSuffix(name), true)
         XCTAssertTrue(success)
@@ -789,12 +789,12 @@ class IMMessageTestCase: RTMBaseTestCase {
     func testLocationMessageSendingAndReceiving() {
         let message = IMLocationMessage()
         message.location = LCGeoPoint(latitude: 180.0, longitude: 90.0)
-        let success = sendingAndReceiving(sentMessage: message) { (rMessage) in
+        let success = sendingAndReceiving(sentMessage: message, receivedMessageChecker: { (rMessage) in
             XCTAssertEqual(rMessage?.latitude, 180.0)
             XCTAssertEqual(rMessage?.longitude, 90.0)
             XCTAssertEqual(rMessage?.latitude, message.latitude)
             XCTAssertEqual(rMessage?.longitude, message.longitude)
-        }
+        })
         XCTAssertTrue(success)
     }
     
