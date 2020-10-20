@@ -13,6 +13,6 @@ class RTMBaseTestCase: BaseTestCase {
     
     static let useTestableRTMURL = false
     static let testableRTMURL = RTMBaseTestCase.useTestableRTMURL
-        ? URL(string: "wss://cn-n1-core-k8s-cell-12.leancloud.cn")!
+        ? URL(string: "wss://cn-n1-prod-k8s-cell-12.leancloud.cn")!
         : nil
 }

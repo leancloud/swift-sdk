@@ -650,12 +650,9 @@ class RTMConnection {
                 return
             }
             var outCommand = command
-            if service == .instantMessaging {
-                if let commandWithPeerID = self.tryPadding(
-                    peerID: peerID,
-                    for: outCommand) {
-                    outCommand = commandWithPeerID
-                }
+            if service == .instantMessaging,
+               let commandWithPeerID = self.tryPadding(peerID: peerID, for: outCommand) {
+                outCommand = commandWithPeerID
             }
             let outCommandWithoutIndex = outCommand
             if let callback = callback,
@@ -682,7 +679,9 @@ class RTMConnection {
             }
             guard serializedData.count <= (1024 * 5) else {
                 callingQueue?.async {
-                    let error = LCError(code: .commandDataLengthTooLong)
+                    let error = LCError(
+                        code: .commandDataLengthTooLong,
+                        userInfo: ["bytesCount": serializedData.count])
                     callback?(.error(error))
                 }
                 return
@@ -698,15 +697,17 @@ class RTMConnection {
                     closure: callback)
                 timer.insert(commandCallback: commandCallback, index: outCommand.i)
             }
+            let defaultPeerID = self.defaultInstantMessagingPeerID
             socket.write(data: serializedData) {
-                Logger.shared.debug("""
-                    \n------ BEGIN LeanCloud Out Command
-                    \(socket)
-                    Service: \(service.rawValue)
-                    PID: \(peerID)
-                    \(outCommand)
-                    ------ END
-                    """)
+                Logger.shared.debug(closure: { () -> String in
+                    var log = "\n------ BEGIN LeanCloud Out Command\n\(socket)\n"
+                    if service == .instantMessaging,
+                       let defaultPeerID = defaultPeerID {
+                        log += "<DPID: \(defaultPeerID)>\n"
+                    }
+                    log += "Service: \(service.rawValue)\n\(outCommand)\n------ END"
+                    return log
+                })
             }
         }
     }
@@ -929,21 +930,38 @@ extension RTMConnection {
         peerID: String,
         for command: IMGenericCommand) -> IMGenericCommand?
     {
+        assert(self.specificAssertion)
         if command.cmd == .session,
            command.op == .open {
-            if let defaultInstantMessagingPeerID = self.defaultInstantMessagingPeerID {
-                if defaultInstantMessagingPeerID != peerID {
-                    self.needPeerIDForEveryCommandOfInstantMessaging = true
-                }
-            } else {
-                self.defaultInstantMessagingPeerID = peerID
-            }
-        } else if self.needPeerIDForEveryCommandOfInstantMessaging {
+            return nil
+        }
+        if self.needPeerIDForEveryCommandOfInstantMessaging {
             var commandWithPeerID = command
             commandWithPeerID.peerID = peerID
             return commandWithPeerID
+        } else {
+            return nil
         }
-        return nil
+    }
+    
+    private func checkSessionOpenedPeerID(command: IMGenericCommand) {
+        assert(self.specificAssertion)
+        guard command.cmd == .session,
+              command.op == .opened,
+              let peerID = (command.hasPeerID ? command.peerID : nil) else {
+            return
+        }
+        if let defaultPeerID = self.defaultInstantMessagingPeerID {
+            self.needPeerIDForEveryCommandOfInstantMessaging = (defaultPeerID != peerID)
+        } else {
+            self.defaultInstantMessagingPeerID = peerID
+        }
+    }
+    
+    private func resetDefaultInstantMessagingPeerID() {
+        assert(self.specificAssertion)
+        self.defaultInstantMessagingPeerID = nil
+        self.needPeerIDForEveryCommandOfInstantMessaging = false
     }
     
     func nextConnectingDelayInterval() -> Int {
@@ -968,8 +986,7 @@ extension RTMConnection: WebSocketAdvancedDelegate, WebSocketPongDelegate {
             \n\(socket)
                 - did connect
             """)
-        self.defaultInstantMessagingPeerID = nil
-        self.needPeerIDForEveryCommandOfInstantMessaging = false
+        self.resetDefaultInstantMessagingPeerID()
         self.resetConnectingDelayInterval()
         self.timer = Timer(connection: self, socket: socket)
         for item in self.allDelegators {
@@ -1000,12 +1017,16 @@ extension RTMConnection: WebSocketAdvancedDelegate, WebSocketPongDelegate {
         assert(self.socket === socket && self.timer != nil)
         do {
             let inCommand = try IMGenericCommand(serializedData: data)
-            Logger.shared.debug("""
-                \n------ BEGIN LeanCloud In Command
-                \(socket)
-                \(inCommand)
-                ------ END
-                """)
+            self.checkSessionOpenedPeerID(command: inCommand)
+            Logger.shared.debug(closure: { () -> String in
+                var log = "\n------ BEGIN LeanCloud In Command\n\(socket)\n"
+                if inCommand.service == RTMService.instantMessaging.rawValue,
+                   let defaultPeerID = self.defaultInstantMessagingPeerID {
+                    log += "<DPID: \(defaultPeerID)>\n"
+                }
+                log += "\(inCommand)\n------ END"
+                return log
+            })
             if inCommand.hasI {
                 self.timer?.handle(callbackCommand: inCommand)
             } else {
