@@ -489,96 +489,103 @@ class IMMessageTestCase: RTMBaseTestCase {
     }
     
     func testSendMessageToChatRoom() {
-        guard
-            let clientA = newOpenedClient(),
-            let clientB = newOpenedClient()
-            else
-        {
+        guard let client1 = newOpenedClient(clientIDSuffix: "1"),
+              let client2 = newOpenedClient(clientIDSuffix: "2", options: []),
+              let client3 = newOpenedClient(clientIDSuffix: "3", options: []) else {
             XCTFail()
             return
         }
         
-        let delegatorA = IMClientTestCase.Delegator()
-        clientA.delegate = delegatorA
-        let delegatorB = IMClientTestCase.Delegator()
-        clientB.delegate = delegatorB
+        let delegator1 = IMClientTestCase.Delegator()
+        client1.delegate = delegator1
+        let delegator2 = IMClientTestCase.Delegator()
+        client2.delegate = delegator2
+        let delegator3 = IMClientTestCase.Delegator()
+        client3.delegate = delegator3
+        var chatRoom1: IMChatRoom?
+        var chatRoom2: IMChatRoom?
+        var chatRoom3: IMChatRoom?
         
-        var chatRoomA: IMChatRoom? = nil
-        var chatRoomB: IMChatRoom? = nil
-        
-        let prepareExp = expectation(description: "create chat room")
-        prepareExp.expectedFulfillmentCount = 3
-        try? clientA.createChatRoom(completion: { (result) in
-            XCTAssertTrue(result.isSuccess)
-            XCTAssertNil(result.error)
-            chatRoomA = result.value
-            prepareExp.fulfill()
-            if let ID = chatRoomA?.ID {
-                try? clientB.conversationQuery.getConversation(by: ID, completion: { (result) in
-                    XCTAssertTrue(result.isSuccess)
-                    XCTAssertNil(result.error)
-                    chatRoomB = result.value as? IMChatRoom
-                    prepareExp.fulfill()
-                    try? chatRoomB?.join(completion: { (result) in
+        expecting(count: 5) { (exp) in
+            try? client1.createChatRoom(completion: { (result) in
+                XCTAssertTrue(result.isSuccess)
+                XCTAssertNil(result.error)
+                chatRoom1 = result.value
+                exp.fulfill()
+                if let ID = chatRoom1?.ID {
+                    try? client2.conversationQuery.getConversation(by: ID) { result in
                         XCTAssertTrue(result.isSuccess)
                         XCTAssertNil(result.error)
-                        prepareExp.fulfill()
-                    })
+                        chatRoom2 = result.value as? IMChatRoom
+                        exp.fulfill()
+                        try? chatRoom2?.join(completion: { (result) in
+                            XCTAssertTrue(result.isSuccess)
+                            XCTAssertNil(result.error)
+                            exp.fulfill()
+                        })
+                    }
+                    try? client3.conversationQuery.getConversation(by: ID) { result in
+                        XCTAssertTrue(result.isSuccess)
+                        XCTAssertNil(result.error)
+                        chatRoom3 = result.value as? IMChatRoom
+                        exp.fulfill()
+                        try? chatRoom3?.join(completion: { (result) in
+                            XCTAssertTrue(result.isSuccess)
+                            XCTAssertNil(result.error)
+                            exp.fulfill()
+                        })
+                    }
+                }
+            })
+        }
+        
+        expecting(count: 6) { (exp) in
+            delegator1.messageEvent = { client, conv, event in
+                switch event {
+                case .received(message: _):
+                    exp.fulfill()
+                default:
+                    break
+                }
+            }
+            delegator2.messageEvent = { client, conv, event in
+                switch event {
+                case .received(message: _):
+                    exp.fulfill()
+                default:
+                    break
+                }
+            }
+            delegator3.messageEvent = { client, conv, event in
+                switch event {
+                case .received(message: _):
+                    exp.fulfill()
+                default:
+                    break
+                }
+            }
+            try? chatRoom1?.send(message: IMTextMessage(text: "1"), priority: .high, completion: { (result) in
+                XCTAssertTrue(result.isSuccess)
+                XCTAssertNil(result.error)
+                exp.fulfill()
+                try? chatRoom2?.send(message: IMTextMessage(text: "2"), priority: .high, completion: { (result) in
+                    XCTAssertTrue(result.isSuccess)
+                    XCTAssertNil(result.error)
+                    exp.fulfill()
                 })
-            }
-        })
-        wait(for: [prepareExp], timeout: timeout)
+            })
+        }
         
-        let sendExp = expectation(description: "send message")
-        sendExp.expectedFulfillmentCount = 12
-        delegatorA.messageEvent = { client, conv, event in
-            if conv === chatRoomA {
-                switch event {
-                case .received(message: let message):
-                    XCTAssertEqual(message.content?.string, "test")
-                    sendExp.fulfill()
-                default:
-                    break
-                }
-            }
-        }
-        delegatorB.messageEvent = { client, conv, event in
-            if conv === chatRoomB {
-                switch event {
-                case .received(message: let message):
-                    XCTAssertEqual(message.content?.string, "test")
-                    sendExp.fulfill()
-                default:
-                    break
-                }
-            }
-        }
-        for messagePriority in
-            [IMChatRoom.MessagePriority.high,
-             IMChatRoom.MessagePriority.normal,
-             IMChatRoom.MessagePriority.low]
-        {
-            let messageA = IMMessage()
-            try? messageA.set(content: .string("test"))
-            ((try? chatRoomA?.send(message: messageA, priority: messagePriority, completion: { (result) in
-                XCTAssertTrue(result.isSuccess)
-                XCTAssertNil(result.error)
-                sendExp.fulfill()
-            })) as ()??)
-            let messageB = IMMessage()
-            try? messageB.set(content: .string("test"))
-            ((try? chatRoomB?.send(message: messageB, priority: messagePriority, completion: { (result) in
-                XCTAssertTrue(result.isSuccess)
-                XCTAssertNil(result.error)
-                sendExp.fulfill()
-            })) as ()??)
-        }
-        wait(for: [sendExp], timeout: timeout)
+        delegator1.reset()
+        delegator2.reset()
+        delegator3.reset()
         
-        XCTAssertNil(chatRoomA?.lastMessage)
-        XCTAssertNil(chatRoomB?.lastMessage)
-        XCTAssertTrue((chatRoomA?.members ?? []).isEmpty)
-        XCTAssertTrue((chatRoomB?.members ?? []).isEmpty)
+        XCTAssertNil(chatRoom1?.lastMessage)
+        XCTAssertNil(chatRoom2?.lastMessage)
+        XCTAssertNil(chatRoom3?.lastMessage)
+        XCTAssertTrue((chatRoom1?.members ?? []).isEmpty)
+        XCTAssertTrue((chatRoom2?.members ?? []).isEmpty)
+        XCTAssertTrue((chatRoom3?.members ?? []).isEmpty)
     }
     
     func testReceiveMessageFromServiceConversation() {
@@ -1463,15 +1470,21 @@ extension IMMessageTestCase {
     
     func newOpenedClient(
         clientID: String? = nil,
-        options: IMClient.Options = [.receiveUnreadMessageCountAfterSessionDidOpen])
-        -> IMClient?
+        clientIDSuffix: String? = nil,
+        options: IMClient.Options = [.receiveUnreadMessageCountAfterSessionDidOpen]) -> IMClient?
     {
-        var client: IMClient? = try? IMClient(ID: clientID ?? uuid, options:options)
+        var ID = clientID ?? uuid
+        if let suffix = clientIDSuffix {
+            ID += "-\(suffix)"
+        }
+        var client: IMClient? = try? IMClient(ID: ID, options:options)
         let exp = expectation(description: "open")
         client?.open { (result) in
             XCTAssertTrue(result.isSuccess)
             XCTAssertNil(result.error)
-            if result.isFailure { client = nil }
+            if result.isFailure {
+                client = nil
+            }
             exp.fulfill()
         }
         wait(for: [exp], timeout: timeout)
