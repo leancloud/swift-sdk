@@ -58,7 +58,9 @@ class FileUploader {
         let token: String
 
         let mimeType: String?
-
+        
+        let key: String?
+        
         init(plainTokens: LCDictionary) throws {
             guard
                 let providerString = plainTokens["provider"]?.stringValue,
@@ -76,7 +78,7 @@ class FileUploader {
             }
 
             let mimeType = plainTokens["mime_type"]?.stringValue
-
+            self.key = plainTokens["key"]?.stringValue
             self.provider = provider
             self.uploadingURLString = uploadingURLString
             self.token = token
@@ -94,14 +96,10 @@ class FileUploader {
         let payload: LCFile.Payload
 
         /// File name.
-        let name: String
+        let name: String?
 
         /// File size.
         let size: UInt64
-
-        /// The resource key.
-        /// Strictly speaking, it's not a file attribute.
-        let resourceKey: String
 
         /// File mime type.
         let mimeType: String
@@ -118,13 +116,11 @@ class FileUploader {
         init(file: LCFile, payload: LCFile.Payload) throws {
             let filename = file.name?.value
             let mimeType = file.mimeType?.value
-            let resourceKey = FileAttributes.getResourceKey(filename: filename)
 
             switch payload {
             case .data(let data):
-                self.name = filename ?? resourceKey
+                self.name = filename
                 self.size = UInt64(data.count)
-                self.resourceKey = FileAttributes.getResourceKey(filename: filename)
 
                 if let mimeType = mimeType {
                     self.mimeType = mimeType
@@ -138,7 +134,6 @@ class FileUploader {
 
                 self.name = filename
                 self.size = try FileAttributes.getFileSize(fileURL: fileURL)
-                self.resourceKey = FileAttributes.getResourceKey(filename: filename)
 
                 // It might be a bit odd that, unlike name, we detect MIME type from fileURL firstly.
                 if let mimeType = mimeType {
@@ -174,29 +169,6 @@ class FileUploader {
                 }
 
                 return fileSize
-            }
-        }
-
-        /**
-         Generate resource key for file name.
-
-         It will generate a new random resource key everytime.
-
-         - parameter filename: The file name.
-         */
-        static private func getResourceKey(filename: String?) -> String {
-            let key = Utility.compactUUID
-
-            guard let filename = filename else {
-                return key
-            }
-
-            let filenameExtension = (filename as NSString).pathExtension
-
-            if filenameExtension.isEmpty {
-                return key
-            } else {
-                return "\(key).\(filenameExtension)"
             }
         }
 
@@ -249,8 +221,9 @@ class FileUploader {
 
         // Add extra file related attributes to parameters.
 
-        parameters["key"] = attributes.resourceKey
-        parameters["name"] = attributes.name
+        if let name = attributes.name {
+            parameters["name"] = name
+        }
         parameters["mime_type"] = attributes.mimeType
         if self.options.contains(.keepFileName)
             || self.file.keepFileName {
@@ -305,7 +278,6 @@ class FileUploader {
         completion: @escaping (LCBooleanResult) -> Void) -> LCRequest
     {
         let token = tokens.token
-        let resourceKey = attributes.resourceKey
 
         let payload  = self.payload
         let mimeType = attributes.mimeType
@@ -315,7 +287,7 @@ class FileUploader {
         var resourceKeyData: Data
 
         do {
-            if let aKeyData = resourceKey.data(using: .utf8) {
+            if let aKeyData = tokens.key?.data(using: .utf8) {
                 resourceKeyData = aKeyData
             } else {
                 throw LCError(code: .malformedData, reason: "Invalid resource key.")
@@ -344,7 +316,7 @@ class FileUploader {
             case .data(let data):
                 multipartFormData.append(data, withName: "file", fileName: fileName, mimeType: mimeType)
             case .fileURL(let fileURL):
-                multipartFormData.append(fileURL, withName: "file", fileName: fileName, mimeType: mimeType)
+                multipartFormData.append(fileURL, withName: "file", fileName: fileName ?? fileURL.lastPathComponent, mimeType: mimeType)
             }
         }
          
@@ -393,7 +365,7 @@ class FileUploader {
             case .data(let data):
                 multipartFormData.append(data, withName: "filecontent", fileName: fileName, mimeType: mimeType)
             case .fileURL(let fileURL):
-                multipartFormData.append(fileURL, withName: "filecontent", fileName: fileName, mimeType: mimeType)
+                multipartFormData.append(fileURL, withName: "filecontent", fileName: fileName ?? fileURL.lastPathComponent, mimeType: mimeType)
             }
             
             multipartFormData.append("upload".data(using: .utf8)!, withName: "op")
