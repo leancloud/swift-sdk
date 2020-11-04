@@ -57,12 +57,15 @@ class BaseTestCase: XCTestCase {
     override class func setUp() {
         super.setUp()
         let app = BaseTestCase.cnApp
+//        let app = BaseTestCase.ceApp
+//        let app = BaseTestCase.usApp
         TestObject.register()
         LCApplication.logLevel = .all
         try! LCApplication.default.set(
             id: app.id,
             key: app.key,
             serverURL: app.serverURL.isEmpty ? nil : app.serverURL,
+//            serverURL: app.testableServerURL,
             configuration: BaseTestCase.config)
     }
     
