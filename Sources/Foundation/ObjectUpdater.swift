@@ -235,7 +235,16 @@ class ObjectUpdater {
                     .post, "batch",
                     parameters: ["requests": requests])
                 { response in
-                    completion(LCBooleanResult(response: response))
+                    if let data = response.data,
+                       let body = try? JSONSerialization.jsonObject(with: data) as? [[String: Any]],
+                       body.count == 1,
+                       let errorDictionary = body.first?["error"] as? [String: Any],
+                       let code = errorDictionary["code"] as? Int,
+                       let reason = errorDictionary["error"] as? String {
+                        completion(LCBooleanResult(error: LCError(code: code, reason: reason)))
+                    } else {
+                        completion(LCBooleanResult(response: response))
+                    }
                 }
             }
         } catch {
