@@ -11,19 +11,19 @@ import XCTest
 
 class LCSMSTestCase: BaseTestCase {
     
-//    let mobilePhoneNumber = ""
-//
-//    func testRequestVerificationCode() {
+    let mobilePhoneNumber = ""
+    
+    func testRequestVerificationCode() {
 //        XCTAssertTrue(LCSMSClient.requestVerificationCode(
-//            mobilePhoneNumber: self.mobilePhoneNumber,
-//            timeToLive: 1)
-//            .isSuccess)
-//    }
-//
-//    func testVerifyMobilePhoneNumber() {
+//                        mobilePhoneNumber: self.mobilePhoneNumber,
+//                        timeToLive: 1)
+//                        .isSuccess)
+    }
+    
+    func testVerifyMobilePhoneNumber() {
 //        XCTAssertTrue(LCSMSClient.verifyMobilePhoneNumber(
-//            self.mobilePhoneNumber,
-//            verificationCode: "")
-//            .isSuccess)
-//    }
+//                        self.mobilePhoneNumber,
+//                        verificationCode: "")
+//                        .isSuccess)
+    }
 }

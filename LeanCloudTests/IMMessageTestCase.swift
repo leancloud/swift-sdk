@@ -495,6 +495,12 @@ class IMMessageTestCase: RTMBaseTestCase {
             XCTFail()
             return
         }
+        RTMConnectionManager.default.imProtobuf1Registry.removeAll()
+        RTMConnectionManager.default.imProtobuf3Registry.removeAll()
+        guard let client4 = newOpenedClient(clientIDSuffix: "4") else {
+            XCTFail()
+            return
+        }
         
         let delegator1 = IMClientTestCase.Delegator()
         client1.delegate = delegator1
@@ -502,11 +508,14 @@ class IMMessageTestCase: RTMBaseTestCase {
         client2.delegate = delegator2
         let delegator3 = IMClientTestCase.Delegator()
         client3.delegate = delegator3
+        let delegator4 = IMClientTestCase.Delegator()
+        client4.delegate = delegator4
         var chatRoom1: IMChatRoom?
         var chatRoom2: IMChatRoom?
         var chatRoom3: IMChatRoom?
+        var chatRoom4: IMChatRoom?
         
-        expecting(count: 5) { (exp) in
+        expecting(count: 7) { (exp) in
             try? client1.createChatRoom(completion: { (result) in
                 XCTAssertTrue(result.isSuccess)
                 XCTAssertNil(result.error)
@@ -535,11 +544,24 @@ class IMMessageTestCase: RTMBaseTestCase {
                             exp.fulfill()
                         })
                     }
+                    try? client4.conversationQuery.getConversation(by: ID) { result in
+                        XCTAssertTrue(result.isSuccess)
+                        XCTAssertNil(result.error)
+                        chatRoom4 = result.value as? IMChatRoom
+                        exp.fulfill()
+                        try? chatRoom4?.join(completion: { (result) in
+                            XCTAssertTrue(result.isSuccess)
+                            XCTAssertNil(result.error)
+                            exp.fulfill()
+                        })
+                    }
                 }
             })
         }
         
-        expecting(count: 6) { (exp) in
+        delay()
+        
+        expecting(count: 8) { (exp) in
             delegator1.messageEvent = { client, conv, event in
                 switch event {
                 case .received(message: _):
@@ -564,6 +586,14 @@ class IMMessageTestCase: RTMBaseTestCase {
                     break
                 }
             }
+            delegator4.messageEvent = { client, conv, event in
+                switch event {
+                case .received(message: _):
+                    exp.fulfill()
+                default:
+                    break
+                }
+            }
             try? chatRoom1?.send(message: IMTextMessage(text: "1"), priority: .high, completion: { (result) in
                 XCTAssertTrue(result.isSuccess)
                 XCTAssertNil(result.error)
@@ -579,13 +609,16 @@ class IMMessageTestCase: RTMBaseTestCase {
         delegator1.reset()
         delegator2.reset()
         delegator3.reset()
+        delegator4.reset()
         
         XCTAssertNil(chatRoom1?.lastMessage)
         XCTAssertNil(chatRoom2?.lastMessage)
         XCTAssertNil(chatRoom3?.lastMessage)
+        XCTAssertNil(chatRoom4?.lastMessage)
         XCTAssertTrue((chatRoom1?.members ?? []).isEmpty)
         XCTAssertTrue((chatRoom2?.members ?? []).isEmpty)
         XCTAssertTrue((chatRoom3?.members ?? []).isEmpty)
+        XCTAssertTrue((chatRoom4?.members ?? []).isEmpty)
     }
     
     func testReceiveMessageFromServiceConversation() {
