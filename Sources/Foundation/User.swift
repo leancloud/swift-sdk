@@ -113,6 +113,12 @@ open class LCUser: LCObject {
         }
     }
     
+    func trySaveToLocal() {
+        if self === self.application._currentUser {
+            self.application.currentUser = self
+        }
+    }
+    
     // MARK: Sign up
     
     /// Sign up an user synchronously.
@@ -1466,6 +1472,7 @@ open class LCUser: LCObject {
                                 unsafeObject: [platform.key: authData])
                         }
                         ObjectProfiler.shared.updateObject(self, dictionary)
+                        self.trySaveToLocal()
                         completion(.success)
                     } catch {
                         completion(.failure(
@@ -1547,6 +1554,7 @@ open class LCUser: LCObject {
                 if let dictionary = response.value as? [String: Any] {
                     self.authData?.removeValue(forKey: platform.key)
                     ObjectProfiler.shared.updateObject(self, dictionary)
+                    self.trySaveToLocal()
                     completion(.success)
                 } else {
                     completion(.failure(
@@ -1556,5 +1564,10 @@ open class LCUser: LCObject {
                 }
             }
         }
+    }
+    
+    override func objectDidSave() {
+        super.objectDidSave()
+        self.trySaveToLocal()
     }
 }
