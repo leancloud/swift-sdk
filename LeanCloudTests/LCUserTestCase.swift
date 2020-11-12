@@ -171,4 +171,26 @@ class LCUserTestCase: BaseTestCase {
         XCTAssertNil(LCApplication.default.currentUser)
     }
 
+    func testSaveToLocalAfterSaved() {
+        let username = UUID().uuidString
+        let password = UUID().uuidString
+        let signUpUser = LCUser()
+        signUpUser.username = username.lcString
+        signUpUser.password = password.lcString
+        XCTAssertTrue(signUpUser.signUp()
+            .isSuccess)
+        XCTAssertTrue(LCUser.logIn(
+            username: username,
+            password: password)
+            .isSuccess)
+        let key = "customKey"
+        let value = UUID().uuidString
+        try? LCApplication.default.currentUser?.set(key, value: value)
+        let result = LCApplication.default.currentUser?.save()
+        XCTAssertNil(result?.error)
+        LCApplication.default._currentUser = nil
+        XCTAssertEqual(LCApplication.default.currentUser?[key]?.stringValue, value)
+        LCUser.logOut()
+        XCTAssertNil(LCApplication.default.currentUser)
+    }
 }
