@@ -1138,6 +1138,9 @@ class IMMessageTestCase: RTMBaseTestCase {
     }
     
     func testMessagePatchError() {
+        guard LCApplication.default.id != BaseTestCase.usApp.id else {
+            return
+        }
         guard
             let tuples = convenienceInit(clientCount: 3),
             let sendingTuple = tuples.first,
