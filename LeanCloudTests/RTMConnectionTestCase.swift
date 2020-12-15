@@ -297,6 +297,9 @@ class RTMConnectionTestCase: RTMBaseTestCase {
     }
     
     func testGoaway() {
+        guard LCApplication.default.configuration.RTMCustomServerURL == nil else {
+            return
+        }
         let tuple = connectedConnection()
         let connection = tuple.0
         let delegator = tuple.1
