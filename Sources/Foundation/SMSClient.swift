@@ -60,8 +60,8 @@ public class LCSMSClient {
     public static func requestShortMessage(
         application: LCApplication = .default,
         mobilePhoneNumber: String,
-        templateName: String = "Register_Notice",
-        signatureName: String = "LeanCloud",
+        templateName: String? = nil,
+        signatureName: String? = nil,
         captchaVerificationToken: String? = nil,
         variables: LCDictionaryConvertible? = nil,
         completionQueue: DispatchQueue = .main,
