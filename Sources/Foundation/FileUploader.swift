@@ -119,7 +119,7 @@ class FileUploader {
 
             switch payload {
             case .data(let data):
-                self.name = filename
+                self.name = filename ?? Utility.compactUUID
                 self.size = UInt64(data.count)
 
                 if let mimeType = mimeType {
