@@ -166,7 +166,7 @@ public class IMClient {
             .transientMessageACK,
             .keepNotification,
             .partialFailedMessage,
-//            .omitPeerID,
+            .omitPeerID,
         ]
     }
     
