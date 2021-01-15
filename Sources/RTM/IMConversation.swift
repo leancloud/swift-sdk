@@ -878,11 +878,14 @@ extension IMConversation {
     // MARK: Message Reading
 
     private func _read(message: IMMessage?) {
-        guard self.unreadMessageCount > 0,
+        guard
+            self.convType != .transient,
+            self.unreadMessageCount > 0,
             let message = message ?? self.lastMessage,
             let messageID = message.ID,
-            let timestamp = message.sentTimestamp else {
-                return
+            let timestamp = message.sentTimestamp
+        else {
+            return
         }
         self.isUnreadMessageContainMention = false
         self.client?.sendCommand(constructor: { () -> IMGenericCommand in
@@ -1168,6 +1171,17 @@ extension IMConversation {
                     code: .inconsistency,
                     reason: "Not support, client options not contains \(IMClient.Options.receiveUnreadMessageCountAfterSessionDidOpen).")
             }
+        }
+        guard
+            self.convType != .transient,
+            self.convType != .system
+        else {
+            let convClassName = (self.convType == .transient)
+                ? "\(IMChatRoom.self)"
+                : "\(IMServiceConversation.self)"
+            throw LCError(
+                code: .inconsistency,
+                reason: "\(convClassName) NOT support this function.")
         }
         self.client?.sendCommand(constructor: { () -> IMGenericCommand in
             var outCommand = IMGenericCommand()
