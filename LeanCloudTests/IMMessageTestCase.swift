@@ -531,28 +531,28 @@ class IMMessageTestCase: RTMBaseTestCase {
                             XCTAssertTrue(result.isSuccess)
                             XCTAssertNil(result.error)
                             exp.fulfill()
-                        })
-                    }
-                    try? client3.conversationQuery.getConversation(by: ID) { result in
-                        XCTAssertTrue(result.isSuccess)
-                        XCTAssertNil(result.error)
-                        chatRoom3 = result.value as? IMChatRoom
-                        exp.fulfill()
-                        try? chatRoom3?.join(completion: { (result) in
-                            XCTAssertTrue(result.isSuccess)
-                            XCTAssertNil(result.error)
-                            exp.fulfill()
-                        })
-                    }
-                    try? client4.conversationQuery.getConversation(by: ID) { result in
-                        XCTAssertTrue(result.isSuccess)
-                        XCTAssertNil(result.error)
-                        chatRoom4 = result.value as? IMChatRoom
-                        exp.fulfill()
-                        try? chatRoom4?.join(completion: { (result) in
-                            XCTAssertTrue(result.isSuccess)
-                            XCTAssertNil(result.error)
-                            exp.fulfill()
+                            try? client3.conversationQuery.getConversation(by: ID) { result in
+                                XCTAssertTrue(result.isSuccess)
+                                XCTAssertNil(result.error)
+                                chatRoom3 = result.value as? IMChatRoom
+                                exp.fulfill()
+                                try? chatRoom3?.join(completion: { (result) in
+                                    XCTAssertTrue(result.isSuccess)
+                                    XCTAssertNil(result.error)
+                                    exp.fulfill()
+                                    try? client4.conversationQuery.getConversation(by: ID) { result in
+                                        XCTAssertTrue(result.isSuccess)
+                                        XCTAssertNil(result.error)
+                                        chatRoom4 = result.value as? IMChatRoom
+                                        exp.fulfill()
+                                        try? chatRoom4?.join(completion: { (result) in
+                                            XCTAssertTrue(result.isSuccess)
+                                            XCTAssertNil(result.error)
+                                            exp.fulfill()
+                                        })
+                                    }
+                                })
+                            }
                         })
                     }
                 }
@@ -1505,6 +1505,7 @@ extension IMMessageTestCase {
     }
     
     func newOpenedClient(
+        application: LCApplication = .default,
         clientID: String? = nil,
         clientIDSuffix: String? = nil,
         options: IMClient.Options = [.receiveUnreadMessageCountAfterSessionDidOpen]) -> IMClient?
@@ -1513,17 +1514,20 @@ extension IMMessageTestCase {
         if let suffix = clientIDSuffix {
             ID += "-\(suffix)"
         }
-        var client: IMClient? = try? IMClient(ID: ID, options:options)
-        let exp = expectation(description: "open")
-        client?.open { (result) in
-            XCTAssertTrue(result.isSuccess)
-            XCTAssertNil(result.error)
-            if result.isFailure {
-                client = nil
+        var client: IMClient? = try? IMClient(
+            application: application,
+            ID: ID,
+            options: options)
+        expecting { (exp) in
+            client?.open { (result) in
+                XCTAssertTrue(result.isSuccess)
+                XCTAssertNil(result.error)
+                if result.isFailure {
+                    client = nil
+                }
+                exp.fulfill()
             }
-            exp.fulfill()
         }
-        wait(for: [exp], timeout: timeout)
         return client
     }
     
