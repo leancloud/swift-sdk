@@ -1831,6 +1831,8 @@ class IMConversationTestCase: RTMBaseTestCase {
             })
         }
         
+        delay()
+        
         expecting { (exp) in
             let convB = clientB.convCollection.values.first
             XCTAssertNil(convB?.memberInfoTable)
@@ -1838,6 +1840,17 @@ class IMConversationTestCase: RTMBaseTestCase {
                 XCTAssertTrue(Thread.isMainThread)
                 XCTAssertTrue(result.isSuccess)
                 XCTAssertNil(result.error)
+                exp.fulfill()
+            })
+        }
+        
+        expecting { (exp) in
+            convA?.fetchMemberInfoTable(completion: { (result) in
+                XCTAssertTrue(Thread.isMainThread)
+                XCTAssertTrue(result.isSuccess)
+                XCTAssertNil(result.error)
+                XCTAssertNotNil(convA?.memberInfoTable)
+                XCTAssertEqual(convA?.memberInfoTable?.count, 1)
                 exp.fulfill()
             })
         }
