@@ -1935,33 +1935,41 @@ extension IMConversation {
                 assert(client.specificAssertion)
                 switch result {
                 case .success(value: let token):
-                    let header: [String: String] = [
-                        "X-LC-IM-Session-Token": token,
-                    ]
-                    let parameters: [String: Any] = [
-                        "client_id": client.ID,
-                        "cid": self.ID,
-                    ]
-                    _ = client.application.httpClient.request(
-                        .get, "classes/_ConversationMemberInfo",
-                        parameters: parameters,
-                        headers: header)
-                    { (response) in
-                        if let error = LCError(response: response) {
-                            completion(client, .failure(error: error))
-                        } else if let results = response.results as? [[String: Any]] {
-                            let creator = self.creator
-                            var table: [String: MemberInfo] = [:]
-                            for rawData in results {
-                                if let info = MemberInfo(rawData: rawData, creator: creator) {
-                                    table[info.ID] = info
-                                }
-                            }
-                            self.sync(self._memberInfoTable = table)
-                            completion(client, .success)
-                        } else {
+                    do {
+                        guard let whereString = try ["cid": self.ID].jsonString() else {
                             completion(client, .failure(error: LCError(code: .malformedData)))
+                            return
                         }
+                        let header: [String: String] = [
+                            "X-LC-IM-Session-Token": token,
+                        ]
+                        let parameters: [String: Any] = [
+                            "client_id": client.ID,
+                            "where": whereString,
+                        ]
+                        _ = client.application.httpClient.request(
+                            .get, "classes/_ConversationMemberInfo",
+                            parameters: parameters,
+                            headers: header)
+                        { (response) in
+                            if let error = LCError(response: response) {
+                                completion(client, .failure(error: error))
+                            } else if let results = response.results as? [[String: Any]] {
+                                let creator = self.creator
+                                var table: [String: MemberInfo] = [:]
+                                for rawData in results {
+                                    if let info = MemberInfo(rawData: rawData, creator: creator) {
+                                        table[info.ID] = info
+                                    }
+                                }
+                                self.sync(self._memberInfoTable = table)
+                                completion(client, .success)
+                            } else {
+                                completion(client, .failure(error: LCError(code: .malformedData)))
+                            }
+                        }
+                    } catch {
+                        completion(client, .failure(error: LCError(error: error)))
                     }
                 case .failure(error: let error):
                     completion(client, .failure(error: error))
