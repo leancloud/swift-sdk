@@ -381,6 +381,10 @@ extension Int: LCNumberConvertible {
     public var lcNumber: LCNumber {
         return LCNumber(Double(self))
     }
+    
+    public var stringValue: String? {
+        return "\(self)"
+    }
 }
 
 extension UInt: LCNumberConvertible {
@@ -390,6 +394,10 @@ extension UInt: LCNumberConvertible {
 
     public var lcNumber: LCNumber {
         return LCNumber(Double(self))
+    }
+    
+    public var stringValue: String? {
+        return "\(self)"
     }
 }
 
@@ -401,6 +409,10 @@ extension Int8: LCNumberConvertible {
     public var lcNumber: LCNumber {
         return LCNumber(Double(self))
     }
+    
+    public var stringValue: String? {
+        return "\(self)"
+    }
 }
 
 extension UInt8: LCNumberConvertible {
@@ -410,6 +422,10 @@ extension UInt8: LCNumberConvertible {
 
     public var lcNumber: LCNumber {
         return LCNumber(Double(self))
+    }
+    
+    public var stringValue: String? {
+        return "\(self)"
     }
 }
 
@@ -421,6 +437,10 @@ extension Int16: LCNumberConvertible {
     public var lcNumber: LCNumber {
         return LCNumber(Double(self))
     }
+    
+    public var stringValue: String? {
+        return "\(self)"
+    }
 }
 
 extension UInt16: LCNumberConvertible {
@@ -430,6 +450,10 @@ extension UInt16: LCNumberConvertible {
 
     public var lcNumber: LCNumber {
         return LCNumber(Double(self))
+    }
+    
+    public var stringValue: String? {
+        return "\(self)"
     }
 }
 
@@ -441,6 +465,10 @@ extension Int32: LCNumberConvertible {
     public var lcNumber: LCNumber {
         return LCNumber(Double(self))
     }
+    
+    public var stringValue: String? {
+        return "\(self)"
+    }
 }
 
 extension UInt32: LCNumberConvertible {
@@ -450,6 +478,10 @@ extension UInt32: LCNumberConvertible {
 
     public var lcNumber: LCNumber {
         return LCNumber(Double(self))
+    }
+    
+    public var stringValue: String? {
+        return "\(self)"
     }
 }
 
@@ -461,6 +493,10 @@ extension Int64: LCNumberConvertible {
     public var lcNumber: LCNumber {
         return LCNumber(Double(self))
     }
+    
+    public var stringValue: String? {
+        return "\(self)"
+    }
 }
 
 extension UInt64: LCNumberConvertible {
@@ -470,6 +506,10 @@ extension UInt64: LCNumberConvertible {
 
     public var lcNumber: LCNumber {
         return LCNumber(Double(self))
+    }
+    
+    public var stringValue: String? {
+        return "\(self)"
     }
 }
 
@@ -481,6 +521,10 @@ extension Float: LCNumberConvertible {
     public var lcNumber: LCNumber {
         return LCNumber(Double(self))
     }
+    
+    public var stringValue: String? {
+        return "\(self)"
+    }
 }
 
 extension Double: LCNumberConvertible {
@@ -490,6 +534,10 @@ extension Double: LCNumberConvertible {
 
     public var lcNumber: LCNumber {
         return LCNumber(Double(self))
+    }
+    
+    public var stringValue: String? {
+        return "\(self)"
     }
 }
 
@@ -514,6 +562,10 @@ extension NSNumber: LCNumberConvertible, LCBoolConvertible {
 
     public var lcBool: LCBool {
         return LCBool(boolValue)
+    }
+    
+    public var stringValue: String? {
+        return description(withLocale: nil)
     }
 }
 
