@@ -113,17 +113,20 @@ class LCFileTestCase: BaseTestCase {
         XCTAssertNotNil(file2.createdAt)
         XCTAssertNotNil(file2.save().error)
         
-        var file3: LCFile! = LCFile(
-            application: application,
-            url: file2.url!)
-        XCTAssertTrue(file3.save().isSuccess)
-        XCTAssertNotNil(file3.mimeType)
-        XCTAssertNotNil(file3.name)
-        XCTAssertEqual(file3.metaData?.__source as? LCString, LCString("external"))
-        XCTAssertNotNil(file3.url)
-        XCTAssertNotNil(file3.objectId)
-        XCTAssertNotNil(file3.createdAt)
-        XCTAssertNotNil(file3.save().error)
+        var file3: LCFile!
+        if let file2url = file2.url {
+            file3 = LCFile(
+                application: application,
+                url: file2url)
+            XCTAssertTrue(file3.save().isSuccess)
+            XCTAssertNotNil(file3.mimeType)
+            XCTAssertNotNil(file3.name)
+            XCTAssertEqual(file3.metaData?.__source as? LCString, LCString("external"))
+            XCTAssertNotNil(file3.url)
+            XCTAssertNotNil(file3.objectId)
+            XCTAssertNotNil(file3.createdAt)
+            XCTAssertNotNil(file3.save().error)
+        }
         
         delay()
         
