@@ -176,5 +176,24 @@ class LCTypeTestCase: BaseTestCase {
         let stringCopy = archiveThenUnarchive(string)
         XCTAssertEqual(stringCopy, string)
     }
-
+    
+    func testStringValue() {
+        let nsNumber = NSNumber(1)
+        let nsString: String = nsNumber.stringValue
+        let lcString: String? = nsNumber.stringValue
+        XCTAssertEqual(nsString, lcString)
+        
+        XCTAssertEqual(Int(1).stringValue, "1")
+        XCTAssertEqual(UInt(1).stringValue, "1")
+        XCTAssertEqual(Int8(1).stringValue, "1")
+        XCTAssertEqual(UInt8(1).stringValue, "1")
+        XCTAssertEqual(Int16(1).stringValue, "1")
+        XCTAssertEqual(UInt16(1).stringValue, "1")
+        XCTAssertEqual(Int32(1).stringValue, "1")
+        XCTAssertEqual(UInt32(1).stringValue, "1")
+        XCTAssertEqual(Int64(1).stringValue, "1")
+        XCTAssertEqual(UInt64(1).stringValue, "1")
+        XCTAssertEqual(Float(1).stringValue, "1.0")
+        XCTAssertEqual(Double(1).stringValue, "1.0")
+    }
 }
