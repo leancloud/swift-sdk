@@ -166,12 +166,12 @@ extension LCInstallation {
     static func currentInstallation(application: LCApplication) -> LCInstallation? {
         do {
             guard let fileURL = application.currentInstallationFileURL,
-                let context = application.localStorageContext,
-                let table: CacheTable = try context.table(from: fileURL),
-                table.applicationID == application.id,
-                let data = table.jsonString.data(using: .utf8),
-                let jsonObject = try JSONSerialization.jsonObject(with: data) as? [String: Any] else {
-                    return nil
+                  let context = application.localStorageContext,
+                  let table: CacheTable = try context.table(from: fileURL),
+                  table.applicationID == application.id,
+                  let data = table.jsonString.data(using: .utf8),
+                  let jsonObject = try JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+                return nil
             }
             let dictionary = try LCDictionary(
                 application: application,
@@ -188,15 +188,15 @@ extension LCInstallation {
     static func saveCurrentInstallation(_ installation: LCInstallation) {
         let application = installation.application
         guard let context = application.localStorageContext,
-            let fileURL = application.currentInstallationFileURL else {
-                return
+              let fileURL = application.currentInstallationFileURL else {
+            return
         }
         do {
-            try context.save(
-                table: CacheTable(
-                    jsonString: installation.jsonString,
-                    applicationID: application.id),
-                to: fileURL)
+            if let installationJSONValue = installation.jsonValue as? [String: Any],
+               let installationJSONString = try installationJSONValue.jsonString() {
+                let table = CacheTable(jsonString: installationJSONString, applicationID: application.id)
+                try context.save(table: table, to: fileURL)
+            }
         } catch {
             Logger.shared.error(error)
         }

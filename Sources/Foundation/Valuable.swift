@@ -20,11 +20,6 @@ public protocol LCValue: NSObjectProtocol, NSCoding, NSCopying, LCValueConvertib
     var jsonValue: Any { get }
 
     /**
-     The pretty description.
-     */
-    var jsonString: String { get }
-
-    /**
      The raw value of current value.
 
      For JSON-compatible objects, such as string, array, etc., raw value is the value of corresponding Swift built-in type.
@@ -211,16 +206,6 @@ protocol LCValueExtension: LCValue {
      - returns: The difference result.
      */
     func differ(_ other: LCValue) throws -> LCValue
-
-    /**
-     Get formatted JSON string with indent.
-
-     - parameter indentLevel: The indent level.
-     - parameter numberOfSpacesForOneIndentLevel: The number of spaces for one indent level.
-
-     - returns: The JSON string.
-     */
-    func formattedJSONString(indentLevel: Int, numberOfSpacesForOneIndentLevel: Int) -> String
 }
 
 /**

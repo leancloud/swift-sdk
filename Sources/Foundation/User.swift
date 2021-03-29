@@ -72,19 +72,18 @@ open class LCUser: LCObject {
     
     static func saveCurrentUser(application: LCApplication, user: LCUser?) {
         guard let context = application.localStorageContext,
-            let fileURL = application.currentUserFileURL else {
-                return
+              let fileURL = application.currentUserFileURL else {
+            return
         }
         do {
             if let user = user {
-                try context.save(
-                    table: CacheTable(
-                        jsonString: user.jsonString,
-                        applicationID: application.id),
-                    to: fileURL)
+                if let userJSONValue = user.jsonValue as? [String: Any],
+                   let userJSONString = try userJSONValue.jsonString() {
+                    let table = CacheTable(jsonString: userJSONString, applicationID: application.id)
+                    try context.save(table: table, to: fileURL)
+                }
             } else {
-                try context.clear(
-                    file: fileURL)
+                try context.clear(file: fileURL)
             }
         } catch {
             Logger.shared.error(error)
@@ -94,12 +93,12 @@ open class LCUser: LCObject {
     static func currentUser(application: LCApplication) -> LCUser? {
         do {
             guard let fileURL = application.currentUserFileURL,
-                let context = application.localStorageContext,
-                let table: CacheTable = try context.table(from: fileURL),
-                table.applicationID == application.id,
-                let data = table.jsonString.data(using: .utf8),
-                let jsonObject = try JSONSerialization.jsonObject(with: data) as? [String: Any] else {
-                    return nil
+                  let context = application.localStorageContext,
+                  let table: CacheTable = try context.table(from: fileURL),
+                  table.applicationID == application.id,
+                  let data = table.jsonString.data(using: .utf8),
+                  let jsonObject = try JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+                return nil
             }
             let dictionary = try LCDictionary(
                 application: application,

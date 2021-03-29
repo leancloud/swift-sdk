@@ -124,14 +124,6 @@ public final class LCRelation: NSObject, LCValue, LCValueExtension, Sequence {
         return result
     }
 
-    func formattedJSONString(indentLevel: Int, numberOfSpacesForOneIndentLevel: Int = 4) -> String {
-        return LCDictionary(typedJSONValue).formattedJSONString(indentLevel: indentLevel, numberOfSpacesForOneIndentLevel: numberOfSpacesForOneIndentLevel)
-    }
-
-    public var jsonString: String {
-        return formattedJSONString(indentLevel: 0)
-    }
-
     public var rawValue: Any {
         return self
     }

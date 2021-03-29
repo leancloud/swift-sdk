@@ -100,10 +100,6 @@ public class LCArray: NSObject, LCValue, Collection, ExpressibleByArrayLiteral {
         return self.value.map { $0.jsonValue }
     }
 
-    public var jsonString: String {
-        return self.formattedJSONString(indentLevel: 0)
-    }
-
     public var rawValue: Any {
         return self.value.map { $0.rawValue }
     }
@@ -159,20 +155,5 @@ extension LCArray: LCValueExtension {
     
     func differInPlace(_ elements: [Element]) {
         self.value = (self.value - elements)
-    }
-    
-    func formattedJSONString(indentLevel: Int, numberOfSpacesForOneIndentLevel: Int = 4) -> String {
-        if self.value.isEmpty {
-            return "[]"
-        }
-        let lastIndent = " " * (numberOfSpacesForOneIndentLevel * indentLevel)
-        let bodyIndent = " " * (numberOfSpacesForOneIndentLevel * (indentLevel + 1))
-        let body = self.value
-            .compactMap {
-                ($0 as? LCValueExtension)?.formattedJSONString(
-                    indentLevel: indentLevel + 1,
-                    numberOfSpacesForOneIndentLevel: numberOfSpacesForOneIndentLevel) }
-            .joined(separator: ",\n" + bodyIndent)
-        return "[\n\(bodyIndent)\(body)\n\(lastIndent)]"
     }
 }
