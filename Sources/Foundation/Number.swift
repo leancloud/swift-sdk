@@ -62,14 +62,6 @@ public final class LCNumber: NSObject, LCValue, LCValueExtension, ExpressibleByF
         return value
     }
 
-    func formattedJSONString(indentLevel: Int, numberOfSpacesForOneIndentLevel: Int = 4) -> String {
-        return String(format: "%g", value)
-    }
-
-    public var jsonString: String {
-        return formattedJSONString(indentLevel: 0)
-    }
-
     public var rawValue: Any {
         return self.value
     }

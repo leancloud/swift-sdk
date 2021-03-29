@@ -278,24 +278,11 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
         return result
     }
 
-    open var jsonString: String {
-        return formattedJSONString(indentLevel: 0)
-    }
-
     public var rawValue: Any {
         return self
     }
     
     // MARK: LCValueExtension
-    
-    func formattedJSONString(indentLevel: Int, numberOfSpacesForOneIndentLevel: Int = 4) -> String {
-        let dictionary = LCDictionary(self.dictionary)
-        
-        dictionary["__type"] = "Object".lcString
-        dictionary["className"] = actualClassName.lcString
-        
-        return dictionary.formattedJSONString(indentLevel: indentLevel, numberOfSpacesForOneIndentLevel: numberOfSpacesForOneIndentLevel)
-    }
 
     var lconValue: Any? {
         guard let objectId = objectId else {
