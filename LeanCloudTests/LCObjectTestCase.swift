@@ -345,38 +345,6 @@ class LCObjectTestCase: BaseTestCase {
         dictionary.foo = "bar"
         XCTAssertEqual(dictionary.foo?.stringValue, "bar")
     }
-
-    func testJSONString() {
-        XCTAssertEqual(LCNull().jsonString, "null")
-        XCTAssertEqual(LCNumber(1).jsonString, "1")
-        XCTAssertEqual(LCNumber(3.14).jsonString, "3.14")
-        XCTAssertEqual(LCBool(true).jsonString, "true")
-        XCTAssertEqual(LCString("foo").jsonString, "\"foo\"")
-        XCTAssertEqual(try LCArray(unsafeObject: [1, true, [0, false]]).jsonString, """
-        [
-            1,
-            true,
-            [
-                0,
-                false
-            ]
-        ]
-        """)
-        XCTAssertEqual(try LCDictionary(unsafeObject: ["foo": "bar", "bar": ["bar": "baz"]]).jsonString, """
-        {
-            "bar": {
-                "bar": "baz"
-            },
-            "foo": "bar"
-        }
-        """)
-        XCTAssertEqual(LCObject().jsonString, """
-        {
-            "__type": "Object",
-            "className": "LCObject"
-        }
-        """)
-    }
     
     func testBatchChildren() {
         let object1 = LCObject(className: "BatchChildren")
