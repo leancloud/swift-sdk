@@ -16,13 +16,13 @@ Pod::Spec.new do |s|
   s.watchos.deployment_target = '3.0'
 
   s.subspec 'Foundation' do |ss|
-    ss.dependency 'Alamofire', '~> 5.3'
+    ss.dependency 'Alamofire', '~> 5.4'
 
     ss.source_files = 'Sources/Foundation/**/*.{swift}'
   end
 
   s.subspec 'RTM' do |ss|
-    ss.dependency 'SwiftProtobuf', '~> 1.13'
+    ss.dependency 'SwiftProtobuf', '~> 1.15'
     ss.dependency 'GRDB.swift', '~> 4.14'
 
     ss.dependency 'LeanCloud/Foundation', "#{s.version}"
@@ -31,7 +31,7 @@ Pod::Spec.new do |s|
   end
   
   s.subspec 'RTM-no-local-storage' do |ss|
-    ss.dependency 'SwiftProtobuf', '~> 1.13'
+    ss.dependency 'SwiftProtobuf', '~> 1.15'
 
     ss.dependency 'LeanCloud/Foundation', "#{s.version}"
 
