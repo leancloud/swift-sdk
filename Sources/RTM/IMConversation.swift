@@ -441,12 +441,19 @@ public class IMConversation {
         try self._update(attribution: data, completion: completion)
     }
 
-    /// Fetching the table of member infomation in the conversation.
-    /// The result will be cached by the property `memberInfoTable`.
+    /// Fetching the table of member infomation in this conversation.
+    /// The result will be cached in the property `memberInfoTable`.
     ///
-    /// - Parameter completion: Result of callback.
-    public func fetchMemberInfoTable(completion: @escaping (LCBooleanResult) -> Void) {
-        self._fetchMemberInfoTable { (client, result) in
+    /// - Parameters:
+    ///   - limit: The max number of results, default is `500`.
+    ///   - offset: The number of objects to skip.
+    ///   - completion: Result of callback.
+    public func fetchMemberInfoTable(
+        limit: Int = 500,
+        offset: Int? = nil,
+        completion: @escaping (LCBooleanResult) -> Void)
+    {
+        self._fetchMemberInfoTable(limit: limit, offset: offset) { (client, result) in
             client.eventQueue.async {
                 completion(result)
             }
@@ -1929,7 +1936,11 @@ extension IMConversation {
         }
     }
 
-    private func _fetchMemberInfoTable(completion: @escaping (IMClient, LCBooleanResult) -> Void) {
+    private func _fetchMemberInfoTable(
+        limit: Int = 500,
+        offset: Int? = nil,
+        completion: @escaping (IMClient, LCBooleanResult) -> Void)
+    {
         self.client?.serialQueue.async {
             self.client?.getSessionToken(completion: { (client, result) in
                 assert(client.specificAssertion)
@@ -1943,10 +1954,14 @@ extension IMConversation {
                         let header: [String: String] = [
                             "X-LC-IM-Session-Token": token,
                         ]
-                        let parameters: [String: Any] = [
+                        var parameters: [String: Any] = [
                             "client_id": client.ID,
                             "where": whereString,
+                            "limit": limit,
                         ]
+                        if let offset = offset {
+                            parameters["skip"] = offset
+                        }
                         _ = client.application.httpClient.request(
                             .get, "classes/_ConversationMemberInfo",
                             parameters: parameters,
@@ -2991,7 +3006,7 @@ public class IMServiceConversation: IMConversation {
     }
 
     @available(*, unavailable)
-    public override func fetchMemberInfoTable(completion: @escaping (LCBooleanResult) -> Void) {
+    public override func fetchMemberInfoTable(limit: Int = 500, offset: Int? = nil, completion: @escaping (LCBooleanResult) -> Void) {
         completion(.failure(error: LCError.conversationNotSupport(convType: type(of: self))))
     }
 
@@ -3132,7 +3147,7 @@ public class IMTemporaryConversation: IMConversation {
     }
 
     @available(*, unavailable)
-    public override func fetchMemberInfoTable(completion: @escaping (LCBooleanResult) -> Void) {
+    public override func fetchMemberInfoTable(limit: Int = 500, offset: Int? = nil, completion: @escaping (LCBooleanResult) -> Void) {
         completion(.failure(error: LCError.conversationNotSupport(convType: type(of: self))))
     }
 
