@@ -617,7 +617,7 @@ open class IMCategorizedMessage: IMMessage, IMMessageCategorizing {
 /// IM Text Message
 open class IMTextMessage: IMCategorizedMessage {
     
-    public class override var messageType: MessageType {
+    open class override var messageType: MessageType {
         return ReservedType.text.rawValue
     }
     
@@ -649,7 +649,7 @@ open class IMTextMessage: IMCategorizedMessage {
 /// IM Image Message
 open class IMImageMessage: IMCategorizedMessage {
     
-    public class override var messageType: MessageType {
+    open class override var messageType: MessageType {
         return ReservedType.image.rawValue
     }
     
@@ -691,7 +691,7 @@ open class IMImageMessage: IMCategorizedMessage {
 /// IM Audio Message
 open class IMAudioMessage: IMCategorizedMessage {
     
-    public class override var messageType: MessageType {
+    open class override var messageType: MessageType {
         return ReservedType.audio.rawValue
     }
     
@@ -728,7 +728,7 @@ open class IMAudioMessage: IMCategorizedMessage {
 /// IM Video Message
 open class IMVideoMessage: IMCategorizedMessage {
     
-    public class override var messageType: MessageType {
+    open class override var messageType: MessageType {
         return ReservedType.video.rawValue
     }
     
@@ -765,7 +765,7 @@ open class IMVideoMessage: IMCategorizedMessage {
 /// IM File Message
 open class IMFileMessage: IMCategorizedMessage {
     
-    public class override var messageType: MessageType {
+    open class override var messageType: MessageType {
         return ReservedType.file.rawValue
     }
     
@@ -797,7 +797,7 @@ open class IMFileMessage: IMCategorizedMessage {
 /// IM Location Message
 open class IMLocationMessage: IMCategorizedMessage {
     
-    public class override var messageType: MessageType {
+    open class override var messageType: MessageType {
         return ReservedType.location.rawValue
     }
     
