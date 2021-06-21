@@ -165,7 +165,7 @@ class RTMConnectionManager {
     }
 }
 
-protocol RTMConnectionDelegate: class {
+protocol RTMConnectionDelegate: AnyObject {
     
     func connection(inConnecting connection: RTMConnection)
     
