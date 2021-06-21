@@ -10,7 +10,7 @@ import Foundation
 
 /// LeanCloud Object Type.
 @dynamicMemberLookup
-open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
+open class LCObject: NSObject, Sequence, LCValue, LCValueExtension, InternalOptionalSynchronizing {
     
     // MARK: Property
     
@@ -40,7 +40,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
     private var propertyTable: LCDictionary = [:]
 
     /// The table of all properties.
-    lazy var dictionary: LCDictionary = {
+    private lazy var _dictionary: LCDictionary = {
         /**
          Synchronize property table.
          
@@ -63,6 +63,9 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
         }
         return self.propertyTable
     }()
+    var dictionary: LCDictionary {
+        return self.optionalSync(LCDictionary(self._dictionary))
+    }
 
     public var hasObjectId: Bool {
         return self.objectId != nil
@@ -91,13 +94,28 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
     /// Whether this object has unsync-data to upload to server.
     public var hasDataToUpload: Bool {
         if self.hasObjectId {
-            if let operationHub = self.operationHub {
-                return !operationHub.isEmpty
-            } else {
-                return false
-            }
+            return self.optionalSync(closure: {
+                if let operationHub = self.operationHub {
+                    return !operationHub.isEmpty
+                } else {
+                    return false
+                }
+            })
         } else {
             return true
+        }
+    }
+    
+    // MARK: Internal Optional Synchronizing
+    
+    private var _optionalMutex: NSLock?
+    var optionalMutex: NSLock? {
+        return self._optionalMutex
+    }
+    
+    private func tryInitOptionalMutex() {
+        if self.application.configuration.isObjectRawDataAtomic {
+            self._optionalMutex = NSLock()
         }
     }
     
@@ -135,6 +153,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
     public override required init() {
         self.application = .default
         super.init()
+        self.tryInitOptionalMutex()
         self.operationHub = OperationHub(self)
         self.propertyTable.elementDidChange = { [weak self] (key, value) in
             Runtime.setInstanceVariable(self, key, value)
@@ -146,6 +165,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
     public required init(application: LCApplication) {
         self.application = application
         super.init()
+        self.tryInitOptionalMutex()
         self.operationHub = OperationHub(self)
         self.propertyTable.elementDidChange = { [weak self] (key, value) in
             Runtime.setInstanceVariable(self, key, value)
@@ -319,7 +339,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
     // MARK: Key Value Change
     
     func getProperty<Value: LCValue>(_ key: String) throws -> Value? {
-        let value = self.propertyTable[key]
+        let value: LCValueConvertible? = self.optionalSync(self.propertyTable[key])
         if let value = value {
             guard value is Value else {
                 throw LCError(
@@ -347,7 +367,9 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
                         "key": key,
                         "target_type": "\(Value.self)"])
         }
-        self.propertyTable[key] = value
+        self.optionalSync(closure: {
+            self.propertyTable[key] = value
+        })
         return value
     }
     
@@ -359,7 +381,9 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
         switch operation.name {
         case .set, .delete:
             self.willChangeValue(forKey: key)
-            self.propertyTable[key] = value
+            self.optionalSync(closure: {
+                self.propertyTable[key] = value
+            })
             self.didChangeValue(forKey: key)
         case .increment:
             guard let number = value as? LCNumber else {
@@ -476,7 +500,9 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
             }
             try self.updateByKeyPath(operation)
         }
-        try self.operationHub?.reduce(operation)
+        try self.optionalSync(closure: {
+            try self.operationHub?.reduce(operation)
+        })
     }
     
     func transformValue(_ key: String, _ value: LCValue?) -> LCValue? {
@@ -494,13 +520,18 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
     }
     
     func update(_ key: String, _ value: LCValue?) {
+        let value = self.transformValue(key, value)
         self.willChangeValue(forKey: key)
-        self.propertyTable[key] = self.transformValue(key, value)
+        self.optionalSync(closure: {
+            self.propertyTable[key] = value
+        })
         self.didChangeValue(forKey: key)
     }
     
     func discardChanges() {
-        self.operationHub?.reset()
+        self.optionalSync(closure: {
+            self.operationHub?.reset()
+        })
     }
     
     // MARK: Operation
@@ -536,7 +567,7 @@ open class LCObject: NSObject, LCValue, LCValueExtension, Sequence {
      */
     open func get(_ key: String) -> LCValueConvertible? {
         return ObjectProfiler.shared.propertyValue(self, key)
-            ?? self.propertyTable[key]
+            ?? self.optionalSync(self.propertyTable[key])
     }
 
     /**
