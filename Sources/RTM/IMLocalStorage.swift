@@ -204,13 +204,15 @@ class IMLocalStorage {
     init(path: String, clientID: String) throws {
         var configuration = Configuration()
         configuration.label = "\(IMLocalStorage.self).dbQueue"
-        configuration.trace = {
-            Logger.shared.verbose("""
-                \n------ LeanCloud SQL Executing
-                \(IMClient.self)<ID: \"\(clientID)\">
-                \($0)
-                ------ END
-                """)
+        configuration.prepareDatabase { db in
+            db.trace(options: .statement) { event in
+                Logger.shared.verbose("""
+                    \n------ LeanCloud SQL Executing
+                    \(IMClient.self)<ID: \"\(clientID)\">
+                    \(event)
+                    ------ END
+                    """)
+            }
         }
         try self.dbPool = DatabasePool(path: path, configuration: configuration)
     }

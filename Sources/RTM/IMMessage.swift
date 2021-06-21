@@ -286,7 +286,7 @@ var IMCategorizedMessageTypeMap: [Int: IMCategorizedMessage.Type] = [
 ]
 
 /// IM Message Categorizing Protocol
-public protocol IMMessageCategorizing: class {
+public protocol IMMessageCategorizing: AnyObject {
     
     /// Message Type is Int Type
     typealias MessageType = Int
