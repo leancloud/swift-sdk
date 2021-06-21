@@ -22,8 +22,8 @@ Pod::Spec.new do |s|
   end
 
   s.subspec 'RTM' do |ss|
-    ss.dependency 'SwiftProtobuf', '~> 1.15'
-    ss.dependency 'GRDB.swift', '~> 4.14'
+    ss.dependency 'SwiftProtobuf', '~> 1.17'
+    ss.dependency 'GRDB.swift', '~> 5.8'
 
     ss.dependency 'LeanCloud/Foundation', "#{s.version}"
 
@@ -31,7 +31,7 @@ Pod::Spec.new do |s|
   end
   
   s.subspec 'RTM-no-local-storage' do |ss|
-    ss.dependency 'SwiftProtobuf', '~> 1.15'
+    ss.dependency 'SwiftProtobuf', '~> 1.17'
 
     ss.dependency 'LeanCloud/Foundation', "#{s.version}"
 
