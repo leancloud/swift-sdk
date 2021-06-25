@@ -535,6 +535,29 @@ class LCObjectTestCase: BaseTestCase {
             XCTAssertTrue(error is LCError)
         }
     }
+    
+    func testObjectRawDataAtomic() {
+        let queue1 = DispatchQueue(label: "queue-1")
+        let queue2 = DispatchQueue(label: "queue-2")
+        
+        let object = LCObject()
+        let count = 1000
+        
+        expecting(count: count * 2, timeout: 60) { exp in
+            queue1.async {
+                for i in 0..<count {
+                    object.update("\(i)", i.lcValue)
+                    exp.fulfill()
+                }
+            }
+            queue2.async {
+                for i in 0..<count {
+                    object.update("\(i)", i.lcValue)
+                    exp.fulfill()
+                }
+            }
+        }
+    }
 }
 
 class TestObject: LCObject {
