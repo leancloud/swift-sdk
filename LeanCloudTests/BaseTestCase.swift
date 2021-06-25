@@ -51,6 +51,7 @@ class BaseTestCase: XCTestCase {
         if let serverURL = RTMBaseTestCase.testableRTMURL {
             config.RTMCustomServerURL = serverURL
         }
+        config.isObjectRawDataAtomic = true
         return config
     }
     

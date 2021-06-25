@@ -129,6 +129,9 @@ public class LCApplication {
         /// RTM Custom Server URL, default is `nil`.
         public var RTMCustomServerURL: URL?
         
+        /// Make the access to the raw data of the object is atomic, default is `false`.
+        public var isObjectRawDataAtomic: Bool = false
+        
         public init(
             customizedServers: [ServerCustomizableModule] = [],
             environment: Environment = .default,

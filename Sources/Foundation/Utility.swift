@@ -79,3 +79,23 @@ extension InternalSynchronizing {
         return try closure()
     }
 }
+
+protocol InternalOptionalSynchronizing {
+    
+    var optionalMutex: NSLock? { get }
+}
+
+extension InternalOptionalSynchronizing {
+    
+    func optionalSync<T>(_ closure: @autoclosure () throws -> T) rethrows -> T {
+        return try self.optionalSync(closure: closure)
+    }
+    
+    func optionalSync<T>(closure: () throws -> T) rethrows -> T {
+        self.optionalMutex?.lock()
+        defer {
+            self.optionalMutex?.unlock()
+        }
+        return try closure()
+    }
+}
