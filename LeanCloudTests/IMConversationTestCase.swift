@@ -208,56 +208,55 @@ class IMConversationTestCase: RTMBaseTestCase {
                 break
             }
         }
-        try? clientA.createConversation(clientIDs: [clientA.ID, clientB.ID], completion: { (result) in
-            if let conv: IMConversation = result.value {
-                XCTAssertTrue(type(of: conv) == IMConversation.self)
-                XCTAssertEqual(conv.rawData["objectId"] as? String, conv.ID)
-                XCTAssertEqual(conv.rawData["conv_type"] as? Int, 1)
-                XCTAssertEqual(conv.convType, .normal)
-                XCTAssertTrue(conv.isUnique)
-                XCTAssertNotNil(conv.uniqueID)
-            } else {
-                XCTFail()
-            }
-            exp1.fulfill()
-        })
+        let existingKey = "existingKey"
+        let existingValue = "existingValue"
+        try? clientA.createConversation(
+            clientIDs: [clientA.ID, clientB.ID],
+            attributes: [existingKey : existingValue],
+            completion: { (result) in
+                if let conv: IMConversation = result.value {
+                    XCTAssertTrue(type(of: conv) == IMConversation.self)
+                    XCTAssertEqual(conv.rawData["objectId"] as? String, conv.ID)
+                    XCTAssertEqual(conv.rawData["conv_type"] as? Int, 1)
+                    XCTAssertEqual(conv.convType, .normal)
+                    XCTAssertTrue(conv.isUnique)
+                    XCTAssertNotNil(conv.uniqueID)
+                    XCTAssertFalse(conv.isOutdated)
+                    XCTAssertEqual(conv.attributes?[existingKey] as? String, existingValue)
+                } else {
+                    XCTFail()
+                }
+                exp1.fulfill()
+            })
         wait(for: [exp1], timeout: timeout)
         
         delegatorA.conversationEvent = nil
         delegatorB.conversationEvent = nil
         
-        let exp2 = expectation(description: "create unique conversation")
-        exp2.expectedFulfillmentCount = 5
-        delegatorA.conversationEvent = { _, _, event in
-            switch event {
-            case .joined:
-                exp2.fulfill()
-            case .membersJoined:
-                exp2.fulfill()
-            default:
-                break
-            }
-        }
-        delegatorB.conversationEvent = { _, _, event in
-            switch event {
-            case .joined:
-                exp2.fulfill()
-            case .membersJoined:
-                exp2.fulfill()
-            default:
-                break
-            }
-        }
+        delay(seconds: 5)
+        
+        clientB.convCollection.removeAll()
+        
+        let exp2 = expectation(description: "recreate unique conversation")
         try? clientB.createConversation(clientIDs: [clientA.ID, clientB.ID], completion: { (result) in
             if let conv: IMConversation = result.value {
                 XCTAssertTrue(type(of: conv) == IMConversation.self)
                 XCTAssertEqual(conv.convType, .normal)
                 XCTAssertTrue(conv.isUnique)
                 XCTAssertNotNil(conv.uniqueID)
+                XCTAssertTrue(conv.isOutdated)
+                XCTAssertNil(conv.attributes?[existingKey])
+                try? conv.refresh { result in
+                    XCTAssertTrue(result.isSuccess)
+                    XCTAssertNil(result.error)
+                    XCTAssertFalse(conv.isOutdated)
+                    XCTAssertEqual(conv.attributes?[existingKey] as? String, existingValue)
+                    exp2.fulfill()
+                }
             } else {
                 XCTFail()
+                exp2.fulfill()
             }
-            exp2.fulfill()
         })
         wait(for: [exp2], timeout: timeout)
         
