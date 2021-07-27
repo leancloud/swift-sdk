@@ -868,6 +868,9 @@ extension IMClient {
             }
         }
         if let conversation = conversation as? T {
+            if (convMessage.hasExisting ? convMessage.existing : false) {
+                conversation.isOutdated = true
+            }
             self.convCollection[conversationID] = conversation
             return conversation
         } else {
