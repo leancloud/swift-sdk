@@ -551,11 +551,12 @@ public class LCQuery: NSObject, NSCopying, NSCoding {
         completionQueue: DispatchQueue = .main,
         completion: @escaping (LCQueryResult<T>) -> Void) -> LCRequest
     {
-        return self._find(cachePolicy: cachePolicy) { result in
+        let _completion: (LCQueryResult<T>) -> Void = { result in
             completionQueue.async {
                 completion(result)
             }
         }
+        return self._find(cachePolicy: cachePolicy, completion: _completion)
     }
     
     @discardableResult
@@ -624,11 +625,12 @@ public class LCQuery: NSObject, NSCopying, NSCoding {
         completionQueue: DispatchQueue = .main,
         completion: @escaping (LCValueResult<T>) -> Void) -> LCRequest
     {
-        return self._getFirst(cachePolicy: cachePolicy) { result in
+        let _completion: (LCValueResult<T>) -> Void = { result in
             completionQueue.async {
                 completion(result)
             }
         }
+        return self._getFirst(cachePolicy: cachePolicy, completion: _completion)
     }
     
     @discardableResult
@@ -701,14 +703,15 @@ public class LCQuery: NSObject, NSCopying, NSCoding {
         completionQueue: DispatchQueue = .main,
         completion: @escaping (LCValueResult<T>) -> Void) -> LCRequest
     {
-        return self._get(
-            objectId: objectId,
-            cachePolicy: cachePolicy)
-        { result in
+        let _completion: (LCValueResult<T>) -> Void = { result in
             completionQueue.async {
                 completion(result)
             }
         }
+        return self._get(
+            objectId: objectId,
+            cachePolicy: cachePolicy,
+            completion: _completion)
     }
     
     @discardableResult

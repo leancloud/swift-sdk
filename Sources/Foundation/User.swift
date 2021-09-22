@@ -183,18 +183,18 @@ open class LCUser: LCObject {
         username: String,
         password: String,
         completionQueue: DispatchQueue = .main,
-        completion: @escaping (LCValueResult<User>) -> Void)
-        -> LCRequest
+        completion: @escaping (LCValueResult<User>) -> Void) -> LCRequest
     {
+        let completionInBackground: (LCValueResult<User>) -> Void = { result in
+            completionQueue.async {
+                completion(result)
+            }
+        }
         return self.logIn(
             application: application,
             username: username,
             password: password,
-            completionInBackground: { result in
-                completionQueue.async {
-                    completion(result)
-                }
-        })
+            completionInBackground: completionInBackground)
     }
 
     @discardableResult
@@ -245,18 +245,18 @@ open class LCUser: LCObject {
         email: String,
         password: String,
         completionQueue: DispatchQueue = .main,
-        completion: @escaping (LCValueResult<User>) -> Void)
-        -> LCRequest
+        completion: @escaping (LCValueResult<User>) -> Void) -> LCRequest
     {
+        let completionInBackground: (LCValueResult<User>) -> Void = { (result) in
+            completionQueue.async {
+                completion(result)
+            }
+        }
         return self.logIn(
             application: application,
             email: email,
             password: password,
-            completionInBackground: { (result) in
-                completionQueue.async {
-                    completion(result)
-                }
-        })
+            completionInBackground: completionInBackground)
     }
     
     @discardableResult
@@ -307,18 +307,18 @@ open class LCUser: LCObject {
         mobilePhoneNumber: String,
         password: String,
         completionQueue: DispatchQueue = .main,
-        completion: @escaping (LCValueResult<User>) -> Void)
-        -> LCRequest
+        completion: @escaping (LCValueResult<User>) -> Void) -> LCRequest
     {
+        let completionInBackground: (LCValueResult<User>) -> Void = { result in
+            completionQueue.async {
+                completion(result)
+            }
+        }
         return self.logIn(
             application: application,
             mobilePhoneNumber: mobilePhoneNumber,
             password: password,
-            completionInBackground: { result in
-                completionQueue.async {
-                    completion(result)
-                }
-        })
+            completionInBackground: completionInBackground)
     }
 
     @discardableResult
@@ -369,18 +369,18 @@ open class LCUser: LCObject {
         mobilePhoneNumber: String,
         verificationCode: String,
         completionQueue: DispatchQueue = .main,
-        completion: @escaping (LCValueResult<User>) -> Void)
-        -> LCRequest
+        completion: @escaping (LCValueResult<User>) -> Void) -> LCRequest
     {
+        let completionInBackground: (LCValueResult<User>) -> Void = { result in
+            completionQueue.async {
+                completion(result)
+            }
+        }
         return self.logIn(
             application: application,
             mobilePhoneNumber: mobilePhoneNumber,
             verificationCode: verificationCode,
-            completionInBackground: { result in
-                completionQueue.async {
-                    completion(result)
-                }
-        })
+            completionInBackground: completionInBackground)
     }
 
     @discardableResult
@@ -451,17 +451,17 @@ open class LCUser: LCObject {
         application: LCApplication = .default,
         sessionToken: String,
         completionQueue: DispatchQueue = .main,
-        completion: @escaping (LCValueResult<User>) -> Void)
-        -> LCRequest
+        completion: @escaping (LCValueResult<User>) -> Void) -> LCRequest
     {
+        let completionInBackground: (LCValueResult<User>) -> Void = { result in
+            completionQueue.async {
+                completion(result)
+            }
+        }
         return self.logIn(
             application: application,
             sessionToken: sessionToken,
-            completionInBackground: { result in
-                completionQueue.async {
-                    completion(result)
-                }
-        })
+            completionInBackground: completionInBackground)
     }
     
     @discardableResult
@@ -518,18 +518,18 @@ open class LCUser: LCObject {
         mobilePhoneNumber: String,
         verificationCode: String,
         completionQueue: DispatchQueue = .main,
-        completion: @escaping (LCValueResult<User>) -> Void)
-        -> LCRequest
+        completion: @escaping (LCValueResult<User>) -> Void) -> LCRequest
     {
+        let completionInBackground: (LCValueResult<User>) -> Void = { result in
+            completionQueue.async {
+                completion(result)
+            }
+        }
         return self.signUpOrLogIn(
             application: application,
             mobilePhoneNumber: mobilePhoneNumber,
             verificationCode: verificationCode,
-            completionInBackground: { result in
-                completionQueue.async {
-                    completion(result)
-                }
-        })
+            completionInBackground: completionInBackground)
     }
 
     @discardableResult
