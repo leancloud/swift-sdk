@@ -9,5 +9,5 @@
 import Foundation
 
 public struct Version {
-    public static let versionString = "17.9.2"
+    public static let versionString = "17.10.0"
 }
