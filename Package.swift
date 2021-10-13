@@ -6,7 +6,7 @@ import PackageDescription
 let package = Package(
     name: "LeanCloud",
     platforms: [
-        .iOS(.v10),
+        .iOS(.v11),
         .macOS(.v10_12),
         .tvOS(.v10),
         .watchOS(.v3)

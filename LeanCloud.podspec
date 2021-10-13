@@ -10,7 +10,7 @@ Pod::Spec.new do |s|
   s.swift_version = '5.0'
   s.default_subspec  = 'RTM'
 
-  s.ios.deployment_target     = '10.0'
+  s.ios.deployment_target     = '11.0'
   s.osx.deployment_target     = '10.12'
   s.tvos.deployment_target    = '10.0'
   s.watchos.deployment_target = '3.0'
@@ -22,8 +22,8 @@ Pod::Spec.new do |s|
   end
 
   s.subspec 'RTM' do |ss|
-    ss.dependency 'SwiftProtobuf', '~> 1.17'
-    ss.dependency 'GRDB.swift', '~> 5.8'
+    ss.dependency 'SwiftProtobuf', '~> 1.18'
+    ss.dependency 'GRDB.swift', '~> 5.12'
 
     ss.dependency 'LeanCloud/Foundation', "#{s.version}"
 
@@ -31,7 +31,7 @@ Pod::Spec.new do |s|
   end
   
   s.subspec 'RTM-no-local-storage' do |ss|
-    ss.dependency 'SwiftProtobuf', '~> 1.17'
+    ss.dependency 'SwiftProtobuf', '~> 1.18'
 
     ss.dependency 'LeanCloud/Foundation', "#{s.version}"
 
