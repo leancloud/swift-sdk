@@ -59,7 +59,7 @@ class IMClientTestCase: RTMBaseTestCase {
         delay()
         XCTAssertNil(wClient)
     }
-
+    
     func testOpenAndClose() {
         let client: IMClient = try! IMClient(ID: uuid, options: [])
         
@@ -109,10 +109,10 @@ class IMClientTestCase: RTMBaseTestCase {
         XCTAssertTrue(user.signUp().isSuccess)
         
         guard let objectID = user.objectId?.value,
-            let sessionToken = user.sessionToken?.value else {
-                XCTFail()
-                return
-        }
+              let sessionToken = user.sessionToken?.value else {
+                  XCTFail()
+                  return
+              }
         
         var clientFromUser: IMClient! = try! IMClient(
             user: user,
@@ -158,7 +158,7 @@ class IMClientTestCase: RTMBaseTestCase {
         delegator.clientEvent = { c, e in
             XCTAssertTrue(Thread.isMainThread)
             if c === client,
-                case .sessionDidPause(error: _) = e {
+               case .sessionDidPause(error: _) = e {
                 XCTAssertEqual(client.sessionState, .paused)
                 pauseExp.fulfill()
             }
@@ -190,7 +190,7 @@ class IMClientTestCase: RTMBaseTestCase {
     
     func testSessionConflict() {
         if let fileURL = LCApplication.default.currentInstallationFileURL,
-            FileManager.default.fileExists(atPath: fileURL.path) {
+           FileManager.default.fileExists(atPath: fileURL.path) {
             try! FileManager.default.removeItem(at: fileURL)
         }
         
@@ -286,7 +286,7 @@ class IMClientTestCase: RTMBaseTestCase {
         }
         
         if let fileURL = LCApplication.default.currentInstallationFileURL,
-            FileManager.default.fileExists(atPath: fileURL.path) {
+           FileManager.default.fileExists(atPath: fileURL.path) {
             try! FileManager.default.removeItem(at: fileURL)
         }
     }
@@ -337,6 +337,7 @@ class IMClientTestCase: RTMBaseTestCase {
         client.sessionToken = self.uuid
         client.sessionTokenExpiration = Date(timeIntervalSinceNow: 36000)
         
+        var ob: NSObjectProtocol?
         expecting(
             description: "Pause -> Resume -> First-Reopen Then session token expired, Final Second-Reopen success",
             count: 4)
@@ -354,7 +355,7 @@ class IMClientTestCase: RTMBaseTestCase {
                     XCTFail()
                 }
             }
-            let _ = NotificationCenter.default.addObserver(
+            ob = NotificationCenter.default.addObserver(
                 forName: IMClient.TestSessionTokenExpiredNotification,
                 object: client,
                 queue: .main
@@ -366,6 +367,9 @@ class IMClientTestCase: RTMBaseTestCase {
             }
             client.connection.disconnect()
             client.connection.connect()
+        }
+        if let ob = ob {
+            NotificationCenter.default.removeObserver(ob)
         }
     }
     
@@ -379,7 +383,7 @@ class IMClientTestCase: RTMBaseTestCase {
         let exp = expectation(description: "client report device token success")
         exp.expectedFulfillmentCount = 2
         let otherDeviceToken: String = uuid
-        let _ = NotificationCenter.default.addObserver(forName: IMClient.TestReportDeviceTokenNotification, object: client, queue: OperationQueue.main) { (notification) in
+        let ob = NotificationCenter.default.addObserver(forName: IMClient.TestReportDeviceTokenNotification, object: client, queue: OperationQueue.main) { (notification) in
             let result = notification.userInfo?["result"] as? RTMConnection.CommandCallback.Result
             XCTAssertEqual(result?.command?.cmd, .report)
             XCTAssertEqual(result?.command?.op, .uploaded)
@@ -392,6 +396,7 @@ class IMClientTestCase: RTMBaseTestCase {
         }
         wait(for: [exp], timeout: timeout)
         XCTAssertEqual(otherDeviceToken, client.currentDeviceToken)
+        NotificationCenter.default.removeObserver(ob)
     }
     
     func testSessionQuery() {
@@ -452,7 +457,7 @@ class IMClientTestCase: RTMBaseTestCase {
         wait(for: [queryExp2], timeout: timeout)
     }
     
-    #if canImport(GRDB)
+#if canImport(GRDB)
     func testPrepareLocalStorage() {
         expecting { (exp) in
             let notUseLocalStorageClient = try! IMClient(ID: uuid, options: [])
@@ -589,7 +594,7 @@ class IMClientTestCase: RTMBaseTestCase {
                 })
             }
         }
- 
+        
         checker(.lastMessageSentTimestamp(descending: true))
         checker(.lastMessageSentTimestamp(descending: false))
         checker(.updatedTimestamp(descending: true))
@@ -599,7 +604,7 @@ class IMClientTestCase: RTMBaseTestCase {
         
         XCTAssertEqual(client.convCollection.count, 2)
     }
-    #endif
+#endif
 }
 
 extension IMClientTestCase {
@@ -651,14 +656,14 @@ extension IMClientTestCase {
                 parameters: ["session_token": sessionToken])
             { (response) in
                 guard let value = response.value as? [String: Any],
-                    let client_id = value["client_id"] as? String,
-                    client_id == client.ID,
-                    let signature = value["signature"] as? String,
-                    let timestamp = value["timestamp"] as? Int64,
-                    let nonce = value["nonce"] as? String else {
-                        XCTFail()
-                        return
-                }
+                      let client_id = value["client_id"] as? String,
+                      client_id == client.ID,
+                      let signature = value["signature"] as? String,
+                      let timestamp = value["timestamp"] as? Int64,
+                      let nonce = value["nonce"] as? String else {
+                          XCTFail()
+                          return
+                      }
                 completion(IMSignature(
                     signature: signature,
                     timestamp: timestamp,

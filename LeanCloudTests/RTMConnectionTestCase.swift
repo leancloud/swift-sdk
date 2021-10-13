@@ -34,8 +34,8 @@ class RTMConnectionTestCase: RTMBaseTestCase {
             serverURL: "leancloud.cn")
         
         for imProtocol in
-            [RTMConnection.LCIMProtocol.protobuf1,
-             RTMConnection.LCIMProtocol.protobuf3]
+                [RTMConnection.LCIMProtocol.protobuf1,
+                 RTMConnection.LCIMProtocol.protobuf3]
         {
             let connectionRegistry: () -> RTMConnectionManager.InstantMessagingRegistry = {
                 let registry: RTMConnectionManager.InstantMessagingRegistry
@@ -305,13 +305,13 @@ class RTMConnectionTestCase: RTMBaseTestCase {
         let delegator = tuple.1
         
         let oldDate = Date().timeIntervalSince1970
-        
+        var ob: NSObjectProtocol?
         expecting(expectation: {
             let exp = self.expectation(description: "goaway")
             exp.expectedFulfillmentCount = 3
             return exp
         }) { exp in
-            NotificationCenter.default.addObserver(
+            ob = NotificationCenter.default.addObserver(
                 forName: RTMConnection.TestGoawayCommandReceivedNotification,
                 object: connection,
                 queue: OperationQueue.main)
@@ -333,11 +333,13 @@ class RTMConnectionTestCase: RTMBaseTestCase {
                 }(), response: WebSocket.WSResponse())
             }
         }
-        
+        if let ob = ob {
+            NotificationCenter.default.removeObserver(ob)
+        }
         XCTAssertNotNil(connection.rtmRouter?.table)
         XCTAssertGreaterThan(connection.rtmRouter!.table!.createdTimestamp, oldDate)
     }
-
+    
     func testThrottlingOutCommand() {
         let peerID = uuid
         let tuple = connectedConnection()
@@ -435,7 +437,7 @@ extension RTMConnectionTestCase {
     func connectedConnection(
         application: LCApplication = .default,
         peerID: String = uuid)
-        -> (RTMConnection, Delegator)
+    -> (RTMConnection, Delegator)
     {
         let connection = try! RTMConnectionManager.default.register(
             application: application,
