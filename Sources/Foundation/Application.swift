@@ -234,7 +234,7 @@ public class LCApplication {
     }
     var _currentInstallation: LCInstallation?
     
-    var currentInstallationFileURL: URL? {
+    public var currentInstallationFileURL: URL? {
         do {
             return try self.localStorageContext?.fileURL(
                 place: .systemCaches,
@@ -263,7 +263,7 @@ public class LCApplication {
     }
     var _currentUser: LCUser?
     
-    var currentUserFileURL: URL? {
+    public var currentUserFileURL: URL? {
         do {
             return try self.localStorageContext?.fileURL(
                 place: .persistentData,
