@@ -26,31 +26,43 @@ class BaseTestCase: XCTestCase {
         let key: String
         let serverURL: String
         let testableServerURL: String
+        let masterKey: String
     }
     
     static let cnApp = AppInfo(
         id: "S5vDI3IeCk1NLLiM1aFg3262-gzGzoHsz",
         key: "7g5pPsI55piz2PRLPWK5MPz0",
         serverURL: "https://s5vdi3ie.lc-cn-n1-shared.com",
-        testableServerURL: "https://beta.leancloud.cn")
+        testableServerURL: "https://beta.leancloud.cn",
+        masterKey: "Q26gTodbyi1Ki7lM9vtncF6U")
     
     static let tds1App = AppInfo(
         id: "7DY3DVgOQogGnYMMUajgvPRq-TjsS5DXC",
         key: "RJOLaAvGiF7mQguXp68W9Mv5",
         serverURL: "https://7DY3DVgO.cloud.tds1.tapapis.cn",
-        testableServerURL: "")
+        testableServerURL: "",
+        masterKey: "3PSWpjByenawCVo0FpnXfNgx")
     
     static let ceApp = AppInfo(
         id: "skhiVsqIk7NLVdtHaUiWn0No-9Nh9j0Va",
         key: "T3TEAIcL8Ls5XGPsGz41B1bz",
         serverURL: "https://skhivsqi.lc-cn-e1-shared.com",
-        testableServerURL: "https://beta-tab.leancloud.cn")
+        testableServerURL: "https://beta-tab.leancloud.cn",
+        masterKey: "FTPdEcG7vLKxNqKxYhTFdK4g")
     
     static let usApp = AppInfo(
         id: "jenSt9nvWtuJtmurdE28eg5M-MdYXbMMI",
         key: "8VLPsDlskJi8KsKppED4xKS0",
         serverURL: "",
-        testableServerURL: "https://beta-us.leancloud.cn")
+        testableServerURL: "https://beta-us.leancloud.cn",
+        masterKey: "fasiJXz8jvSwn3G2B2QeraRe")
+    
+    static let appInfoTable = [
+        cnApp.id : cnApp,
+        tds1App.id : tds1App,
+        ceApp.id : ceApp,
+        usApp.id : usApp,
+    ]
     
     static var config: LCApplication.Configuration {
         var config = LCApplication.Configuration()
@@ -77,16 +89,26 @@ class BaseTestCase: XCTestCase {
             configuration: BaseTestCase.config)
     }
     
+    override func setUp() {
+        super.setUp()
+        BaseTestCase.cleanPersistentCache()
+    }
+    
     override class func tearDown() {
-        [LCApplication.default.applicationSupportDirectoryURL,
-         LCApplication.default.cachesDirectoryURL]
-            .forEach { (url) in
-                if FileManager.default.fileExists(atPath: url.path) {
-                    try! FileManager.default.removeItem(at: url)
-                }
-        }
+        cleanPersistentCache()
         LCApplication.default.unregister()
         super.tearDown()
+    }
+    
+    static func cleanPersistentCache() {
+        [
+            LCApplication.default.applicationSupportDirectoryURL,
+            LCApplication.default.cachesDirectoryURL,
+        ].forEach { (url) in
+            if FileManager.default.fileExists(atPath: url.path) {
+                try! FileManager.default.removeItem(at: url)
+            }
+        }
     }
 }
 
@@ -174,20 +196,10 @@ extension BaseTestCase {
 extension LCApplication {
     
     var masterKey: String {
-        let key: String
-        switch self.id {
-        case BaseTestCase.cnApp.id:
-            key = "Q26gTodbyi1Ki7lM9vtncF6U"
-        case BaseTestCase.tds1App.id:
-            key = "3PSWpjByenawCVo0FpnXfNgx"
-        case BaseTestCase.ceApp.id:
-            key = "FTPdEcG7vLKxNqKxYhTFdK4g"
-        case BaseTestCase.usApp.id:
-            key = "fasiJXz8jvSwn3G2B2QeraRe"
-        default:
+        guard let key = BaseTestCase.appInfoTable[self.id]?.masterKey else {
             fatalError()
         }
-        return key + ",master"
+        return "\(key),master"
     }
     
     var v2router: AppRouter {
@@ -198,11 +210,11 @@ extension LCApplication {
     
     var applicationSupportDirectoryURL: URL {
         return (try!
-            FileManager.default.url(
-                for: .applicationSupportDirectory,
-                in: .userDomainMask,
-                appropriateFor: nil,
-                create: false))
+                FileManager.default.url(
+                    for: .applicationSupportDirectory,
+                       in: .userDomainMask,
+                       appropriateFor: nil,
+                       create: false))
             .appendingPathComponent(
                 LocalStorageContext.domain,
                 isDirectory: true)
@@ -213,11 +225,11 @@ extension LCApplication {
     
     var cachesDirectoryURL: URL {
         return (try!
-            FileManager.default.url(
-                for: .cachesDirectory,
-                in: .userDomainMask,
-                appropriateFor: nil,
-                create: false))
+                FileManager.default.url(
+                    for: .cachesDirectory,
+                       in: .userDomainMask,
+                       appropriateFor: nil,
+                       create: false))
             .appendingPathComponent(
                 LocalStorageContext.domain,
                 isDirectory: true)

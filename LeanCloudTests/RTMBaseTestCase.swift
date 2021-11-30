@@ -10,9 +10,6 @@ import XCTest
 @testable import LeanCloud
 
 class RTMBaseTestCase: BaseTestCase {
-//    static let useTestableRTMURL = true
-    static let useTestableRTMURL = false
-    static let testableRTMURL = RTMBaseTestCase.useTestableRTMURL
-        ? URL(string: "wss://cn-n1-prod-k8s-cell-12.leancloud.cn")!
-        : nil
+    static let testableRTMURL: URL? = nil
+//    static let testableRTMURL: URL? = URL(string: "wss://cn-n1-prod-k8s-cell-12.leancloud.cn")
 }
