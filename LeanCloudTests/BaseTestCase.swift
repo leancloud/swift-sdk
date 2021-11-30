@@ -34,6 +34,12 @@ class BaseTestCase: XCTestCase {
         serverURL: "https://s5vdi3ie.lc-cn-n1-shared.com",
         testableServerURL: "https://beta.leancloud.cn")
     
+    static let tds1App = AppInfo(
+        id: "7DY3DVgOQogGnYMMUajgvPRq-TjsS5DXC",
+        key: "RJOLaAvGiF7mQguXp68W9Mv5",
+        serverURL: "https://7DY3DVgO.cloud.tds1.tapapis.cn",
+        testableServerURL: "")
+    
     static let ceApp = AppInfo(
         id: "skhiVsqIk7NLVdtHaUiWn0No-9Nh9j0Va",
         key: "T3TEAIcL8Ls5XGPsGz41B1bz",
@@ -58,6 +64,7 @@ class BaseTestCase: XCTestCase {
     override class func setUp() {
         super.setUp()
         let app = BaseTestCase.cnApp
+//        let app = BaseTestCase.tds1App
 //        let app = BaseTestCase.ceApp
 //        let app = BaseTestCase.usApp
         TestObject.register()
@@ -171,6 +178,8 @@ extension LCApplication {
         switch self.id {
         case BaseTestCase.cnApp.id:
             key = "Q26gTodbyi1Ki7lM9vtncF6U"
+        case BaseTestCase.tds1App.id:
+            key = "3PSWpjByenawCVo0FpnXfNgx"
         case BaseTestCase.ceApp.id:
             key = "FTPdEcG7vLKxNqKxYhTFdK4g"
         case BaseTestCase.usApp.id:

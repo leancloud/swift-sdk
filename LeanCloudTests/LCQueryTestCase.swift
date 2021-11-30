@@ -446,18 +446,22 @@ class LCQueryTestCase: BaseTestCase {
         let object = sharedObject
         let child  = sharedChild
         let query  = objectQuery()
-
+        guard let _ = object.objectId, let _ = child.objectId else {
+            XCTFail()
+            return
+        }
         query.whereKey("objectId", .containedIn([object.objectId!, child.objectId!]))
         query.whereKey("objectId", .ascending)
-
         let (isSuccess, objects) = execute(query)
-
-        XCTAssertTrue(isSuccess && !objects.isEmpty)
-
-        let objectId1 = objects[0].objectId!
-        let objectId2 = objects.last?.objectId!
-
-        XCTAssertTrue((objectId1.value as NSString).compare(objectId2!.value) == .orderedAscending)
+        XCTAssertTrue(isSuccess)
+        guard objects.count == 2,
+              let objectId1 = objects.first?.objectId?.value,
+              let objectId2 = objects.last?.objectId?.value
+        else {
+            XCTFail()
+            return
+        }
+        XCTAssertTrue(objectId1.compare(objectId2) == .orderedAscending)
     }
 
     func testDescending() {
