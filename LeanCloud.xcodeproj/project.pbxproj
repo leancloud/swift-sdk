@@ -504,9 +504,9 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 8342FCCF1C7B13A700C3CF15 /* Build configuration list for PBXNativeTarget "LeanCloud" */;
 			buildPhases = (
+				8342FCB81C7B13A700C3CF15 /* Headers */,
 				8342FCB61C7B13A700C3CF15 /* Sources */,
 				8342FCB71C7B13A700C3CF15 /* Frameworks */,
-				8342FCB81C7B13A700C3CF15 /* Headers */,
 				8342FCB91C7B13A700C3CF15 /* Resources */,
 			);
 			buildRules = (
