@@ -15,9 +15,9 @@ let package = Package(
         .library(name: "LeanCloud", targets: ["LeanCloud"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/Alamofire/Alamofire.git", .upToNextMajor(from: "5.4.0")),
-        .package(url: "https://github.com/apple/swift-protobuf.git", .upToNextMajor(from: "1.17.0")),
-        .package(url: "https://github.com/groue/GRDB.swift.git", .upToNextMajor(from: "5.8.0"))
+        .package(url: "https://github.com/Alamofire/Alamofire.git", .upToNextMajor(from: "5.4.4")),
+        .package(url: "https://github.com/apple/swift-protobuf.git", .upToNextMajor(from: "1.18.0")),
+        .package(url: "https://github.com/groue/GRDB.swift.git", .upToNextMajor(from: "5.12.0"))
     ],
     targets: [
         .target(
