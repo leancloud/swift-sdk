@@ -277,7 +277,7 @@ public class LCQuery: NSObject, NSCopying, NSCoding {
     public func `where`(_ key: String, _ constraint: Constraint) throws {
         var dictionary: [String: Any]?
         switch constraint {
-        /* Key */
+            /* Key */
         case .included:
             self.includedKeys.insert(key)
         case .selected:
@@ -286,7 +286,7 @@ public class LCQuery: NSObject, NSCopying, NSCoding {
             dictionary = ["$exists": true]
         case .notExisted:
             dictionary = ["$exists": false]
-        /* Equality */
+            /* Equality */
         case let .equalTo(value):
             self.equalityTable[key] = value.lcValue
             self.constraintDictionary["$and"] = self.equalityTable.map { [$0: $1] }
@@ -300,7 +300,7 @@ public class LCQuery: NSObject, NSCopying, NSCoding {
             dictionary = ["$gt": value.lcValue]
         case let .greaterThanOrEqualTo(value):
             dictionary = ["$gte": value.lcValue]
-        /* Array */
+            /* Array */
         case let .containedIn(array):
             dictionary = ["$in": array.lcArray]
         case let .notContainedIn(array):
@@ -309,7 +309,7 @@ public class LCQuery: NSObject, NSCopying, NSCoding {
             dictionary = ["$all": array.lcArray]
         case let .equalToSize(size):
             dictionary = ["$size": size]
-        /* GeoPoint */
+            /* GeoPoint */
         case let .locatedNear(center, minimal, maximal):
             dictionary = ["$nearSphere": center]
             if let min = minimal {
@@ -324,7 +324,7 @@ public class LCQuery: NSObject, NSCopying, NSCoding {
                     "$box": [southwest, northeast]
                 ]
             ]
-        /* Query */
+            /* Query */
         case let .matchedQuery(query):
             try self.validateApplication(query)
             dictionary = ["$inQuery": query]
@@ -337,7 +337,7 @@ public class LCQuery: NSObject, NSCopying, NSCoding {
                 "$select": [
                     "query": query,
                     "key": key
-                ]
+                ] as [String : Any]
             ]
         case let .notMatchedQueryAndKey(query, key):
             try self.validateApplication(query)
@@ -345,9 +345,9 @@ public class LCQuery: NSObject, NSCopying, NSCoding {
                 "$dontSelect": [
                     "query": query,
                     "key": key
-                ]
+                ] as [String : Any]
             ]
-        /* String */
+            /* String */
         case let .matchedRegularExpression(regex, option):
             dictionary = [
                 "$regex": regex,
@@ -359,13 +359,13 @@ public class LCQuery: NSObject, NSCopying, NSCoding {
             dictionary = ["$regex": "^\(string.regularEscapedString)"]
         case let .suffixedBy(string):
             dictionary = ["$regex": "\(string.regularEscapedString)$"]
-        /* Relation */
+            /* Relation */
         case let .relatedTo(object):
             self.constraintDictionary["$relatedTo"] = [
                 "object": object,
                 "key": key
-            ]
-        /* Order */
+            ] as [String : Any]
+            /* Order */
         case .ascending:
             self.appendOrderedKey(key)
         case .descending:
@@ -485,8 +485,8 @@ public class LCQuery: NSObject, NSCopying, NSCoding {
         let className = className ?? self.objectClassName
         return try results.map { dictionary in
             guard let object = ObjectProfiler.shared.object(
-                    application: self.application,
-                    className: className) as? T else {
+                application: self.application,
+                className: className) as? T else {
                 throw LCError(
                     code: .malformedData,
                     userInfo: [
