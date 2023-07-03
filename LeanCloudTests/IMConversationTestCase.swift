@@ -1514,7 +1514,7 @@ class IMConversationTestCase: RTMBaseTestCase {
             nameKey: uuid,
             "\(attrKey).\(createKey)": uuid,
             "\(attrKey).\(deleteKey)": ["__op": "Delete"],
-            "\(attrKey).\(arrayKey)": ["__op": "Add", "objects": [uuid]]
+            "\(attrKey).\(arrayKey)": ["__op": "Add", "objects": [uuid]] as [String : Any]
         ]
         
         let updateExp = expectation(description: "update")
