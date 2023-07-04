@@ -12,8 +12,8 @@ Pod::Spec.new do |s|
 
   s.ios.deployment_target     = '11.0'
   s.osx.deployment_target     = '10.13'
-  s.tvos.deployment_target    = '10.0'
-  s.watchos.deployment_target = '3.0'
+  s.tvos.deployment_target    = '11.0'
+  s.watchos.deployment_target = '4.0'
 
   s.subspec 'Foundation' do |ss|
     ss.dependency 'Alamofire', '~> 5.7'
@@ -23,7 +23,7 @@ Pod::Spec.new do |s|
 
   s.subspec 'RTM' do |ss|
     ss.dependency 'SwiftProtobuf', '~> 1.22'
-    ss.dependency 'GRDB.swift', '~> 5.26'
+    ss.dependency 'GRDB.swift', '~> 6.15.0'
 
     ss.dependency 'LeanCloud/Foundation', "#{s.version}"
 
