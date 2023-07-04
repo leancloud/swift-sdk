@@ -8,8 +8,8 @@ let package = Package(
     platforms: [
         .iOS(.v11),
         .macOS(.v10_13),
-        .tvOS(.v10),
-        .watchOS(.v3)
+        .tvOS(.v11),
+        .watchOS(.v4)
     ],
     products: [
         .library(name: "LeanCloud", targets: ["LeanCloud"]),
@@ -17,7 +17,7 @@ let package = Package(
     dependencies: [
         .package(url: "https://github.com/Alamofire/Alamofire.git", .upToNextMajor(from: "5.7.0")),
         .package(url: "https://github.com/apple/swift-protobuf.git", .upToNextMajor(from: "1.22.0")),
-        .package(url: "https://github.com/groue/GRDB.swift.git", .upToNextMajor(from: "5.26.0"))
+        .package(url: "https://github.com/groue/GRDB.swift.git", .upToNextMajor(from: "6.15.0"))
     ],
     targets: [
         .target(
