@@ -1,0 +1,1331 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>IMConversationQuery Class Reference</title>
+    <link rel="stylesheet" type="text/css" href="../css/jazzy.css" />
+    <link rel="stylesheet" type="text/css" href="../css/highlight.css" />
+    <meta charset='utf-8'>
+    <script src="../js/jquery.min.js" defer></script>
+    <script src="../js/jazzy.js" defer></script>
+    
+    <script src="../js/lunr.min.js" defer></script>
+    <script src="../js/typeahead.jquery.js" defer></script>
+    <script src="../js/jazzy.search.js" defer></script>
+  </head>
+  <body>
+    <a name="//apple_ref/swift/Class/IMConversationQuery" class="dashAnchor"></a>
+    <a title="IMConversationQuery Class Reference"></a>
+    <header>
+      <div class="content-wrapper">
+        <p><a href="../index.html">LeanCloud 17.11.0 Docs</a> (63% documented)</p>
+        <p class="header-right"><a href="https://github.com/leancloud/swift-sdk"><img src="../img/gh.png" alt="GitHub"/>View on GitHub</a></p>
+        <p class="header-right"><a href="dash-feed://https%3A%2F%2Fleancloud.github.io%2Fswift-sdk%2Fdocsets%2FLeanCloud.xml"><img src="../img/dash.png" alt="Dash"/>Install in Dash</a></p>
+        <div class="header-right">
+          <form role="search" action="../search.json">
+            <input type="text" placeholder="Search documentation" data-typeahead>
+          </form>
+        </div>
+      </div>
+    </header>
+    <div class="content-wrapper">
+      <p id="breadcrumbs">
+        <a href="../index.html">LeanCloud Reference</a>
+        <img id="carat" src="../img/carat.png" alt=""/>
+        IMConversationQuery Class Reference
+      </p>
+    </div>
+    <div class="content-wrapper">
+      <nav class="sidebar">
+        <ul class="nav-groups">
+          <li class="nav-group-name">
+            <a href="../Classes.html">Classes</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../Classes/IMAudioMessage.html">IMAudioMessage</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMCategorizedMessage.html">IMCategorizedMessage</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMCategorizedMessage/ReservedType.html">– ReservedType</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMChatRoom.html">IMChatRoom</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMChatRoom/MessagePriority.html">– MessagePriority</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMClient.html">IMClient</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMClient/SessionState.html">– SessionState</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMClient/Options.html">– Options</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMClient/SessionOpenOptions.html">– SessionOpenOptions</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMClient/StoredConversationOrder.html">– StoredConversationOrder</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMConversation.html">IMConversation</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMConversation/MessageSendOptions.html">– MessageSendOptions</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMConversation/MessageReceiptFlag.html">– MessageReceiptFlag</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMConversation/MessageQueryEndpoint.html">– MessageQueryEndpoint</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMConversation/MessageQueryDirection.html">– MessageQueryDirection</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMConversation/MessageQueryPolicy.html">– MessageQueryPolicy</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMConversation/MemberResult.html">– MemberResult</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMConversation/MemberRole.html">– MemberRole</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMConversation/MemberInfo.html">– MemberInfo</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMConversationQuery.html">IMConversationQuery</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMConversationQuery/Options.html">– Options</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMFileMessage.html">IMFileMessage</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMImageMessage.html">IMImageMessage</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMLocationMessage.html">IMLocationMessage</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMMessage.html">IMMessage</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMMessage/IOType.html">– IOType</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMMessage/Status.html">– Status</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMMessage/PatchedReason.html">– PatchedReason</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMMessage/Content.html">– Content</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMRecalledMessage.html">IMRecalledMessage</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMServiceConversation.html">IMServiceConversation</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMTemporaryConversation.html">IMTemporaryConversation</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMTextMessage.html">IMTextMessage</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMVideoMessage.html">IMVideoMessage</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCACL.html">LCACL</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCACL/Permission.html">– Permission</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCApplication.html">LCApplication</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCApplication/LogLevel.html">– LogLevel</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCApplication/ServerCustomizableModule.html">– ServerCustomizableModule</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCApplication/Environment.html">– Environment</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCApplication/Configuration.html">– Configuration</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCArray.html">LCArray</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCBool.html">LCBool</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCCQLClient.html">LCCQLClient</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCCQLValue.html">LCCQLValue</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCCaptchaClient.html">LCCaptchaClient</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCCaptchaClient/Captcha.html">– Captcha</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCCaptchaClient/Verification.html">– Verification</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCData.html">LCData</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCDate.html">LCDate</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCDictionary.html">LCDictionary</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCEngine.html">LCEngine</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCFile.html">LCFile</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCFile/Payload.html">– Payload</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCFile/Options.html">– Options</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCFile/Thumbnail.html">– Thumbnail</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCGeoPoint.html">LCGeoPoint</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCGeoPoint/Unit.html">– Unit</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCGeoPoint/Distance.html">– Distance</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCInstallation.html">LCInstallation</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCNull.html">LCNull</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCNumber.html">LCNumber</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCObject.html">LCObject</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCObject/SaveOption.html">– SaveOption</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCPush.html">LCPush</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCQuery.html">LCQuery</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCQuery/Constraint.html">– Constraint</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCQuery/CachePolicy.html">– CachePolicy</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCRelation.html">LCRelation</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCRequest.html">LCRequest</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCRole.html">LCRole</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCSMSClient.html">LCSMSClient</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCString.html">LCString</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCUser.html">LCUser</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCUser/AuthDataPlatform.html">– AuthDataPlatform</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCUser/AuthDataOptions.html">– AuthDataOptions</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LiveQuery.html">LiveQuery</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LiveQuery/Event.html">– Event</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a href="../Enums.html">Enumerations</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../Enums/IMClientEvent.html">IMClientEvent</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/IMConversationEvent.html">IMConversationEvent</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/IMMessageEvent.html">IMMessageEvent</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/LCBooleanResult.html">LCBooleanResult</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/LCCQLResult.html">LCCQLResult</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/LCCountResult.html">LCCountResult</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/LCGenericResult.html">LCGenericResult</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/LCQueryResult.html">LCQueryResult</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/LCValueOptionalResult.html">LCValueOptionalResult</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/LCValueResult.html">LCValueResult</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a href="../Extensions.html">Extensions</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../Extensions/Array.html">Array</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Bool.html">Bool</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Data.html">Data</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Date.html">Date</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Dictionary.html">Dictionary</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Double.html">Double</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Float.html">Float</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Int.html">Int</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Int16.html">Int16</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Int32.html">Int32</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Int64.html">Int64</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Int8.html">Int8</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/NSData.html">NSData</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/NSDate.html">NSDate</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/NSNull.html">NSNull</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/NSNumber.html">NSNumber</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/NSString.html">NSString</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/NSURL.html">NSURL</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/String.html">String</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/UInt.html">UInt</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/UInt16.html">UInt16</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/UInt32.html">UInt32</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/UInt64.html">UInt64</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/UInt8.html">UInt8</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/URL.html">URL</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a href="../Protocols.html">Protocols</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../Protocols/IMClientDelegate.html">IMClientDelegate</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/IMMessageCategorizing.html">IMMessageCategorizing</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/IMSignatureDelegate.html">IMSignatureDelegate</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/LCArrayConvertible.html">LCArrayConvertible</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/LCBoolConvertible.html">LCBoolConvertible</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/LCDataConvertible.html">LCDataConvertible</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/LCDateConvertible.html">LCDateConvertible</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/LCDeviceTokenConvertible.html">LCDeviceTokenConvertible</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/LCDictionaryConvertible.html">LCDictionaryConvertible</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/LCNullConvertible.html">LCNullConvertible</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/LCNumberConvertible.html">LCNumberConvertible</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/LCResultType.html">LCResultType</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/LCStringConvertible.html">LCStringConvertible</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/LCValue.html">LCValue</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/LCValueConvertible.html">LCValueConvertible</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a href="../Structs.html">Structures</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../Structs/IMSignature.html">IMSignature</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/IMSignature/Action.html">– Action</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/LCError.html">LCError</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/LCError/InternalErrorCode.html">– InternalErrorCode</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/LCError/ServerErrorCode.html">– ServerErrorCode</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/Version.html">Version</a>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </nav>
+      <article class="main-content">
+        <section>
+          <section class="section">
+            <h1>IMConversationQuery</h1>
+              <div class="declaration">
+                <div class="language">
+                  
+                  <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">class</span> <span class="kt">IMConversationQuery</span> <span class="p">:</span> <span class="kt"><a href="../Classes/LCQuery.html">LCQuery</a></span></code></pre>
+
+                </div>
+              </div>
+            <p>IM Conversation Query</p>
+
+              <div class="slightly-smaller">
+                <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/RTM/IMConversationQuery.swift#L12-L355">Show on GitHub</a>
+              </div>
+          </section>
+          <section class="section task-group-section">
+            <div class="task-group">
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9LeanCloud19IMConversationQueryC012limitRangeOfD6ResultSNySiGvpZ"></a>
+                    <a name="//apple_ref/swift/Variable/limitRangeOfQueryResult" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9LeanCloud19IMConversationQueryC012limitRangeOfD6ResultSNySiGvpZ">limitRangeOfQueryResult</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>limit of conversation ID&rsquo;s count in one query.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">limitRangeOfQueryResult</span><span class="p">:</span> <span class="kt">ClosedRange</span><span class="o">&lt;</span><span class="kt">Int</span><span class="o">&gt;</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/RTM/IMConversationQuery.swift#L15">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9LeanCloud19IMConversationQueryC7OptionsV"></a>
+                    <a name="//apple_ref/swift/Struct/Options" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9LeanCloud19IMConversationQueryC7OptionsV">Options</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>conversation query option.</p>
+
+                        <a href="../Classes/IMConversationQuery/Options.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">struct</span> <span class="kt">Options</span> <span class="p">:</span> <span class="kt">OptionSet</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/RTM/IMConversationQuery.swift#L18-L30">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9LeanCloud19IMConversationQueryC7optionsAC7OptionsVSgvp"></a>
+                    <a name="//apple_ref/swift/Property/options" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9LeanCloud19IMConversationQueryC7optionsAC7OptionsVSgvp">options</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>@see <code><a href="../Classes/IMConversationQuery/Options.html">Options</a></code>, default is nil.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">options</span><span class="p">:</span> <span class="kt"><a href="../Classes/IMConversationQuery/Options.html">Options</a></span><span class="p">?</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/RTM/IMConversationQuery.swift#L33">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9LeanCloud19IMConversationQueryC6clientAA8IMClientCSgvp"></a>
+                    <a name="//apple_ref/swift/Property/client" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9LeanCloud19IMConversationQueryC6clientAA8IMClientCSgvp">client</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>the client which this query belong to.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">private(set)</span> <span class="k">weak</span> <span class="k">var</span> <span class="nv">client</span><span class="p">:</span> <span class="kt"><a href="../Classes/IMClient.html">IMClient</a></span><span class="p">?</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/RTM/IMConversationQuery.swift#L36">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/Combine"></a>
+                <a name="//apple_ref/swift/Section/Combine" class="dashAnchor"></a>
+                <div class="section-name-container">
+                  <a class="section-name-link" href="#/Combine"></a>
+                  <h3 class="section-name"><span>Combine</span>
+</h3>
+                </div>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9LeanCloud19IMConversationQueryC3andyACSgSayACGKFZ"></a>
+                    <a name="//apple_ref/swift/Method/and(_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9LeanCloud19IMConversationQueryC3andyACSgSayACGKFZ">and(_:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Performs a logical AND operation on an array of one or more expressions of query.</p>
+<div class="aside aside-throws">
+    <p class="aside-title">Throws</p>
+    <code><a href="../Structs/LCError.html">LCError</a></code>
+
+</div>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">static</span> <span class="kd">func</span> <span class="nf">and</span><span class="p">(</span><span class="n">_</span> <span class="nv">queries</span><span class="p">:</span> <span class="p">[</span><span class="kt">IMConversationQuery</span><span class="p">])</span> <span class="k">throws</span> <span class="o">-&gt;</span> <span class="kt">IMConversationQuery</span><span class="p">?</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>queries</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>An array of one or more expressions of query.</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>An optional <code>IMConversationQuery</code></p>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/RTM/IMConversationQuery.swift#L93-L95">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9LeanCloud19IMConversationQueryC3andyACSgACKF"></a>
+                    <a name="//apple_ref/swift/Method/and(_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9LeanCloud19IMConversationQueryC3andyACSgACKF">and(_:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Performs a logical AND operation on self and the query.</p>
+<div class="aside aside-throws">
+    <p class="aside-title">Throws</p>
+    <code><a href="../Structs/LCError.html">LCError</a></code>
+
+</div>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">and</span><span class="p">(</span><span class="n">_</span> <span class="nv">query</span><span class="p">:</span> <span class="kt">IMConversationQuery</span><span class="p">)</span> <span class="k">throws</span> <span class="o">-&gt;</span> <span class="kt">IMConversationQuery</span><span class="p">?</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>query</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The query.</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>An optional <code>IMConversationQuery</code></p>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/RTM/IMConversationQuery.swift#L101-L103">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9LeanCloud19IMConversationQueryC2oryACSgSayACGKFZ"></a>
+                    <a name="//apple_ref/swift/Method/or(_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9LeanCloud19IMConversationQueryC2oryACSgSayACGKFZ">or(_:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Performs a logical OR operation on an array of one or more expressions of query.</p>
+<div class="aside aside-throws">
+    <p class="aside-title">Throws</p>
+    <code><a href="../Structs/LCError.html">LCError</a></code>
+
+</div>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">static</span> <span class="kd">func</span> <span class="nf">or</span><span class="p">(</span><span class="n">_</span> <span class="nv">queries</span><span class="p">:</span> <span class="p">[</span><span class="kt">IMConversationQuery</span><span class="p">])</span> <span class="k">throws</span> <span class="o">-&gt;</span> <span class="kt">IMConversationQuery</span><span class="p">?</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>queries</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>An array of one or more expressions of query.</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>An optional <code>IMConversationQuery</code></p>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/RTM/IMConversationQuery.swift#L109-L111">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9LeanCloud19IMConversationQueryC2oryACSgACKF"></a>
+                    <a name="//apple_ref/swift/Method/or(_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9LeanCloud19IMConversationQueryC2oryACSgACKF">or(_:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Performs a logical OR operation on self and the query.</p>
+<div class="aside aside-throws">
+    <p class="aside-title">Throws</p>
+    <code><a href="../Structs/LCError.html">LCError</a></code>
+
+</div>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">or</span><span class="p">(</span><span class="n">_</span> <span class="nv">query</span><span class="p">:</span> <span class="kt">IMConversationQuery</span><span class="p">)</span> <span class="k">throws</span> <span class="o">-&gt;</span> <span class="kt">IMConversationQuery</span><span class="p">?</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>query</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The query.</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>An optional <code>IMConversationQuery</code></p>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/RTM/IMConversationQuery.swift#L117-L119">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/Where"></a>
+                <a name="//apple_ref/swift/Section/Where" class="dashAnchor"></a>
+                <div class="section-name-container">
+                  <a class="section-name-link" href="#/Where"></a>
+                  <h3 class="section-name"><span>Where</span>
+</h3>
+                </div>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9LeanCloud19IMConversationQueryC5whereyySS_AA7LCQueryC10ConstraintOtKF"></a>
+                    <a name="//apple_ref/swift/Method/where(_:_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9LeanCloud19IMConversationQueryC5whereyySS_AA7LCQueryC10ConstraintOtKF">where(_:<wbr>_:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">override</span> <span class="kd">func</span> <span class="p">`</span><span class="nv">where</span><span class="p">`(</span><span class="n">_</span> <span class="nv">key</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span> <span class="n">_</span> <span class="nv">constraint</span><span class="p">:</span> <span class="kt">Constraint</span><span class="p">)</span> <span class="k">throws</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/RTM/IMConversationQuery.swift#L123-L133">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/Find"></a>
+                <a name="//apple_ref/swift/Section/Find" class="dashAnchor"></a>
+                <div class="section-name-container">
+                  <a class="section-name-link" href="#/Find"></a>
+                  <h3 class="section-name"><span>Find</span>
+</h3>
+                </div>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9LeanCloud19IMConversationQueryC15getConversation2by10completionySS_yAA15LCGenericResultOyAA0C0CGctKF"></a>
+                    <a name="//apple_ref/swift/Method/getConversation(by:completion:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9LeanCloud19IMConversationQueryC15getConversation2by10completionySS_yAA15LCGenericResultOyAA0C0CGctKF">getConversation(by:<wbr>completion:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Get Conversation by ID.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">getConversation</span><span class="p">(</span>
+    <span class="n">by</span> <span class="kt">ID</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span>
+    <span class="nv">completion</span><span class="p">:</span> <span class="kd">@escaping</span> <span class="p">(</span><span class="kt"><a href="../Enums/LCGenericResult.html">LCGenericResult</a></span><span class="o">&lt;</span><span class="kt"><a href="../Classes/IMConversation.html">IMConversation</a></span><span class="o">&gt;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Void</span><span class="p">)</span>
+    <span class="k">throws</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>ID</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The ID of the conversation.</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>completion</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>callback.</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/RTM/IMConversationQuery.swift#L142-L166">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9LeanCloud19IMConversationQueryC16getConversations2by10completionyShySSG_yAA15LCGenericResultOySayAA0C0CGGctKF"></a>
+                    <a name="//apple_ref/swift/Method/getConversations(by:completion:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9LeanCloud19IMConversationQueryC16getConversations2by10completionyShySSG_yAA15LCGenericResultOySayAA0C0CGGctKF">getConversations(by:<wbr>completion:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Get Conversations by ID set.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">getConversations</span><span class="p">(</span>
+    <span class="n">by</span> <span class="kt">IDs</span><span class="p">:</span> <span class="kt">Set</span><span class="o">&lt;</span><span class="kt">String</span><span class="o">&gt;</span><span class="p">,</span>
+    <span class="nv">completion</span><span class="p">:</span> <span class="kd">@escaping</span> <span class="p">(</span><span class="kt"><a href="../Enums/LCGenericResult.html">LCGenericResult</a></span><span class="o">&lt;</span><span class="p">[</span><span class="kt"><a href="../Classes/IMConversation.html">IMConversation</a></span><span class="p">]</span><span class="o">&gt;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Void</span><span class="p">)</span>
+    <span class="k">throws</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>IDs</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The set of ID string.</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>completion</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>callback.</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/RTM/IMConversationQuery.swift#L173-L190">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9LeanCloud19IMConversationQueryC24getTemporaryConversation2by10completionySS_yAA15LCGenericResultOyAA011IMTemporaryG0CGctKF"></a>
+                    <a name="//apple_ref/swift/Method/getTemporaryConversation(by:completion:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9LeanCloud19IMConversationQueryC24getTemporaryConversation2by10completionySS_yAA15LCGenericResultOyAA011IMTemporaryG0CGctKF">getTemporaryConversation(by:<wbr>completion:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Get Temporary Conversation by ID.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">getTemporaryConversation</span><span class="p">(</span>
+    <span class="n">by</span> <span class="kt">ID</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span>
+    <span class="nv">completion</span><span class="p">:</span> <span class="kd">@escaping</span> <span class="p">(</span><span class="kt"><a href="../Enums/LCGenericResult.html">LCGenericResult</a></span><span class="o">&lt;</span><span class="kt"><a href="../Classes/IMTemporaryConversation.html">IMTemporaryConversation</a></span><span class="o">&gt;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Void</span><span class="p">)</span>
+    <span class="k">throws</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>ID</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The ID of the temporary conversation.</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>completion</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>Result callback.</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/RTM/IMConversationQuery.swift#L196-L215">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9LeanCloud19IMConversationQueryC25getTemporaryConversations2by10completionyShySSG_yAA15LCGenericResultOySayAA23IMTemporaryConversationCGGctKF"></a>
+                    <a name="//apple_ref/swift/Method/getTemporaryConversations(by:completion:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9LeanCloud19IMConversationQueryC25getTemporaryConversations2by10completionyShySSG_yAA15LCGenericResultOySayAA23IMTemporaryConversationCGGctKF">getTemporaryConversations(by:<wbr>completion:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Get Temporary Conversations by ID set.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">getTemporaryConversations</span><span class="p">(</span>
+    <span class="n">by</span> <span class="kt">IDs</span><span class="p">:</span> <span class="kt">Set</span><span class="o">&lt;</span><span class="kt">String</span><span class="o">&gt;</span><span class="p">,</span>
+    <span class="nv">completion</span><span class="p">:</span> <span class="kd">@escaping</span> <span class="p">(</span><span class="kt"><a href="../Enums/LCGenericResult.html">LCGenericResult</a></span><span class="o">&lt;</span><span class="p">[</span><span class="kt"><a href="../Classes/IMTemporaryConversation.html">IMTemporaryConversation</a></span><span class="p">]</span><span class="o">&gt;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Void</span><span class="p">)</span>
+    <span class="k">throws</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>IDs</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The set of ID string.</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>completion</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>callback.</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/RTM/IMConversationQuery.swift#L222-L245">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9LeanCloud19IMConversationQueryC17findConversations10completionyyAA15LCGenericResultOySayAA0C0CGGc_tKF"></a>
+                    <a name="//apple_ref/swift/Method/findConversations(completion:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9LeanCloud19IMConversationQueryC17findConversations10completionyyAA15LCGenericResultOySayAA0C0CGGc_tKF">findConversations(completion:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>General conversation query (not support temporary conversation query).</p>
+
+<p>The default where constraint is {&ldquo;m&rdquo;: client.ID},
+The default sort is -lm,
+The default limit is 10,
+The default skip is 0.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">findConversations</span><span class="p">(</span><span class="nv">completion</span><span class="p">:</span> <span class="kd">@escaping</span> <span class="p">(</span><span class="kt"><a href="../Enums/LCGenericResult.html">LCGenericResult</a></span><span class="o">&lt;</span><span class="p">[</span><span class="kt"><a href="../Classes/IMConversation.html">IMConversation</a></span><span class="p">]</span><span class="o">&gt;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Void</span><span class="p">)</span> <span class="k">throws</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>completion</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>callback</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/RTM/IMConversationQuery.swift#L255-L270">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/Unavailable"></a>
+                <a name="//apple_ref/swift/Section/Unavailable" class="dashAnchor"></a>
+                <div class="section-name-container">
+                  <a class="section-name-link" href="#/Unavailable"></a>
+                  <h3 class="section-name"><span>Unavailable</span>
+</h3>
+                </div>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9LeanCloud19IMConversationQueryC3get_11cachePolicy15completionQueue0H0AA9LCRequestCAA19LCStringConvertible_p_AA7LCQueryC05CacheG0OSo17OS_dispatch_queueCyAA13LCValueResultOyxGctAA8LCObjectCRbzlF"></a>
+                    <a name="//apple_ref/swift/Method/get(_:cachePolicy:completionQueue:completion:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9LeanCloud19IMConversationQueryC3get_11cachePolicy15completionQueue0H0AA9LCRequestCAA19LCStringConvertible_p_AA7LCQueryC05CacheG0OSo17OS_dispatch_queueCyAA13LCValueResultOyxGctAA8LCObjectCRbzlF">get(_:<wbr>cachePolicy:<wbr>completionQueue:<wbr>completion:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">override</span> <span class="kd">func</span> <span class="k">get</span><span class="o">&lt;</span><span class="kt">T</span><span class="o">&gt;</span><span class="p">(</span><span class="n">_</span> <span class="nv">objectId</span><span class="p">:</span> <span class="kt"><a href="../Protocols/LCStringConvertible.html">LCStringConvertible</a></span><span class="p">,</span> <span class="nv">cachePolicy</span><span class="p">:</span> <span class="kt"><a href="../Classes/LCQuery.html">LCQuery</a></span><span class="o">.</span><span class="kt">CachePolicy</span> <span class="o">=</span> <span class="o">.</span><span class="n">onlyNetwork</span><span class="p">,</span> <span class="nv">completionQueue</span><span class="p">:</span> <span class="kt">DispatchQueue</span> <span class="o">=</span> <span class="o">.</span><span class="n">main</span><span class="p">,</span> <span class="nv">completion</span><span class="p">:</span> <span class="kd">@escaping</span> <span class="p">(</span><span class="kt"><a href="../Enums/LCValueResult.html">LCValueResult</a></span><span class="o">&lt;</span><span class="kt">T</span><span class="o">&gt;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Void</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt"><a href="../Classes/LCRequest.html">LCRequest</a></span> <span class="k">where</span> <span class="kt">T</span> <span class="p">:</span> <span class="kt"><a href="../Classes/LCObject.html">LCObject</a></span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/RTM/IMConversationQuery.swift#L299-L301">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9LeanCloud19IMConversationQueryC8getFirst11cachePolicy15completionQueue0I0AA9LCRequestCAA7LCQueryC05CacheH0O_So17OS_dispatch_queueCyAA13LCValueResultOyxGctAA8LCObjectCRbzlF"></a>
+                    <a name="//apple_ref/swift/Method/getFirst(cachePolicy:completionQueue:completion:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9LeanCloud19IMConversationQueryC8getFirst11cachePolicy15completionQueue0I0AA9LCRequestCAA7LCQueryC05CacheH0O_So17OS_dispatch_queueCyAA13LCValueResultOyxGctAA8LCObjectCRbzlF">getFirst(cachePolicy:<wbr>completionQueue:<wbr>completion:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">override</span> <span class="kd">func</span> <span class="n">getFirst</span><span class="o">&lt;</span><span class="kt">T</span><span class="o">&gt;</span><span class="p">(</span><span class="nv">cachePolicy</span><span class="p">:</span> <span class="kt"><a href="../Classes/LCQuery.html">LCQuery</a></span><span class="o">.</span><span class="kt">CachePolicy</span> <span class="o">=</span> <span class="o">.</span><span class="n">onlyNetwork</span><span class="p">,</span> <span class="nv">completionQueue</span><span class="p">:</span> <span class="kt">DispatchQueue</span> <span class="o">=</span> <span class="o">.</span><span class="n">main</span><span class="p">,</span> <span class="nv">completion</span><span class="p">:</span> <span class="kd">@escaping</span> <span class="p">(</span><span class="kt"><a href="../Enums/LCValueResult.html">LCValueResult</a></span><span class="o">&lt;</span><span class="kt">T</span><span class="o">&gt;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Void</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt"><a href="../Classes/LCRequest.html">LCRequest</a></span> <span class="k">where</span> <span class="kt">T</span> <span class="p">:</span> <span class="kt"><a href="../Classes/LCObject.html">LCObject</a></span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/RTM/IMConversationQuery.swift#L308-L310">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9LeanCloud19IMConversationQueryC5count11cachePolicy15completionQueue0H0AA9LCRequestCAA7LCQueryC05CacheG0O_So17OS_dispatch_queueCyAA13LCCountResultOctF"></a>
+                    <a name="//apple_ref/swift/Method/count(cachePolicy:completionQueue:completion:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9LeanCloud19IMConversationQueryC5count11cachePolicy15completionQueue0H0AA9LCRequestCAA7LCQueryC05CacheG0O_So17OS_dispatch_queueCyAA13LCCountResultOctF">count(cachePolicy:<wbr>completionQueue:<wbr>completion:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">override</span> <span class="kd">func</span> <span class="nf">count</span><span class="p">(</span><span class="nv">cachePolicy</span><span class="p">:</span> <span class="kt"><a href="../Classes/LCQuery.html">LCQuery</a></span><span class="o">.</span><span class="kt">CachePolicy</span> <span class="o">=</span> <span class="o">.</span><span class="n">onlyNetwork</span><span class="p">,</span> <span class="nv">completionQueue</span><span class="p">:</span> <span class="kt">DispatchQueue</span> <span class="o">=</span> <span class="o">.</span><span class="n">main</span><span class="p">,</span> <span class="nv">completion</span><span class="p">:</span> <span class="kd">@escaping</span> <span class="p">(</span><span class="kt"><a href="../Enums/LCCountResult.html">LCCountResult</a></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Void</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt"><a href="../Classes/LCRequest.html">LCRequest</a></span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/RTM/IMConversationQuery.swift#L327-L329">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </section>
+        </section>
+        <section id="footer">
+          <p>&copy; 2023 <a class="link" href="https://leancloud.cn" target="_blank" rel="external noopener">LeanCloud</a>. All rights reserved. (Last updated: 2023-12-05)</p>
+          <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external noopener">jazzy ♪♫ v0.14.4</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external noopener">Realm</a> project.</p>
+        </section>
+      </article>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,1303 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>IMMessage Class Reference</title>
+    <link rel="stylesheet" type="text/css" href="../css/jazzy.css" />
+    <link rel="stylesheet" type="text/css" href="../css/highlight.css" />
+    <meta charset='utf-8'>
+    <script src="../js/jquery.min.js" defer></script>
+    <script src="../js/jazzy.js" defer></script>
+    
+    <script src="../js/lunr.min.js" defer></script>
+    <script src="../js/typeahead.jquery.js" defer></script>
+    <script src="../js/jazzy.search.js" defer></script>
+  </head>
+  <body>
+    <a name="//apple_ref/swift/Class/IMMessage" class="dashAnchor"></a>
+    <a title="IMMessage Class Reference"></a>
+    <header>
+      <div class="content-wrapper">
+        <p><a href="../index.html">LeanCloud 17.11.0 Docs</a> (63% documented)</p>
+        <p class="header-right"><a href="https://github.com/leancloud/swift-sdk"><img src="../img/gh.png" alt="GitHub"/>View on GitHub</a></p>
+        <p class="header-right"><a href="dash-feed://https%3A%2F%2Fleancloud.github.io%2Fswift-sdk%2Fdocsets%2FLeanCloud.xml"><img src="../img/dash.png" alt="Dash"/>Install in Dash</a></p>
+        <div class="header-right">
+          <form role="search" action="../search.json">
+            <input type="text" placeholder="Search documentation" data-typeahead>
+          </form>
+        </div>
+      </div>
+    </header>
+    <div class="content-wrapper">
+      <p id="breadcrumbs">
+        <a href="../index.html">LeanCloud Reference</a>
+        <img id="carat" src="../img/carat.png" alt=""/>
+        IMMessage Class Reference
+      </p>
+    </div>
+    <div class="content-wrapper">
+      <nav class="sidebar">
+        <ul class="nav-groups">
+          <li class="nav-group-name">
+            <a href="../Classes.html">Classes</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../Classes/IMAudioMessage.html">IMAudioMessage</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMCategorizedMessage.html">IMCategorizedMessage</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMCategorizedMessage/ReservedType.html">– ReservedType</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMChatRoom.html">IMChatRoom</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMChatRoom/MessagePriority.html">– MessagePriority</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMClient.html">IMClient</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMClient/SessionState.html">– SessionState</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMClient/Options.html">– Options</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMClient/SessionOpenOptions.html">– SessionOpenOptions</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMClient/StoredConversationOrder.html">– StoredConversationOrder</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMConversation.html">IMConversation</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMConversation/MessageSendOptions.html">– MessageSendOptions</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMConversation/MessageReceiptFlag.html">– MessageReceiptFlag</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMConversation/MessageQueryEndpoint.html">– MessageQueryEndpoint</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMConversation/MessageQueryDirection.html">– MessageQueryDirection</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMConversation/MessageQueryPolicy.html">– MessageQueryPolicy</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMConversation/MemberResult.html">– MemberResult</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMConversation/MemberRole.html">– MemberRole</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMConversation/MemberInfo.html">– MemberInfo</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMConversationQuery.html">IMConversationQuery</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMConversationQuery/Options.html">– Options</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMFileMessage.html">IMFileMessage</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMImageMessage.html">IMImageMessage</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMLocationMessage.html">IMLocationMessage</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMMessage.html">IMMessage</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMMessage/IOType.html">– IOType</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMMessage/Status.html">– Status</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMMessage/PatchedReason.html">– PatchedReason</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMMessage/Content.html">– Content</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMRecalledMessage.html">IMRecalledMessage</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMServiceConversation.html">IMServiceConversation</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMTemporaryConversation.html">IMTemporaryConversation</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMTextMessage.html">IMTextMessage</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMVideoMessage.html">IMVideoMessage</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCACL.html">LCACL</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCACL/Permission.html">– Permission</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCApplication.html">LCApplication</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCApplication/LogLevel.html">– LogLevel</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCApplication/ServerCustomizableModule.html">– ServerCustomizableModule</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCApplication/Environment.html">– Environment</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCApplication/Configuration.html">– Configuration</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCArray.html">LCArray</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCBool.html">LCBool</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCCQLClient.html">LCCQLClient</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCCQLValue.html">LCCQLValue</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCCaptchaClient.html">LCCaptchaClient</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCCaptchaClient/Captcha.html">– Captcha</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCCaptchaClient/Verification.html">– Verification</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCData.html">LCData</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCDate.html">LCDate</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCDictionary.html">LCDictionary</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCEngine.html">LCEngine</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCFile.html">LCFile</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCFile/Payload.html">– Payload</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCFile/Options.html">– Options</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCFile/Thumbnail.html">– Thumbnail</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCGeoPoint.html">LCGeoPoint</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCGeoPoint/Unit.html">– Unit</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCGeoPoint/Distance.html">– Distance</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCInstallation.html">LCInstallation</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCNull.html">LCNull</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCNumber.html">LCNumber</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCObject.html">LCObject</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCObject/SaveOption.html">– SaveOption</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCPush.html">LCPush</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCQuery.html">LCQuery</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCQuery/Constraint.html">– Constraint</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCQuery/CachePolicy.html">– CachePolicy</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCRelation.html">LCRelation</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCRequest.html">LCRequest</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCRole.html">LCRole</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCSMSClient.html">LCSMSClient</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCString.html">LCString</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCUser.html">LCUser</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCUser/AuthDataPlatform.html">– AuthDataPlatform</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCUser/AuthDataOptions.html">– AuthDataOptions</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LiveQuery.html">LiveQuery</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LiveQuery/Event.html">– Event</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a href="../Enums.html">Enumerations</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../Enums/IMClientEvent.html">IMClientEvent</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/IMConversationEvent.html">IMConversationEvent</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/IMMessageEvent.html">IMMessageEvent</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/LCBooleanResult.html">LCBooleanResult</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/LCCQLResult.html">LCCQLResult</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/LCCountResult.html">LCCountResult</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/LCGenericResult.html">LCGenericResult</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/LCQueryResult.html">LCQueryResult</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/LCValueOptionalResult.html">LCValueOptionalResult</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/LCValueResult.html">LCValueResult</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a href="../Extensions.html">Extensions</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../Extensions/Array.html">Array</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Bool.html">Bool</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Data.html">Data</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Date.html">Date</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Dictionary.html">Dictionary</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Double.html">Double</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Float.html">Float</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Int.html">Int</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Int16.html">Int16</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Int32.html">Int32</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Int64.html">Int64</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Int8.html">Int8</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/NSData.html">NSData</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/NSDate.html">NSDate</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/NSNull.html">NSNull</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/NSNumber.html">NSNumber</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/NSString.html">NSString</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/NSURL.html">NSURL</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/String.html">String</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/UInt.html">UInt</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/UInt16.html">UInt16</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/UInt32.html">UInt32</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/UInt64.html">UInt64</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/UInt8.html">UInt8</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/URL.html">URL</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a href="../Protocols.html">Protocols</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../Protocols/IMClientDelegate.html">IMClientDelegate</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/IMMessageCategorizing.html">IMMessageCategorizing</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/IMSignatureDelegate.html">IMSignatureDelegate</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/LCArrayConvertible.html">LCArrayConvertible</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/LCBoolConvertible.html">LCBoolConvertible</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/LCDataConvertible.html">LCDataConvertible</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/LCDateConvertible.html">LCDateConvertible</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/LCDeviceTokenConvertible.html">LCDeviceTokenConvertible</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/LCDictionaryConvertible.html">LCDictionaryConvertible</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/LCNullConvertible.html">LCNullConvertible</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/LCNumberConvertible.html">LCNumberConvertible</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/LCResultType.html">LCResultType</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/LCStringConvertible.html">LCStringConvertible</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/LCValue.html">LCValue</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/LCValueConvertible.html">LCValueConvertible</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a href="../Structs.html">Structures</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../Structs/IMSignature.html">IMSignature</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/IMSignature/Action.html">– Action</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/LCError.html">LCError</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/LCError/InternalErrorCode.html">– InternalErrorCode</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/LCError/ServerErrorCode.html">– ServerErrorCode</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/Version.html">Version</a>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </nav>
+      <article class="main-content">
+        <section>
+          <section class="section">
+            <h1>IMMessage</h1>
+              <div class="declaration">
+                <div class="language">
+                  
+                  <pre class="highlight swift"><code><span class="kd">open</span> <span class="kd">class</span> <span class="kt">IMMessage</span></code></pre>
+
+                </div>
+              </div>
+            <p>IM Message</p>
+
+              <div class="slightly-smaller">
+                <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/RTM/IMMessage.swift#L18-L244">Show on GitHub</a>
+              </div>
+          </section>
+          <section class="section task-group-section">
+            <div class="task-group">
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9LeanCloud9IMMessageC6IOTypeO"></a>
+                    <a name="//apple_ref/swift/Enum/IOType" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9LeanCloud9IMMessageC6IOTypeO">IOType</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Message IO Type.</p>
+
+                        <a href="../Classes/IMMessage/IOType.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">enum</span> <span class="kt">IOType</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/RTM/IMMessage.swift#L21-L24">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9LeanCloud9IMMessageC6ioTypeAC6IOTypeOvp"></a>
+                    <a name="//apple_ref/swift/Property/ioType" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9LeanCloud9IMMessageC6ioTypeAC6IOTypeOvp">ioType</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>@see <code><a href="../Classes/IMMessage/IOType.html">IOType</a></code>.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">ioType</span><span class="p">:</span> <span class="kt"><a href="../Classes/IMMessage/IOType.html">IOType</a></span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/RTM/IMMessage.swift#L27-L34">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9LeanCloud9IMMessageC12fromClientIDSSSgvp"></a>
+                    <a name="//apple_ref/swift/Property/fromClientID" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9LeanCloud9IMMessageC12fromClientIDSSSgvp">fromClientID</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The ID of the client which sent this message.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">private(set)</span> <span class="k">var</span> <span class="nv">fromClientID</span><span class="p">:</span> <span class="kt"><a href="../Classes/IMClient.html">IMClient</a></span><span class="o">.</span><span class="kt">Identifier</span><span class="p">?</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/RTM/IMMessage.swift#L37">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9LeanCloud9IMMessageC15currentClientIDSSSgvp"></a>
+                    <a name="//apple_ref/swift/Property/currentClientID" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9LeanCloud9IMMessageC15currentClientIDSSSgvp">currentClientID</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The ID of the current client.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">private(set)</span> <span class="k">var</span> <span class="nv">currentClientID</span><span class="p">:</span> <span class="kt"><a href="../Classes/IMClient.html">IMClient</a></span><span class="o">.</span><span class="kt">Identifier</span><span class="p">?</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/RTM/IMMessage.swift#L40">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9LeanCloud9IMMessageC6StatusO"></a>
+                    <a name="//apple_ref/swift/Enum/Status" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9LeanCloud9IMMessageC6StatusO">Status</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Message Status.</p>
+
+                        <a href="../Classes/IMMessage/Status.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">enum</span> <span class="kt">Status</span> <span class="p">:</span> <span class="kt">Int</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/RTM/IMMessage.swift#L43-L50">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9LeanCloud9IMMessageC6statusAC6StatusOvp"></a>
+                    <a name="//apple_ref/swift/Property/status" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9LeanCloud9IMMessageC6statusAC6StatusOvp">status</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>@see <code><a href="../Classes/IMMessage/Status.html">Status</a></code>.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">status</span><span class="p">:</span> <span class="kt"><a href="../Classes/IMMessage/Status.html">Status</a></span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/RTM/IMMessage.swift#L53-L66">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9LeanCloud9IMMessageC2IDSSSgvp"></a>
+                    <a name="//apple_ref/swift/Property/ID" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9LeanCloud9IMMessageC2IDSSSgvp">ID</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The ID of this message.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">private(set)</span> <span class="k">var</span> <span class="nv">ID</span><span class="p">:</span> <span class="kt">String</span><span class="p">?</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/RTM/IMMessage.swift#L70">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9LeanCloud9IMMessageC14conversationIDSSSgvp"></a>
+                    <a name="//apple_ref/swift/Property/conversationID" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9LeanCloud9IMMessageC14conversationIDSSSgvp">conversationID</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The ID of the conversation which this message belong to.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">private(set)</span> <span class="k">var</span> <span class="nv">conversationID</span><span class="p">:</span> <span class="kt">String</span><span class="p">?</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/RTM/IMMessage.swift#L73">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9LeanCloud9IMMessageC13sentTimestamps5Int64VSgvp"></a>
+                    <a name="//apple_ref/swift/Property/sentTimestamp" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9LeanCloud9IMMessageC13sentTimestamps5Int64VSgvp">sentTimestamp</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The sent timestamp of this message. measurement is millisecond.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">private(set)</span> <span class="k">var</span> <span class="nv">sentTimestamp</span><span class="p">:</span> <span class="kt">Int64</span><span class="p">?</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/RTM/IMMessage.swift#L76">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9LeanCloud9IMMessageC8sentDate10Foundation0E0VSgvp"></a>
+                    <a name="//apple_ref/swift/Property/sentDate" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9LeanCloud9IMMessageC8sentDate10Foundation0E0VSgvp">sentDate</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The sent date of this message.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">sentDate</span><span class="p">:</span> <span class="kt">Date</span><span class="p">?</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/RTM/IMMessage.swift#L79-L81">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9LeanCloud9IMMessageC18deliveredTimestamps5Int64VSgvp"></a>
+                    <a name="//apple_ref/swift/Property/deliveredTimestamp" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9LeanCloud9IMMessageC18deliveredTimestamps5Int64VSgvp">deliveredTimestamp</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The delivered timestamp of this message. measurement is millisecond.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">deliveredTimestamp</span><span class="p">:</span> <span class="kt">Int64</span><span class="p">?</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/RTM/IMMessage.swift#L84">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9LeanCloud9IMMessageC13deliveredDate10Foundation0E0VSgvp"></a>
+                    <a name="//apple_ref/swift/Property/deliveredDate" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9LeanCloud9IMMessageC13deliveredDate10Foundation0E0VSgvp">deliveredDate</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The delivered date of this message.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">deliveredDate</span><span class="p">:</span> <span class="kt">Date</span><span class="p">?</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/RTM/IMMessage.swift#L87-L90">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9LeanCloud9IMMessageC13readTimestamps5Int64VSgvp"></a>
+                    <a name="//apple_ref/swift/Property/readTimestamp" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9LeanCloud9IMMessageC13readTimestamps5Int64VSgvp">readTimestamp</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The read timestamp of this message. measurement is millisecond.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">readTimestamp</span><span class="p">:</span> <span class="kt">Int64</span><span class="p">?</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/RTM/IMMessage.swift#L93">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9LeanCloud9IMMessageC8readDate10Foundation0E0VSgvp"></a>
+                    <a name="//apple_ref/swift/Property/readDate" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9LeanCloud9IMMessageC8readDate10Foundation0E0VSgvp">readDate</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The read date of this message.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">readDate</span><span class="p">:</span> <span class="kt">Date</span><span class="p">?</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/RTM/IMMessage.swift#L96-L99">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9LeanCloud9IMMessageC13PatchedReasonV"></a>
+                    <a name="//apple_ref/swift/Struct/PatchedReason" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9LeanCloud9IMMessageC13PatchedReasonV">PatchedReason</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The reason of the message being patched.</p>
+
+                        <a href="../Classes/IMMessage/PatchedReason.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">struct</span> <span class="kt">PatchedReason</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/RTM/IMMessage.swift#L102-L105">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9LeanCloud9IMMessageC16patchedTimestamps5Int64VSgvp"></a>
+                    <a name="//apple_ref/swift/Property/patchedTimestamp" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9LeanCloud9IMMessageC16patchedTimestamps5Int64VSgvp">patchedTimestamp</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The patched timestamp of this message. measurement is millisecond.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">internal(set)</span> <span class="k">var</span> <span class="nv">patchedTimestamp</span><span class="p">:</span> <span class="kt">Int64</span><span class="p">?</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/RTM/IMMessage.swift#L108">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9LeanCloud9IMMessageC11patchedDate10Foundation0E0VSgvp"></a>
+                    <a name="//apple_ref/swift/Property/patchedDate" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9LeanCloud9IMMessageC11patchedDate10Foundation0E0VSgvp">patchedDate</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The patched date of this message.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">patchedDate</span><span class="p">:</span> <span class="kt">Date</span><span class="p">?</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/RTM/IMMessage.swift#L111-L114">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9LeanCloud9IMMessageC21isAllMembersMentionedSbSgvp"></a>
+                    <a name="//apple_ref/swift/Property/isAllMembersMentioned" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9LeanCloud9IMMessageC21isAllMembersMentionedSbSgvp">isAllMembersMentioned</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Feature: @all.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">isAllMembersMentioned</span><span class="p">:</span> <span class="kt">Bool</span><span class="p">?</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/RTM/IMMessage.swift#L117">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9LeanCloud9IMMessageC16mentionedMembersSaySSGSgvp"></a>
+                    <a name="//apple_ref/swift/Property/mentionedMembers" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9LeanCloud9IMMessageC16mentionedMembersSaySSGSgvp">mentionedMembers</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Feature: @members.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">mentionedMembers</span><span class="p">:</span> <span class="p">[</span><span class="kt">String</span><span class="p">]?</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/RTM/IMMessage.swift#L120">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9LeanCloud9IMMessageC24isCurrentClientMentionedSbvp"></a>
+                    <a name="//apple_ref/swift/Property/isCurrentClientMentioned" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9LeanCloud9IMMessageC24isCurrentClientMentionedSbvp">isCurrentClientMentioned</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Indicates whether the current client has been @.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">isCurrentClientMentioned</span><span class="p">:</span> <span class="kt">Bool</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/RTM/IMMessage.swift#L123-L136">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9LeanCloud9IMMessageC7ContentO"></a>
+                    <a name="//apple_ref/swift/Enum/Content" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9LeanCloud9IMMessageC7ContentO">Content</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Message Content.</p>
+
+                        <a href="../Classes/IMMessage/Content.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">enum</span> <span class="kt">Content</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/RTM/IMMessage.swift#L139-L156">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9LeanCloud9IMMessageC7contentAC7ContentOSgvp"></a>
+                    <a name="//apple_ref/swift/Property/content" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9LeanCloud9IMMessageC7contentAC7ContentOSgvp">content</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>@see <code><a href="../Classes/IMMessage/Content.html">Content</a></code>.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">internal(set)</span> <span class="k">var</span> <span class="nv">content</span><span class="p">:</span> <span class="kt"><a href="../Classes/IMMessage/Content.html">Content</a></span><span class="p">?</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/RTM/IMMessage.swift#L159">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9LeanCloud9IMMessageC3set7contentyAC7ContentO_tKF"></a>
+                    <a name="//apple_ref/swift/Method/set(content:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9LeanCloud9IMMessageC3set7contentyAC7ContentO_tKF">set(content:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Set content for message.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">set</span><span class="p">(</span><span class="nv">content</span><span class="p">:</span> <span class="kt"><a href="../Classes/IMMessage/Content.html">Content</a></span><span class="p">)</span> <span class="k">throws</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>content</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>@see <code><a href="../Classes/IMMessage/Content.html">Content</a></code>.</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/RTM/IMMessage.swift#L163-L171">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9LeanCloud9IMMessageCACycfc"></a>
+                    <a name="//apple_ref/swift/Method/init()" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9LeanCloud9IMMessageCACycfc">init()</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">required</span> <span class="nf">init</span><span class="p">()</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/RTM/IMMessage.swift#L173">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9LeanCloud9IMMessageC11isTransientSbvp"></a>
+                    <a name="//apple_ref/swift/Property/isTransient" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9LeanCloud9IMMessageC11isTransientSbvp">isTransient</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Whether the message is transient.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">internal(set)</span> <span class="k">var</span> <span class="nv">isTransient</span><span class="p">:</span> <span class="kt">Bool</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/RTM/IMMessage.swift#L220">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9LeanCloud9IMMessageC7padding19unsafeFlutterObjectyyp_tF"></a>
+                    <a name="//apple_ref/swift/Method/padding(unsafeFlutterObject:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9LeanCloud9IMMessageC7padding19unsafeFlutterObjectyyp_tF">padding(unsafeFlutterObject:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">padding</span><span class="p">(</span><span class="nv">unsafeFlutterObject</span><span class="p">:</span> <span class="kt">Any</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/RTM/IMMessage.swift#L248-L274">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </section>
+        </section>
+        <section id="footer">
+          <p>&copy; 2023 <a class="link" href="https://leancloud.cn" target="_blank" rel="external noopener">LeanCloud</a>. All rights reserved. (Last updated: 2023-12-05)</p>
+          <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external noopener">jazzy ♪♫ v0.14.4</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external noopener">Realm</a> project.</p>
+        </section>
+      </article>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,3293 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>LCObject Class Reference</title>
+    <link rel="stylesheet" type="text/css" href="../css/jazzy.css" />
+    <link rel="stylesheet" type="text/css" href="../css/highlight.css" />
+    <meta charset='utf-8'>
+    <script src="../js/jquery.min.js" defer></script>
+    <script src="../js/jazzy.js" defer></script>
+    
+    <script src="../js/lunr.min.js" defer></script>
+    <script src="../js/typeahead.jquery.js" defer></script>
+    <script src="../js/jazzy.search.js" defer></script>
+  </head>
+  <body>
+    <a name="//apple_ref/swift/Class/LCObject" class="dashAnchor"></a>
+    <a title="LCObject Class Reference"></a>
+    <header>
+      <div class="content-wrapper">
+        <p><a href="../index.html">LeanCloud 17.11.0 Docs</a> (63% documented)</p>
+        <p class="header-right"><a href="https://github.com/leancloud/swift-sdk"><img src="../img/gh.png" alt="GitHub"/>View on GitHub</a></p>
+        <p class="header-right"><a href="dash-feed://https%3A%2F%2Fleancloud.github.io%2Fswift-sdk%2Fdocsets%2FLeanCloud.xml"><img src="../img/dash.png" alt="Dash"/>Install in Dash</a></p>
+        <div class="header-right">
+          <form role="search" action="../search.json">
+            <input type="text" placeholder="Search documentation" data-typeahead>
+          </form>
+        </div>
+      </div>
+    </header>
+    <div class="content-wrapper">
+      <p id="breadcrumbs">
+        <a href="../index.html">LeanCloud Reference</a>
+        <img id="carat" src="../img/carat.png" alt=""/>
+        LCObject Class Reference
+      </p>
+    </div>
+    <div class="content-wrapper">
+      <nav class="sidebar">
+        <ul class="nav-groups">
+          <li class="nav-group-name">
+            <a href="../Classes.html">Classes</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../Classes/IMAudioMessage.html">IMAudioMessage</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMCategorizedMessage.html">IMCategorizedMessage</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMCategorizedMessage/ReservedType.html">– ReservedType</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMChatRoom.html">IMChatRoom</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMChatRoom/MessagePriority.html">– MessagePriority</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMClient.html">IMClient</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMClient/SessionState.html">– SessionState</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMClient/Options.html">– Options</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMClient/SessionOpenOptions.html">– SessionOpenOptions</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMClient/StoredConversationOrder.html">– StoredConversationOrder</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMConversation.html">IMConversation</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMConversation/MessageSendOptions.html">– MessageSendOptions</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMConversation/MessageReceiptFlag.html">– MessageReceiptFlag</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMConversation/MessageQueryEndpoint.html">– MessageQueryEndpoint</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMConversation/MessageQueryDirection.html">– MessageQueryDirection</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMConversation/MessageQueryPolicy.html">– MessageQueryPolicy</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMConversation/MemberResult.html">– MemberResult</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMConversation/MemberRole.html">– MemberRole</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMConversation/MemberInfo.html">– MemberInfo</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMConversationQuery.html">IMConversationQuery</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMConversationQuery/Options.html">– Options</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMFileMessage.html">IMFileMessage</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMImageMessage.html">IMImageMessage</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMLocationMessage.html">IMLocationMessage</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMMessage.html">IMMessage</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMMessage/IOType.html">– IOType</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMMessage/Status.html">– Status</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMMessage/PatchedReason.html">– PatchedReason</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMMessage/Content.html">– Content</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMRecalledMessage.html">IMRecalledMessage</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMServiceConversation.html">IMServiceConversation</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMTemporaryConversation.html">IMTemporaryConversation</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMTextMessage.html">IMTextMessage</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IMVideoMessage.html">IMVideoMessage</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCACL.html">LCACL</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCACL/Permission.html">– Permission</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCApplication.html">LCApplication</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCApplication/LogLevel.html">– LogLevel</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCApplication/ServerCustomizableModule.html">– ServerCustomizableModule</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCApplication/Environment.html">– Environment</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCApplication/Configuration.html">– Configuration</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCArray.html">LCArray</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCBool.html">LCBool</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCCQLClient.html">LCCQLClient</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCCQLValue.html">LCCQLValue</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCCaptchaClient.html">LCCaptchaClient</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCCaptchaClient/Captcha.html">– Captcha</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCCaptchaClient/Verification.html">– Verification</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCData.html">LCData</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCDate.html">LCDate</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCDictionary.html">LCDictionary</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCEngine.html">LCEngine</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCFile.html">LCFile</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCFile/Payload.html">– Payload</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCFile/Options.html">– Options</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCFile/Thumbnail.html">– Thumbnail</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCGeoPoint.html">LCGeoPoint</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCGeoPoint/Unit.html">– Unit</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCGeoPoint/Distance.html">– Distance</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCInstallation.html">LCInstallation</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCNull.html">LCNull</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCNumber.html">LCNumber</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCObject.html">LCObject</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCObject/SaveOption.html">– SaveOption</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCPush.html">LCPush</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCQuery.html">LCQuery</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCQuery/Constraint.html">– Constraint</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCQuery/CachePolicy.html">– CachePolicy</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCRelation.html">LCRelation</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCRequest.html">LCRequest</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCRole.html">LCRole</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCSMSClient.html">LCSMSClient</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCString.html">LCString</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCUser.html">LCUser</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCUser/AuthDataPlatform.html">– AuthDataPlatform</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LCUser/AuthDataOptions.html">– AuthDataOptions</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LiveQuery.html">LiveQuery</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LiveQuery/Event.html">– Event</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a href="../Enums.html">Enumerations</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../Enums/IMClientEvent.html">IMClientEvent</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/IMConversationEvent.html">IMConversationEvent</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/IMMessageEvent.html">IMMessageEvent</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/LCBooleanResult.html">LCBooleanResult</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/LCCQLResult.html">LCCQLResult</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/LCCountResult.html">LCCountResult</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/LCGenericResult.html">LCGenericResult</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/LCQueryResult.html">LCQueryResult</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/LCValueOptionalResult.html">LCValueOptionalResult</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/LCValueResult.html">LCValueResult</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a href="../Extensions.html">Extensions</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../Extensions/Array.html">Array</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Bool.html">Bool</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Data.html">Data</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Date.html">Date</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Dictionary.html">Dictionary</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Double.html">Double</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Float.html">Float</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Int.html">Int</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Int16.html">Int16</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Int32.html">Int32</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Int64.html">Int64</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Int8.html">Int8</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/NSData.html">NSData</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/NSDate.html">NSDate</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/NSNull.html">NSNull</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/NSNumber.html">NSNumber</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/NSString.html">NSString</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/NSURL.html">NSURL</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/String.html">String</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/UInt.html">UInt</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/UInt16.html">UInt16</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/UInt32.html">UInt32</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/UInt64.html">UInt64</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/UInt8.html">UInt8</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/URL.html">URL</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a href="../Protocols.html">Protocols</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../Protocols/IMClientDelegate.html">IMClientDelegate</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/IMMessageCategorizing.html">IMMessageCategorizing</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/IMSignatureDelegate.html">IMSignatureDelegate</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/LCArrayConvertible.html">LCArrayConvertible</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/LCBoolConvertible.html">LCBoolConvertible</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/LCDataConvertible.html">LCDataConvertible</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/LCDateConvertible.html">LCDateConvertible</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/LCDeviceTokenConvertible.html">LCDeviceTokenConvertible</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/LCDictionaryConvertible.html">LCDictionaryConvertible</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/LCNullConvertible.html">LCNullConvertible</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/LCNumberConvertible.html">LCNumberConvertible</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/LCResultType.html">LCResultType</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/LCStringConvertible.html">LCStringConvertible</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/LCValue.html">LCValue</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/LCValueConvertible.html">LCValueConvertible</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a href="../Structs.html">Structures</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../Structs/IMSignature.html">IMSignature</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/IMSignature/Action.html">– Action</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/LCError.html">LCError</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/LCError/InternalErrorCode.html">– InternalErrorCode</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/LCError/ServerErrorCode.html">– ServerErrorCode</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/Version.html">Version</a>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </nav>
+      <article class="main-content">
+        <section>
+          <section class="section">
+            <h1>LCObject</h1>
+              <div class="declaration">
+                <div class="language">
+                  
+                  <pre class="highlight swift"><code><span class="kd">@dynamicMemberLookup</span>
+<span class="kd">open</span> <span class="kd">class</span> <span class="kt">LCObject</span> <span class="p">:</span> <span class="kt">NSObject</span><span class="p">,</span> <span class="kt">Sequence</span><span class="p">,</span> <span class="kt"><a href="../Protocols/LCValue.html">LCValue</a></span><span class="p">,</span> <span class="kt">LCValueExtension</span><span class="p">,</span> <span class="kt">InternalOptionalSynchronizing</span></code></pre>
+<pre class="highlight swift"><code><span class="kd">extension</span> <span class="kt">LCObject</span><span class="p">:</span> <span class="kt"><a href="../Protocols/LCValueConvertible.html">LCValueConvertible</a></span></code></pre>
+
+                </div>
+              </div>
+            <p>LeanCloud Object Type.</p>
+
+              <div class="slightly-smaller">
+                <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/Foundation/Object.swift#L13-L1054">Show on GitHub</a>
+              </div>
+          </section>
+          <section class="section task-group-section">
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/Property"></a>
+                <a name="//apple_ref/swift/Section/Property" class="dashAnchor"></a>
+                <div class="section-name-container">
+                  <a class="section-name-link" href="#/Property"></a>
+                  <h3 class="section-name"><span>Property</span>
+</h3>
+                </div>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9LeanCloud8LCObjectC11applicationAA13LCApplicationCvp"></a>
+                    <a name="//apple_ref/swift/Property/application" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9LeanCloud8LCObjectC11applicationAA13LCApplicationCvp">application</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The application this object belong to.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">let</span> <span class="nv">application</span><span class="p">:</span> <span class="kt"><a href="../Classes/LCApplication.html">LCApplication</a></span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/Foundation/Object.swift#L18">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/c:@M@LeanCloud@objc(cs)LCObject(py)ACL"></a>
+                    <a name="//apple_ref/swift/Property/ACL" class="dashAnchor"></a>
+                    <a class="token" href="#/c:@M@LeanCloud@objc(cs)LCObject(py)ACL">ACL</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Access Control List.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">@objc</span>
+<span class="kd">public</span> <span class="kd">dynamic</span> <span class="k">var</span> <span class="nv">ACL</span><span class="p">:</span> <span class="kt"><a href="../Classes/LCACL.html">LCACL</a></span><span class="p">?</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/Foundation/Object.swift#L21">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/c:@M@LeanCloud@objc(cs)LCObject(py)objectId"></a>
+                    <a name="//apple_ref/swift/Property/objectId" class="dashAnchor"></a>
+                    <a class="token" href="#/c:@M@LeanCloud@objc(cs)LCObject(py)objectId">objectId</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The identifier of this object.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">@objc</span>
+<span class="kd">public</span> <span class="kd">dynamic</span> <span class="kd">private(set)</span> <span class="k">var</span> <span class="nv">objectId</span><span class="p">:</span> <span class="kt"><a href="../Classes/LCString.html">LCString</a></span><span class="p">?</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/Foundation/Object.swift#L24">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/c:@M@LeanCloud@objc(cs)LCObject(py)createdAt"></a>
+                    <a name="//apple_ref/swift/Property/createdAt" class="dashAnchor"></a>
+                    <a class="token" href="#/c:@M@LeanCloud@objc(cs)LCObject(py)createdAt">createdAt</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The created date of this object.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">@objc</span>
+<span class="kd">public</span> <span class="kd">dynamic</span> <span class="kd">private(set)</span> <span class="k">var</span> <span class="nv">createdAt</span><span class="p">:</span> <span class="kt"><a href="../Classes/LCDate.html">LCDate</a></span><span class="p">?</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/Foundation/Object.swift#L27">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/c:@M@LeanCloud@objc(cs)LCObject(py)updatedAt"></a>
+                    <a name="//apple_ref/swift/Property/updatedAt" class="dashAnchor"></a>
+                    <a class="token" href="#/c:@M@LeanCloud@objc(cs)LCObject(py)updatedAt">updatedAt</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The updated date of this object.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">@objc</span>
+<span class="kd">public</span> <span class="kd">dynamic</span> <span class="kd">private(set)</span> <span class="k">var</span> <span class="nv">updatedAt</span><span class="p">:</span> <span class="kt"><a href="../Classes/LCDate.html">LCDate</a></span><span class="p">?</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/Foundation/Object.swift#L30">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9LeanCloud8LCObjectC11hasObjectIdSbvp"></a>
+                    <a name="//apple_ref/swift/Property/hasObjectId" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9LeanCloud8LCObjectC11hasObjectIdSbvp">hasObjectId</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">hasObjectId</span><span class="p">:</span> <span class="kt">Bool</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/Foundation/Object.swift#L70-L72">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9LeanCloud8LCObjectC15hasDataToUploadSbvp"></a>
+                    <a name="//apple_ref/swift/Property/hasDataToUpload" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9LeanCloud8LCObjectC15hasDataToUploadSbvp">hasDataToUpload</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Whether this object has unsync-data to upload to server.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">hasDataToUpload</span><span class="p">:</span> <span class="kt">Bool</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/Foundation/Object.swift#L95-L107">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/Subclassing"></a>
+                <a name="//apple_ref/swift/Section/Subclassing" class="dashAnchor"></a>
+                <div class="section-name-container">
+                  <a class="section-name-link" href="#/Subclassing"></a>
+                  <h3 class="section-name"><span>Subclassing</span>
+</h3>
+                </div>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9LeanCloud8LCObjectC15objectClassNameSSyFZ"></a>
+                    <a name="//apple_ref/swift/Method/objectClassName()" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9LeanCloud8LCObjectC15objectClassNameSSyFZ">objectClassName()</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Set class name of current type.</p>
+
+<p>The default implementation returns the class name without root module.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">open</span> <span class="kd">class</span> <span class="kd">func</span> <span class="nf">objectClassName</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kt">String</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>The class name of current type.</p>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/Foundation/Object.swift#L131-L141">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9LeanCloud8LCObjectC8registeryyFZ"></a>
+                    <a name="//apple_ref/swift/Method/register()" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9LeanCloud8LCObjectC8registeryyFZ">register()</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Register current object class manually.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">static</span> <span class="kd">func</span> <span class="nf">register</span><span class="p">()</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/Foundation/Object.swift#L146-L148">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/Initialization"></a>
+                <a name="//apple_ref/swift/Section/Initialization" class="dashAnchor"></a>
+                <div class="section-name-container">
+                  <a class="section-name-link" href="#/Initialization"></a>
+                  <h3 class="section-name"><span>Initialization</span>
+</h3>
+                </div>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/c:@M@LeanCloud@objc(cs)LCObject(im)init"></a>
+                    <a name="//apple_ref/swift/Method/init()" class="dashAnchor"></a>
+                    <a class="token" href="#/c:@M@LeanCloud@objc(cs)LCObject(im)init">init()</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Initializing a new object with default application.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">override</span> <span class="kd">required</span> <span class="nf">init</span><span class="p">()</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/Foundation/Object.swift#L153-L161">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9LeanCloud8LCObjectC11applicationAcA13LCApplicationC_tcfc"></a>
+                    <a name="//apple_ref/swift/Method/init(application:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9LeanCloud8LCObjectC11applicationAcA13LCApplicationC_tcfc">init(application:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Initializing a new object with an application.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">required</span> <span class="nf">init</span><span class="p">(</span><span class="nv">application</span><span class="p">:</span> <span class="kt"><a href="../Classes/LCApplication.html">LCApplication</a></span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>application</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The application this object belong to.</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/Foundation/Object.swift#L165-L173">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9LeanCloud8LCObjectC11application8objectIdAcA13LCApplicationC_AA19LCStringConvertible_ptcfc"></a>
+                    <a name="//apple_ref/swift/Method/init(application:objectId:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9LeanCloud8LCObjectC11application8objectIdAcA13LCApplicationC_AA19LCStringConvertible_ptcfc">init(application:<wbr>objectId:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Initializing a new object with an application and a identifier.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">convenience</span> <span class="nf">init</span><span class="p">(</span>
+    <span class="nv">application</span><span class="p">:</span> <span class="kt"><a href="../Classes/LCApplication.html">LCApplication</a></span> <span class="o">=</span> <span class="o">.</span><span class="k">default</span><span class="p">,</span>
+    <span class="nv">objectId</span><span class="p">:</span> <span class="kt"><a href="../Protocols/LCStringConvertible.html">LCStringConvertible</a></span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>application</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The application this object belong to.</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>objectId</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The identifier of an exist object.</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/Foundation/Object.swift#L179-L185">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9LeanCloud8LCObjectC11application9classNameAcA13LCApplicationC_AA19LCStringConvertible_ptcfc"></a>
+                    <a name="//apple_ref/swift/Method/init(application:className:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9LeanCloud8LCObjectC11application9classNameAcA13LCApplicationC_AA19LCStringConvertible_ptcfc">init(application:<wbr>className:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Initializing a new object with an application and class name.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">convenience</span> <span class="nf">init</span><span class="p">(</span>
+    <span class="nv">application</span><span class="p">:</span> <span class="kt"><a href="../Classes/LCApplication.html">LCApplication</a></span> <span class="o">=</span> <span class="o">.</span><span class="k">default</span><span class="p">,</span>
+    <span class="nv">className</span><span class="p">:</span> <span class="kt"><a href="../Protocols/LCStringConvertible.html">LCStringConvertible</a></span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>application</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The application this object belong to.</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>className</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The class name of this object.</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/Foundation/Object.swift#L191-L197">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9LeanCloud8LCObjectC11application9className8objectIdAcA13LCApplicationC_AA19LCStringConvertible_pAaI_ptcfc"></a>
+                    <a name="//apple_ref/swift/Method/init(application:className:objectId:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9LeanCloud8LCObjectC11application9className8objectIdAcA13LCApplicationC_AA19LCStringConvertible_pAaI_ptcfc">init(application:<wbr>className:<wbr>objectId:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Initializing a new object with an application, a identifier and class name.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">convenience</span> <span class="nf">init</span><span class="p">(</span>
+    <span class="nv">application</span><span class="p">:</span> <span class="kt"><a href="../Classes/LCApplication.html">LCApplication</a></span> <span class="o">=</span> <span class="o">.</span><span class="k">default</span><span class="p">,</span>
+    <span class="nv">className</span><span class="p">:</span> <span class="kt"><a href="../Protocols/LCStringConvertible.html">LCStringConvertible</a></span><span class="p">,</span>
+    <span class="nv">objectId</span><span class="p">:</span> <span class="kt"><a href="../Protocols/LCStringConvertible.html">LCStringConvertible</a></span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>application</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The application this object belong to.</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>className</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The class name of this object.</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>objectId</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The identifier of an exist object.</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/Foundation/Object.swift#L204-L212">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/NSCoding"></a>
+                <a name="//apple_ref/swift/Section/NSCoding" class="dashAnchor"></a>
+                <div class="section-name-container">
+                  <a class="section-name-link" href="#/NSCoding"></a>
+                  <h3 class="section-name"><span>NSCoding</span>
+</h3>
+                </div>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/c:@M@LeanCloud@objc(cs)LCObject(im)initWithCoder:"></a>
+                    <a name="//apple_ref/swift/Method/init(coder:)" class="dashAnchor"></a>
+                    <a class="token" href="#/c:@M@LeanCloud@objc(cs)LCObject(im)initWithCoder:">init(coder:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Returns an object initialized from data in a given unarchiver.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">required</span> <span class="kd">convenience</span> <span class="nf">init</span><span class="p">?(</span><span class="nv">coder</span><span class="p">:</span> <span class="kt">NSCoder</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>coder</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>An unarchiver object.</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/Foundation/Object.swift#L225-L239">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/c:@M@LeanCloud@objc(cs)LCObject(im)encodeWithCoder:"></a>
+                    <a name="//apple_ref/swift/Method/encode(with:)" class="dashAnchor"></a>
+                    <a class="token" href="#/c:@M@LeanCloud@objc(cs)LCObject(im)encodeWithCoder:">encode(with:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Encodes the receiver using a given archiver.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">encode</span><span class="p">(</span><span class="n">with</span> <span class="nv">coder</span><span class="p">:</span> <span class="kt">NSCoder</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>coder</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>An archiver object.</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/Foundation/Object.swift#L243-L251">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/NSCopying"></a>
+                <a name="//apple_ref/swift/Section/NSCopying" class="dashAnchor"></a>
+                <div class="section-name-container">
+                  <a class="section-name-link" href="#/NSCopying"></a>
+                  <h3 class="section-name"><span>NSCopying</span>
+</h3>
+                </div>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/c:@M@LeanCloud@objc(cs)LCObject(im)copyWithZone:"></a>
+                    <a name="//apple_ref/swift/Method/copy(with:)" class="dashAnchor"></a>
+                    <a class="token" href="#/c:@M@LeanCloud@objc(cs)LCObject(im)copyWithZone:">copy(with:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Will not do copying, just return a pointer to this object.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">open</span> <span class="kd">func</span> <span class="nf">copy</span><span class="p">(</span><span class="n">with</span> <span class="nv">zone</span><span class="p">:</span> <span class="kt">NSZone</span><span class="p">?)</span> <span class="o">-&gt;</span> <span class="kt">Any</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>zone</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>Unused, just pass nil.</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/Foundation/Object.swift#L257-L259">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/NSObjectProtocol"></a>
+                <a name="//apple_ref/swift/Section/NSObjectProtocol" class="dashAnchor"></a>
+                <div class="section-name-container">
+                  <a class="section-name-link" href="#/NSObjectProtocol"></a>
+                  <h3 class="section-name"><span>NSObjectProtocol</span>
+</h3>
+                </div>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/c:@M@LeanCloud@objc(cs)LCObject(im)isEqual:"></a>
+                    <a name="//apple_ref/swift/Method/isEqual(_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/c:@M@LeanCloud@objc(cs)LCObject(im)isEqual:">isEqual(_:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">open</span> <span class="k">override</span> <span class="kd">func</span> <span class="nf">isEqual</span><span class="p">(</span><span class="n">_</span> <span class="nv">object</span><span class="p">:</span> <span class="kt">Any</span><span class="p">?)</span> <span class="o">-&gt;</span> <span class="kt">Bool</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/Foundation/Object.swift#L263-L269">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/c:@M@LeanCloud@objc(cs)LCObject(im)valueForKey:"></a>
+                    <a name="//apple_ref/swift/Method/value(forKey:)" class="dashAnchor"></a>
+                    <a class="token" href="#/c:@M@LeanCloud@objc(cs)LCObject(im)valueForKey:">value(forKey:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">open</span> <span class="k">override</span> <span class="kd">func</span> <span class="nf">value</span><span class="p">(</span><span class="n">forKey</span> <span class="nv">key</span><span class="p">:</span> <span class="kt">String</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Any</span><span class="p">?</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/Foundation/Object.swift#L271-L274">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/c:@M@LeanCloud@objc(cs)LCObject(im)valueForUndefinedKey:"></a>
+                    <a name="//apple_ref/swift/Method/value(forUndefinedKey:)" class="dashAnchor"></a>
+                    <a class="token" href="#/c:@M@LeanCloud@objc(cs)LCObject(im)valueForUndefinedKey:">value(forUndefinedKey:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">open</span> <span class="k">override</span> <span class="kd">func</span> <span class="nf">value</span><span class="p">(</span><span class="n">forUndefinedKey</span> <span class="nv">key</span><span class="p">:</span> <span class="kt">String</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Any</span><span class="p">?</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/Foundation/Object.swift#L276-L278">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/Sequence"></a>
+                <a name="//apple_ref/swift/Section/Sequence" class="dashAnchor"></a>
+                <div class="section-name-container">
+                  <a class="section-name-link" href="#/Sequence"></a>
+                  <h3 class="section-name"><span>Sequence</span>
+</h3>
+                </div>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ST12makeIterator0B0QzyF"></a>
+                    <a name="//apple_ref/swift/Method/makeIterator()" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ST12makeIterator0B0QzyF">makeIterator()</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">open</span> <span class="kd">func</span> <span class="nf">makeIterator</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kt">DictionaryIterator</span><span class="o">&lt;</span><span class="kt">String</span><span class="p">,</span> <span class="kt"><a href="../Protocols/LCValue.html">LCValue</a></span><span class="o">&gt;</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/Foundation/Object.swift#L282-L284">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/LCValue"></a>
+                <a name="//apple_ref/swift/Section/LCValue" class="dashAnchor"></a>
+                <div class="section-name-container">
+                  <a class="section-name-link" href="#/LCValue"></a>
+                  <h3 class="section-name"><span>LCValue</span>
+</h3>
+                </div>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9LeanCloud7LCValueP9jsonValueypvp"></a>
+                    <a name="//apple_ref/swift/Property/jsonValue" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9LeanCloud7LCValueP9jsonValueypvp">jsonValue</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">open</span> <span class="k">var</span> <span class="nv">jsonValue</span><span class="p">:</span> <span class="kt">Any</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/Foundation/Object.swift#L288-L299">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9LeanCloud7LCValueP8rawValueypvp"></a>
+                    <a name="//apple_ref/swift/Property/rawValue" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9LeanCloud7LCValueP8rawValueypvp">rawValue</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">rawValue</span><span class="p">:</span> <span class="kt">Any</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/Foundation/Object.swift#L301-L303">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/Operation"></a>
+                <a name="//apple_ref/swift/Section/Operation" class="dashAnchor"></a>
+                <div class="section-name-container">
+                  <a class="section-name-link" href="#/Operation"></a>
+                  <h3 class="section-name"><span>Operation</span>
+</h3>
+                </div>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9LeanCloud8LCObjectCyAA18LCValueConvertible_pSgSScip"></a>
+                    <a name="//apple_ref/swift/Method/subscript(_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9LeanCloud8LCObjectCyAA18LCValueConvertible_pSgSScip">subscript(_:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">open</span> <span class="nf">subscript</span><span class="p">(</span><span class="nv">key</span><span class="p">:</span> <span class="kt">String</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt"><a href="../Protocols/LCValueConvertible.html">LCValueConvertible</a></span><span class="p">?</span> <span class="p">{</span> <span class="k">get</span> <span class="k">set</span> <span class="p">}</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/Foundation/Object.swift#L539-L550">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9LeanCloud8LCObjectC13dynamicMemberAA18LCValueConvertible_pSgSS_tcip"></a>
+                    <a name="//apple_ref/swift/Method/subscript(dynamicMember:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9LeanCloud8LCObjectC13dynamicMemberAA18LCValueConvertible_pSgSS_tcip">subscript(dynamicMember:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">open</span> <span class="nf">subscript</span><span class="p">(</span><span class="n">dynamicMember</span> <span class="nv">key</span><span class="p">:</span> <span class="kt">String</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt"><a href="../Protocols/LCValueConvertible.html">LCValueConvertible</a></span><span class="p">?</span> <span class="p">{</span> <span class="k">get</span> <span class="k">set</span> <span class="p">}</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/Foundation/Object.swift#L552-L559">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9LeanCloud8LCObjectC3getyAA18LCValueConvertible_pSgSSF"></a>
+                    <a name="//apple_ref/swift/Method/get(_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9LeanCloud8LCObjectC3getyAA18LCValueConvertible_pSgSSF">get(_:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Get value for key.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">open</span> <span class="kd">func</span> <span class="nf">get</span><span class="p">(</span><span class="n">_</span> <span class="nv">key</span><span class="p">:</span> <span class="kt">String</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt"><a href="../Protocols/LCValueConvertible.html">LCValueConvertible</a></span><span class="p">?</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>key</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The key for which to get the value.</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>The value for key.</p>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/Foundation/Object.swift#L568-L571">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9LeanCloud8LCObjectC3set_5valueySS_AA18LCValueConvertible_pSgtKF"></a>
+                    <a name="//apple_ref/swift/Method/set(_:value:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9LeanCloud8LCObjectC3set_5valueySS_AA18LCValueConvertible_pSgtKF">set(_:<wbr>value:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Set value for key.</p>
+
+<p>This method allows you to set a value of a Swift built-in type which confirms LCValueConvertible.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">open</span> <span class="kd">func</span> <span class="nf">set</span><span class="p">(</span><span class="n">_</span> <span class="nv">key</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span> <span class="nv">value</span><span class="p">:</span> <span class="kt"><a href="../Protocols/LCValueConvertible.html">LCValueConvertible</a></span><span class="p">?)</span> <span class="k">throws</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>key</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The key for which to set the value.</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>value</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The new value.</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/Foundation/Object.swift#L581-L587">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9LeanCloud8LCObjectC5unsetyySSKF"></a>
+                    <a name="//apple_ref/swift/Method/unset(_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9LeanCloud8LCObjectC5unsetyySSKF">unset(_:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Unset value for key.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">open</span> <span class="kd">func</span> <span class="nf">unset</span><span class="p">(</span><span class="n">_</span> <span class="nv">key</span><span class="p">:</span> <span class="kt">String</span><span class="p">)</span> <span class="k">throws</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>key</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The key for which to unset.</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/Foundation/Object.swift#L594-L596">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9LeanCloud8LCObjectC8increase_2byySS_AA19LCNumberConvertible_ptKF"></a>
+                    <a name="//apple_ref/swift/Method/increase(_:by:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9LeanCloud8LCObjectC8increase_2byySS_AA19LCNumberConvertible_ptKF">increase(_:<wbr>by:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Increase a number by amount.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">open</span> <span class="kd">func</span> <span class="nf">increase</span><span class="p">(</span><span class="n">_</span> <span class="nv">key</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span> <span class="nv">by</span><span class="p">:</span> <span class="kt"><a href="../Protocols/LCNumberConvertible.html">LCNumberConvertible</a></span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span> <span class="k">throws</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>key</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The key of number which you want to increase.</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>amount</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The amount to increase. If no amount is specified, 1 is used by default.</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/Foundation/Object.swift#L604-L606">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9LeanCloud8LCObjectC6append_7elementySS_AA18LCValueConvertible_ptKF"></a>
+                    <a name="//apple_ref/swift/Method/append(_:element:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9LeanCloud8LCObjectC6append_7elementySS_AA18LCValueConvertible_ptKF">append(_:<wbr>element:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Append an element into an array.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">open</span> <span class="kd">func</span> <span class="nf">append</span><span class="p">(</span><span class="n">_</span> <span class="nv">key</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span> <span class="nv">element</span><span class="p">:</span> <span class="kt"><a href="../Protocols/LCValueConvertible.html">LCValueConvertible</a></span><span class="p">)</span> <span class="k">throws</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>key</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The key of array into which you want to append the element.</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>element</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The element to append.</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/Foundation/Object.swift#L614-L616">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9LeanCloud8LCObjectC6append_8elementsySS_AA18LCArrayConvertible_ptKF"></a>
+                    <a name="//apple_ref/swift/Method/append(_:elements:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9LeanCloud8LCObjectC6append_8elementsySS_AA18LCArrayConvertible_ptKF">append(_:<wbr>elements:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Append one or more elements into an array.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">open</span> <span class="kd">func</span> <span class="nf">append</span><span class="p">(</span><span class="n">_</span> <span class="nv">key</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span> <span class="nv">elements</span><span class="p">:</span> <span class="kt"><a href="../Protocols/LCArrayConvertible.html">LCArrayConvertible</a></span><span class="p">)</span> <span class="k">throws</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>key</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The key of array into which you want to append the elements.</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>elements</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The array of elements to append.</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/Foundation/Object.swift#L624-L626">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9LeanCloud8LCObjectC6append_7element6uniqueySS_AA18LCValueConvertible_pSbtKF"></a>
+                    <a name="//apple_ref/swift/Method/append(_:element:unique:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9LeanCloud8LCObjectC6append_7element6uniqueySS_AA18LCValueConvertible_pSbtKF">append(_:<wbr>element:<wbr>unique:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Append an element into an array with unique option.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">open</span> <span class="kd">func</span> <span class="nf">append</span><span class="p">(</span><span class="n">_</span> <span class="nv">key</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span> <span class="nv">element</span><span class="p">:</span> <span class="kt"><a href="../Protocols/LCValueConvertible.html">LCValueConvertible</a></span><span class="p">,</span> <span class="nv">unique</span><span class="p">:</span> <span class="kt">Bool</span><span class="p">)</span> <span class="k">throws</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>key</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The key of array into which you want to append the element.</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>element</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The element to append.</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>unique</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>Whether append element by unique or not.
+                 If true, element will not be appended if it had already existed in array;
+                 otherwise, element will always be appended.</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/Foundation/Object.swift#L637-L639">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9LeanCloud8LCObjectC6append_8elements6uniqueySS_AA18LCArrayConvertible_pSbtKF"></a>
+                    <a name="//apple_ref/swift/Method/append(_:elements:unique:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9LeanCloud8LCObjectC6append_8elements6uniqueySS_AA18LCArrayConvertible_pSbtKF">append(_:<wbr>elements:<wbr>unique:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Append one or more elements into an array with unique option.</p>
+<div class="aside aside-seealso">
+    <p class="aside-title">Seealso</p>
+    <p><code>append(key: String, element: LCValue, unique: Bool)</code></p>
+
+</div>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">open</span> <span class="kd">func</span> <span class="nf">append</span><span class="p">(</span><span class="n">_</span> <span class="nv">key</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span> <span class="nv">elements</span><span class="p">:</span> <span class="kt"><a href="../Protocols/LCArrayConvertible.html">LCArrayConvertible</a></span><span class="p">,</span> <span class="nv">unique</span><span class="p">:</span> <span class="kt">Bool</span><span class="p">)</span> <span class="k">throws</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>key</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The key of array into which you want to append the element.</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>elements</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The array of elements to append.</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>unique</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>Whether append element by unique or not.</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/Foundation/Object.swift#L650-L652">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9LeanCloud8LCObjectC6remove_7elementySS_AA18LCValueConvertible_ptKF"></a>
+                    <a name="//apple_ref/swift/Method/remove(_:element:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9LeanCloud8LCObjectC6remove_7elementySS_AA18LCValueConvertible_ptKF">remove(_:<wbr>element:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Remove an element from an array.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">open</span> <span class="kd">func</span> <span class="nf">remove</span><span class="p">(</span><span class="n">_</span> <span class="nv">key</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span> <span class="nv">element</span><span class="p">:</span> <span class="kt"><a href="../Protocols/LCValueConvertible.html">LCValueConvertible</a></span><span class="p">)</span> <span class="k">throws</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>key</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The key of array from which you want to remove the element.</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>element</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The element to remove.</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/Foundation/Object.swift#L660-L662">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9LeanCloud8LCObjectC6remove_8elementsySS_AA18LCArrayConvertible_ptKF"></a>
+                    <a name="//apple_ref/swift/Method/remove(_:elements:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9LeanCloud8LCObjectC6remove_8elementsySS_AA18LCArrayConvertible_ptKF">remove(_:<wbr>elements:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Remove one or more elements from an array.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">open</span> <span class="kd">func</span> <span class="nf">remove</span><span class="p">(</span><span class="n">_</span> <span class="nv">key</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span> <span class="nv">elements</span><span class="p">:</span> <span class="kt"><a href="../Protocols/LCArrayConvertible.html">LCArrayConvertible</a></span><span class="p">)</span> <span class="k">throws</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>key</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The key of array from which you want to remove the element.</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>elements</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The array of elements to remove.</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/Foundation/Object.swift#L670-L672">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9LeanCloud8LCObjectC14relationForKeyyAA10LCRelationCSSF"></a>
+                    <a name="//apple_ref/swift/Method/relationForKey(_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9LeanCloud8LCObjectC14relationForKeyyAA10LCRelationCSSF">relationForKey(_:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Get relation object for key.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">open</span> <span class="kd">func</span> <span class="nf">relationForKey</span><span class="p">(</span><span class="n">_</span> <span class="nv">key</span><span class="p">:</span> <span class="kt">String</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt"><a href="../Classes/LCRelation.html">LCRelation</a></span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>key</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The key where relationship based on.</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>The relation for key.</p>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/Foundation/Object.swift#L681-L683">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9LeanCloud8LCObjectC14insertRelation_6objectySS_ACtKF"></a>
+                    <a name="//apple_ref/swift/Method/insertRelation(_:object:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9LeanCloud8LCObjectC14insertRelation_6objectySS_ACtKF">insertRelation(_:<wbr>object:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Insert an object into a relation.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">open</span> <span class="kd">func</span> <span class="nf">insertRelation</span><span class="p">(</span><span class="n">_</span> <span class="nv">key</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span> <span class="nv">object</span><span class="p">:</span> <span class="kt">LCObject</span><span class="p">)</span> <span class="k">throws</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>key</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The key of relation into which you want to insert the object.</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>object</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The object to insert.</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/Foundation/Object.swift#L691-L693">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9LeanCloud8LCObjectC14removeRelation_6objectySS_ACtKF"></a>
+                    <a name="//apple_ref/swift/Method/removeRelation(_:object:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9LeanCloud8LCObjectC14removeRelation_6objectySS_ACtKF">removeRelation(_:<wbr>object:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Remove an object from a relation.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">open</span> <span class="kd">func</span> <span class="nf">removeRelation</span><span class="p">(</span><span class="n">_</span> <span class="nv">key</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span> <span class="nv">object</span><span class="p">:</span> <span class="kt">LCObject</span><span class="p">)</span> <span class="k">throws</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>key</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The key of relation from which you want to remove the object.</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>object</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The object to remove.</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/Foundation/Object.swift#L701-L703">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/Save"></a>
+                <a name="//apple_ref/swift/Section/Save" class="dashAnchor"></a>
+                <div class="section-name-container">
+                  <a class="section-name-link" href="#/Save"></a>
+                  <h3 class="section-name"><span>Save</span>
+</h3>
+                </div>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9LeanCloud8LCObjectC10SaveOptionO"></a>
+                    <a name="//apple_ref/swift/Enum/SaveOption" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9LeanCloud8LCObjectC10SaveOptionO">SaveOption</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Options for saving action.</p>
+
+                        <a href="../Classes/LCObject/SaveOption.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">enum</span> <span class="kt">SaveOption</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/Foundation/Object.swift#L708-L713">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9LeanCloud8LCObjectC4save_7optionsAA15LCBooleanResultOSayACG_SayAC10SaveOptionOGtFZ"></a>
+                    <a name="//apple_ref/swift/Method/save(_:options:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9LeanCloud8LCObjectC4save_7optionsAA15LCBooleanResultOSayACG_SayAC10SaveOptionOGtFZ">save(_:<wbr>options:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Save a batch of objects in one request synchronously.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">class</span> <span class="kd">func</span> <span class="nf">save</span><span class="p">(</span>
+    <span class="n">_</span> <span class="nv">objects</span><span class="p">:</span> <span class="p">[</span><span class="kt">LCObject</span><span class="p">],</span>
+    <span class="nv">options</span><span class="p">:</span> <span class="p">[</span><span class="kt">LCObject</span><span class="o">.</span><span class="kt"><a href="../Classes/LCObject/SaveOption.html">SaveOption</a></span><span class="p">]</span> <span class="o">=</span> <span class="p">[])</span>
+    <span class="o">-&gt;</span> <span class="kt"><a href="../Enums/LCBooleanResult.html">LCBooleanResult</a></span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>objects</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>An array of objects to be saved.</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>options</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>See <code><a href="../Classes/LCObject/SaveOption.html">LCObject.SaveOption</a></code>, default is <code>[]</code>, it will be applyed to all objects.</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p><code><a href="../Enums/LCBooleanResult.html">LCBooleanResult</a></code>.</p>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/Foundation/Object.swift#L720-L732">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9LeanCloud8LCObjectC4save_7options15completionQueue0F0AA9LCRequestCSayACG_SayAC10SaveOptionOGSo17OS_dispatch_queueCyAA15LCBooleanResultOctFZ"></a>
+                    <a name="//apple_ref/swift/Method/save(_:options:completionQueue:completion:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9LeanCloud8LCObjectC4save_7options15completionQueue0F0AA9LCRequestCSayACG_SayAC10SaveOptionOGSo17OS_dispatch_queueCyAA15LCBooleanResultOctFZ">save(_:<wbr>options:<wbr>completionQueue:<wbr>completion:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Save a batch of objects in one request asynchronously.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">@discardableResult</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="kd">func</span> <span class="nf">save</span><span class="p">(</span>
+    <span class="n">_</span> <span class="nv">objects</span><span class="p">:</span> <span class="p">[</span><span class="kt">LCObject</span><span class="p">],</span>
+    <span class="nv">options</span><span class="p">:</span> <span class="p">[</span><span class="kt">LCObject</span><span class="o">.</span><span class="kt"><a href="../Classes/LCObject/SaveOption.html">SaveOption</a></span><span class="p">]</span> <span class="o">=</span> <span class="p">[],</span>
+    <span class="nv">completionQueue</span><span class="p">:</span> <span class="kt">DispatchQueue</span> <span class="o">=</span> <span class="o">.</span><span class="n">main</span><span class="p">,</span>
+    <span class="nv">completion</span><span class="p">:</span> <span class="kd">@escaping</span> <span class="p">(</span><span class="kt"><a href="../Enums/LCBooleanResult.html">LCBooleanResult</a></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Void</span><span class="p">)</span>
+    <span class="o">-&gt;</span> <span class="kt"><a href="../Classes/LCRequest.html">LCRequest</a></span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>objects</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>An array of objects to be saved.</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>options</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>See <code><a href="../Classes/LCObject/SaveOption.html">LCObject.SaveOption</a></code>, default is <code>[]</code>, it will be applyed to all objects.</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>completionQueue</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The queue where the <code>completion</code> be called, default is <code>DispatchQueue.main</code>.</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>completion</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The callback of result.</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p><code><a href="../Classes/LCRequest.html">LCRequest</a></code>.</p>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/Foundation/Object.swift#L742-L761">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9LeanCloud8LCObjectC4save7optionsAA15LCBooleanResultOSayAC10SaveOptionOG_tF"></a>
+                    <a name="//apple_ref/swift/Method/save(options:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9LeanCloud8LCObjectC4save7optionsAA15LCBooleanResultOSayAC10SaveOptionOG_tF">save(options:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Save object and its all descendant objects synchronously.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">save</span><span class="p">(</span>
+    <span class="nv">options</span><span class="p">:</span> <span class="p">[</span><span class="kt">LCObject</span><span class="o">.</span><span class="kt"><a href="../Classes/LCObject/SaveOption.html">SaveOption</a></span><span class="p">]</span> <span class="o">=</span> <span class="p">[])</span>
+    <span class="o">-&gt;</span> <span class="kt"><a href="../Enums/LCBooleanResult.html">LCBooleanResult</a></span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>options</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>See <code><a href="../Classes/LCObject/SaveOption.html">LCObject.SaveOption</a></code>, default is <code>[]</code>.</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p><code><a href="../Enums/LCBooleanResult.html">LCBooleanResult</a></code>.</p>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/Foundation/Object.swift#L799-L806">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9LeanCloud8LCObjectC4save7options15completionQueue0F0AA9LCRequestCSayAC10SaveOptionOG_So17OS_dispatch_queueCyAA15LCBooleanResultOctF"></a>
+                    <a name="//apple_ref/swift/Method/save(options:completionQueue:completion:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9LeanCloud8LCObjectC4save7options15completionQueue0F0AA9LCRequestCSayAC10SaveOptionOG_So17OS_dispatch_queueCyAA15LCBooleanResultOctF">save(options:<wbr>completionQueue:<wbr>completion:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Save object and its all descendant objects asynchronously.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">@discardableResult</span>
+<span class="kd">public</span> <span class="kd">func</span> <span class="nf">save</span><span class="p">(</span>
+    <span class="nv">options</span><span class="p">:</span> <span class="p">[</span><span class="kt">LCObject</span><span class="o">.</span><span class="kt"><a href="../Classes/LCObject/SaveOption.html">SaveOption</a></span><span class="p">]</span> <span class="o">=</span> <span class="p">[],</span>
+    <span class="nv">completionQueue</span><span class="p">:</span> <span class="kt">DispatchQueue</span> <span class="o">=</span> <span class="o">.</span><span class="n">main</span><span class="p">,</span>
+    <span class="nv">completion</span><span class="p">:</span> <span class="kd">@escaping</span> <span class="p">(</span><span class="kt"><a href="../Enums/LCBooleanResult.html">LCBooleanResult</a></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Void</span><span class="p">)</span>
+    <span class="o">-&gt;</span> <span class="kt"><a href="../Classes/LCRequest.html">LCRequest</a></span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>options</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>See <code><a href="../Classes/LCObject/SaveOption.html">LCObject.SaveOption</a></code>, default is <code>[]</code>.</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>completionQueue</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The queue where the <code>completion</code> be called, default is <code>DispatchQueue.main</code>.</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>completion</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The callback of result.</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p><code><a href="../Classes/LCRequest.html">LCRequest</a></code>.</p>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/Foundation/Object.swift#L815-L826">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/Delete"></a>
+                <a name="//apple_ref/swift/Section/Delete" class="dashAnchor"></a>
+                <div class="section-name-container">
+                  <a class="section-name-link" href="#/Delete"></a>
+                  <h3 class="section-name"><span>Delete</span>
+</h3>
+                </div>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9LeanCloud8LCObjectC6deleteyAA15LCBooleanResultOSayACGFZ"></a>
+                    <a name="//apple_ref/swift/Method/delete(_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9LeanCloud8LCObjectC6deleteyAA15LCBooleanResultOSayACGFZ">delete(_:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Delete a batch of objects in one request synchronously.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">static</span> <span class="kd">func</span> <span class="nf">delete</span><span class="p">(</span>
+    <span class="n">_</span> <span class="nv">objects</span><span class="p">:</span> <span class="p">[</span><span class="kt">LCObject</span><span class="p">])</span>
+    <span class="o">-&gt;</span> <span class="kt"><a href="../Enums/LCBooleanResult.html">LCBooleanResult</a></span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>objects</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>An array of objects to be deleted.</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p><code><a href="../Enums/LCBooleanResult.html">LCBooleanResult</a></code>.</p>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/Foundation/Object.swift#L833-L843">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9LeanCloud8LCObjectC6delete_15completionQueue0E0AA9LCRequestCSayACG_So17OS_dispatch_queueCyAA15LCBooleanResultOctFZ"></a>
+                    <a name="//apple_ref/swift/Method/delete(_:completionQueue:completion:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9LeanCloud8LCObjectC6delete_15completionQueue0E0AA9LCRequestCSayACG_So17OS_dispatch_queueCyAA15LCBooleanResultOctFZ">delete(_:<wbr>completionQueue:<wbr>completion:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Delete a batch of objects in one request asynchronously.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">@discardableResult</span>
+<span class="kd">public</span> <span class="kd">static</span> <span class="kd">func</span> <span class="nf">delete</span><span class="p">(</span>
+    <span class="n">_</span> <span class="nv">objects</span><span class="p">:</span> <span class="p">[</span><span class="kt">LCObject</span><span class="p">],</span>
+    <span class="nv">completionQueue</span><span class="p">:</span> <span class="kt">DispatchQueue</span> <span class="o">=</span> <span class="o">.</span><span class="n">main</span><span class="p">,</span>
+    <span class="nv">completion</span><span class="p">:</span> <span class="kd">@escaping</span> <span class="p">(</span><span class="kt"><a href="../Enums/LCBooleanResult.html">LCBooleanResult</a></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Void</span><span class="p">)</span>
+    <span class="o">-&gt;</span> <span class="kt"><a href="../Classes/LCRequest.html">LCRequest</a></span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>objects</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>An array of objects to be deleted.</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>completionQueue</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The queue where the <code>completion</code> be called, default is <code>DispatchQueue.main</code>.</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>completion</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The callback of result.</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p><code><a href="../Classes/LCRequest.html">LCRequest</a></code>.</p>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/Foundation/Object.swift#L852-L869">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9LeanCloud8LCObjectC6deleteAA15LCBooleanResultOyF"></a>
+                    <a name="//apple_ref/swift/Method/delete()" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9LeanCloud8LCObjectC6deleteAA15LCBooleanResultOyF">delete()</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Delete current object synchronously.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">delete</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kt"><a href="../Enums/LCBooleanResult.html">LCBooleanResult</a></span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/Foundation/Object.swift#L883-L885">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9LeanCloud8LCObjectC6delete15completionQueue0E0AA9LCRequestCSo17OS_dispatch_queueC_yAA15LCBooleanResultOctF"></a>
+                    <a name="//apple_ref/swift/Method/delete(completionQueue:completion:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9LeanCloud8LCObjectC6delete15completionQueue0E0AA9LCRequestCSo17OS_dispatch_queueC_yAA15LCBooleanResultOctF">delete(completionQueue:<wbr>completion:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Delete current object asynchronously.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">@discardableResult</span>
+<span class="kd">public</span> <span class="kd">func</span> <span class="nf">delete</span><span class="p">(</span>
+    <span class="nv">completionQueue</span><span class="p">:</span> <span class="kt">DispatchQueue</span> <span class="o">=</span> <span class="o">.</span><span class="n">main</span><span class="p">,</span>
+    <span class="nv">completion</span><span class="p">:</span> <span class="kd">@escaping</span> <span class="p">(</span><span class="kt"><a href="../Enums/LCBooleanResult.html">LCBooleanResult</a></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Void</span><span class="p">)</span>
+    <span class="o">-&gt;</span> <span class="kt"><a href="../Classes/LCRequest.html">LCRequest</a></span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>completionQueue</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The queue where the <code>completion</code> be called, default is <code>DispatchQueue.main</code>.</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>completion</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The callback of result.</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p><code><a href="../Classes/LCRequest.html">LCRequest</a></code>.</p>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/Foundation/Object.swift#L893-L902">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/Fetch"></a>
+                <a name="//apple_ref/swift/Section/Fetch" class="dashAnchor"></a>
+                <div class="section-name-container">
+                  <a class="section-name-link" href="#/Fetch"></a>
+                  <h3 class="section-name"><span>Fetch</span>
+</h3>
+                </div>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9LeanCloud8LCObjectC5fetch_4keysAA15LCBooleanResultOSayACG_SaySSGSgtFZ"></a>
+                    <a name="//apple_ref/swift/Method/fetch(_:keys:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9LeanCloud8LCObjectC5fetch_4keysAA15LCBooleanResultOSayACG_SaySSGSgtFZ">fetch(_:<wbr>keys:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Fetch a batch of objects in one request synchronously.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">static</span> <span class="kd">func</span> <span class="nf">fetch</span><span class="p">(</span>
+    <span class="n">_</span> <span class="nv">objects</span><span class="p">:</span> <span class="p">[</span><span class="kt">LCObject</span><span class="p">],</span>
+    <span class="nv">keys</span><span class="p">:</span> <span class="p">[</span><span class="kt">String</span><span class="p">]?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">)</span>
+    <span class="o">-&gt;</span> <span class="kt"><a href="../Enums/LCBooleanResult.html">LCBooleanResult</a></span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>objects</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>An array of objects to be fetched.</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>keys</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>Specify only return the values of the <code>keys</code>, or not return the values of the <code>keys</code> when add a &ldquo;-&rdquo; prefix to the key.</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p><code><a href="../Enums/LCBooleanResult.html">LCBooleanResult</a></code>.</p>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/Foundation/Object.swift#L911-L923">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9LeanCloud8LCObjectC5fetch_4keys15completionQueue0F0AA9LCRequestCSayACG_SaySSGSgSo17OS_dispatch_queueCyAA15LCBooleanResultOctFZ"></a>
+                    <a name="//apple_ref/swift/Method/fetch(_:keys:completionQueue:completion:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9LeanCloud8LCObjectC5fetch_4keys15completionQueue0F0AA9LCRequestCSayACG_SaySSGSgSo17OS_dispatch_queueCyAA15LCBooleanResultOctFZ">fetch(_:<wbr>keys:<wbr>completionQueue:<wbr>completion:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Fetch a batch of objects in one request asynchronously.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">@discardableResult</span>
+<span class="kd">public</span> <span class="kd">static</span> <span class="kd">func</span> <span class="nf">fetch</span><span class="p">(</span>
+    <span class="n">_</span> <span class="nv">objects</span><span class="p">:</span> <span class="p">[</span><span class="kt">LCObject</span><span class="p">],</span>
+    <span class="nv">keys</span><span class="p">:</span> <span class="p">[</span><span class="kt">String</span><span class="p">]?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">,</span>
+    <span class="nv">completionQueue</span><span class="p">:</span> <span class="kt">DispatchQueue</span> <span class="o">=</span> <span class="o">.</span><span class="n">main</span><span class="p">,</span>
+    <span class="nv">completion</span><span class="p">:</span> <span class="kd">@escaping</span> <span class="p">(</span><span class="kt"><a href="../Enums/LCBooleanResult.html">LCBooleanResult</a></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Void</span><span class="p">)</span>
+    <span class="o">-&gt;</span> <span class="kt"><a href="../Classes/LCRequest.html">LCRequest</a></span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>objects</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>An array of objects to be fetched.</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>keys</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>Specify only return the values of the <code>keys</code>, or not return the values of the <code>keys</code> when add a &ldquo;-&rdquo; prefix to the key.</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>completionQueue</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The queue where the <code>completion</code> be called, default is <code>DispatchQueue.main</code>.</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>completion</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The callback of result.</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p><code><a href="../Classes/LCRequest.html">LCRequest</a></code>.</p>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/Foundation/Object.swift#L933-L952">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9LeanCloud8LCObjectC5fetch4keysAA15LCBooleanResultOSaySSGSg_tF"></a>
+                    <a name="//apple_ref/swift/Method/fetch(keys:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9LeanCloud8LCObjectC5fetch4keysAA15LCBooleanResultOSaySSGSg_tF">fetch(keys:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Fetch object from server synchronously.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">fetch</span><span class="p">(</span>
+    <span class="nv">keys</span><span class="p">:</span> <span class="p">[</span><span class="kt">String</span><span class="p">]?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">)</span>
+    <span class="o">-&gt;</span> <span class="kt"><a href="../Enums/LCBooleanResult.html">LCBooleanResult</a></span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>keys</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>Specify only return the values of the <code>keys</code>, or not return the values of the <code>keys</code> when add a &ldquo;-&rdquo; prefix to the key.</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p><code><a href="../Enums/LCBooleanResult.html">LCBooleanResult</a></code>.</p>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/Foundation/Object.swift#L970-L977">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9LeanCloud8LCObjectC5fetch4keys15completionQueue0F0AA9LCRequestCSaySSGSg_So17OS_dispatch_queueCyAA15LCBooleanResultOctF"></a>
+                    <a name="//apple_ref/swift/Method/fetch(keys:completionQueue:completion:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9LeanCloud8LCObjectC5fetch4keys15completionQueue0F0AA9LCRequestCSaySSGSg_So17OS_dispatch_queueCyAA15LCBooleanResultOctF">fetch(keys:<wbr>completionQueue:<wbr>completion:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Fetch object from server asynchronously.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">@discardableResult</span>
+<span class="kd">public</span> <span class="kd">func</span> <span class="nf">fetch</span><span class="p">(</span>
+    <span class="nv">keys</span><span class="p">:</span> <span class="p">[</span><span class="kt">String</span><span class="p">]?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">,</span>
+    <span class="nv">completionQueue</span><span class="p">:</span> <span class="kt">DispatchQueue</span> <span class="o">=</span> <span class="o">.</span><span class="n">main</span><span class="p">,</span>
+    <span class="nv">completion</span><span class="p">:</span> <span class="kd">@escaping</span> <span class="p">(</span><span class="kt"><a href="../Enums/LCBooleanResult.html">LCBooleanResult</a></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Void</span><span class="p">)</span>
+    <span class="o">-&gt;</span> <span class="kt"><a href="../Classes/LCRequest.html">LCRequest</a></span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>keys</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>Specify only return the values of the <code>keys</code>, or not return the values of the <code>keys</code> when add a &ldquo;-&rdquo; prefix to the key.</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>completionQueue</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The queue where the <code>completion</code> be called, default is <code>DispatchQueue.main</code>.</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>completion</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The callback of result.</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p><code><a href="../Classes/LCRequest.html">LCRequest</a></code>.</p>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/Foundation/Object.swift#L986-L997">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9LeanCloud18LCValueConvertibleP7lcValueAA0C0_pvp"></a>
+                    <a name="//apple_ref/swift/Property/lcValue" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9LeanCloud18LCValueConvertibleP7lcValueAA0C0_pvp">lcValue</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">lcValue</span><span class="p">:</span> <span class="kt"><a href="../Protocols/LCValue.html">LCValue</a></span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/Foundation/Valuable.swift#L718-L720">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </section>
+        </section>
+        <section id="footer">
+          <p>&copy; 2023 <a class="link" href="https://leancloud.cn" target="_blank" rel="external noopener">LeanCloud</a>. All rights reserved. (Last updated: 2023-12-05)</p>
+          <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external noopener">jazzy ♪♫ v0.14.4</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external noopener">Realm</a> project.</p>
+        </section>
+      </article>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>MessageSendOptions Structure Reference</title>
+    <link rel="stylesheet" type="text/css" href="../../css/jazzy.css" />
+    <link rel="stylesheet" type="text/css" href="../../css/highlight.css" />
+    <meta charset='utf-8'>
+    <script src="../../js/jquery.min.js" defer></script>
+    <script src="../../js/jazzy.js" defer></script>
+    
+    <script src="../../js/lunr.min.js" defer></script>
+    <script src="../../js/typeahead.jquery.js" defer></script>
+    <script src="../../js/jazzy.search.js" defer></script>
+  </head>
+  <body>
+    <a name="//apple_ref/swift/Struct/MessageSendOptions" class="dashAnchor"></a>
+    <a title="MessageSendOptions Structure Reference"></a>
+    <header>
+      <div class="content-wrapper">
+        <p><a href="../../index.html">LeanCloud 17.11.0 Docs</a> (63% documented)</p>
+        <p class="header-right"><a href="https://github.com/leancloud/swift-sdk"><img src="../../img/gh.png" alt="GitHub"/>View on GitHub</a></p>
+        <p class="header-right"><a href="dash-feed://https%3A%2F%2Fleancloud.github.io%2Fswift-sdk%2Fdocsets%2FLeanCloud.xml"><img src="../../img/dash.png" alt="Dash"/>Install in Dash</a></p>
+        <div class="header-right">
+          <form role="search" action="../../search.json">
+            <input type="text" placeholder="Search documentation" data-typeahead>
+          </form>
+        </div>
+      </div>
+    </header>
+    <div class="content-wrapper">
+      <p id="breadcrumbs">
+        <a href="../../index.html">LeanCloud Reference</a>
+        <img id="carat" src="../../img/carat.png" alt=""/>
+        MessageSendOptions Structure Reference
+      </p>
+    </div>
+    <div class="content-wrapper">
+      <nav class="sidebar">
+        <ul class="nav-groups">
+          <li class="nav-group-name">
+            <a href="../../Classes.html">Classes</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../../Classes/IMAudioMessage.html">IMAudioMessage</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/IMCategorizedMessage.html">IMCategorizedMessage</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/IMCategorizedMessage/ReservedType.html">– ReservedType</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/IMChatRoom.html">IMChatRoom</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/IMChatRoom/MessagePriority.html">– MessagePriority</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/IMClient.html">IMClient</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/IMClient/SessionState.html">– SessionState</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/IMClient/Options.html">– Options</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/IMClient/SessionOpenOptions.html">– SessionOpenOptions</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/IMClient/StoredConversationOrder.html">– StoredConversationOrder</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/IMConversation.html">IMConversation</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/IMConversation/MessageSendOptions.html">– MessageSendOptions</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/IMConversation/MessageReceiptFlag.html">– MessageReceiptFlag</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/IMConversation/MessageQueryEndpoint.html">– MessageQueryEndpoint</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/IMConversation/MessageQueryDirection.html">– MessageQueryDirection</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/IMConversation/MessageQueryPolicy.html">– MessageQueryPolicy</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/IMConversation/MemberResult.html">– MemberResult</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/IMConversation/MemberRole.html">– MemberRole</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/IMConversation/MemberInfo.html">– MemberInfo</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/IMConversationQuery.html">IMConversationQuery</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/IMConversationQuery/Options.html">– Options</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/IMFileMessage.html">IMFileMessage</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/IMImageMessage.html">IMImageMessage</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/IMLocationMessage.html">IMLocationMessage</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/IMMessage.html">IMMessage</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/IMMessage/IOType.html">– IOType</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/IMMessage/Status.html">– Status</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/IMMessage/PatchedReason.html">– PatchedReason</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/IMMessage/Content.html">– Content</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/IMRecalledMessage.html">IMRecalledMessage</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/IMServiceConversation.html">IMServiceConversation</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/IMTemporaryConversation.html">IMTemporaryConversation</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/IMTextMessage.html">IMTextMessage</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/IMVideoMessage.html">IMVideoMessage</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/LCACL.html">LCACL</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/LCACL/Permission.html">– Permission</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/LCApplication.html">LCApplication</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/LCApplication/LogLevel.html">– LogLevel</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/LCApplication/ServerCustomizableModule.html">– ServerCustomizableModule</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/LCApplication/Environment.html">– Environment</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/LCApplication/Configuration.html">– Configuration</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/LCArray.html">LCArray</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/LCBool.html">LCBool</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/LCCQLClient.html">LCCQLClient</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/LCCQLValue.html">LCCQLValue</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/LCCaptchaClient.html">LCCaptchaClient</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/LCCaptchaClient/Captcha.html">– Captcha</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/LCCaptchaClient/Verification.html">– Verification</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/LCData.html">LCData</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/LCDate.html">LCDate</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/LCDictionary.html">LCDictionary</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/LCEngine.html">LCEngine</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/LCFile.html">LCFile</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/LCFile/Payload.html">– Payload</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/LCFile/Options.html">– Options</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/LCFile/Thumbnail.html">– Thumbnail</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/LCGeoPoint.html">LCGeoPoint</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/LCGeoPoint/Unit.html">– Unit</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/LCGeoPoint/Distance.html">– Distance</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/LCInstallation.html">LCInstallation</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/LCNull.html">LCNull</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/LCNumber.html">LCNumber</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/LCObject.html">LCObject</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/LCObject/SaveOption.html">– SaveOption</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/LCPush.html">LCPush</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/LCQuery.html">LCQuery</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/LCQuery/Constraint.html">– Constraint</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/LCQuery/CachePolicy.html">– CachePolicy</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/LCRelation.html">LCRelation</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/LCRequest.html">LCRequest</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/LCRole.html">LCRole</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/LCSMSClient.html">LCSMSClient</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/LCString.html">LCString</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/LCUser.html">LCUser</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/LCUser/AuthDataPlatform.html">– AuthDataPlatform</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/LCUser/AuthDataOptions.html">– AuthDataOptions</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/LiveQuery.html">LiveQuery</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/LiveQuery/Event.html">– Event</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a href="../../Enums.html">Enumerations</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../../Enums/IMClientEvent.html">IMClientEvent</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Enums/IMConversationEvent.html">IMConversationEvent</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Enums/IMMessageEvent.html">IMMessageEvent</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Enums/LCBooleanResult.html">LCBooleanResult</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Enums/LCCQLResult.html">LCCQLResult</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Enums/LCCountResult.html">LCCountResult</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Enums/LCGenericResult.html">LCGenericResult</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Enums/LCQueryResult.html">LCQueryResult</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Enums/LCValueOptionalResult.html">LCValueOptionalResult</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Enums/LCValueResult.html">LCValueResult</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a href="../../Extensions.html">Extensions</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../../Extensions/Array.html">Array</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Extensions/Bool.html">Bool</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Extensions/Data.html">Data</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Extensions/Date.html">Date</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Extensions/Dictionary.html">Dictionary</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Extensions/Double.html">Double</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Extensions/Float.html">Float</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Extensions/Int.html">Int</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Extensions/Int16.html">Int16</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Extensions/Int32.html">Int32</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Extensions/Int64.html">Int64</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Extensions/Int8.html">Int8</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Extensions/NSData.html">NSData</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Extensions/NSDate.html">NSDate</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Extensions/NSNull.html">NSNull</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Extensions/NSNumber.html">NSNumber</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Extensions/NSString.html">NSString</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Extensions/NSURL.html">NSURL</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Extensions/String.html">String</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Extensions/UInt.html">UInt</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Extensions/UInt16.html">UInt16</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Extensions/UInt32.html">UInt32</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Extensions/UInt64.html">UInt64</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Extensions/UInt8.html">UInt8</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Extensions/URL.html">URL</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a href="../../Protocols.html">Protocols</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../../Protocols/IMClientDelegate.html">IMClientDelegate</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Protocols/IMMessageCategorizing.html">IMMessageCategorizing</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Protocols/IMSignatureDelegate.html">IMSignatureDelegate</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Protocols/LCArrayConvertible.html">LCArrayConvertible</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Protocols/LCBoolConvertible.html">LCBoolConvertible</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Protocols/LCDataConvertible.html">LCDataConvertible</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Protocols/LCDateConvertible.html">LCDateConvertible</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Protocols/LCDeviceTokenConvertible.html">LCDeviceTokenConvertible</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Protocols/LCDictionaryConvertible.html">LCDictionaryConvertible</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Protocols/LCNullConvertible.html">LCNullConvertible</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Protocols/LCNumberConvertible.html">LCNumberConvertible</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Protocols/LCResultType.html">LCResultType</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Protocols/LCStringConvertible.html">LCStringConvertible</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Protocols/LCValue.html">LCValue</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Protocols/LCValueConvertible.html">LCValueConvertible</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a href="../../Structs.html">Structures</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../../Structs/IMSignature.html">IMSignature</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Structs/IMSignature/Action.html">– Action</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Structs/LCError.html">LCError</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Structs/LCError/InternalErrorCode.html">– InternalErrorCode</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Structs/LCError/ServerErrorCode.html">– ServerErrorCode</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Structs/Version.html">Version</a>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </nav>
+      <article class="main-content">
+        <section>
+          <section class="section">
+            <h1>MessageSendOptions</h1>
+              <div class="declaration">
+                <div class="language">
+                  
+                  <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">struct</span> <span class="kt">MessageSendOptions</span> <span class="p">:</span> <span class="kt">OptionSet</span></code></pre>
+
+                </div>
+              </div>
+            <p>Message Sending Option</p>
+
+              <div class="slightly-smaller">
+                <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/RTM/IMConversation.swift#L634-L652">Show on GitHub</a>
+              </div>
+          </section>
+          <section class="section task-group-section">
+            <div class="task-group">
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:SY8rawValue03RawB0Qzvp"></a>
+                    <a name="//apple_ref/swift/Property/rawValue" class="dashAnchor"></a>
+                    <a class="token" href="#/s:SY8rawValue03RawB0Qzvp">rawValue</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">let</span> <span class="nv">rawValue</span><span class="p">:</span> <span class="kt">Int</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/RTM/IMConversation.swift#L635">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:s9OptionSetP8rawValuex03RawD0Qz_tcfc"></a>
+                    <a name="//apple_ref/swift/Method/init(rawValue:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:s9OptionSetP8rawValuex03RawD0Qz_tcfc">init(rawValue:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="nf">init</span><span class="p">(</span><span class="nv">rawValue</span><span class="p">:</span> <span class="kt">Int</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/RTM/IMConversation.swift#L637-L639">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9LeanCloud14IMConversationC18MessageSendOptionsV7defaultAEvpZ"></a>
+                    <a name="//apple_ref/swift/Variable/default" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9LeanCloud14IMConversationC18MessageSendOptionsV7defaultAEvpZ">default</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Default option is empty.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">static</span> <span class="kd">let</span> <span class="p">`</span><span class="nv">default</span><span class="p">`:</span> <span class="kt">MessageSendOptions</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/RTM/IMConversation.swift#L642">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9LeanCloud14IMConversationC18MessageSendOptionsV11needReceiptAEvpZ"></a>
+                    <a name="//apple_ref/swift/Variable/needReceipt" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9LeanCloud14IMConversationC18MessageSendOptionsV11needReceiptAEvpZ">needReceipt</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Get Receipt when other client received message or read message.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">needReceipt</span><span class="p">:</span> <span class="kt"><a href="../../Classes/IMConversation.html">IMConversation</a></span><span class="o">.</span><span class="kt">MessageSendOptions</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/RTM/IMConversation.swift#L645">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9LeanCloud14IMConversationC18MessageSendOptionsV11isTransientAEvpZ"></a>
+                    <a name="//apple_ref/swift/Variable/isTransient" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9LeanCloud14IMConversationC18MessageSendOptionsV11isTransientAEvpZ">isTransient</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Indicates whether this message is transient.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">isTransient</span><span class="p">:</span> <span class="kt"><a href="../../Classes/IMConversation.html">IMConversation</a></span><span class="o">.</span><span class="kt">MessageSendOptions</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/RTM/IMConversation.swift#L648">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9LeanCloud14IMConversationC18MessageSendOptionsV27isAutoDeliveringWhenOfflineAEvpZ"></a>
+                    <a name="//apple_ref/swift/Variable/isAutoDeliveringWhenOffline" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9LeanCloud14IMConversationC18MessageSendOptionsV27isAutoDeliveringWhenOfflineAEvpZ">isAutoDeliveringWhenOffline</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Indicates whether this message will be auto delivering to other client when this client disconnected.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">isAutoDeliveringWhenOffline</span><span class="p">:</span> <span class="kt"><a href="../../Classes/IMConversation.html">IMConversation</a></span><span class="o">.</span><span class="kt">MessageSendOptions</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/leancloud/swift-sdk/tree/17.11.0/Sources/RTM/IMConversation.swift#L651">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </section>
+        </section>
+        <section id="footer">
+          <p>&copy; 2023 <a class="link" href="https://leancloud.cn" target="_blank" rel="external noopener">LeanCloud</a>. All rights reserved. (Last updated: 2023-12-05)</p>
+          <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external noopener">jazzy ♪♫ v0.14.4</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external noopener">Realm</a> project.</p>
+        </section>
+      </article>
+    </div>
+  </body>
+</html>

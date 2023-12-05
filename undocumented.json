@@ -1,0 +1,3029 @@
+{
+  "warnings": [
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/ACL.swift",
+      "line": 31,
+      "symbol": "LCACL.init()",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/ACL.swift",
+      "line": 43,
+      "symbol": "LCACL.init(coder:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/ACL.swift",
+      "line": 47,
+      "symbol": "LCACL.encode(with:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/ACL.swift",
+      "line": 51,
+      "symbol": "LCACL.copy(with:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/ACL.swift",
+      "line": 59,
+      "symbol": "LCACL.isEqual(_:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/ACL.swift",
+      "line": 109,
+      "symbol": "LCACL.Permission.read",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/ACL.swift",
+      "line": 110,
+      "symbol": "LCACL.Permission.write",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Application.swift",
+      "line": 23,
+      "symbol": "LCApplication.LogLevel",
+      "symbol_kind": "source.lang.swift.decl.enum",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Application.swift",
+      "line": 24,
+      "symbol": "LCApplication.LogLevel.off",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Application.swift",
+      "line": 25,
+      "symbol": "LCApplication.LogLevel.error",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Application.swift",
+      "line": 26,
+      "symbol": "LCApplication.LogLevel.debug",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Application.swift",
+      "line": 27,
+      "symbol": "LCApplication.LogLevel.verbose",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Application.swift",
+      "line": 28,
+      "symbol": "LCApplication.LogLevel.all",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Application.swift",
+      "line": 43,
+      "symbol": "LCApplication.Identifier",
+      "symbol_kind": "source.lang.swift.decl.typealias",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Application.swift",
+      "line": 58,
+      "symbol": "LCApplication.ServerCustomizableModule.api(_:)",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Application.swift",
+      "line": 59,
+      "symbol": "LCApplication.ServerCustomizableModule.push(_:)",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Application.swift",
+      "line": 60,
+      "symbol": "LCApplication.ServerCustomizableModule.engine(_:)",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Application.swift",
+      "line": 61,
+      "symbol": "LCApplication.ServerCustomizableModule.rtm(_:)",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Application.swift",
+      "line": 109,
+      "symbol": "LCApplication.Configuration.default",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Application.swift",
+      "line": 135,
+      "symbol": "LCApplication.Configuration.init(customizedServers:environment:HTTPRequestTimeoutInterval:HTTPURLCache:RTMConnectingTimeoutInterval:RTMCommandTimeoutInterval:RTMCustomServerURL:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Application.swift",
+      "line": 237,
+      "symbol": "LCApplication.currentInstallationFileURL",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Application.swift",
+      "line": 266,
+      "symbol": "LCApplication.currentUserFileURL",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Array.swift",
+      "line": 16,
+      "symbol": "LCArray.value",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Array.swift",
+      "line": 18,
+      "symbol": "LCArray.init()",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Array.swift",
+      "line": 22,
+      "symbol": "LCArray.init(_:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Array.swift",
+      "line": 27,
+      "symbol": "LCArray.init(_:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Array.swift",
+      "line": 32,
+      "symbol": "LCArray.init(_:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Array.swift",
+      "line": 41,
+      "symbol": "LCArray.init(application:unsafeObject:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Array.swift",
+      "line": 57,
+      "symbol": "LCArray.init(coder:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Array.swift",
+      "line": 61,
+      "symbol": "LCArray.encode(with:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Array.swift",
+      "line": 65,
+      "symbol": "LCArray.copy(with:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Array.swift",
+      "line": 69,
+      "symbol": "LCArray.isEqual(_:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Bool.swift",
+      "line": 17,
+      "symbol": "LCBool.value",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Bool.swift",
+      "line": 19,
+      "symbol": "LCBool.init()",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Bool.swift",
+      "line": 23,
+      "symbol": "LCBool.init(_:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Bool.swift",
+      "line": 28,
+      "symbol": "LCBool.init(_:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Bool.swift",
+      "line": 37,
+      "symbol": "LCBool.init(coder:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Bool.swift",
+      "line": 41,
+      "symbol": "LCBool.encode(with:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Bool.swift",
+      "line": 45,
+      "symbol": "LCBool.copy(with:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Bool.swift",
+      "line": 49,
+      "symbol": "LCBool.isEqual(_:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/CaptchaClient.swift",
+      "line": 11,
+      "symbol": "LCCaptchaClient",
+      "symbol_kind": "source.lang.swift.decl.class",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/CaptchaClient.swift",
+      "line": 15,
+      "symbol": "LCCaptchaClient.Captcha.token",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/CaptchaClient.swift",
+      "line": 16,
+      "symbol": "LCCaptchaClient.Captcha.url",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/CaptchaClient.swift",
+      "line": 26,
+      "symbol": "LCCaptchaClient.Verification.token",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Data.swift",
+      "line": 17,
+      "symbol": "LCData.value",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Data.swift",
+      "line": 27,
+      "symbol": "LCData.init()",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Data.swift",
+      "line": 31,
+      "symbol": "LCData.init(_:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Data.swift",
+      "line": 36,
+      "symbol": "LCData.init(_:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Data.swift",
+      "line": 69,
+      "symbol": "LCData.init(coder:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Data.swift",
+      "line": 73,
+      "symbol": "LCData.encode(with:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Data.swift",
+      "line": 77,
+      "symbol": "LCData.copy(with:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Data.swift",
+      "line": 81,
+      "symbol": "LCData.isEqual(_:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Date.swift",
+      "line": 17,
+      "symbol": "LCDate.value",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Date.swift",
+      "line": 35,
+      "symbol": "LCDate.isoString",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Date.swift",
+      "line": 39,
+      "symbol": "LCDate.init()",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Date.swift",
+      "line": 43,
+      "symbol": "LCDate.init(_:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Date.swift",
+      "line": 48,
+      "symbol": "LCDate.init(_:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Date.swift",
+      "line": 104,
+      "symbol": "LCDate.init(coder:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Date.swift",
+      "line": 108,
+      "symbol": "LCDate.encode(with:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Date.swift",
+      "line": 112,
+      "symbol": "LCDate.copy(with:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Date.swift",
+      "line": 116,
+      "symbol": "LCDate.isEqual(_:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Dictionary.swift",
+      "line": 22,
+      "symbol": "LCDictionary.value",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Dictionary.swift",
+      "line": 26,
+      "symbol": "LCDictionary.init()",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Dictionary.swift",
+      "line": 30,
+      "symbol": "LCDictionary.init(_:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Dictionary.swift",
+      "line": 35,
+      "symbol": "LCDictionary.init(_:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Dictionary.swift",
+      "line": 54,
+      "symbol": "LCDictionary.init(application:unsafeObject:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Dictionary.swift",
+      "line": 72,
+      "symbol": "LCDictionary.init(coder:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Dictionary.swift",
+      "line": 78,
+      "symbol": "LCDictionary.encode(with:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Dictionary.swift",
+      "line": 82,
+      "symbol": "LCDictionary.copy(with:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Dictionary.swift",
+      "line": 86,
+      "symbol": "LCDictionary.isEqual(_:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Dictionary.swift",
+      "line": 114,
+      "symbol": "LCDictionary.subscript(_:)",
+      "symbol_kind": "source.lang.swift.decl.function.subscript",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Dictionary.swift",
+      "line": 125,
+      "symbol": "LCDictionary.subscript(dynamicMember:)",
+      "symbol_kind": "source.lang.swift.decl.function.subscript",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Dictionary.swift",
+      "line": 146,
+      "symbol": "LCDictionary.removeAll(keepingCapacity:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Error.swift",
+      "line": 13,
+      "symbol": "LCError.UserInfo",
+      "symbol_kind": "source.lang.swift.decl.typealias",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Error.swift",
+      "line": 15,
+      "symbol": "LCError.code",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Error.swift",
+      "line": 16,
+      "symbol": "LCError.reason",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Error.swift",
+      "line": 17,
+      "symbol": "LCError.userInfo",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Error.swift",
+      "line": 25,
+      "symbol": "LCError.InternalErrorCode.commandTimeout",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Error.swift",
+      "line": 26,
+      "symbol": "LCError.InternalErrorCode.connectionLost",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Error.swift",
+      "line": 27,
+      "symbol": "LCError.InternalErrorCode.clientNotOpen",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Error.swift",
+      "line": 28,
+      "symbol": "LCError.InternalErrorCode.commandInvalid",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Error.swift",
+      "line": 29,
+      "symbol": "LCError.InternalErrorCode.commandDataLengthTooLong",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Error.swift",
+      "line": 31,
+      "symbol": "LCError.InternalErrorCode.conversationNotFound",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Error.swift",
+      "line": 32,
+      "symbol": "LCError.InternalErrorCode.updatingMessageNotAllowed",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Error.swift",
+      "line": 33,
+      "symbol": "LCError.InternalErrorCode.updatingMessageNotSent",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Error.swift",
+      "line": 34,
+      "symbol": "LCError.InternalErrorCode.ownerPromotionNotAllowed",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Error.swift",
+      "line": 36,
+      "symbol": "LCError.InternalErrorCode.notFound",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Error.swift",
+      "line": 37,
+      "symbol": "LCError.InternalErrorCode.invalidType",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Error.swift",
+      "line": 38,
+      "symbol": "LCError.InternalErrorCode.malformedData",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Error.swift",
+      "line": 39,
+      "symbol": "LCError.InternalErrorCode.inconsistency",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Error.swift",
+      "line": 40,
+      "symbol": "LCError.InternalErrorCode.underlyingError",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Error.swift",
+      "line": 78,
+      "symbol": "LCError.ServerErrorCode.objectNotFound",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Error.swift",
+      "line": 79,
+      "symbol": "LCError.ServerErrorCode.sessionConflict",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Error.swift",
+      "line": 80,
+      "symbol": "LCError.ServerErrorCode.sessionTokenExpired",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/File.swift",
+      "line": 283,
+      "symbol": "LCFile.Thumbnail.scale(_:)",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/File.swift",
+      "line": 284,
+      "symbol": "LCFile.Thumbnail.size(width:height:)",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/GeoPoint.swift",
+      "line": 17,
+      "symbol": "LCGeoPoint.latitude",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/GeoPoint.swift",
+      "line": 18,
+      "symbol": "LCGeoPoint.longitude",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/GeoPoint.swift",
+      "line": 20,
+      "symbol": "LCGeoPoint.Unit",
+      "symbol_kind": "source.lang.swift.decl.enum",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/GeoPoint.swift",
+      "line": 21,
+      "symbol": "LCGeoPoint.Unit.mile",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/GeoPoint.swift",
+      "line": 22,
+      "symbol": "LCGeoPoint.Unit.kilometer",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/GeoPoint.swift",
+      "line": 23,
+      "symbol": "LCGeoPoint.Unit.radian",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/GeoPoint.swift",
+      "line": 26,
+      "symbol": "LCGeoPoint.Distance",
+      "symbol_kind": "source.lang.swift.decl.struct",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/GeoPoint.swift",
+      "line": 30,
+      "symbol": "LCGeoPoint.Distance.init(value:unit:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/GeoPoint.swift",
+      "line": 36,
+      "symbol": "LCGeoPoint.init()",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/GeoPoint.swift",
+      "line": 40,
+      "symbol": "LCGeoPoint.init(latitude:longitude:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/GeoPoint.swift",
+      "line": 46,
+      "symbol": "LCGeoPoint.init(_:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/GeoPoint.swift",
+      "line": 73,
+      "symbol": "LCGeoPoint.init(coder:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/GeoPoint.swift",
+      "line": 78,
+      "symbol": "LCGeoPoint.encode(with:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/GeoPoint.swift",
+      "line": 83,
+      "symbol": "LCGeoPoint.copy(with:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/GeoPoint.swift",
+      "line": 87,
+      "symbol": "LCGeoPoint.isEqual(_:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Installation.swift",
+      "line": 208,
+      "symbol": "LCDeviceTokenConvertible",
+      "symbol_kind": "source.lang.swift.decl.protocol",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Installation.swift",
+      "line": 210,
+      "symbol": "LCDeviceTokenConvertible.lcDeviceToken",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Installation.swift",
+      "line": 215,
+      "symbol": "String.lcDeviceToken",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Installation.swift",
+      "line": 222,
+      "symbol": "NSString.lcDeviceToken",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Installation.swift",
+      "line": 229,
+      "symbol": "Data.lcDeviceToken",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Installation.swift",
+      "line": 238,
+      "symbol": "NSData.lcDeviceToken",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Null.swift",
+      "line": 19,
+      "symbol": "LCNull.init()",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Null.swift",
+      "line": 23,
+      "symbol": "LCNull.init(coder:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Null.swift",
+      "line": 27,
+      "symbol": "LCNull.encode(with:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Null.swift",
+      "line": 31,
+      "symbol": "LCNull.copy(with:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Null.swift",
+      "line": 35,
+      "symbol": "LCNull.isEqual(_:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Number.swift",
+      "line": 17,
+      "symbol": "LCNumber.value",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Number.swift",
+      "line": 19,
+      "symbol": "LCNumber.init()",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Number.swift",
+      "line": 23,
+      "symbol": "LCNumber.init(_:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Number.swift",
+      "line": 28,
+      "symbol": "LCNumber.init(_:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Number.swift",
+      "line": 41,
+      "symbol": "LCNumber.init(coder:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Number.swift",
+      "line": 45,
+      "symbol": "LCNumber.encode(with:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Number.swift",
+      "line": 49,
+      "symbol": "LCNumber.copy(with:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Number.swift",
+      "line": 53,
+      "symbol": "LCNumber.isEqual(_:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Object.swift",
+      "line": 70,
+      "symbol": "LCObject.hasObjectId",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Object.swift",
+      "line": 263,
+      "symbol": "LCObject.isEqual(_:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Object.swift",
+      "line": 271,
+      "symbol": "LCObject.value(forKey:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Object.swift",
+      "line": 276,
+      "symbol": "LCObject.value(forUndefinedKey:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Object.swift",
+      "line": 539,
+      "symbol": "LCObject.subscript(_:)",
+      "symbol_kind": "source.lang.swift.decl.function.subscript",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Object.swift",
+      "line": 552,
+      "symbol": "LCObject.subscript(dynamicMember:)",
+      "symbol_kind": "source.lang.swift.decl.function.subscript",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Query.swift",
+      "line": 109,
+      "symbol": "LCQuery.copy(with:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Query.swift",
+      "line": 126,
+      "symbol": "LCQuery.init(coder:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Query.swift",
+      "line": 149,
+      "symbol": "LCQuery.encode(with:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Relation.swift",
+      "line": 19,
+      "symbol": "LCRelation.application",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Relation.swift",
+      "line": 73,
+      "symbol": "LCRelation.init(coder:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Relation.swift",
+      "line": 85,
+      "symbol": "LCRelation.encode(with:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Relation.swift",
+      "line": 95,
+      "symbol": "LCRelation.copy(with:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Relation.swift",
+      "line": 99,
+      "symbol": "LCRelation.isEqual(_:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Request.swift",
+      "line": 68,
+      "symbol": "LCRequest.resume()",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Request.swift",
+      "line": 72,
+      "symbol": "LCRequest.suspend()",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Request.swift",
+      "line": 76,
+      "symbol": "LCRequest.cancel()",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Result.swift",
+      "line": 11,
+      "symbol": "LCResultType",
+      "symbol_kind": "source.lang.swift.decl.protocol",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Result.swift",
+      "line": 12,
+      "symbol": "LCResultType.error",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Result.swift",
+      "line": 13,
+      "symbol": "LCResultType.isSuccess",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Result.swift",
+      "line": 14,
+      "symbol": "LCResultType.isFailure",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Result.swift",
+      "line": 16,
+      "symbol": "LCResultType.init(error:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Result.swift",
+      "line": 19,
+      "symbol": "LCResultType",
+      "symbol_kind": "source.lang.swift.decl.extension",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Result.swift",
+      "line": 20,
+      "symbol": "LCResultType.isFailure",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Result.swift",
+      "line": 25,
+      "symbol": "LCBooleanResult",
+      "symbol_kind": "source.lang.swift.decl.enum",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Result.swift",
+      "line": 26,
+      "symbol": "LCBooleanResult.success",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Result.swift",
+      "line": 27,
+      "symbol": "LCBooleanResult.failure(error:)",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Result.swift",
+      "line": 29,
+      "symbol": "LCBooleanResult.init(error:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Result.swift",
+      "line": 33,
+      "symbol": "LCBooleanResult.error",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Result.swift",
+      "line": 42,
+      "symbol": "LCBooleanResult.isSuccess",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Result.swift",
+      "line": 58,
+      "symbol": "LCGenericResult",
+      "symbol_kind": "source.lang.swift.decl.enum",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Result.swift",
+      "line": 59,
+      "symbol": "LCGenericResult.success(value:)",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Result.swift",
+      "line": 60,
+      "symbol": "LCGenericResult.failure(error:)",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Result.swift",
+      "line": 62,
+      "symbol": "LCGenericResult.init(value:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Result.swift",
+      "line": 66,
+      "symbol": "LCGenericResult.init(error:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Result.swift",
+      "line": 70,
+      "symbol": "LCGenericResult.error",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Result.swift",
+      "line": 79,
+      "symbol": "LCGenericResult.value",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Result.swift",
+      "line": 88,
+      "symbol": "LCGenericResult.isSuccess",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Result.swift",
+      "line": 100,
+      "symbol": "LCValueResult.success(object:)",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Result.swift",
+      "line": 101,
+      "symbol": "LCValueResult.failure(error:)",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Result.swift",
+      "line": 103,
+      "symbol": "LCValueResult.init(error:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Result.swift",
+      "line": 145,
+      "symbol": "LCValueResult.error",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Result.swift",
+      "line": 154,
+      "symbol": "LCValueResult.isSuccess",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Result.swift",
+      "line": 161,
+      "symbol": "LCValueResult.object",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Result.swift",
+      "line": 175,
+      "symbol": "LCValueOptionalResult.success(object:)",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Result.swift",
+      "line": 176,
+      "symbol": "LCValueOptionalResult.failure(error:)",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Result.swift",
+      "line": 178,
+      "symbol": "LCValueOptionalResult.init(error:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Result.swift",
+      "line": 195,
+      "symbol": "LCValueOptionalResult.error",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Result.swift",
+      "line": 204,
+      "symbol": "LCValueOptionalResult.isSuccess",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Result.swift",
+      "line": 211,
+      "symbol": "LCValueOptionalResult.object",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Result.swift",
+      "line": 221,
+      "symbol": "LCQueryResult",
+      "symbol_kind": "source.lang.swift.decl.enum",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Result.swift",
+      "line": 222,
+      "symbol": "LCQueryResult.success(objects:)",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Result.swift",
+      "line": 223,
+      "symbol": "LCQueryResult.failure(error:)",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Result.swift",
+      "line": 225,
+      "symbol": "LCQueryResult.init(error:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Result.swift",
+      "line": 229,
+      "symbol": "LCQueryResult.error",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Result.swift",
+      "line": 238,
+      "symbol": "LCQueryResult.isSuccess",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Result.swift",
+      "line": 245,
+      "symbol": "LCQueryResult.objects",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Result.swift",
+      "line": 255,
+      "symbol": "LCCountResult",
+      "symbol_kind": "source.lang.swift.decl.enum",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Result.swift",
+      "line": 256,
+      "symbol": "LCCountResult.success(count:)",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Result.swift",
+      "line": 257,
+      "symbol": "LCCountResult.failure(error:)",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Result.swift",
+      "line": 259,
+      "symbol": "LCCountResult.init(error:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Result.swift",
+      "line": 271,
+      "symbol": "LCCountResult.error",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Result.swift",
+      "line": 280,
+      "symbol": "LCCountResult.isSuccess",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Result.swift",
+      "line": 287,
+      "symbol": "LCCountResult.intValue",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Result.swift",
+      "line": 297,
+      "symbol": "LCCQLResult",
+      "symbol_kind": "source.lang.swift.decl.enum",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Result.swift",
+      "line": 298,
+      "symbol": "LCCQLResult.success(value:)",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Result.swift",
+      "line": 299,
+      "symbol": "LCCQLResult.failure(error:)",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Result.swift",
+      "line": 301,
+      "symbol": "LCCQLResult.init(error:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Result.swift",
+      "line": 313,
+      "symbol": "LCCQLResult.error",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Result.swift",
+      "line": 322,
+      "symbol": "LCCQLResult.isSuccess",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Result.swift",
+      "line": 329,
+      "symbol": "LCCQLResult.objects",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Result.swift",
+      "line": 338,
+      "symbol": "LCCQLResult.count",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/String.swift",
+      "line": 17,
+      "symbol": "LCString.value",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/String.swift",
+      "line": 22,
+      "symbol": "LCString.init()",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/String.swift",
+      "line": 26,
+      "symbol": "LCString.init(_:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/String.swift",
+      "line": 31,
+      "symbol": "LCString.init(_:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/String.swift",
+      "line": 48,
+      "symbol": "LCString.init(coder:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/String.swift",
+      "line": 52,
+      "symbol": "LCString.encode(with:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/String.swift",
+      "line": 56,
+      "symbol": "LCString.copy(with:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/String.swift",
+      "line": 60,
+      "symbol": "LCString.isEqual(_:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/User.swift",
+      "line": 1207,
+      "symbol": "LCUser.AuthDataPlatform.qq",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/User.swift",
+      "line": 1208,
+      "symbol": "LCUser.AuthDataPlatform.weibo",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/User.swift",
+      "line": 1209,
+      "symbol": "LCUser.AuthDataPlatform.weixin",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/User.swift",
+      "line": 1210,
+      "symbol": "LCUser.AuthDataPlatform.apple",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/User.swift",
+      "line": 1211,
+      "symbol": "LCUser.AuthDataPlatform.custom(_:)",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/User.swift",
+      "line": 1213,
+      "symbol": "LCUser.AuthDataPlatform.key",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 32,
+      "symbol": "LCValue.intValue",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 33,
+      "symbol": "LCValue.uintValue",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 34,
+      "symbol": "LCValue.int8Value",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 35,
+      "symbol": "LCValue.uint8Value",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 36,
+      "symbol": "LCValue.int16Value",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 37,
+      "symbol": "LCValue.uint16Value",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 38,
+      "symbol": "LCValue.int32Value",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 39,
+      "symbol": "LCValue.uint32Value",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 40,
+      "symbol": "LCValue.int64Value",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 41,
+      "symbol": "LCValue.uint64Value",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 42,
+      "symbol": "LCValue.floatValue",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 43,
+      "symbol": "LCValue.doubleValue",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 44,
+      "symbol": "LCValue.boolValue",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 45,
+      "symbol": "LCValue.stringValue",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 46,
+      "symbol": "LCValue.arrayValue",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 47,
+      "symbol": "LCValue.dictionaryValue",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 48,
+      "symbol": "LCValue.dataValue",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 49,
+      "symbol": "LCValue.dateValue",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 53,
+      "symbol": "LCValue.intValue",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 58,
+      "symbol": "LCValue.uintValue",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 63,
+      "symbol": "LCValue.int8Value",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 68,
+      "symbol": "LCValue.uint8Value",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 73,
+      "symbol": "LCValue.int16Value",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 78,
+      "symbol": "LCValue.uint16Value",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 83,
+      "symbol": "LCValue.int32Value",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 88,
+      "symbol": "LCValue.uint32Value",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 93,
+      "symbol": "LCValue.int64Value",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 98,
+      "symbol": "LCValue.uint64Value",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 103,
+      "symbol": "LCValue.floatValue",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 108,
+      "symbol": "LCValue.doubleValue",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 113,
+      "symbol": "LCValue.boolValue",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 122,
+      "symbol": "LCValue.stringValue",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 126,
+      "symbol": "LCValue.arrayValue",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 130,
+      "symbol": "LCValue.dictionaryValue",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 134,
+      "symbol": "LCValue.dataValue",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 138,
+      "symbol": "LCValue.dateValue",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 222,
+      "symbol": "LCValueConvertible.intValue",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 226,
+      "symbol": "LCValueConvertible.uintValue",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 230,
+      "symbol": "LCValueConvertible.int8Value",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 234,
+      "symbol": "LCValueConvertible.uint8Value",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 238,
+      "symbol": "LCValueConvertible.int16Value",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 242,
+      "symbol": "LCValueConvertible.uint16Value",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 246,
+      "symbol": "LCValueConvertible.int32Value",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 250,
+      "symbol": "LCValueConvertible.uint32Value",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 254,
+      "symbol": "LCValueConvertible.int64Value",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 258,
+      "symbol": "LCValueConvertible.uint64Value",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 262,
+      "symbol": "LCValueConvertible.floatValue",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 266,
+      "symbol": "LCValueConvertible.doubleValue",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 270,
+      "symbol": "LCValueConvertible.boolValue",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 274,
+      "symbol": "LCValueConvertible.stringValue",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 278,
+      "symbol": "LCValueConvertible.arrayValue",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 282,
+      "symbol": "LCValueConvertible.dictionaryValue",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 286,
+      "symbol": "LCValueConvertible.dataValue",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 290,
+      "symbol": "LCValueConvertible.dateValue",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 299,
+      "symbol": "LCNullConvertible.lcNull",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 306,
+      "symbol": "LCNumberConvertible.lcNumber",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 313,
+      "symbol": "LCBoolConvertible.lcBool",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 320,
+      "symbol": "LCStringConvertible.lcString",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 327,
+      "symbol": "LCArrayConvertible.lcArray",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 334,
+      "symbol": "LCDictionaryConvertible.lcDictionary",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 341,
+      "symbol": "LCDataConvertible.lcData",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 348,
+      "symbol": "LCDateConvertible.lcDate",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 356,
+      "symbol": "NSNull.lcNull",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 366,
+      "symbol": "Int.lcNumber",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 370,
+      "symbol": "Int.stringValue",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 380,
+      "symbol": "UInt.lcNumber",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 384,
+      "symbol": "UInt.stringValue",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 394,
+      "symbol": "Int8.lcNumber",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 398,
+      "symbol": "Int8.stringValue",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 408,
+      "symbol": "UInt8.lcNumber",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 412,
+      "symbol": "UInt8.stringValue",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 422,
+      "symbol": "Int16.lcNumber",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 426,
+      "symbol": "Int16.stringValue",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 436,
+      "symbol": "UInt16.lcNumber",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 440,
+      "symbol": "UInt16.stringValue",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 450,
+      "symbol": "Int32.lcNumber",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 454,
+      "symbol": "Int32.stringValue",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 464,
+      "symbol": "UInt32.lcNumber",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 468,
+      "symbol": "UInt32.stringValue",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 478,
+      "symbol": "Int64.lcNumber",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 482,
+      "symbol": "Int64.stringValue",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 492,
+      "symbol": "UInt64.lcNumber",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 496,
+      "symbol": "UInt64.stringValue",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 506,
+      "symbol": "Float.lcNumber",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 510,
+      "symbol": "Float.stringValue",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 520,
+      "symbol": "Double.lcNumber",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 524,
+      "symbol": "Double.stringValue",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 534,
+      "symbol": "Bool.lcBool",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 544,
+      "symbol": "NSNumber.lcNumber",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 548,
+      "symbol": "NSNumber.lcBool",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 552,
+      "symbol": "NSNumber.stringValue",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 562,
+      "symbol": "String.lcString",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 572,
+      "symbol": "NSString.lcString",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 582,
+      "symbol": "URL.lcString",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 592,
+      "symbol": "NSURL.lcString",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 602,
+      "symbol": "Array.lcArray",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 612,
+      "symbol": "Dictionary.lcDictionary",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 622,
+      "symbol": "Data.lcData",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 632,
+      "symbol": "NSData.lcData",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 642,
+      "symbol": "Date.lcDate",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 652,
+      "symbol": "NSDate.lcDate",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 658,
+      "symbol": "LCNull.lcValue",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 662,
+      "symbol": "LCNull.lcNull",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 668,
+      "symbol": "LCNumber.lcValue",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 672,
+      "symbol": "LCNumber.lcNumber",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 678,
+      "symbol": "LCBool.lcValue",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 682,
+      "symbol": "LCBool.lcBool",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 688,
+      "symbol": "LCString.lcValue",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 692,
+      "symbol": "LCString.lcString",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 698,
+      "symbol": "LCArray.lcValue",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 702,
+      "symbol": "LCArray.lcArray",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 708,
+      "symbol": "LCDictionary.lcValue",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 712,
+      "symbol": "LCDictionary.lcDictionary",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 736,
+      "symbol": "LCData.lcValue",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 740,
+      "symbol": "LCData.lcData",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 746,
+      "symbol": "LCDate.lcValue",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Valuable.swift",
+      "line": 750,
+      "symbol": "LCDate.lcDate",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Version.swift",
+      "line": 11,
+      "symbol": "Version",
+      "symbol_kind": "source.lang.swift.decl.struct",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/Foundation/Version.swift",
+      "line": 12,
+      "symbol": "Version.versionString",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/Command.pb.swift",
+      "line": 2088,
+      "symbol": "IMLogsCommand.QueryDirection",
+      "symbol_kind": "source.lang.swift.decl.extension",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/Command.pb.swift",
+      "line": 4729,
+      "symbol": "IMLogsCommand.QueryDirection",
+      "symbol_kind": "source.lang.swift.decl.extension",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/IMClient.swift",
+      "line": 44,
+      "symbol": "IMClient.Identifier",
+      "symbol_kind": "source.lang.swift.decl.typealias",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/IMClient.swift",
+      "line": 88,
+      "symbol": "IMClient.SessionState.opened",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/IMClient.swift",
+      "line": 89,
+      "symbol": "IMClient.SessionState.resuming",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/IMClient.swift",
+      "line": 90,
+      "symbol": "IMClient.SessionState.paused",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/IMClient.swift",
+      "line": 91,
+      "symbol": "IMClient.SessionState.closing",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/IMClient.swift",
+      "line": 92,
+      "symbol": "IMClient.SessionState.closed",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/IMClient.swift",
+      "line": 1018,
+      "symbol": "IMClient.StoredConversationOrder.updatedTimestamp(descending:)",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/IMClient.swift",
+      "line": 1019,
+      "symbol": "IMClient.StoredConversationOrder.createdTimestamp(descending:)",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/IMClient.swift",
+      "line": 1020,
+      "symbol": "IMClient.StoredConversationOrder.lastMessageSentTimestamp(descending:)",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/IMClient.swift",
+      "line": 1330,
+      "symbol": "IMClient.newSessionCommand(op:token:signature:isReopen:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/IMClient.swift",
+      "line": 2630,
+      "symbol": "IMSignature",
+      "symbol_kind": "source.lang.swift.decl.struct",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/IMClient.swift",
+      "line": 2641,
+      "symbol": "IMSignature.Action.open",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/IMClient.swift",
+      "line": 2642,
+      "symbol": "IMSignature.Action.createConversation(memberIDs:)",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/IMClient.swift",
+      "line": 2643,
+      "symbol": "IMSignature.Action.add(memberIDs:toConversation:)",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/IMClient.swift",
+      "line": 2644,
+      "symbol": "IMSignature.Action.remove(memberIDs:fromConversation:)",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/IMClient.swift",
+      "line": 2645,
+      "symbol": "IMSignature.Action.conversationBlocking(_:blockedMemberIDs:)",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/IMClient.swift",
+      "line": 2646,
+      "symbol": "IMSignature.Action.conversationUnblocking(_:unblockedMemberIDs:)",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/IMConversation.swift",
+      "line": 14,
+      "symbol": "IMConversation.RawData",
+      "symbol_kind": "source.lang.swift.decl.typealias",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/IMConversation.swift",
+      "line": 604,
+      "symbol": "IMConversation.insertFailedMessageToCache(_:completion:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/IMConversation.swift",
+      "line": 612,
+      "symbol": "IMConversation.removeFailedMessageFromCache(_:completion:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/IMConversation.swift",
+      "line": 1296,
+      "symbol": "IMConversation.MessageQueryDirection.newToOld",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/IMConversation.swift",
+      "line": 1297,
+      "symbol": "IMConversation.MessageQueryDirection.oldToNew",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/IMConversation.swift",
+      "line": 1325,
+      "symbol": "IMConversation.MessageQueryPolicy.default",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/IMConversation.swift",
+      "line": 1326,
+      "symbol": "IMConversation.MessageQueryPolicy.onlyNetwork",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/IMConversation.swift",
+      "line": 1328,
+      "symbol": "IMConversation.MessageQueryPolicy.onlyCache",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/IMConversation.swift",
+      "line": 1329,
+      "symbol": "IMConversation.MessageQueryPolicy.cacheThenNetwork",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/IMConversation.swift",
+      "line": 1606,
+      "symbol": "IMConversation.MemberResult.allSucceeded",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/IMConversation.swift",
+      "line": 1607,
+      "symbol": "IMConversation.MemberResult.failure(error:)",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/IMConversation.swift",
+      "line": 1608,
+      "symbol": "IMConversation.MemberResult.slicing(success:failure:)",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/IMConversation.swift",
+      "line": 1610,
+      "symbol": "IMConversation.MemberResult.isSuccess",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/IMConversation.swift",
+      "line": 1619,
+      "symbol": "IMConversation.MemberResult.error",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/IMConversation.swift",
+      "line": 1628,
+      "symbol": "IMConversation.MemberResult.init(error:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/IMConversation.swift",
+      "line": 1890,
+      "symbol": "IMConversation.MemberRole.owner",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/IMConversation.swift",
+      "line": 1891,
+      "symbol": "IMConversation.MemberRole.manager",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/IMConversation.swift",
+      "line": 1892,
+      "symbol": "IMConversation.MemberRole.member",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/IMConversation.swift",
+      "line": 2153,
+      "symbol": "IMConversation.BlockedMembersResult",
+      "symbol_kind": "source.lang.swift.decl.typealias",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/IMConversation.swift",
+      "line": 2295,
+      "symbol": "IMConversation.MutedMembersResult",
+      "symbol_kind": "source.lang.swift.decl.typealias",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/IMConversation.swift",
+      "line": 2878,
+      "symbol": "IMChatRoom.MessagePriority.high",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/IMConversation.swift",
+      "line": 2879,
+      "symbol": "IMChatRoom.MessagePriority.normal",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/IMConversation.swift",
+      "line": 2880,
+      "symbol": "IMChatRoom.MessagePriority.low",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/IMMessage.swift",
+      "line": 22,
+      "symbol": "IMMessage.IOType.in",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/IMMessage.swift",
+      "line": 23,
+      "symbol": "IMMessage.IOType.out",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/IMMessage.swift",
+      "line": 44,
+      "symbol": "IMMessage.Status.failed",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/IMMessage.swift",
+      "line": 45,
+      "symbol": "IMMessage.Status.none",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/IMMessage.swift",
+      "line": 46,
+      "symbol": "IMMessage.Status.sending",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/IMMessage.swift",
+      "line": 47,
+      "symbol": "IMMessage.Status.sent",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/IMMessage.swift",
+      "line": 48,
+      "symbol": "IMMessage.Status.delivered",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/IMMessage.swift",
+      "line": 49,
+      "symbol": "IMMessage.Status.read",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/IMMessage.swift",
+      "line": 103,
+      "symbol": "IMMessage.PatchedReason.code",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/IMMessage.swift",
+      "line": 104,
+      "symbol": "IMMessage.PatchedReason.reason",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/IMMessage.swift",
+      "line": 140,
+      "symbol": "IMMessage.Content.string(_:)",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/IMMessage.swift",
+      "line": 141,
+      "symbol": "IMMessage.Content.data(_:)",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/IMMessage.swift",
+      "line": 143,
+      "symbol": "IMMessage.Content.string",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/IMMessage.swift",
+      "line": 150,
+      "symbol": "IMMessage.Content.data",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/IMMessage.swift",
+      "line": 173,
+      "symbol": "IMMessage.init()",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/IMMessage.swift",
+      "line": 248,
+      "symbol": "IMMessage.padding(unsafeFlutterObject:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/IMMessage.swift",
+      "line": 305,
+      "symbol": "IMCategorizedMessage.ReservedType.none",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/IMMessage.swift",
+      "line": 306,
+      "symbol": "IMCategorizedMessage.ReservedType.text",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/IMMessage.swift",
+      "line": 307,
+      "symbol": "IMCategorizedMessage.ReservedType.image",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/IMMessage.swift",
+      "line": 308,
+      "symbol": "IMCategorizedMessage.ReservedType.audio",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/IMMessage.swift",
+      "line": 309,
+      "symbol": "IMCategorizedMessage.ReservedType.video",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/IMMessage.swift",
+      "line": 310,
+      "symbol": "IMCategorizedMessage.ReservedType.location",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/IMMessage.swift",
+      "line": 311,
+      "symbol": "IMCategorizedMessage.ReservedType.file",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/IMMessage.swift",
+      "line": 312,
+      "symbol": "IMCategorizedMessage.ReservedType.recalled",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/IMMessage.swift",
+      "line": 355,
+      "symbol": "IMCategorizedMessage.init()",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/IMMessage.swift",
+      "line": 359,
+      "symbol": "IMCategorizedMessage.init(application:data:format:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/IMMessage.swift",
+      "line": 373,
+      "symbol": "IMCategorizedMessage.init(application:filePath:format:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/IMMessage.swift",
+      "line": 387,
+      "symbol": "IMCategorizedMessage.init(application:url:format:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/IMMessage.swift",
+      "line": 405,
+      "symbol": "IMCategorizedMessage.rawData",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/IMMessage.swift",
+      "line": 624,
+      "symbol": "IMTextMessage.init()",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/IMMessage.swift",
+      "line": 628,
+      "symbol": "IMTextMessage.init(text:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/IMMessage.swift",
+      "line": 804,
+      "symbol": "IMLocationMessage.init()",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/IMMessage.swift",
+      "line": 808,
+      "symbol": "IMLocationMessage.init(latitude:longitude:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/IMMessage.swift",
+      "line": 849,
+      "symbol": "IMRecalledMessage.init()",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/LiveQuery.swift",
+      "line": 11,
+      "symbol": "LiveQuery",
+      "symbol_kind": "source.lang.swift.decl.class",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/LiveQuery.swift",
+      "line": 13,
+      "symbol": "LiveQuery.Event",
+      "symbol_kind": "source.lang.swift.decl.enum",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/LiveQuery.swift",
+      "line": 14,
+      "symbol": "LiveQuery.Event.create(object:)",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/LiveQuery.swift",
+      "line": 15,
+      "symbol": "LiveQuery.Event.update(object:updatedKeys:)",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/LiveQuery.swift",
+      "line": 16,
+      "symbol": "LiveQuery.Event.enter(object:updatedKeys:)",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/LiveQuery.swift",
+      "line": 17,
+      "symbol": "LiveQuery.Event.leave(object:updatedKeys:)",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/LiveQuery.swift",
+      "line": 18,
+      "symbol": "LiveQuery.Event.delete(object:)",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/LiveQuery.swift",
+      "line": 20,
+      "symbol": "LiveQuery.Event.login(user:)",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/LiveQuery.swift",
+      "line": 22,
+      "symbol": "LiveQuery.Event.State",
+      "symbol_kind": "source.lang.swift.decl.enum",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/LiveQuery.swift",
+      "line": 23,
+      "symbol": "LiveQuery.Event.State.disconnected",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/LiveQuery.swift",
+      "line": 24,
+      "symbol": "LiveQuery.Event.State.subscribing",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/LiveQuery.swift",
+      "line": 25,
+      "symbol": "LiveQuery.Event.State.subscribed",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/LiveQuery.swift",
+      "line": 26,
+      "symbol": "LiveQuery.Event.State.failureOnSubscribe(error:)",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/LiveQuery.swift",
+      "line": 29,
+      "symbol": "LiveQuery.Event.state(_:)",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/LiveQuery.swift",
+      "line": 40,
+      "symbol": "LiveQuery.application",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/LiveQuery.swift",
+      "line": 42,
+      "symbol": "LiveQuery.query",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/LiveQuery.swift",
+      "line": 44,
+      "symbol": "LiveQuery.eventQueue",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/LiveQuery.swift",
+      "line": 46,
+      "symbol": "LiveQuery.eventHandler",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/LiveQuery.swift",
+      "line": 63,
+      "symbol": "LiveQuery.init(application:query:eventQueue:eventHandler:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/LiveQuery.swift",
+      "line": 83,
+      "symbol": "LiveQuery.subscribe(completion:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/runner/work/swift-sdk/swift-sdk/Sources/RTM/LiveQuery.swift",
+      "line": 146,
+      "symbol": "LiveQuery.unsubscribe(completion:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    }
+  ],
+  "source_directory": "/Users/runner/work/swift-sdk/swift-sdk"
+}
